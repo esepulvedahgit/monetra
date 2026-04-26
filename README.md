@@ -1,6 +1,6 @@
 # 💰 Monetra
 
-![Monetra](./site_finanzas/imagen_gitgub.png)
+![Monetra](imagen_gitgub.png)
 
 Aplicación de **finanzas personales** desarrollada en Flask, orientada a gestionar ingresos, gastos y presupuestos de forma clara y eficiente.
 
