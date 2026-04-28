@@ -1,6 +1,10 @@
 # 💰 Monetra
 
+<<<<<<< HEAD
 ![Monetra](./site_finanzas/imagen_gitgub.png)
+=======
+![Monetra](imagen_gitgub.png)
+>>>>>>> dcbc2004897f075e68405c4c07aa2c7d2b07c080
 
 Aplicación de **finanzas personales** desarrollada en Flask, orientada a gestionar ingresos, gastos y presupuestos de forma clara y eficiente.
 
@@ -32,4 +36,8 @@ Aplicación de **finanzas personales** desarrollada en Flask, orientada a gestio
 Desde la carpeta `docker`:
 
 ```bash
+<<<<<<< HEAD
 docker compose up -d --build
+=======
+docker compose up -d --build
+>>>>>>> dcbc2004897f075e68405c4c07aa2c7d2b07c080
