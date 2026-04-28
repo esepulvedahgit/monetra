@@ -1,0 +1,47 @@
+services:
+  flask:
+    build:
+      context: ../site_finanzas
+      dockerfile: Dockerfile
+    container_name: flask_finanzas
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ../site_finanzas:/app
+      - /app/venv
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../site_finanzas/.env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - finanzas_net
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_finanzas_db
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MYSQL_DATABASE: finanzas_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_finanzas_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${MYSQL_USER:-finanzas_user}", "-p${MYSQL_PASSWORD:-FinanzasPass123!}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - finanzas_net
+
+volumes:
+  mysql_finanzas_data:
+
+networks:
+  finanzas_net:

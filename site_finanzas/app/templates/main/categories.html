@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% from 'partials/hint.html' import hint with context %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0 fw-bold"><i class="bi bi-tags text-primary"></i> {{ _('Categorías') }}{{ hint(_('Organiza ingresos y gastos en categorías. Las globales (sin propietario) aplican a todos los usuarios.')) }}</h2>
+</div>
+
+<div class="row g-4">
+    <!-- Formulario nueva categoría -->
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">
+                <i class="bi bi-plus-circle text-success"></i> {{ _('Nueva Categoría') }}
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label fw-semibold") }}
+                        {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""),
+                                    placeholder=_('Ej: Gimnasio, Mascotas...')) }}
+                        {% for e in form.name.errors %}
+                        <div class="invalid-feedback">{{ e }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.type.label(class="form-label fw-semibold") }}
+                        {{ form.type(class="form-select" + (" is-invalid" if form.type.errors else "")) }}
+                        {% for e in form.type.errors %}
+                        <div class="invalid-feedback">{{ e }}</div>
+                        {% endfor %}
+                    </div>
+                    {{ form.submit(class="btn btn-primary w-100") }}
+                </form>
+                <p class="text-muted small mt-3 mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    {{ _('Las categorías marcadas como "global" son compartidas para todos los usuarios.') }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Listado de categorías -->
+    <div class="col-md-8">
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-danger text-white fw-semibold">
+                        <i class="bi bi-arrow-down-circle-fill"></i> {{ _('Categorías de Gastos') }}
+                        <span class="badge bg-white text-danger ms-2">{{ expense_cats|length }}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for c in expense_cats %}
+                            <span class="badge rounded-pill border border-danger text-danger bg-white px-3 py-2 fs-6">
+                                {{ c.name }}
+                                {% if c.user_id %}<small class="opacity-50">({{ _('tuya') }})</small>{% endif %}
+                            </span>
+                            {% else %}
+                            <span class="text-muted fst-italic">{{ _('Sin categorías de gastos.') }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white fw-semibold">
+                        <i class="bi bi-arrow-up-circle-fill"></i> {{ _('Categorías de Ingresos') }}
+                        <span class="badge bg-white text-success ms-2">{{ income_cats|length }}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for c in income_cats %}
+                            <span class="badge rounded-pill border border-success text-success bg-white px-3 py-2 fs-6">
+                                {{ c.name }}
+                                {% if c.user_id %}<small class="opacity-50">({{ _('tuya') }})</small>{% endif %}
+                            </span>
+                            {% else %}
+                            <span class="text-muted fst-italic">{{ _('Sin categorías de ingresos.') }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

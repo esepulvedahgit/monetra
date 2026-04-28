@@ -1,0 +1,49 @@
+{% extends 'auth_base.html' %}
+{% block content %}
+
+<div class="auth-layout">
+
+    <div class="auth-brand">
+        <img src="{{ url_for('static', filename='img/monetra-icon.png') }}" alt="Monetra"
+            class="monetra-icon-glow auth-logo">
+        <h1>Monetra</h1>
+        <p>{{ _('Verificación en dos pasos') }}</p>
+    </div>
+
+    <div class="auth-card p-4">
+        <div class="text-center mb-4">
+            <i class="bi bi-shield-lock-fill" style="font-size: 2.5rem; color: var(--monetra-primary, #00C896);"></i>
+            <h5 class="fw-semibold text-white mt-2" style="font-size: 0.95rem; opacity: 0.85;">
+                {{ _('Ingresa el código de tu aplicación autenticadora') }}
+            </h5>
+        </div>
+
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="mb-4">
+                {{ form.code.label(class="form-label") }}
+                {{ form.code(class="form-control text-center font-monospace fs-4 " + ("is-invalid" if form.code.errors else ""),
+                    placeholder="000000",
+                    inputmode="numeric",
+                    autocomplete="one-time-code",
+                    maxlength="6",
+                    autofocus=true) }}
+                {% for e in form.code.errors %}
+                <div class="invalid-feedback">{{ e }}</div>
+                {% endfor %}
+            </div>
+
+            {{ form.submit(class="btn btn-monetra-primary w-100 py-2 fs-6") }}
+        </form>
+
+        <div class="text-center mt-3">
+            <a href="{{ url_for('auth.login') }}" style="font-size: 0.88rem; color: var(--monetra-text-soft);">
+                <i class="bi bi-arrow-left"></i> {{ _('Volver al inicio de sesión') }}
+            </a>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% from 'partials/hint.html' import hint with context %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">
+                <i class="bi bi-pencil-square text-primary"></i> {{ title }}
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" id="transactionForm" novalidate>
+                    {{ form.hidden_tag() }}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {{ form.type.label(class="form-label fw-semibold") }}{{ hint(_('¿Es dinero que entra o sale? Cambia las categorías disponibles y afecta el dashboard.')) }}
+                            {{ form.type(class="form-select" + (" is-invalid" if form.type.errors else ""),
+                                        id="typeSelect") }}
+                            {% for e in form.type.errors %}
+                            <div class="invalid-feedback">{{ e }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.amount.label(class="form-label fw-semibold") }}
+                            <div class="input-group">
+                                <span class="input-group-text">{{ currency_symbol }}</span>
+                                {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""),
+                                              placeholder="0.00") }}
+                                {% if form.amount.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for e in form.amount.errors %}{{ e }}{% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.category_id.label(class="form-label fw-semibold") }}
+                            {{ form.category_id(class="form-select" + (" is-invalid" if form.category_id.errors else ""),
+                                               id="categorySelect") }}
+                            {% for e in form.category_id.errors %}
+                            <div class="invalid-feedback">{{ e }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.date.label(class="form-label fw-semibold") }}{{ hint(_('Solo el mes activo. Para ajustes de meses pasados, usa edición desde el listado.')) }}
+                            {{ form.date(class="form-control" + (" is-invalid" if form.date.errors else ""),
+                                         min=date_min, max=date_max) }}
+                            {% for e in form.date.errors %}
+                            <div class="invalid-feedback">{{ e }}</div>
+                            {% endfor %}
+                            <div class="form-text">{{ _('Solo fechas de %(month)s %(year)s.', month=date_month_name, year=date_year) }}</div>
+                        </div>
+                        <div class="col-12">
+                            {{ form.description.label(class="form-label fw-semibold") }}
+                            {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""),
+                                               rows=3, placeholder=_('Descripción opcional...')) }}
+                            {% for e in form.description.errors %}
+                            <div class="invalid-feedback">{{ e }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ url_for('main.transactions') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> {{ _('Cancelar') }}
+                        </a>
+                        {{ form.submit(class="btn btn-primary px-4") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const allCategories = {{ cats_json|safe }};
+    const typeSelect = document.getElementById('typeSelect');
+    const categorySelect = document.getElementById('categorySelect');
+    const currentCatId = {{ form.category_id.data|tojson }};
+    const noCategMsg = {{ _('Sin categorías disponibles')|tojson }};
+
+    function filterCategories() {
+        const selectedType = typeSelect.value;
+        const filtered = allCategories.filter(c => c.type === selectedType);
+        categorySelect.innerHTML = '';
+        filtered.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            if (c.id === currentCatId) opt.selected = true;
+            categorySelect.appendChild(opt);
+        });
+        if (!filtered.length) {
+            const placeholder = document.createElement('option');
+            placeholder.textContent = noCategMsg;
+            placeholder.disabled = true;
+            categorySelect.appendChild(placeholder);
+        }
+    }
+
+    typeSelect.addEventListener('change', filterCategories);
+    filterCategories();
+</script>
+{% endblock %}

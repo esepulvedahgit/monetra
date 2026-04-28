@@ -1,0 +1,809 @@
+/* ═══════════════════════════════════════════════════
+   Monetra — Design System v2 (Dark Mode)
+   Tu dinero. Tu control. Tu futuro.
+═══════════════════════════════════════════════════ */
+
+/* ── Base ─────────────────────────────────────────── */
+body {
+  background: linear-gradient(135deg, var(--monetra-bg-dark) 0%, var(--monetra-bg) 45%, var(--monetra-bg-soft) 75%, var(--monetra-bg-accent) 100%);
+  background-attachment: fixed;
+  color: var(--monetra-text, #FFFFFF);
+  min-height: 100vh;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--monetra-text, #FFFFFF);
+}
+
+/* Bootstrap text utilities → paleta Monetra */
+.text-muted {
+  color: var(--monetra-text-soft) !important;
+}
+
+.text-dark {
+  color: #D0DDE3 !important;
+}
+
+.text-success {
+  color: #34D399 !important;
+}
+
+.text-danger {
+  color: #f87171 !important;
+}
+
+.text-primary {
+  color: var(--monetra-green) !important;
+}
+
+.text-info {
+  color: #38BDF8 !important;
+}
+
+.text-warning {
+  color: var(--monetra-gold) !important;
+}
+
+.text-white {
+  color: #FFFFFF !important;
+}
+
+/* ── Navbar Monetra ───────────────────────────────── */
+.monetra-navbar {
+  background: var(--navbar-bg) !important;
+  border-bottom: 1px solid var(--navbar-border);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 1030;
+}
+
+.monetra-navbar .navbar-brand {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: var(--monetra-text, #FFFFFF) !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.monetra-navbar .navbar-brand img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(242, 201, 76, 0.55))
+          drop-shadow(0 0 14px rgba(242, 201, 76, 0.2));
+  transition: filter 0.25s ease, transform 0.25s ease;
+}
+
+.monetra-navbar .navbar-brand:hover img {
+  filter: drop-shadow(0 0 8px rgba(242, 201, 76, 0.75))
+          drop-shadow(0 0 20px rgba(242, 201, 76, 0.3));
+  transform: scale(1.08);
+}
+
+.monetra-navbar .nav-link {
+  color: var(--monetra-text-soft) !important;
+  font-weight: 500;
+  padding: 0.4rem 0.7rem;
+  border-radius: 0.4rem;
+  transition: color 0.18s, background 0.18s;
+}
+
+.monetra-navbar .nav-link:hover,
+.monetra-navbar .nav-link.active {
+  color: var(--monetra-green) !important;
+  background: var(--surface-hover);
+}
+
+.monetra-navbar .nav-link.dropdown-toggle {
+  color: var(--monetra-text-soft) !important;
+}
+
+.monetra-navbar .nav-link.dropdown-toggle:hover {
+  color: var(--monetra-gold) !important;
+}
+
+.monetra-navbar .dropdown-menu {
+  background: var(--dropdown-bg);
+  border: 1px solid rgba(31, 224, 176, 0.15);
+  border-radius: 0.75rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  padding: 0.4rem 0;
+}
+
+.monetra-navbar .dropdown-item {
+  color: var(--monetra-text-soft);
+  font-size: 0.88rem;
+  padding: 0.55rem 1rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.monetra-navbar .dropdown-item:hover {
+  background: var(--surface-hover);
+  color: var(--monetra-green);
+}
+
+.monetra-navbar .dropdown-item.text-danger {
+  color: #f87171 !important;
+}
+
+.monetra-navbar .dropdown-item.text-danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #EF4444 !important;
+}
+
+.monetra-navbar .dropdown-divider {
+  border-color: rgba(255, 255, 255, 0.07);
+}
+
+/* ── Main content ─────────────────────────────────── */
+main.py-4 {
+  padding-top: 2rem !important;
+}
+
+/* ── Cards (dark glass) ───────────────────────────── */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+  color: var(--monetra-text, #FFFFFF);
+}
+
+.card-header {
+  background: var(--card-header-bg, rgba(7, 14, 30, 0.65));
+  border-bottom: 1px solid var(--card-border);
+  border-radius: 1rem 1rem 0 0 !important;
+  padding: 0.9rem 1.25rem;
+  color: var(--monetra-text, #FFFFFF);
+  font-weight: 600;
+}
+
+.card-footer {
+  background: rgba(7, 14, 30, 0.45);
+  border-top: 1px solid var(--card-border);
+  padding: 0.65rem 1.25rem;
+}
+
+/* Summary cards hover */
+.col-sm-6 .card,
+.col-xl-3 .card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.col-sm-6 .card:hover,
+.col-xl-3 .card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.38);
+}
+
+/* ── Financial summary cards ──────────────────────── */
+.card-income {
+  background: linear-gradient(135deg, #00A67E, #00C896) !important;
+  border: none !important;
+  color: #070E1E !important;
+}
+
+.card-income * {
+  color: #070E1E !important;
+  opacity: 1 !important;
+}
+
+.card-income .opacity-75 {
+  opacity: 0.65 !important;
+}
+
+.card-expense {
+  background: linear-gradient(135deg, #991B1B, #EF4444) !important;
+  border: none !important;
+  color: #FFFFFF !important;
+}
+
+.card-balance {
+  background: linear-gradient(135deg, #070E1E, #102040) !important;
+  border: none !important;
+  border-left: 5px solid var(--monetra-gold) !important;
+  color: #FFFFFF !important;
+}
+
+.card-budget {
+  background: linear-gradient(135deg, #0A1428, #0D1B35) !important;
+  border: none !important;
+  border-left: 5px solid var(--monetra-green) !important;
+  color: #FFFFFF !important;
+}
+
+/* ── Tables ───────────────────────────────────────── */
+
+/*
+  Bootstrap 5.3 usa CSS custom properties para colorear celdas:
+    background-color: var(--bs-table-bg)
+    box-shadow: inset 0 0 0 9999px var(--bs-table-accent-bg)
+  Para pisar todo el sistema de variables Bootstrap, redefino
+  TODAS las variables relevantes en el propio .table.
+*/
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--monetra-text, #FFFFFF);
+  --bs-table-border-color: var(--table-border, rgba(255, 255, 255, 0.06));
+  --bs-table-accent-bg: transparent;
+  --bs-table-hover-bg: rgba(0, 200, 150, 0.07);
+  --bs-table-hover-color: var(--monetra-text, #FFFFFF);
+  --bs-table-striped-bg: rgba(255, 255, 255, 0.02);
+  --bs-table-striped-color: var(--monetra-text, #FFFFFF);
+  --bs-table-active-bg: rgba(0, 200, 150, 0.1);
+  --bs-table-active-color: var(--monetra-text, #FFFFFF);
+  color: var(--monetra-text, #FFFFFF);
+}
+
+.table th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: var(--monetra-text-muted);
+}
+
+.table td,
+.table th {
+  font-size: 0.9rem;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Clases propias que reemplazan table-light / table-dark en los templates */
+.mtr-thead {
+  background-color: rgba(4, 14, 20, 0.92) !important;
+  color: var(--monetra-text-muted);
+  --bs-table-bg: rgba(4, 14, 20, 0.92) !important;
+  --bs-table-color: var(--monetra-text-muted) !important;
+}
+
+.mtr-thead th {
+  color: var(--monetra-text-muted) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: transparent !important;
+}
+
+.mtr-tfoot {
+  background-color: rgba(7, 14, 30, 0.75) !important;
+  color: var(--monetra-text-soft);
+  --bs-table-bg: rgba(7, 14, 30, 0.75) !important;
+  --bs-table-color: var(--monetra-text-soft) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.mtr-tfoot td {
+  color: var(--monetra-text-soft) !important;
+  background: transparent !important;
+}
+
+/* Hover rows */
+.table-hover tbody tr:hover>* {
+  --bs-table-bg-state: rgba(0, 200, 150, 0.07) !important;
+  color: #FFFFFF !important;
+}
+
+/* Columnas text-success y text-danger dentro de tablas oscuras */
+.table .text-success {
+  color: #34D399 !important;
+}
+
+.table .text-danger {
+  color: #f87171 !important;
+}
+
+/* ── Badges ───────────────────────────────────────── */
+.badge {
+  font-weight: 500;
+}
+
+.badge.bg-success {
+  background-color: var(--monetra-green) !important;
+  color: #070E1E !important;
+}
+
+.badge.bg-danger {
+  background-color: #EF4444 !important;
+}
+
+.badge.bg-secondary {
+  background: rgba(120, 144, 156, 0.25) !important;
+  color: #B0BEC5 !important;
+}
+
+.badge.bg-light {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #D0DDE3 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.badge.bg-primary {
+  background-color: var(--monetra-bg-accent) !important;
+  color: var(--monetra-green) !important;
+}
+
+.badge.bg-info {
+  background-color: rgba(56, 189, 248, 0.2) !important;
+  color: #38BDF8 !important;
+}
+
+/* ── Progress ─────────────────────────────────────── */
+.progress {
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.progress-bar {
+  transition: width 0.7s ease;
+  border-radius: 12px;
+}
+
+/* ── Buttons ──────────────────────────────────────── */
+.btn {
+  border-radius: 0.55rem;
+  font-weight: 600;
+}
+
+.btn-success,
+.btn-primary {
+  background-color: var(--monetra-green) !important;
+  border-color: var(--monetra-green) !important;
+  color: #070E1E !important;
+}
+
+.btn-success:hover,
+.btn-primary:hover {
+  background-color: var(--monetra-green-light) !important;
+  border-color: var(--monetra-green-light) !important;
+  color: #070E1E !important;
+  box-shadow: 0 4px 16px rgba(0, 200, 150, 0.35);
+}
+
+.btn-outline-primary {
+  border-color: var(--monetra-green) !important;
+  color: var(--monetra-green) !important;
+  background: transparent !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--monetra-green) !important;
+  color: #070E1E !important;
+}
+
+.btn-outline-secondary {
+  border-color: rgba(120, 144, 156, 0.45) !important;
+  color: var(--monetra-text-muted) !important;
+  background: transparent !important;
+}
+
+.btn-outline-secondary:hover {
+  background: rgba(120, 144, 156, 0.12) !important;
+  color: var(--monetra-text-soft) !important;
+}
+
+.btn-outline-light {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.btn-outline-light:hover {
+  background: rgba(0, 200, 150, 0.12) !important;
+  border-color: var(--monetra-green) !important;
+  color: var(--monetra-green) !important;
+}
+
+.btn-outline-danger {
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  color: #f87171 !important;
+  background: transparent !important;
+}
+
+.btn-outline-danger:hover {
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #EF4444 !important;
+}
+
+.btn-danger {
+  background-color: #EF4444 !important;
+  border-color: #EF4444 !important;
+  color: #FFFFFF !important;
+}
+
+.btn-secondary {
+  background: rgba(120, 144, 156, 0.2) !important;
+  border-color: rgba(120, 144, 156, 0.3) !important;
+  color: var(--monetra-text-soft) !important;
+}
+
+/* Auth-specific button */
+.btn-monetra-primary {
+  background: var(--monetra-green);
+  color: #070E1E !important;
+  font-weight: 700;
+  border: none;
+  border-radius: 0.65rem;
+  letter-spacing: 0.02em;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+  text-decoration: none !important;
+}
+
+.btn-monetra-primary:hover {
+  background: var(--monetra-green-light);
+  color: #070E1E !important;
+  box-shadow: 0 4px 18px rgba(0, 200, 150, 0.35);
+  transform: translateY(-1px);
+  text-decoration: none !important;
+}
+
+/* ── Form controls (dark) ─────────────────────────── */
+.form-control,
+.form-select {
+  background-color: rgba(7, 14, 30, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+  border-radius: 0.55rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: rgba(7, 14, 30, 0.85);
+  border-color: var(--monetra-green);
+  box-shadow: 0 0 0 3px rgba(0, 200, 150, 0.2);
+  color: #FFFFFF;
+}
+
+.form-control::placeholder {
+  color: var(--monetra-text-muted);
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: #EF4444;
+}
+
+.form-label {
+  color: var(--monetra-text-soft);
+  font-size: 0.83rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.form-text {
+  color: var(--monetra-text-muted) !important;
+}
+
+.form-check-input {
+  background-color: rgba(7, 14, 30, 0.7);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.form-check-input:checked {
+  background-color: var(--monetra-green);
+  border-color: var(--monetra-green);
+}
+
+.form-check-label {
+  color: var(--monetra-text-muted);
+}
+
+.input-group-text {
+  background: rgba(7, 14, 30, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--monetra-green);
+  font-weight: 700;
+}
+
+/* Navbar period selects (override with inline styles already set) */
+.monetra-navbar .form-select {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  color: #fff !important;
+}
+
+/* ── Alerts ───────────────────────────────────────── */
+.alert {
+  border-radius: 0.75rem;
+}
+
+.alert-info {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.25);
+  color: #7dd3fc;
+}
+
+.alert-success {
+  background: rgba(0, 200, 150, 0.1);
+  border-color: rgba(0, 200, 150, 0.25);
+  color: #6ee7b7;
+}
+
+.alert-danger {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+}
+
+.alert-warning {
+  background: rgba(242, 201, 76, 0.1);
+  border-color: rgba(242, 201, 76, 0.25);
+  color: #fde68a;
+}
+
+.alert .btn-close {
+  filter: invert(1) grayscale(1) brightness(2);
+}
+
+/* ── Modals ───────────────────────────────────────── */
+.modal-content {
+  background: #0D2535;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  color: #FFFFFF;
+}
+
+.modal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-header .btn-close {
+  filter: invert(1) grayscale(1) brightness(2);
+}
+
+.modal-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-content .form-text {
+  color: var(--monetra-text-muted) !important;
+}
+
+/* ── Auth pages ───────────────────────────────────── */
+.monetra-auth-body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #070E1E 0%, #0A1428 40%, #0D1B35 70%, #102040 100%);
+  background-attachment: fixed;
+  display: flex;
+  flex-direction: column;
+  color: #FFFFFF;
+}
+
+/* ── Layout principal (branding + form) ───────────── */
+
+.auth-layout {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 44px;
+}
+
+/* ── Branding ─────────────────────────────────────── */
+
+.auth-brand {
+  width: 400px;
+  text-align: center;
+}
+
+.auth-brand h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin-top: 6px;
+  margin-bottom: 4px;
+  letter-spacing: -0.02em;
+}
+
+.auth-brand p {
+  color: var(--monetra-green);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0;
+  margin-top: 4px;
+}
+
+/* ── Logo ─────────────────────────────────────────── */
+
+.auth-logo {
+  width: 160px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+/* ── Logo glow ────────────────────────────────────── */
+
+.monetra-icon-glow {
+  filter: drop-shadow(0 0 8px rgba(242, 201, 76, 0.35));
+}
+
+/* ── Card formulario ─────────────────────────────── */
+
+.auth-card {
+  width: 400px;
+  background: rgba(13, 27, 53, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 200, 150, 0.15);
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.55);
+}
+
+/* ── Inputs ───────────────────────────────────────── */
+
+.auth-card .form-label {
+  color: var(--monetra-text-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.auth-card .form-control {
+  background: rgba(7, 14, 30, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-radius: 0.65rem;
+  padding: 0.65rem 0.9rem;
+}
+
+.auth-card .form-control:focus {
+  background: rgba(7, 14, 30, 0.9);
+  border-color: var(--monetra-green);
+  box-shadow: 0 0 0 3px rgba(0, 200, 150, 0.2);
+  color: #fff;
+}
+
+.auth-card .form-control::placeholder {
+  color: var(--monetra-text-muted);
+}
+
+/* ── Links / hr ───────────────────────────────────── */
+
+.auth-card hr {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.auth-card a {
+  color: var(--monetra-green);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-card a:hover {
+  color: var(--monetra-green-light);
+  text-decoration: underline;
+}
+
+/* ── Responsive ───────────────────────────────────── */
+
+@media (max-width: 768px) {
+
+  .auth-layout {
+    align-items: center;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .auth-brand {
+    width: 100%;
+    transform: translateY(20px);
+    text-align: center;
+  }
+
+  .auth-logo {
+    width: 140px;
+    margin: 0 auto 10px auto;
+  }
+
+  .auth-card {
+    width: 100%;
+    max-width: 400px;
+
+  }
+
+}
+
+@media (max-width: 576px) {
+
+  h2 {
+    font-size: 1.35rem;
+  }
+
+  .table-responsive {
+    font-size: 0.82rem;
+  }
+
+  .monetra-navbar .navbar-brand span.brand-name {
+    display: none;
+  }
+
+}
+
+/* ── Mobile nav drawer (overlay) ─────────────────── */
+@media (max-width: 991.98px) {
+
+  .monetra-navbar .navbar-collapse {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh !important;
+    width: min(85vw, 320px);
+    z-index: 1050;
+    overflow-y: auto;
+    background:
+      radial-gradient(ellipse at top left, rgba(0, 200, 150, 0.2) 0%, transparent 55%),
+      linear-gradient(160deg, rgba(16, 32, 64, 0.88) 0%, rgba(10, 20, 38, 0.95) 100%);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    border-right: 1px solid rgba(0, 200, 150, 0.18);
+    box-shadow: 4px 0 40px rgba(0, 0, 0, 0.35), inset -1px 0 0 rgba(255, 255, 255, 0.04);
+    padding: 1.25rem 1rem 2rem;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    display: block !important;
+  }
+
+  .monetra-navbar .navbar-collapse.show {
+    transform: translateX(0);
+  }
+
+  /* Legibilidad: links dentro del drawer */
+  .monetra-navbar .navbar-collapse .nav-link {
+    color: rgba(255, 255, 255, 0.88) !important;
+    font-weight: 500;
+  }
+
+  .monetra-navbar .navbar-collapse .nav-link:hover {
+    color: var(--monetra-green) !important;
+    background: rgba(0, 200, 150, 0.1);
+  }
+
+  .monetra-navbar .navbar-collapse .nav-link.active {
+    color: var(--monetra-green) !important;
+    background: rgba(0, 200, 150, 0.13);
+  }
+
+  /* Selects e inputs dentro del drawer */
+  .monetra-navbar .navbar-collapse .form-select {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
+    color: #fff !important;
+  }
+
+  /* Dropdown usuario */
+  .monetra-navbar .navbar-collapse .dropdown-toggle {
+    color: rgba(255, 255, 255, 0.88) !important;
+  }
+
+  /* Backdrop: oscurecimiento suave sin blur (evita afectar al drawer) */
+  #navDrawerBackdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1029;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  #navDrawerBackdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+}

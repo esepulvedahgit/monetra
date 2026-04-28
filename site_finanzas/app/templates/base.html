@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="{{ get_locale() }}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% if title %}{{ title }} — {% endif %}Monetra</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/monetra-icon.png') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/help.css') }}">
+    {% if current_user.is_authenticated %}
+    <meta name="csrf-token" content="{{ csrf_token() }}">{% endif %}
+</head>
+
+<body data-theme="{{ current_user.theme if current_user.is_authenticated else 'dark' }}">
+
+    {% if current_user.is_authenticated %}
+    <nav class="navbar navbar-expand-lg navbar-dark monetra-navbar">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">
+                <img src="{{ url_for('static', filename='img/monetra-icon.png') }}" alt="Monetra">
+                <span class="brand-name">Monetra</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+
+                <!-- Nav links -->
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}"
+                            href="{{ url_for('main.dashboard') }}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if is_tx_page %}active{% endif %}"
+                            href="{{ url_for('main.transactions') }}">
+                            <i class="bi bi-arrow-left-right"></i> {{ _('Movimientos') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.categories' %}active{% endif %}"
+                            href="{{ url_for('main.categories') }}">
+                            <i class="bi bi-tags"></i> {{ _('Categorías') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.budget' %}active{% endif %}"
+                            href="{{ url_for('main.budget') }}">
+                            <i class="bi bi-piggy-bank"></i> {{ _('Presupuesto') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in ('main.recurrentes', 'main.recurrente_form') %}active{% endif %}"
+                            href="{{ url_for('main.recurrentes') }}">
+                            <i class="bi bi-arrow-repeat"></i> {{ _('Recurrentes') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in ('main.metas', 'main.meta_form') %}active{% endif %}"
+                            href="{{ url_for('main.metas') }}">
+                            <i class="bi bi-trophy"></i> {{ _('Metas') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.global_dashboard' %}active{% endif %}"
+                            href="{{ url_for('main.global_dashboard') }}">
+                            <i class="bi bi-globe2"></i> {{ _('Global') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('export.export_excel', year=sel_year) }}"
+                            title="{{ _('Descargar reporte Excel del año') }}"
+                            style="color: var(--monetra-primary, #00C896);">
+                            <i class="bi bi-file-earmark-excel-fill"></i> Excel
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Period selector -->
+                <form method="POST" action="{{ url_for('main.set_period') }}" id="periodForm"
+                    class="d-flex align-items-center gap-1 me-2 my-2 my-lg-0">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="next" value="{{ request.url }}">
+
+                    <i class="bi bi-calendar3 text-white-50 me-1 d-none d-lg-inline"></i>
+
+                    {# Year selector: hidden on transactions pages #}
+                    {% if not is_tx_page %}
+                    <select name="year" class="form-select form-select-sm border-0 fw-semibold"
+                        style="width:auto; background:rgba(255,255,255,0.15); color:#fff;"
+                        onchange="this.form.submit()">
+                        {% for y in available_years %}
+                        <option value="{{ y }}" {% if y==sel_year %}selected{% endif %}
+                            style="color:#212529; background:#fff;">{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                    {% else %}
+                    <span class="badge bg-light text-primary fw-bold px-2 py-1 me-1"
+                        title="{{ _('Para cambiar el año sal de Movimientos') }}">
+                        <i class="bi bi-lock-fill" style="font-size:.7rem;"></i> {{ sel_year }}
+                    </span>
+                    {% endif %}
+
+                    <select name="month" class="form-select form-select-sm border-0 fw-semibold"
+                        style="width:auto; background:rgba(255,255,255,0.15); color:#fff;"
+                        onchange="this.form.submit()">
+                        {% for num, name in month_names_nav %}
+                        <option value="{{ num }}" {% if num==sel_month %}selected{% endif %}
+                            style="color:#212529; background:#fff;">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+
+                {# Year action buttons: hidden on transactions pages #}
+                {% if not is_tx_page %}
+                <div class="d-flex gap-1 me-2 my-2 my-lg-0">
+                    <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal"
+                        data-bs-target="#newYearModal" title="{{ _('Crear nuevo año') }}">
+                        <i class="bi bi-plus-lg"></i> {{ _('Año') }}
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
+                        data-bs-target="#deleteYearModal" title="{{ _('Eliminar año %(year)s', year=sel_year) }}">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </div>
+                {% endif %}
+
+                <!-- User dropdown -->
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> {{ current_user.username }}
+                            {% if current_user.is_admin %}
+                            <span class="badge ms-1 py-1 px-2"
+                                style="background:var(--monetra-primary,#00C896); color:#000; font-size:.65rem; vertical-align:middle;">
+                                Admin
+                            </span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item {% if request.endpoint == 'main.configurar' %}active{% endif %}"
+                                    href="{{ url_for('main.configurar') }}">
+                                    <i class="bi bi-gear"></i> {{ _('Configurar') }}
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <!-- Language switcher -->
+                            <li>
+                                <span class="dropdown-item-text small text-muted px-3">
+                                    <a href="{{ url_for('main.set_language', lang='es') }}"
+                                        class="text-decoration-none {% if get_locale()|string == 'es' %}fw-bold{% endif %}">ES</a>
+                                    &nbsp;|&nbsp;
+                                    <a href="{{ url_for('main.set_language', lang='en') }}"
+                                        class="text-decoration-none {% if get_locale()|string == 'en' %}fw-bold{% endif %}">EN</a>
+                                </span>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                                    <i class="bi bi-box-arrow-right"></i> {{ _('Cerrar Sesión') }}
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+    <div id="navDrawerBackdrop"></div>
+
+    <!-- Modal: Nuevo Año -->
+    <div class="modal fade" id="newYearModal" tabindex="-1" aria-labelledby="newYearModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newYearModalLabel">
+                        <i class="bi bi-calendar-plus text-primary"></i> {{ _('Crear Nuevo Año') }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{{ url_for('main.create_year') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <label class="form-label fw-semibold">{{ _('Año a crear') }}</label>
+                        <input type="number" name="year" class="form-control" value="{{ next_year }}" min="2020"
+                            max="2100">
+                        <div class="form-text mt-2">
+                            <i class="bi bi-info-circle text-primary"></i>
+                            {{ _('Al crear el año la vista cambiará a Enero de ese año.') }}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _('Cancelar')
+                            }}</button>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-lg"></i> {{ _('Crear') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Eliminar Año -->
+    <div class="modal fade" id="deleteYearModal" tabindex="-1" aria-labelledby="deleteYearModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content border-danger">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteYearModalLabel">
+                        <i class="bi bi-trash3"></i> {{ _('Eliminar Año %(year)s', year=sel_year) }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{{ url_for('main.delete_year') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="year" value="{{ sel_year }}">
+                        <div class="alert alert-danger py-2 small mb-2">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            {{ _('Se eliminarán <strong>permanentemente</strong> todos los movimientos y presupuestos
+                            del año <strong>%(year)s</strong>.', year=sel_year)|safe }}
+                        </div>
+                        <p class="small text-muted mb-0">{{ _('Esta acción no se puede deshacer.') }}</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _('Cancelar')
+                            }}</button>
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            <i class="bi bi-trash3"></i> {{ _('Eliminar') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+
+    {% if current_user.is_authenticated and not current_user.has_seen_onboarding %}
+    <!-- Modal: Onboarding -->
+    <div class="modal fade" id="onboardingModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background:var(--monetra-primary,#00C896); color:#000;">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-stars"></i> {{ _('¡Bienvenido a Monetra!') }}
+                    </h5>
+                </div>
+                <div class="modal-body py-4">
+                    <p class="mb-3">{{ _('Monetra te ayuda a registrar movimientos, presupuestar por mes y hacer
+                        seguimiento de metas de ahorro.') }}</p>
+                    <ul class="small mb-0 ps-3" style="line-height:2.1;">
+                        <li>{{ _('Ve a <strong>Configurar</strong> y elige tu país y moneda.')|safe }}</li>
+                        <li>{{ _('Agrega tus primeras transacciones desde <strong>Movimientos</strong>.')|safe }}</li>
+                        <li>{{ _('Los íconos <i class="bi bi-question-circle-fill"
+                                style="color:var(--monetra-primary,#00C896);"></i> en los formularios explican cada
+                            campo.')|safe }}</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary fw-semibold px-4" data-bs-dismiss="modal">
+                        {{ _('¡Entendido!') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <main class="py-4">
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ _('Cerrar') }}"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% if current_user.is_authenticated %}
+    <script src="{{ url_for('static', filename='js/help.js') }}"></script>
+    {% endif %}
+    <script>
+        (function () {
+            var navEl = document.getElementById('navbarNav');
+            var toggler = document.querySelector('.navbar-toggler[data-bs-target="#navbarNav"]');
+            var backdrop = document.getElementById('navDrawerBackdrop');
+            if (!navEl || !toggler || !backdrop) return;
+
+            function isMobile() { return window.innerWidth < 992; }
+
+            function openDrawer() {
+                navEl.classList.add('show');
+                backdrop.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                toggler.setAttribute('aria-expanded', 'true');
+                toggler.classList.remove('collapsed');
+            }
+
+            function closeDrawer() {
+                navEl.classList.remove('show');
+                backdrop.classList.remove('active');
+                document.body.style.overflow = '';
+                toggler.setAttribute('aria-expanded', 'false');
+                toggler.classList.add('collapsed');
+            }
+
+            /* Capture phase: corre antes del handler de Bootstrap, lo cancela en mobile */
+            toggler.addEventListener('click', function (e) {
+                if (!isMobile()) return;
+                e.stopImmediatePropagation();
+                navEl.classList.contains('show') ? closeDrawer() : openDrawer();
+            }, true);
+
+            backdrop.addEventListener('click', closeDrawer);
+
+            /* Al redimensionar a desktop: limpiar estado mobile */
+            window.addEventListener('resize', function () {
+                if (!isMobile()) {
+                    backdrop.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        })();
+    </script>
+    {% block scripts %}{% endblock %}
+    {% if current_user.is_authenticated %}
+    <!-- Modal aviso de inactividad -->
+    <div class="modal fade" id="idleWarningModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
+        data-bs-keyboard="false">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background:var(--monetra-primary,#00C896); color:#000;">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-clock-history"></i> {{ _('Sesión inactiva') }}
+                    </h5>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <p class="mb-1">{{ _('Tu sesión se cerrará en') }}</p>
+                    <p class="display-6 fw-bold mb-1" id="idleCountdown">10</p>
+                    <p class="text-muted small">{{ _('segundos por inactividad') }}</p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-primary px-4" id="btnStayActive">
+                        <i class="bi bi-arrow-repeat"></i> {{ _('Seguir conectado') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function () {
+            var IDLE_TIMEOUT = 160;  // segundos hasta logout
+            var WARN_BEFORE = 10;   // segundos de aviso antes de cerrar
+            var WARN_AT = IDLE_TIMEOUT - WARN_BEFORE;
+            var logoutUrl = "{{ url_for('auth.logout') }}";
+
+            var idleSeconds = 0;
+            var warningShown = false;
+            var countdownInt = null;
+            var tickInt = null;
+            var modal = null;
+            var modalEl = document.getElementById('idleWarningModal');
+            var countdownEl = document.getElementById('idleCountdown');
+            var btnStay = document.getElementById('btnStayActive');
+
+            if (modalEl) {
+                modal = new bootstrap.Modal(modalEl);
+                btnStay.addEventListener('click', resetIdle);
+                modalEl.addEventListener('hide.bs.modal', resetIdle);
+            }
+
+            function resetIdle() {
+                idleSeconds = 0;
+                warningShown = false;
+                if (countdownInt) { clearInterval(countdownInt); countdownInt = null; }
+                if (modal) modal.hide();
+            }
+
+            function showWarning() {
+                warningShown = true;
+                var remaining = WARN_BEFORE;
+                if (countdownEl) countdownEl.textContent = remaining;
+                if (modal) modal.show();
+                countdownInt = setInterval(function () {
+                    remaining -= 1;
+                    if (countdownEl) countdownEl.textContent = remaining;
+                    if (remaining <= 0) {
+                        clearInterval(countdownInt);
+                        window.location.href = logoutUrl;
+                    }
+                }, 1000);
+            }
+
+            tickInt = setInterval(function () {
+                idleSeconds += 1;
+                if (!warningShown && idleSeconds >= WARN_AT) {
+                    showWarning();
+                }
+            }, 1000);
+
+            ['mousemove', 'mousedown', 'keypress', 'touchmove', 'click', 'scroll'].forEach(function (evt) {
+                document.addEventListener(evt, function () {
+                    if (!warningShown) idleSeconds = 0;
+                }, { passive: true });
+            });
+        })();
+    </script>
+    {% endif %}
+</body>
+
+</html>

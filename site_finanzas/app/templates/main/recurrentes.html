@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% from 'partials/hint.html' import hint with context %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0 fw-bold"><i class="bi bi-arrow-repeat text-primary"></i> {{ _('Recurrentes') }}{{ hint(_('Gastos e ingresos que se repiten cada mes. Se generan automáticamente el día que indiques.')) }}</h2>
+    <a href="{{ url_for('main.recurrente_form') }}" class="btn btn-primary btn-sm fw-semibold">
+        <i class="bi bi-plus-lg"></i> {{ _('Nueva Recurrente') }}
+    </a>
+</div>
+
+<!-- Tarjetas resumen -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6">
+        <div class="card card-expense h-100">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="card-text small mb-1 opacity-75">{{ _('Gasto fijo mensual') }}</p>
+                    <h4 class="mb-0 fw-bold">{{ total_expense|money }}</h4>
+                </div>
+                <i class="bi bi-arrow-down-circle-fill" style="font-size:2.2rem; opacity:0.6;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="card card-income h-100">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="card-text small mb-1 opacity-75">{{ _('Ingreso fijo mensual') }}</p>
+                    <h4 class="mb-0 fw-bold">{{ total_income|money }}</h4>
+                </div>
+                <i class="bi bi-arrow-up-circle-fill" style="font-size:2.2rem; opacity:0.6;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráfico -->
+{% if items|selectattr('is_active')|list %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold">
+        <i class="bi bi-bar-chart-fill text-primary"></i> {{ _('Distribución por categoría (activas)') }}
+    </div>
+    <div class="card-body">
+        <div style="position:relative; height:{{ [chart_count * 42, 150]|max }}px; width:100%;">
+            <canvas id="recurChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Lista -->
+<div class="card shadow-sm">
+    <div class="card-header fw-semibold">
+        <i class="bi bi-list-ul text-primary"></i> {{ _('Todas las recurrentes') }}
+    </div>
+    {% if items %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>{{ _('Descripción') }}</th>
+                    <th>{{ _('Tipo') }}</th>
+                    <th>{{ _('Categoría') }}</th>
+                    <th>{{ _('Día') }}</th>
+                    <th class="text-end">{{ _('Monto') }}</th>
+                    <th class="text-center">{{ _('Estado') }}</th>
+                    <th class="text-center">{{ _('Acciones') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in items %}
+                <tr class="{% if not r.is_active %}opacity-50{% endif %}">
+                    <td class="fw-semibold">{{ r.description or '—' }}</td>
+                    <td>
+                        {% if r.type == 'income' %}
+                        <span class="badge" style="background:rgba(0,200,150,0.15); color:#00C896;">{{ _('Ingreso') }}</span>
+                        {% else %}
+                        <span class="badge" style="background:rgba(239,68,68,0.15); color:#EF4444;">{{ _('Gasto') }}</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="badge bg-secondary">{{ r.category.name }}</span></td>
+                    <td class="text-muted small">{{ _('Día') }} {{ r.day_of_month }}</td>
+                    <td class="text-end fw-bold {% if r.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                        {% if r.type == 'income' %}+{% else %}−{% endif %}{{ r.amount|money }}
+                    </td>
+                    <td class="text-center">
+                        {% if r.is_active %}
+                        <span class="badge" style="background:rgba(0,200,150,0.15); color:#00C896;">{{ _('Activa') }}</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ _('Inactiva') }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ url_for('main.recurrente_form', rec_id=r.id) }}"
+                           class="btn btn-sm btn-outline-secondary me-1" title="{{ _('Editar') }}">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('main.recurrente_delete', rec_id=r.id) }}"
+                              style="display:inline;"
+                              onsubmit="return confirm('{{ _('¿Eliminar esta recurrente?') }}')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Eliminar') }}">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-arrow-repeat" style="font-size:3rem; opacity:0.3;"></i>
+        <p class="mt-3 mb-2">{{ _('No tienes transacciones recurrentes aún.') }}</p>
+        <a href="{{ url_for('main.recurrente_form') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg"></i> {{ _('Crear la primera') }}
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{% if items|selectattr('is_active')|list %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    var sym      = '{{ currency_symbol }}';
+    var decimals = {{ currency_decimals }};
+    var locale   = '{{ currency_locale }}';
+
+    function fmt(v) {
+        return sym + Number(v).toLocaleString(locale, {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+        });
+    }
+
+    new Chart(document.getElementById('recurChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{
+                label: '{{ _("Monto mensual") }}',
+                data: {{ chart_data|safe }},
+                backgroundColor: {{ chart_colors|safe }},
+                borderRadius: 6,
+                borderSkipped: false,
+                maxBarThickness: 18,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            resizeDelay: 200,
+            indexAxis: 'y',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) { return ' ' + fmt(ctx.parsed.x); }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: '#B0BEC5',
+                        callback: function(v) { return fmt(v); }
+                    },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                },
+                y: {
+                    ticks: { color: '#B0BEC5' },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

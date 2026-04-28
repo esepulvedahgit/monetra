@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+{% from 'partials/hint.html' import hint with context %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0 fw-bold">
+        <i class="bi bi-piggy-bank text-primary"></i> {{ _('Presupuesto') }}{{ hint(_('Define el límite de gasto mensual. El dashboard te avisa en amarillo al 80%% y en rojo al 100%%.')) }}
+        <span class="text-muted fs-5 fw-normal ms-1">{{ budget_year }}</span>
+    </h2>
+</div>
+
+<!-- ═══ Sección 1: Presupuesto mensual general ═══ -->
+<div class="row g-4 mb-4">
+
+    <!-- Formulario -->
+    <div class="col-md-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold">
+                <i class="bi bi-pencil-square text-primary"></i>
+                {{ _('Definir Presupuesto Mensual') }} — {{ budget_year }}
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.month.label(class="form-label fw-semibold") }}{{ hint(_('Si ya hay presupuesto para este mes, se reemplazará sin confirmación.')) }}
+                        {{ form.month(class="form-select" + (" is-invalid" if form.month.errors else "")) }}
+                        {% for e in form.month.errors %}
+                        <div class="invalid-feedback">{{ e }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.amount.label(class="form-label fw-semibold") }}{{ hint(_('Verde <80%%, Amarillo ≥80%%, Rojo ≥100%% del presupuesto gastado en el mes.')) }}
+                        <div class="input-group">
+                            <span class="input-group-text fw-bold">{{ currency_symbol }}</span>
+                            {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""),
+                                          placeholder="0.00") }}
+                            {% if form.amount.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for e in form.amount.errors %}{{ e }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="small py-2 px-3 rounded mb-3"
+                         style="background: rgba(0,200,150,0.08); border: 1px solid rgba(0,200,150,0.2); color: var(--monetra-text-muted, #B0BEC5);">
+                        <i class="bi bi-info-circle" style="color: var(--monetra-primary, #00C896);"></i>
+                        {{ _('Si ya existe un presupuesto para el mes seleccionado, será reemplazado.') }}
+                    </div>
+
+                    {{ form.submit(class="btn btn-primary w-100 py-2") }}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de presupuestos del año -->
+    <div class="col-md-7">
+        <div class="card h-100">
+            <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="bi bi-clock-history text-primary"></i>
+                    {{ _('Presupuestos') }} {{ budget_year }}
+                </span>
+                {% if budgets %}
+                <span class="badge bg-primary rounded-pill">{{ budgets|length }} {{ _('meses') }}</span>
+                {% endif %}
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="mtr-thead">
+                        <tr>
+                            <th>{{ _('Mes') }}</th>
+                            <th class="text-end">{{ _('Monto') }}</th>
+                            <th class="text-center" style="width:130px;">{{ _('Acciones') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in budgets %}
+                        <tr>
+                            <td>{{ month_names[b.month] }}</td>
+                            <td class="text-end fw-bold text-primary">{{ b.amount|money }}</td>
+                            <td class="text-center">
+                                <a href="{{ url_for('main.budget', edit_month=b.month) }}"
+                                   class="btn btn-sm btn-outline-primary py-0 px-2"
+                                   title="{{ _('Editar') }}">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form method="POST"
+                                      action="{{ url_for('main.delete_budget', budget_id=b.id) }}"
+                                      class="d-inline"
+                                      onsubmit="return confirm('{{ _('¿Eliminar el presupuesto de %(month)s?', month=month_names[b.month]) }}')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2"
+                                            title="{{ _('Eliminar') }}">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-5">
+                                <i class="bi bi-inbox" style="font-size: 2.5rem;"></i>
+                                <p class="mt-2 mb-0">{{ _('Sin presupuestos definidos para %(year)s.', year=budget_year) }}</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    {% if budgets %}
+                    <tfoot class="mtr-tfoot">
+                        <tr>
+                            <td class="fw-bold text-end" colspan="2">{{ _('Total año:') }}
+                                <span class="ms-2 text-primary">{{ budgets|sum(attribute='amount')|float|money }}</span>
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Sección 2: Presupuestos por Categoría ═══ -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+        <span>
+            <i class="bi bi-tags text-primary"></i>
+            {{ _('Presupuestos por Categoría') }}
+            <span class="badge ms-2" style="background:rgba(0,200,150,0.15); color:var(--monetra-primary,#00C896); font-size:.72rem;">
+                {{ cat_budgets|length }}/3
+            </span>
+        </span>
+        <span class="small" style="color:var(--monetra-text-muted,#78909C);">
+            {{ _('Límite mensual recurrente por categoría de gasto') }}
+        </span>
+    </div>
+    <div class="card-body p-4">
+
+        <!-- Formulario de categoría -->
+        {% if can_add_cat_budget or cat_budgets %}
+        <div class="row g-4 mb-4">
+            {% if can_add_cat_budget %}
+            <div class="col-md-5">
+                <h6 class="fw-semibold mb-3">
+                    <i class="bi bi-plus-circle" style="color:var(--monetra-primary,#00C896);"></i>
+                    {{ _('Agregar presupuesto de categoría') }}
+                </h6>
+                <form method="POST" action="{{ url_for('main.save_category_budget') }}" novalidate>
+                    {{ cat_form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ cat_form.category_id.label(class="form-label fw-semibold small") }}
+                        {{ cat_form.category_id(class="form-select form-select-sm" + (" is-invalid" if cat_form.category_id.errors else "")) }}
+                        {% for e in cat_form.category_id.errors %}
+                        <div class="invalid-feedback">{{ e }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ cat_form.amount.label(class="form-label fw-semibold small") }}
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text fw-bold">{{ currency_symbol }}</span>
+                            {{ cat_form.amount(class="form-control" + (" is-invalid" if cat_form.amount.errors else ""),
+                                              placeholder="0.00") }}
+                            {% if cat_form.amount.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for e in cat_form.amount.errors %}{{ e }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-text" style="font-size:.72rem;">
+                            {{ _('Este monto se reinicia cada mes automáticamente.') }}
+                        </div>
+                    </div>
+
+                    {{ cat_form.submit_cat_budget(class="btn btn-primary btn-sm w-100") }}
+                </form>
+            </div>
+            {% endif %}
+
+            <!-- Lista de category budgets -->
+            {% if cat_budgets %}
+            <div class="{{ 'col-md-7' if can_add_cat_budget else 'col-12' }}">
+                <h6 class="fw-semibold mb-3">
+                    <i class="bi bi-list-check" style="color:var(--monetra-primary,#00C896);"></i>
+                    {{ _('Activos') }}
+                </h6>
+                <div class="d-flex flex-column gap-2">
+                    {% for cb in cat_budgets %}
+                    <div class="d-flex align-items-center justify-content-between p-3 rounded"
+                         style="background:var(--card-header-bg, rgba(13,27,53,0.5)); border:1px solid var(--card-border, rgba(255,255,255,0.07));">
+                        <div>
+                            <span class="fw-semibold">{{ cb.category.name }}</span>
+                            <span class="ms-2 small" style="color:var(--monetra-text-muted);">
+                                {{ cb.amount|money }}/{{ _('mes') }}
+                            </span>
+                        </div>
+                        <div class="d-flex gap-1">
+                            <a href="{{ url_for('main.budget', edit_cb=cb.id) }}"
+                               class="btn btn-sm btn-outline-primary py-0 px-2"
+                               title="{{ _('Editar') }}">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST"
+                                  action="{{ url_for('main.delete_category_budget', cb_id=cb.id) }}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('{{ _('¿Eliminar el presupuesto de %(cat)s?', cat=cb.category.name) }}')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2"
+                                        title="{{ _('Eliminar') }}">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if not can_add_cat_budget and not cat_budgets %}
+        <p class="text-muted text-center py-3">
+            <i class="bi bi-tags" style="font-size:2rem; opacity:.4;"></i><br>
+            {{ _('No tienes presupuestos de categoría definidos.') }}
+        </p>
+        {% endif %}
+
+        {% if not can_add_cat_budget %}
+        <div class="small py-2 px-3 rounded mb-4"
+             style="background:rgba(242,201,76,0.08); border:1px solid rgba(242,201,76,0.2); color:var(--monetra-text-muted);">
+            <i class="bi bi-info-circle" style="color:#F2C94C;"></i>
+            {{ _('Has alcanzado el máximo de 3 presupuestos de categoría. Elimina uno para agregar otro.') }}
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}{% endblock %}

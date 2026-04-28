@@ -1,0 +1,613 @@
+# Spanish translations for Monetra
+msgid ""
+msgstr ""
+"Project-Id-Version: Monetra 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-01 00:00+0000\n"
+"PO-Revision-Date: 2025-01-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# ── Login message ──
+msgid "Por favor inicia sesión para acceder."
+msgstr ""
+
+# ── Auth routes ──
+msgid "Cuenta creada exitosamente. Ya puedes iniciar sesión."
+msgstr ""
+
+msgid "¡Bienvenido, %(username)s!"
+msgstr ""
+
+msgid "Email o contraseña incorrectos."
+msgstr ""
+
+msgid "Si el correo existe y tiene recuperación configurada, recibirás instrucciones enviadas mediante tu propio SMTP."
+msgstr ""
+
+msgid "El enlace de recuperación es inválido o ha expirado."
+msgstr ""
+
+msgid "Tu contraseña ha sido actualizada exitosamente."
+msgstr ""
+
+msgid "Registro"
+msgstr ""
+
+msgid "Iniciar Sesión"
+msgstr ""
+
+msgid "Recuperar Contraseña"
+msgstr ""
+
+msgid "Restablecer Contraseña"
+msgstr ""
+
+# ── Auth forms ──
+msgid "Usuario"
+msgstr ""
+
+msgid "Email"
+msgstr ""
+
+msgid "Contraseña"
+msgstr ""
+
+msgid "Confirmar Contraseña"
+msgstr ""
+
+msgid "Las contraseñas no coinciden."
+msgstr ""
+
+msgid "Recordarme"
+msgstr ""
+
+msgid "Registrarse"
+msgstr ""
+
+msgid "Enviar Enlace de Recuperación"
+msgstr ""
+
+msgid "Nueva Contraseña"
+msgstr ""
+
+msgid "La contraseña debe tener al menos 10 caracteres."
+msgstr ""
+
+msgid "La contraseña debe incluir al menos una letra mayúscula."
+msgstr ""
+
+msgid "La contraseña debe incluir al menos una letra minúscula."
+msgstr ""
+
+msgid "La contraseña debe incluir al menos un número."
+msgstr ""
+
+msgid "La contraseña debe incluir al menos un carácter especial."
+msgstr ""
+
+msgid "Ese nombre de usuario ya está en uso."
+msgstr ""
+
+msgid "Ese email ya está registrado."
+msgstr ""
+
+# ── Main routes flash ──
+msgid "Año %(year)s creado."
+msgstr ""
+
+msgid "Año %(year)s eliminado junto con todos sus movimientos y presupuestos."
+msgstr ""
+
+msgid "La categoría no corresponde al tipo de movimiento seleccionado."
+msgstr ""
+
+msgid "Movimiento creado exitosamente."
+msgstr ""
+
+msgid "Movimiento actualizado."
+msgstr ""
+
+msgid "Movimiento eliminado."
+msgstr ""
+
+msgid "La categoría no corresponde al tipo de movimiento."
+msgstr ""
+
+msgid "Ya existe una categoría con ese nombre y tipo."
+msgstr ""
+
+msgid "Categoría creada."
+msgstr ""
+
+msgid "Presupuesto actualizado."
+msgstr ""
+
+msgid "Presupuesto creado."
+msgstr ""
+
+msgid "Configuración de correo (SMTP) guardada exitosamente."
+msgstr ""
+
+msgid "Configuración regional guardada exitosamente."
+msgstr ""
+
+msgid "Correo de prueba enviado correctamente. Revisa tu bandeja de entrada."
+msgstr ""
+
+msgid "Error al enviar correo de prueba: %(msg)s"
+msgstr ""
+
+msgid "Nuevo Movimiento"
+msgstr ""
+
+msgid "Editar Movimiento"
+msgstr ""
+
+msgid "Configurar Cuenta"
+msgstr ""
+
+# ── Main forms ──
+msgid "País"
+msgstr ""
+
+msgid "Símbolo de Moneda"
+msgstr ""
+
+msgid "Guardar Configuración"
+msgstr ""
+
+msgid "Tipo"
+msgstr ""
+
+msgid "Gasto"
+msgstr ""
+
+msgid "Ingreso"
+msgstr ""
+
+msgid "Monto"
+msgstr ""
+
+msgid "Categoría"
+msgstr ""
+
+msgid "Descripción"
+msgstr ""
+
+msgid "Fecha"
+msgstr ""
+
+msgid "Guardar"
+msgstr ""
+
+msgid "Nombre"
+msgstr ""
+
+msgid "Crear Categoría"
+msgstr ""
+
+msgid "Mes"
+msgstr ""
+
+msgid "Monto Presupuesto"
+msgstr ""
+
+msgid "Guardar Presupuesto"
+msgstr ""
+
+msgid "Habilitar recuperación por correo (SMTP)"
+msgstr ""
+
+msgid "Servidor SMTP"
+msgstr ""
+
+msgid "Puerto SMTP"
+msgstr ""
+
+msgid "Usuario SMTP"
+msgstr ""
+
+msgid "Contraseña SMTP"
+msgstr ""
+
+msgid "Usar TLS"
+msgstr ""
+
+msgid "Usar SSL"
+msgstr ""
+
+msgid "Email Remitente"
+msgstr ""
+
+msgid "Nombre Remitente"
+msgstr ""
+
+msgid "Guardar Configuración SMTP"
+msgstr ""
+
+msgid "No puedes usar TLS y SSL al mismo tiempo."
+msgstr ""
+
+msgid "Requerido si SMTP está activado."
+msgstr ""
+
+msgid "La contraseña es requerida para activar SMTP."
+msgstr ""
+
+msgid "La contraseña es obligatoria porque no hay una guardada."
+msgstr ""
+
+# ── Templates: base.html ──
+msgid "Movimientos"
+msgstr ""
+
+msgid "Categorías"
+msgstr ""
+
+msgid "Presupuesto"
+msgstr ""
+
+msgid "Global"
+msgstr ""
+
+msgid "Configurar"
+msgstr ""
+
+msgid "Cerrar Sesión"
+msgstr ""
+
+msgid "Crear Nuevo Año"
+msgstr ""
+
+msgid "Año a crear"
+msgstr ""
+
+msgid "Al crear el año la vista cambiará a Enero de ese año."
+msgstr ""
+
+msgid "Cancelar"
+msgstr ""
+
+msgid "Crear"
+msgstr ""
+
+msgid "Eliminar Año %(year)s"
+msgstr ""
+
+msgid "Se eliminarán <strong>permanentemente</strong> todos los movimientos y presupuestos del año <strong>%(year)s</strong>."
+msgstr ""
+
+msgid "Esta acción no se puede deshacer."
+msgstr ""
+
+msgid "Eliminar"
+msgstr ""
+
+msgid "ES | EN"
+msgstr ""
+
+# ── Templates: login.html ──
+msgid "Tu dinero. Tu control. Tu futuro."
+msgstr ""
+
+msgid "Inicia sesión en tu cuenta"
+msgstr ""
+
+msgid "¿Olvidaste tu contraseña?"
+msgstr ""
+
+msgid "¿No tienes cuenta?"
+msgstr ""
+
+msgid "Regístrate aquí"
+msgstr ""
+
+# ── Templates: register.html ──
+msgid "Empieza a ordenar tus finanzas personales"
+msgstr ""
+
+msgid "Crea tu cuenta en Monetra"
+msgstr ""
+
+msgid "Registro deshabilitado"
+msgstr ""
+
+msgid "El registro de nuevos usuarios está deshabilitado por el administrador."
+msgstr ""
+
+msgid "Ir al inicio de sesión"
+msgstr ""
+
+msgid "¿Ya tienes cuenta?"
+msgstr ""
+
+msgid "Inicia sesión"
+msgstr ""
+
+# ── Templates: forgot_password.html ──
+msgid "Ingresa tu email y, si lo configuraste, te enviaremos instrucciones."
+msgstr ""
+
+msgid "Volver al inicio de sesión"
+msgstr ""
+
+# ── Templates: reset_password.html ──
+msgid "Elige una nueva contraseña"
+msgstr ""
+
+msgid "Tu cuenta será asegurada con esta nueva clave."
+msgstr ""
+
+# ── dashboard.html ──
+msgid "Ingresos del Mes"
+msgstr ""
+
+msgid "Gastos del Mes"
+msgstr ""
+
+msgid "Balance Mensual"
+msgstr ""
+
+msgid "No definido"
+msgstr ""
+
+msgid "Uso del Presupuesto"
+msgstr ""
+
+msgid "gastado de"
+msgstr ""
+
+msgid "No tienes presupuesto definido para este mes."
+msgstr ""
+
+msgid "Definir presupuesto →"
+msgstr ""
+
+msgid "Gastos por Categoría"
+msgstr ""
+
+msgid "Sin gastos registrados este mes."
+msgstr ""
+
+msgid "Últimos Movimientos"
+msgstr ""
+
+msgid "Nuevo"
+msgstr ""
+
+msgid "Sin movimientos registrados."
+msgstr ""
+
+msgid "Ver todos los movimientos →"
+msgstr ""
+
+# ── transactions.html ──
+msgid "Nuevo Movimiento"
+msgstr ""
+
+msgid "Todos"
+msgstr ""
+
+msgid "Ingresos"
+msgstr ""
+
+msgid "Gastos"
+msgstr ""
+
+msgid "Todas"
+msgstr ""
+
+msgid "Todos los meses"
+msgstr ""
+
+msgid "Filtrar"
+msgstr ""
+
+msgid "Limpiar filtros"
+msgstr ""
+
+msgid "Acciones"
+msgstr ""
+
+msgid "Editar"
+msgstr ""
+
+msgid "No hay movimientos con los filtros seleccionados."
+msgstr ""
+
+msgid "Resultado filtrado:"
+msgstr ""
+
+msgid "¿Eliminar este movimiento?"
+msgstr ""
+
+# ── categories.html ──
+msgid "Nueva Categoría"
+msgstr ""
+
+msgid "Ej: Gimnasio, Mascotas..."
+msgstr ""
+
+msgid "Las categorías marcadas como \"global\" son compartidas para todos los usuarios."
+msgstr ""
+
+msgid "Categorías de Gastos"
+msgstr ""
+
+msgid "tuya"
+msgstr ""
+
+msgid "Sin categorías de gastos."
+msgstr ""
+
+msgid "Categorías de Ingresos"
+msgstr ""
+
+msgid "Sin categorías de ingresos."
+msgstr ""
+
+# ── budget.html ──
+msgid "Definir Presupuesto"
+msgstr ""
+
+msgid "Si ya existe un presupuesto para el mes seleccionado, será reemplazado."
+msgstr ""
+
+msgid "Presupuestos"
+msgstr ""
+
+msgid "meses"
+msgstr ""
+
+msgid "Sin presupuestos definidos para %(year)s."
+msgstr ""
+
+msgid "Total año:"
+msgstr ""
+
+# ── transaction_form.html ──
+msgid "Descripción opcional..."
+msgstr ""
+
+msgid "Sin categorías disponibles"
+msgstr ""
+
+msgid "La fecha debe estar dentro de %(month)s %(year)s."
+msgstr ""
+
+msgid "Solo fechas de %(month)s %(year)s."
+msgstr ""
+
+# ── global_dashboard.html ──
+msgid "Dashboard Global"
+msgstr ""
+
+msgid "Desde"
+msgstr ""
+
+msgid "Hasta"
+msgstr ""
+
+msgid "Aplicar"
+msgstr ""
+
+msgid "Sin gastos para el período seleccionado."
+msgstr ""
+
+msgid "Tendencia Mensual"
+msgstr ""
+
+msgid "Ingresos vs Gastos"
+msgstr ""
+
+msgid "Tendencia de gastos por año"
+msgstr ""
+
+msgid "Comparación mensual agrupada por año"
+msgstr ""
+
+msgid "Sin datos de gastos para comparar tendencias."
+msgstr ""
+
+msgid "Resumen Anual"
+msgstr ""
+
+msgid "Totales acumulados por año"
+msgstr ""
+
+msgid "Sin datos disponibles."
+msgstr ""
+
+# ── configurar.html ──
+msgid "Administrador"
+msgstr ""
+
+msgid "Se usará en todos los montos de la app (meses, años, presupuestos)."
+msgstr ""
+
+msgid "Configuración actual:"
+msgstr ""
+
+msgid "Símbolo:"
+msgstr ""
+
+msgid "Opciones de Administrador"
+msgstr ""
+
+msgid "Permitir registro de nuevos usuarios"
+msgstr ""
+
+msgid "Si está desactivado, nadie podrá crear cuentas nuevas."
+msgstr ""
+
+msgid "Configuración de correo (SMTP)"
+msgstr ""
+
+msgid "Permite enviar correos desde tu propia cuenta, como recordatorios o recuperación de contraseña."
+msgstr ""
+
+msgid "ej. smtp.gmail.com"
+msgstr ""
+
+msgid "Deja en blanco para conservar la actual."
+msgstr ""
+
+msgid "Usa contraseñas de aplicación si es Gmail."
+msgstr ""
+
+msgid "Enviar correo de prueba a %(email)s"
+msgstr ""
+
+msgid "Utilizará los ajustes guardados."
+msgstr ""
+
+msgid "Recuperación por correo: configurada"
+msgstr ""
+
+msgid "Recuperación por correo: no configurada"
+msgstr ""
+
+msgid "Datos Demo"
+msgstr ""
+
+msgid "Carga transacciones de ejemplo para explorar los dashboards sin ingresar datos reales. Puedes eliminarlos en cualquier momento sin afectar tus datos."
+msgstr ""
+
+msgid "Transacciones"
+msgstr ""
+
+msgid "Total gastos"
+msgstr ""
+
+msgid "Período"
+msgstr ""
+
+msgid "Cargar demo"
+msgstr ""
+
+msgid "Resetear demo"
+msgstr ""
+
+msgid "Cargado"
+msgstr ""
+
+msgid "No cargado"
+msgstr ""
+
+msgid "Cargando…"
+msgstr ""
+
+msgid "Error de conexión."
+msgstr ""
+
+msgid "¿Eliminar todos los datos demo? Esta acción no se puede deshacer."
+msgstr ""
+
+msgid "Configuración de administrador guardada."
+msgstr ""

@@ -1,0 +1,300 @@
+{% extends 'base.html' %}
+{% from 'partials/hint.html' import hint with context %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0 fw-bold"><i class="bi bi-trophy-fill text-primary"></i> {{ _('Metas de Ahorro') }}{{ hint(_('Define objetivos de ahorro con monto y fecha límite. El progreso se actualiza manualmente.')) }}</h2>
+    <a href="{{ url_for('main.meta_form') }}" class="btn btn-primary btn-sm fw-semibold">
+        <i class="bi bi-plus-lg"></i> {{ _('Nueva Meta') }}
+    </a>
+</div>
+
+<!-- Tarjetas resumen -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-4">
+        <div class="card h-100">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="small mb-1 text-muted">{{ _('Metas activas') }}</p>
+                    <h4 class="mb-0 fw-bold" style="color:#00C896;">{{ active|length }}</h4>
+                </div>
+                <i class="bi bi-trophy" style="font-size:2rem; color:#00C896; opacity:.5;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card h-100">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="small mb-1 text-muted">{{ _('Total ahorrado') }}</p>
+                    <h4 class="mb-0 fw-bold" style="color:#00C896;">{{ total_saved|money }}</h4>
+                </div>
+                <i class="bi bi-piggy-bank" style="font-size:2rem; color:#00C896; opacity:.5;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card h-100">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="small mb-1 text-muted">{{ _('Total objetivo') }}</p>
+                    <h4 class="mb-0 fw-bold">{{ total_target|money }}</h4>
+                </div>
+                <i class="bi bi-bullseye" style="font-size:2rem; opacity:.3;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráfico de progreso -->
+{% if active %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold">
+        <i class="bi bi-bar-chart-fill text-primary"></i> {{ _('Progreso por meta') }}
+    </div>
+    <div class="card-body">
+        <div style="position:relative; height:{{ [active|length * 42, 150]|max }}px; width:100%;">
+            <canvas id="metasChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Lista: metas activas -->
+{% if active %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold"><i class="bi bi-list-check text-primary"></i> {{ _('En progreso') }}</div>
+    <div class="card-body p-0">
+        {% for g in active %}
+        <div class="p-3 {% if not loop.last %}border-bottom{% endif %}" id="goal-{{ g.id }}">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="fw-semibold">{{ g.name }}</span>
+                        {% if g.target_date %}
+                        <span class="badge {% if g.days_left is not none and g.days_left < 0 %}bg-danger{% elif g.days_left is not none and g.days_left < 30 %}bg-warning text-dark{% else %}bg-secondary{% endif %}" style="font-size:.7rem;">
+                            {% if g.days_left is not none %}
+                                {% if g.days_left < 0 %}{{ _('Vencida') }}{% elif g.days_left == 0 %}{{ _('Vence hoy') }}{% else %}{{ g.days_left }} {{ _('días') }}{% endif %}
+                            {% endif %}
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% if g.description %}<p class="small text-muted mb-2">{{ g.description }}</p>{% endif %}
+                    <div class="progress mb-1" style="height:10px; border-radius:5px;">
+                        <div class="progress-bar goal-bar-{{ g.id }}
+                            {% if g.progress_pct >= 100 %}bg-success{% elif g.progress_pct >= 60 %}bg-info{% else %}bg-primary{% endif %}"
+                             style="width:{{ g.progress_pct }}%; border-radius:5px; transition:width .4s;"></div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <small style="color:#00C896;" class="goal-current-{{ g.id }}">{{ g.current_amount|money }}</small>
+                        <small class="text-muted">{{ _('de') }} {{ g.target_amount|money }} · <span class="goal-pct-{{ g.id }}">{{ "%.1f"|format(g.progress_pct) }}</span>%</small>
+                    </div>
+                </div>
+                <div class="d-flex gap-1 flex-shrink-0">
+                    <button class="btn btn-sm btn-success fw-semibold"
+                            onclick="openAbonar({{ g.id }}, {{ g.target_amount|float }}, {{ g.current_amount|float }})">
+                        <i class="bi bi-plus-circle"></i> {{ _('Abonar') }}
+                    </button>
+                    <a href="{{ url_for('main.meta_form', goal_id=g.id) }}"
+                       class="btn btn-sm btn-outline-secondary" title="{{ _('Editar') }}">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <form method="POST" action="{{ url_for('main.meta_delete', goal_id=g.id) }}"
+                          style="display:inline;"
+                          onsubmit="return confirm('{{ _('¿Eliminar esta meta?') }}')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Eliminar') }}">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<div class="card shadow-sm mb-4">
+    <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-trophy" style="font-size:3rem; opacity:.3;"></i>
+        <p class="mt-3 mb-2">{{ _('No tienes metas de ahorro activas.') }}</p>
+        <a href="{{ url_for('main.meta_form') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg"></i> {{ _('Crear primera meta') }}
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Lista: completadas -->
+{% if completed %}
+<div class="card shadow-sm">
+    <div class="card-header fw-semibold">
+        <i class="bi bi-check-circle-fill text-success"></i> {{ _('Completadas') }}
+    </div>
+    <div class="card-body p-0">
+        {% for g in completed %}
+        <div class="p-3 d-flex justify-content-between align-items-center {% if not loop.last %}border-bottom{% endif %} opacity-75">
+            <div>
+                <span class="fw-semibold"><i class="bi bi-check-circle-fill text-success me-1"></i>{{ g.name }}</span>
+                <small class="text-muted ms-2">{{ g.target_amount|money }}</small>
+            </div>
+            <div class="d-flex gap-1">
+                <form method="POST" action="{{ url_for('main.meta_completar', goal_id=g.id) }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary" title="{{ _('Reactivar') }}">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                </form>
+                <form method="POST" action="{{ url_for('main.meta_delete', goal_id=g.id) }}"
+                      style="display:inline;"
+                      onsubmit="return confirm('{{ _('¿Eliminar esta meta?') }}')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal Abonar -->
+<div class="modal fade" id="abonarModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background:var(--monetra-primary,#00C896); color:#000;">
+                <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle-fill"></i> {{ _('Abonar a meta') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted mb-1" id="abonarGoalName"></p>
+                <p class="small text-muted mb-3" id="abonarGoalProgress"></p>
+                <label class="form-label fw-semibold">{{ _('Monto a abonar') }}</label>
+                <div class="input-group">
+                    <span class="input-group-text">{{ currency_symbol }}</span>
+                    <input type="number" id="abonarAmount" class="form-control text-end"
+                           placeholder="0.00" step="0.01" min="0.01">
+                </div>
+                <div id="abonarError" class="text-danger small mt-1 d-none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+                <button type="button" class="btn btn-success btn-sm fw-semibold" onclick="confirmAbonar()">
+                    <i class="bi bi-check-lg"></i> {{ _('Abonar') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    var csrf    = '{{ csrf_token() }}';
+    var sym     = '{{ currency_symbol }}';
+    var dec     = {{ currency_decimals }};
+    var loc     = '{{ currency_locale }}';
+    var currentGoalId = null;
+
+    function fmt(v) {
+        return sym + Number(v).toLocaleString(loc, {
+            minimumFractionDigits: dec, maximumFractionDigits: dec
+        });
+    }
+
+    {% if active %}
+    new Chart(document.getElementById('metasChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [
+                {
+                    label: '{{ _("Ahorrado") }}',
+                    data: {{ chart_saved|safe }},
+                    backgroundColor: '#00C896',
+                    borderRadius: 4,
+                    borderSkipped: false,
+                    maxBarThickness: 16,
+                },
+                {
+                    label: '{{ _("Restante") }}',
+                    data: {{ chart_remain|safe }},
+                    backgroundColor: 'rgba(255,255,255,0.08)',
+                    borderRadius: 4,
+                    borderSkipped: false,
+                    maxBarThickness: 16,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            resizeDelay: 200,
+            indexAxis: 'y',
+            plugins: {
+                legend: { labels: { color: '#B0BEC5' } },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) { return ' ' + ctx.dataset.label + ': ' + fmt(ctx.parsed.x); }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                    ticks: { color: '#B0BEC5', callback: function(v) { return fmt(v); } },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                },
+                y: { stacked: true, ticks: { color: '#B0BEC5' }, grid: { display: false } }
+            }
+        }
+    });
+    {% endif %}
+
+    window.openAbonar = function(goalId, target, current) {
+        currentGoalId = goalId;
+        document.getElementById('abonarGoalName').textContent = document.querySelector('#goal-' + goalId + ' .fw-semibold').textContent.trim();
+        document.getElementById('abonarGoalProgress').textContent = fmt(current) + ' / ' + fmt(target);
+        document.getElementById('abonarAmount').value = '';
+        document.getElementById('abonarError').classList.add('d-none');
+        new bootstrap.Modal(document.getElementById('abonarModal')).show();
+    };
+
+    window.confirmAbonar = async function() {
+        var amount = parseFloat(document.getElementById('abonarAmount').value);
+        var errEl  = document.getElementById('abonarError');
+        errEl.classList.add('d-none');
+        if (!amount || amount <= 0) {
+            errEl.textContent = '{{ _("Ingresa un monto válido.") }}';
+            errEl.classList.remove('d-none');
+            return;
+        }
+        var res = await fetch('/metas/' + currentGoalId + '/abonar', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: amount }),
+        });
+        var data = await res.json();
+        if (!res.ok) {
+            errEl.textContent = data.error || '{{ _("Error.") }}';
+            errEl.classList.remove('d-none');
+            return;
+        }
+        bootstrap.Modal.getInstance(document.getElementById('abonarModal')).hide();
+        if (data.is_completed) {
+            location.reload();
+        } else {
+            var pct = Math.min(data.progress_pct, 100);
+            document.querySelector('.goal-bar-' + currentGoalId).style.width = pct + '%';
+            document.querySelector('.goal-current-' + currentGoalId).textContent = fmt(data.current_amount);
+            document.querySelector('.goal-pct-' + currentGoalId).textContent = pct.toFixed(1);
+        }
+    };
+})();
+</script>
+{% endblock %}

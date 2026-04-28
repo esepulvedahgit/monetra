@@ -1,0 +1,373 @@
+{% extends 'base.html' %}
+{% from 'partials/hint.html' import hint with context %}
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <h2 class="mb-0 fw-bold">
+        <i class="bi bi-globe2 text-primary"></i> {{ _('Dashboard Global') }}{{ hint(_('Vista anual: compara meses, analiza gastos por categoría y evolución del balance a lo largo del año.')) }}
+    </h2>
+
+    <!-- Controles: año + rango de meses -->
+    <form method="GET" action="{{ url_for('main.global_dashboard') }}" id="globalForm"
+          class="d-flex flex-wrap align-items-center gap-2">
+        <div class="d-flex align-items-center gap-1">
+            <i class="bi bi-calendar-range text-muted"></i>
+            <select name="year" class="form-select form-select-sm" style="width:auto;"
+                    onchange="this.form.submit()">
+                {% for y in available_years %}
+                <option value="{{ y }}" {% if y == sel_year_g %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="d-flex align-items-center gap-1">
+            <span class="small text-muted fw-semibold">{{ _('Desde') }}</span>
+            <select name="from_month" class="form-select form-select-sm" style="width:auto;">
+                {% for num, name in month_names.items() %}
+                <option value="{{ num }}" {% if num == from_month %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="d-flex align-items-center gap-1">
+            <span class="small text-muted fw-semibold">{{ _('Hasta') }}</span>
+            <select name="to_month" class="form-select form-select-sm" style="width:auto;">
+                {% for num, name in month_names.items() %}
+                <option value="{{ num }}" {% if num == to_month %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-sm btn-primary">
+            <i class="bi bi-funnel"></i> {{ _('Aplicar') }}
+        </button>
+        <a href="{{ url_for('export.export_excel', year=sel_year_g, from_month=from_month, to_month=to_month) }}"
+           class="btn btn-sm btn-success fw-semibold">
+            <i class="bi bi-file-earmark-excel-fill"></i> {{ _('Exportar Excel') }}
+        </a>
+    </form>
+</div>
+
+<!-- 1. Gastos por Categoría (barras) -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-bar-chart-fill text-primary"></i> {{ _('Gastos por Categoría') }}</span>
+        <span class="text-muted small fw-normal">
+            {{ month_names[from_month] }}{% if from_month != to_month %} — {{ month_names[to_month] }}{% endif %}
+            {{ sel_year_g }}
+        </span>
+    </div>
+    <div class="card-body">
+        {% if bar_data != '[]' %}
+        <div style="position: relative; height: 320px; width: min(100%, {{ [bar_count * 75, 320]|max }}px);">
+            <canvas id="barChart"></canvas>
+        </div>
+        {% else %}
+        <div class="d-flex align-items-center justify-content-center text-muted py-5">
+            <div class="text-center">
+                <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                <p class="mt-2 mb-0">{{ _('Sin gastos para el período seleccionado.') }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 2. Tendencia mensual (líneas) -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-graph-up text-primary"></i> {{ _('Tendencia Mensual') }}</span>
+        <span class="text-muted small fw-normal">{{ _('Ingresos vs Gastos') }} — {{ sel_year_g }}</span>
+    </div>
+    <div class="card-body">
+        <div style="position: relative; height: 320px; width: 100%;">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Tendencia de gastos por año (líneas comparativas) -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-graph-up-arrow text-primary"></i> {{ _('Tendencia de gastos por año') }}</span>
+        <span class="text-muted small fw-normal">{{ _('Comparación mensual agrupada por año') }}</span>
+    </div>
+    <div class="card-body">
+        {% if multi_year_trend_datasets != '[]' %}
+        <div style="position: relative; height: 350px; width: 100%;">
+            <canvas id="multiYearTrendChart"></canvas>
+        </div>
+        {% else %}
+        <div class="d-flex align-items-center justify-content-center text-muted py-5">
+            <div class="text-center">
+                <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                <p class="mt-2 mb-0">{{ _('Sin datos de gastos para comparar tendencias.') }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 4. Resumen por Año (barras agrupadas — todos los períodos) -->
+<div class="card shadow-sm">
+    <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-calendar4-range text-primary"></i> {{ _('Resumen Anual') }}</span>
+        <span class="text-muted small fw-normal">{{ _('Totales acumulados por año') }}</span>
+    </div>
+    <div class="card-body">
+        {% if yearly_labels != '[]' %}
+        <div style="position: relative; height: 280px; width: min(100%, {{ [yearly_count * 75, 320]|max }}px);">
+            <canvas id="yearlyChart"></canvas>
+        </div>
+        {% else %}
+        <div class="d-flex align-items-center justify-content-center text-muted py-5">
+            <div class="text-center">
+                <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                <p class="mt-2 mb-0">{{ _('Sin datos disponibles.') }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    const numFmt = new Intl.NumberFormat("{{ currency_locale }}", {
+        minimumFractionDigits: {{ currency_decimals }},
+        maximumFractionDigits: {{ currency_decimals }},
+    });
+    const SYM = "{{ currency_symbol }}";
+    const fmtMoney = v => SYM + numFmt.format(v);
+
+    const LBL_INCOME  = {{ _('Ingresos')|tojson }};
+    const LBL_EXPENSE = {{ _('Gastos')|tojson }};
+
+    const CHART_DEFAULTS = {
+        responsive: true,
+        maintainAspectRatio: false,
+        resizeDelay: 200,
+    };
+</script>
+
+{% if bar_data != '[]' %}
+<script>
+(function () {
+    new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ bar_labels|safe }},
+            datasets: [{
+                label: `${LBL_EXPENSE} (${SYM})`,
+                data: {{ bar_data|safe }},
+                backgroundColor: {{ bar_colors|safe }},
+                borderWidth: 0,
+                borderRadius: 6,
+                maxBarThickness: 22,
+            }]
+        },
+        options: {
+            ...CHART_DEFAULTS,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(7,24,33,0.95)',
+                    titleColor: '#FFFFFF',
+                    bodyColor: '#B0BEC5',
+                    borderColor: 'rgba(0,200,150,0.3)',
+                    borderWidth: 1,
+                    callbacks: { label: ctx => ` ${fmtMoney(ctx.parsed.y)}` }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { callback: v => fmtMoney(v), color: '#B0BEC5' },
+                    grid: { color: 'rgba(255,255,255,0.07)' }
+                },
+                x: {
+                    ticks: {
+                        color: '#B0BEC5',
+                        maxRotation: 60,
+                        minRotation: 60,
+                    },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+})();
+</script>
+{% endif %}
+
+<script>
+(function () {
+    new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+            labels: {{ month_labels|safe }},
+            datasets: [
+                {
+                    label: LBL_INCOME,
+                    data: {{ trend_income|safe }},
+                    borderColor: '#00C896',
+                    backgroundColor: 'rgba(0,200,150,0.12)',
+                    borderWidth: 2.5,
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                    tension: 0.35,
+                    fill: true,
+                },
+                {
+                    label: LBL_EXPENSE,
+                    data: {{ trend_expense|safe }},
+                    borderColor: '#EF4444',
+                    backgroundColor: 'rgba(239,68,68,0.12)',
+                    borderWidth: 2.5,
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                    tension: 0.35,
+                    fill: true,
+                }
+            ]
+        },
+        options: {
+            ...CHART_DEFAULTS,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { usePointStyle: true, padding: 20, color: '#B0BEC5' }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(7,24,33,0.95)',
+                    titleColor: '#FFFFFF',
+                    bodyColor: '#B0BEC5',
+                    borderColor: 'rgba(0,200,150,0.3)',
+                    borderWidth: 1,
+                    callbacks: { label: ctx => ` ${ctx.dataset.label}: ${fmtMoney(ctx.parsed.y)}` }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { callback: v => fmtMoney(v), color: '#B0BEC5' },
+                    grid: { color: 'rgba(255,255,255,0.07)' }
+                },
+                x: {
+                    ticks: { color: '#B0BEC5' },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+})();
+</script>
+
+{% if yearly_labels != '[]' %}
+<script>
+(function () {
+    new Chart(document.getElementById('yearlyChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ yearly_labels|safe }},
+            datasets: [
+                {
+                    label: LBL_INCOME,
+                    data: {{ yearly_income|safe }},
+                    backgroundColor: 'rgba(0,200,150,0.75)',
+                    borderColor: '#00C896',
+                    borderWidth: 0,
+                    borderRadius: 5,
+                    maxBarThickness: 22,
+                },
+                {
+                    label: LBL_EXPENSE,
+                    data: {{ yearly_expense|safe }},
+                    backgroundColor: 'rgba(239,68,68,0.75)',
+                    borderColor: '#EF4444',
+                    borderWidth: 0,
+                    borderRadius: 5,
+                    maxBarThickness: 22,
+                }
+            ]
+        },
+        options: {
+            ...CHART_DEFAULTS,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { usePointStyle: true, padding: 20, color: '#B0BEC5' }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(7,24,33,0.95)',
+                    titleColor: '#FFFFFF',
+                    bodyColor: '#B0BEC5',
+                    borderColor: 'rgba(0,200,150,0.3)',
+                    borderWidth: 1,
+                    callbacks: { label: ctx => ` ${ctx.dataset.label}: ${fmtMoney(ctx.parsed.y)}` }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { callback: v => fmtMoney(v), color: '#B0BEC5' },
+                    grid: { color: 'rgba(255,255,255,0.07)' }
+                },
+                x: {
+                    ticks: { color: '#B0BEC5' },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+})();
+</script>
+{% endif %}
+
+{% if multi_year_trend_datasets != '[]' %}
+<script>
+(function () {
+    new Chart(document.getElementById('multiYearTrendChart'), {
+        type: 'line',
+        data: {
+            labels: {{ month_labels|safe }},
+            datasets: {{ multi_year_trend_datasets|safe }}
+        },
+        options: {
+            ...CHART_DEFAULTS,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { usePointStyle: true, padding: 20, color: '#B0BEC5' }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(7,24,33,0.95)',
+                    titleColor: '#FFFFFF',
+                    bodyColor: '#B0BEC5',
+                    borderColor: 'rgba(0,200,150,0.3)',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: ctx => ` ${ctx.dataset.label}: ${fmtMoney(ctx.parsed.y)}`
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { callback: v => fmtMoney(v), color: '#B0BEC5' },
+                    grid: { color: 'rgba(255,255,255,0.07)' }
+                },
+                x: {
+                    ticks: { color: '#B0BEC5' },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}
