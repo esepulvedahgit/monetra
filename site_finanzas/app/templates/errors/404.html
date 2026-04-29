@@ -1,0 +1,9 @@
+{% extends "errors/base_error.html" %}
+
+{% block error_title %}404{% endblock %}
+{% block error_code %}404{% endblock %}
+{% block error_heading %}Página no encontrada{% endblock %}
+{% block error_message %}
+    La ruta que buscas no existe o fue movida.<br>
+    Verifica la URL o regresa al inicio.
+{% endblock %}
