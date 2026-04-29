@@ -59,13 +59,32 @@
                     {% endfor %}
                 </div>
 
-                <div class="mb-3">
+                <div class="mb-2">
                     {{ form.password.label(class="form-label") }}
                     {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""),
-                                    placeholder=_('Mínimo 10 caracteres')) }}
+                                    placeholder=_('Mínimo 10 caracteres'),
+                                    id="pw-input", autocomplete="new-password") }}
                     {% for e in form.password.errors %}
                     <div class="invalid-feedback">{{ e }}</div>
                     {% endfor %}
+                </div>
+
+                <!-- Indicador de complejidad -->
+                <div id="pw-strength" class="mb-3" style="display:none;">
+                    <div style="display:flex; gap:3px; margin-bottom:7px;">
+                        <div class="pw-seg" style="height:3px; flex:1; border-radius:2px; background:var(--card-border); transition:background .2s;"></div>
+                        <div class="pw-seg" style="height:3px; flex:1; border-radius:2px; background:var(--card-border); transition:background .2s;"></div>
+                        <div class="pw-seg" style="height:3px; flex:1; border-radius:2px; background:var(--card-border); transition:background .2s;"></div>
+                        <div class="pw-seg" style="height:3px; flex:1; border-radius:2px; background:var(--card-border); transition:background .2s;"></div>
+                        <div class="pw-seg" style="height:3px; flex:1; border-radius:2px; background:var(--card-border); transition:background .2s;"></div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:3px 12px; font-size:0.76rem; color:var(--monetra-text-muted);">
+                        <span id="req-len"><i class="bi bi-circle me-1"></i>{{ _('10 caracteres') }}</span>
+                        <span id="req-upper"><i class="bi bi-circle me-1"></i>{{ _('Mayúscula') }}</span>
+                        <span id="req-lower"><i class="bi bi-circle me-1"></i>{{ _('Minúscula') }}</span>
+                        <span id="req-digit"><i class="bi bi-circle me-1"></i>{{ _('Número') }}</span>
+                        <span id="req-special"><i class="bi bi-circle me-1"></i>{{ _('Carácter especial') }}</span>
+                    </div>
                 </div>
 
                 <div class="mb-4">
@@ -91,5 +110,47 @@
 
     </div>
 </div>
+
+{% block scripts %}
+<script>
+(function () {
+    var input     = document.getElementById('pw-input');
+    var indicator = document.getElementById('pw-strength');
+    var segs      = document.querySelectorAll('.pw-seg');
+    var checks    = [
+        { id: 'req-len',     test: function (v) { return v.length >= 10; } },
+        { id: 'req-upper',   test: function (v) { return /[A-Z]/.test(v); } },
+        { id: 'req-lower',   test: function (v) { return /[a-z]/.test(v); } },
+        { id: 'req-digit',   test: function (v) { return /\d/.test(v); } },
+        { id: 'req-special', test: function (v) { return /[!@#$%^&*(),.?":{}|<>]/.test(v); } }
+    ];
+    var colors = ['', '#dc3545', '#fd7e14', '#ffc107', '#20c997', '#00C896'];
+
+    if (!input) return;
+
+    input.addEventListener('input', function () {
+        var val = this.value;
+        if (!val) { indicator.style.display = 'none'; return; }
+        indicator.style.display = 'block';
+
+        var score = 0;
+        checks.forEach(function (c) {
+            var el  = document.getElementById(c.id);
+            var met = c.test(val);
+            if (met) score++;
+            el.style.color = met ? 'var(--monetra-primary, #00C896)' : 'var(--monetra-text-muted)';
+            el.querySelector('i').className = met
+                ? 'bi bi-check-circle-fill me-1'
+                : 'bi bi-circle me-1';
+        });
+
+        var color = colors[score];
+        segs.forEach(function (seg, i) {
+            seg.style.background = i < score ? color : 'var(--card-border)';
+        });
+    });
+}());
+</script>
+{% endblock %}
 
 {% endblock %}
