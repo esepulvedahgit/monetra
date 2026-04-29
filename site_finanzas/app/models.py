@@ -176,6 +176,24 @@ class CategoryBudget(db.Model):
         return f'<CategoryBudget user={self.user_id} cat={self.category_id} amount={self.amount}>'
 
 
+class UserSeenAnnouncement(db.Model):
+    __tablename__ = 'user_seen_announcements'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    announcement_key = db.Column(db.String(50), nullable=False)
+    seen_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'announcement_key', name='uq_user_announcement'),
+    )
+
+    user = db.relationship('User', backref=db.backref('seen_announcements', lazy=True,
+                                                       cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<UserSeenAnnouncement user={self.user_id} key={self.announcement_key}>'
+
+
 class PasswordResetToken(db.Model):
     __tablename__ = 'password_reset_token'
     id = db.Column(db.Integer, primary_key=True)

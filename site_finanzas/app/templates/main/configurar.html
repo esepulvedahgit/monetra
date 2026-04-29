@@ -489,6 +489,11 @@
                         <button type="submit" class="btn btn-sm btn-outline-secondary fw-semibold">
                             <i class="bi bi-send"></i> {{ _('Enviar ahora') }}
                         </button>
+                        <a href="{{ url_for('export.export_excel', year=sel_year) }}"
+                           class="btn btn-sm fw-semibold"
+                           style="color:#1D6F42; border:1px solid #1D6F42; background:rgba(29,111,66,0.08);">
+                            <i class="bi bi-file-earmark-excel-fill"></i> {{ _('Descargar') }}
+                        </a>
                         <span class="small" style="color:var(--monetra-text-muted,#78909C);">
                             {{ _('Genera y envía el Excel del año en curso a') }}
                             <strong>{{ current_user.email }}</strong>
@@ -496,9 +501,16 @@
                     </div>
                 </form>
                 {% else %}
-                <div class="d-flex align-items-center gap-2 small" style="color:var(--monetra-text-muted,#78909C);">
-                    <i class="bi bi-exclamation-triangle" style="color:#F2C94C;"></i>
-                    {{ _('Para enviar reportes necesitas configurar un SMTP (propio o del administrador).') }}
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <div class="d-flex align-items-center gap-2 small" style="color:var(--monetra-text-muted,#78909C);">
+                        <i class="bi bi-exclamation-triangle" style="color:#F2C94C;"></i>
+                        {{ _('Para enviar reportes necesitas configurar un SMTP (propio o del administrador).') }}
+                    </div>
+                    <a href="{{ url_for('export.export_excel', year=sel_year) }}"
+                       class="btn btn-sm fw-semibold"
+                       style="color:#1D6F42; border:1px solid #1D6F42; background:rgba(29,111,66,0.08);">
+                        <i class="bi bi-file-earmark-excel-fill"></i> {{ _('Descargar') }}
+                    </a>
                 </div>
                 {% endif %}
             </div>
@@ -593,7 +605,7 @@
 <!-- Versión -->
 <div class="text-center mt-4 mb-2">
     <small style="color:var(--monetra-text-muted, #78909C); opacity:0.6;">
-        <i class="bi bi-code-slash"></i> Monetra v1.7
+        <i class="bi bi-code-slash"></i> Monetra v1.8
     </small>
 </div>
 

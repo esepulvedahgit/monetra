@@ -1,5 +1,5 @@
 from app import create_app, db
-from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, RecurringTransaction, CategoryBudget
+from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement
 from sqlalchemy import inspect, text
 
 app = create_app()

@@ -75,13 +75,6 @@
                             <i class="bi bi-globe2"></i> {{ _('Global') }}
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('export.export_excel', year=sel_year) }}"
-                            title="{{ _('Descargar reporte Excel del año') }}"
-                            style="color: var(--monetra-primary, #00C896);">
-                            <i class="bi bi-file-earmark-excel-fill"></i> Excel
-                        </a>
-                    </li>
                 </ul>
 
                 <!-- Period selector -->
@@ -280,6 +273,33 @@
             </div>
         </div>
     </div>
+    {% endif %}
+
+    {% if announcement_to_show %}
+    <div class="modal fade" id="announcementModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+            <div class="modal-content" style="border: 1px solid var(--monetra-primary, #00C896);">
+                {% set _ann_tpl = 'partials/announcements/' ~ announcement_to_show.replace('.', '_') ~ '.html' %}
+                {% include _ann_tpl ignore missing %}
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var modalEl = document.getElementById('announcementModal');
+            if (!modalEl) return;
+            var modal = new bootstrap.Modal(modalEl);
+            modalEl.addEventListener('show.bs.modal', function markSeen() {
+                modalEl.removeEventListener('show.bs.modal', markSeen);
+                var csrf = document.querySelector('meta[name="csrf-token"]');
+                fetch("{{ url_for('main.mark_announcement_seen', key=announcement_to_show) }}", {
+                    method: 'POST',
+                    headers: csrf ? { 'X-CSRFToken': csrf.content } : {}
+                });
+            });
+            modal.show();
+        });
+    </script>
     {% endif %}
 
     <main class="py-4">

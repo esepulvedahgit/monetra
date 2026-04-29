@@ -29,6 +29,23 @@
 - 2 Themas nuevos Life y Dark Profundo
 
 
+## v1.8
+
+### Descarga de Excel reorganizada
+- Botón de descarga Excel eliminado del navbar principal para reducir densidad del menú
+- Botón reubicado en Configurar → Reporte semanal por email, junto al botón "Enviar ahora"
+- Visible en ambos estados: con SMTP configurado (junto a "Enviar ahora") y sin SMTP (junto al aviso de configuración)
+- Icono y estilo verde Excel (`#1D6F42`) consistente con el formato del archivo generado
+
+### Sistema de anuncios de versión para usuarios existentes
+- Nuevo modelo `UserSeenAnnouncement` (`user_seen_announcements`) que persiste qué versión vio cada usuario
+- Modal de novedades mostrado una sola vez al primer inicio de sesión posterior a una actualización
+- Usuarios nuevos (creados a partir de la fecha de lanzamiento) no ven el modal
+- Contenido del modal desacoplado en partials por versión (`partials/announcements/vX_Y.html`)
+- Registro centralizado en `app/announcements.py`: agregar nueva versión requiere solo una entrada en el dict y un nuevo partial
+- Marcado como visto vía `fetch POST /announcements/<key>/seen` al mostrarse el modal (sin recarga de página)
+
+
 ## v1.7
 
 ### Sistema de colores persistentes en categorías

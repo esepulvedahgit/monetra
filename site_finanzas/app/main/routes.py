@@ -12,7 +12,7 @@ from sqlalchemy import extract, func
 from app import db
 from app.main import main
 from app.main.forms import TransactionForm, CategoryForm, BudgetForm, CategoryBudgetForm, ConfigForm, SMTPConfigForm, RecurringTransactionForm, SavingsGoalForm, ChangePasswordForm
-from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal
+from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal, UserSeenAnnouncement
 from app.email_service import encrypt_smtp_password, send_user_email, encrypt_mfa_secret, decrypt_mfa_secret
 from flask_jwt_extended import create_access_token
 
@@ -191,6 +191,49 @@ def _currency_decimals(code):
         return get_currency_precision(code)
     except Exception:
         return 2
+
+
+@main.app_context_processor
+def inject_announcement():
+    try:
+        if not current_user.is_authenticated:
+            return {'announcement_to_show': None}
+        from app.announcements import CURRENT_ANNOUNCEMENT, ANNOUNCEMENTS
+        from datetime import timezone as _tz
+        ann = ANNOUNCEMENTS.get(CURRENT_ANNOUNCEMENT)
+        if not ann:
+            return {'announcement_to_show': None}
+        created = current_user.created_at
+        if created is None:
+            return {'announcement_to_show': None}
+        if created.tzinfo is None:
+            created = created.replace(tzinfo=_tz.utc)
+        if created >= ann['released_at']:
+            return {'announcement_to_show': None}
+        seen = UserSeenAnnouncement.query.filter_by(
+            user_id=current_user.id,
+            announcement_key=CURRENT_ANNOUNCEMENT,
+        ).first()
+        return {'announcement_to_show': None if seen else CURRENT_ANNOUNCEMENT}
+    except Exception:
+        return {'announcement_to_show': None}
+
+
+# ── Announcement system ────────────────────────────────────────────────────────
+
+@main.route('/announcements/<key>/seen', methods=['POST'])
+@login_required
+def mark_announcement_seen(key):
+    from app.announcements import CURRENT_ANNOUNCEMENT
+    if key == CURRENT_ANNOUNCEMENT:
+        if not UserSeenAnnouncement.query.filter_by(
+            user_id=current_user.id, announcement_key=key
+        ).first():
+            db.session.add(UserSeenAnnouncement(
+                user_id=current_user.id, announcement_key=key
+            ))
+            db.session.commit()
+    return '', 204
 
 
 # ── Language selector ──────────────────────────────────────────────────────────
