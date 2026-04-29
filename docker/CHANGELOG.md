@@ -31,6 +31,28 @@
 
 ## v1.8
 
+### Indicador de complejidad de contraseña en registro
+- Barra de 5 segmentos que avanza de rojo → naranja → amarillo → verde a medida que se cumplen requisitos
+- Checklist en tiempo real con iconos: 10 caracteres, mayúscula, minúscula, número, carácter especial
+- Se muestra al comenzar a escribir y se oculta si el campo queda vacío
+- Colores y estilos usando CSS variables del tema activo (`--monetra-primary`, `--monetra-text-muted`, `--card-border`)
+- Verificaciones en JS espejo exacto de la política del backend (`validate_password_policy`)
+
+### Seguridad — Rate limiting en autenticación
+- `POST /login`: límite de 5 intentos por minuto por IP
+- `POST /register`: límite de 5 intentos por minuto por IP
+- `POST /mfa-verify`: límite de 5 intentos por minuto por IP (cierra bypass en flujo MFA)
+- `POST /forgot-password` y `POST /reset-password`: límites preexistentes conservados (3/15min y 5/15min)
+- Todos los límites aplican solo a POST; GET no se ve afectado
+- Página de error 429 (`errors/429.html`) con tema del usuario — reemplaza la respuesta en texto plano del sistema
+
+### Seguridad — Infraestructura Docker
+- `docker/.env` corregido: nombres de variables unificados (`DB_USER`, `DB_PASSWORD`, `DB_NAME`) para que coincidan con las referencias `${VAR}` del compose
+- Variables faltantes agregadas: `DB_NAME`, `SECRET_KEY`, `FIELD_ENCRYPTION_KEY`, `JWT_SECRET_KEY`
+- `docker-compose.yml` (dev) migrado a `environment: ${VAR}` — ambos compose leen desde `docker/.env` como fuente única
+- Gunicorn reducido a 1 worker en `entrypoint.sh`: con almacenamiento en memoria, múltiples workers dividían el contador de rate limiting permitiendo bypass
+- `entrypoint.sh` normalizado a LF sin BOM: CRLF o BOM en el shebang causa `exec format error` al levantar el contenedor en Linux
+
 ### Descarga de Excel reorganizada
 - Botón de descarga Excel eliminado del navbar principal para reducir densidad del menú
 - Botón reubicado en Configurar → Reporte semanal por email, junto al botón "Enviar ahora"

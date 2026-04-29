@@ -69,7 +69,7 @@ site_finanzas/
     templates/
       base.html          # Authenticated layout — navbar, period selector, idle timeout modal,
                          # announcement modal (shown once per version to existing users)
-      auth_base.html     # Unauthenticated layout
+      auth_base.html     # Unauthenticated layout — has {% block scripts %}{% endblock %} after Bootstrap bundle for page-specific JS
       errors/
         base_error.html  # Standalone error base (does NOT extend base.html — safe for 500s)
         404.html         # Extends base_error.html
