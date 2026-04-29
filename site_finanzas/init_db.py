@@ -19,6 +19,21 @@ DEFAULT_CATEGORIES = [
     ('Otros Ingresos', 'income'),
 ]
 
+DEFAULT_CATEGORY_COLORS = {
+    'Alimentación':   '#00C896',
+    'Transporte':     '#F2C94C',
+    'Vivienda':       '#38BDF8',
+    'Servicios':      '#EF4444',
+    'Salud':          '#8B5CF6',
+    'Educación':      '#F97316',
+    'Ocio':           '#FB7185',
+    'Otros':          '#1FE0B0',
+    'Sueldo':         '#34D399',
+    'Freelance':      '#FFD76A',
+    'Inversiones':    '#60A5FA',
+    'Otros Ingresos': '#A78BFA',
+}
+
 FIRST_ADMIN_EMAIL = 'e.esepulvedah@gmail.com'
 
 with app.app_context():
@@ -116,10 +131,28 @@ with app.app_context():
     # category_budgets table is created by db.create_all() via the model.
     # No ALTER TABLE needed — new table, not a column addition.
 
+    cat_cols = [c['name'] for c in inspect(db.engine).get_columns('categories')]
+    with db.engine.connect() as conn:
+        if 'color' not in cat_cols:
+            conn.execute(text("ALTER TABLE categories ADD COLUMN color VARCHAR(7) NULL"))
+            conn.commit()
+            print('Columna color agregada a categories.')
+
     if not Category.query.filter_by(user_id=None).first():
         for name, type_ in DEFAULT_CATEGORIES:
-            db.session.add(Category(name=name, type=type_, user_id=None))
+            color = DEFAULT_CATEGORY_COLORS.get(name, '#00C896')
+            db.session.add(Category(name=name, type=type_, user_id=None, color=color))
         db.session.commit()
         print('Base de datos inicializada con categorías predeterminadas.')
     else:
-        print('La base de datos ya estaba inicializada.')
+        updated = 0
+        for name, color in DEFAULT_CATEGORY_COLORS.items():
+            cat = Category.query.filter_by(user_id=None, name=name).first()
+            if cat and not cat.color:
+                cat.color = color
+                updated += 1
+        if updated:
+            db.session.commit()
+            print(f'{updated} categorías predeterminadas actualizadas con color.')
+        else:
+            print('La base de datos ya estaba inicializada.')

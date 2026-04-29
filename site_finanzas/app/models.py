@@ -74,6 +74,7 @@ class Category(db.Model):
     name = db.Column(db.String(50), nullable=False)
     type = db.Column(db.String(10), nullable=False)  # 'income' or 'expense'
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    color = db.Column(db.String(7), nullable=True)
 
     transactions = db.relationship('Transaction', backref='category', lazy=True)
 

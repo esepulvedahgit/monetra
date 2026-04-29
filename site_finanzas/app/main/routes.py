@@ -49,6 +49,37 @@ CHART_COLORS = [
     '#F97316', '#A78BFA', '#34D399', '#FB7185',
 ]
 
+DEFAULT_CATEGORY_COLORS = {
+    'Alimentación':   '#00C896',
+    'Transporte':     '#F2C94C',
+    'Vivienda':       '#38BDF8',
+    'Servicios':      '#EF4444',
+    'Salud':          '#8B5CF6',
+    'Educación':      '#F97316',
+    'Ocio':           '#FB7185',
+    'Otros':          '#1FE0B0',
+    'Sueldo':         '#34D399',
+    'Freelance':      '#FFD76A',
+    'Inversiones':    '#60A5FA',
+    'Otros Ingresos': '#A78BFA',
+}
+
+DEFAULT_PALETTE = [
+    '#00C896', '#F2C94C', '#38BDF8', '#EF4444', '#8B5CF6',
+    '#F97316', '#FB7185', '#1FE0B0', '#34D399', '#FFD76A',
+    '#60A5FA', '#A78BFA', '#06B6D4', '#84CC16', '#EC4899',
+    '#14B8A6', '#F59E0B', '#4ADE80', '#E879F9', '#67E8F9',
+    '#FCA5A5',
+]
+
+CUSTOM_PALETTE = [
+    '#00956E', '#B8952A', '#1A7FA3', '#B33030', '#6338B8',
+    '#B85510', '#B8445A', '#0FA882', '#1F9E6E', '#C2A030',
+    '#3A78C4', '#7560C4', '#0088A8', '#5E961A', '#B82878',
+    '#0E877A', '#B87208', '#28A858', '#A830C0', '#3AACBF',
+    '#B86060',
+]
+
 _TX_ENDPOINTS = {'main.transactions', 'main.add_transaction', 'main.edit_transaction',
                  'main.delete_transaction'}
 
@@ -258,7 +289,10 @@ def dashboard():
     )
 
     rows = (
-        db.session.query(Category.name, func.sum(Transaction.amount).label('total'))
+        db.session.query(
+            Category.id, Category.name, Category.color,
+            func.sum(Transaction.amount).label('total'),
+        )
         .join(Transaction)
         .filter(
             Transaction.user_id == current_user.id,
@@ -266,9 +300,11 @@ def dashboard():
             extract('year', Transaction.date) == year,
             extract('month', Transaction.date) == month,
         )
-        .group_by(Category.name)
+        .group_by(Category.id, Category.name, Category.color)
         .all()
     )
+    _fb = list(islice(cycle(CHART_COLORS), max(len(rows), 1)))
+    chart_colors_list = [r.color if r.color else _fb[i] for i, r in enumerate(rows)]
 
     recent = (
         Transaction.query
@@ -320,7 +356,7 @@ def dashboard():
         budget_used_pct=budget_used_pct,
         chart_labels=json.dumps([r.name for r in rows]),
         chart_data=json.dumps([float(r.total) for r in rows]),
-        chart_colors=json.dumps(CHART_COLORS),
+        chart_colors=json.dumps(chart_colors_list),
         recent_transactions=recent,
         current_month=f"{month_names[month]} {year}",
         active_goals=active_goals,
@@ -456,6 +492,25 @@ def delete_transaction(tx_id):
 
 # ── Categories ─────────────────────────────────────────────────────────────────
 
+def _split_categories(type_filter):
+    default = Category.query.filter(
+        Category.user_id.is_(None), Category.type == type_filter
+    ).order_by(Category.name).all()
+    user = Category.query.filter(
+        Category.user_id == current_user.id, Category.type == type_filter
+    ).order_by(Category.name).all()
+    return default, user
+
+
+def _next_custom_color(user_id: int) -> str:
+    used = {c.color for c in Category.query.filter_by(user_id=user_id).all() if c.color}
+    for color in CUSTOM_PALETTE:
+        if color not in used:
+            return color
+    count = Category.query.filter_by(user_id=user_id).count()
+    return CUSTOM_PALETTE[count % len(CUSTOM_PALETTE)]
+
+
 @main.route('/categories', methods=['GET', 'POST'])
 @login_required
 def categories():
@@ -471,18 +526,52 @@ def categories():
             flash(_('Ya existe una categoría con ese nombre y tipo.'), 'warning')
         else:
             db.session.add(Category(
-                name=form.name.data, type=form.type.data, user_id=current_user.id
+                name=form.name.data,
+                type=form.type.data,
+                user_id=current_user.id,
+                color=_next_custom_color(current_user.id),
             ))
             db.session.commit()
             flash(_('Categoría creada.'), 'success')
         return redirect(url_for('main.categories'))
 
+    default_expense, user_expense = _split_categories('expense')
+    default_income, user_income = _split_categories('income')
+    blocked = session.pop('_cat_blocked', None)
+
     return render_template(
         'main/categories.html',
         form=form,
-        expense_cats=_user_categories('expense'),
-        income_cats=_user_categories('income'),
+        default_expense=default_expense,
+        user_expense=user_expense,
+        default_income=default_income,
+        user_income=user_income,
+        blocked=blocked,
     )
+
+
+@main.route('/categories/<int:cat_id>/delete', methods=['POST'])
+@login_required
+def delete_category(cat_id):
+    category = Category.query.filter_by(id=cat_id, user_id=current_user.id).first_or_404()
+
+    tx_count  = Transaction.query.filter_by(category_id=cat_id).count()
+    rec_count = RecurringTransaction.query.filter_by(category_id=cat_id).count()
+    cb_count  = CategoryBudget.query.filter_by(category_id=cat_id).count()
+
+    if tx_count or rec_count or cb_count:
+        session['_cat_blocked'] = {
+            'name': category.name,
+            'tx':   tx_count,
+            'rec':  rec_count,
+            'cb':   cb_count,
+        }
+        return redirect(url_for('main.categories'))
+
+    db.session.delete(category)
+    db.session.commit()
+    flash(_('Categoría eliminada.'), 'success')
+    return redirect(url_for('main.categories'))
 
 
 # ── Budget ─────────────────────────────────────────────────────────────────────
@@ -681,7 +770,10 @@ def global_dashboard():
 
     # ── Bar chart: expenses by category ──
     bar_rows = (
-        db.session.query(Category.name, func.sum(Transaction.amount).label('total'))
+        db.session.query(
+            Category.id, Category.name, Category.color,
+            func.sum(Transaction.amount).label('total'),
+        )
         .join(Transaction)
         .filter(
             Transaction.user_id == current_user.id,
@@ -690,11 +782,12 @@ def global_dashboard():
             extract('month', Transaction.date) >= from_month,
             extract('month', Transaction.date) <= to_month,
         )
-        .group_by(Category.name)
+        .group_by(Category.id, Category.name, Category.color)
         .order_by(func.sum(Transaction.amount).desc())
         .all()
     )
-    bar_colors = list(islice(cycle(CHART_COLORS), max(len(bar_rows), 1)))
+    _fb = list(islice(cycle(CHART_COLORS), max(len(bar_rows), 1)))
+    bar_colors = [r.color if r.color else _fb[i] for i, r in enumerate(bar_rows)]
 
     # ── Line chart: 12-month trend ──
     trend_income, trend_expense = [], []
