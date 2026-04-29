@@ -1,4 +1,4 @@
-from flask import Flask, request, session
+﻿from flask import Flask, render_template, request, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
 from flask_wtf.csrf import CSRFProtect
@@ -104,7 +104,19 @@ def create_app(config_class=Config):
     from app.export import export_bp
     app.register_blueprint(export_bp)
 
-    # Start background scheduler (guard against Flask debug reloader double-start)
+    @app.errorhandler(404)
+    def not_found(e):
+        return render_template('errors/404.html'), 404
+
+    @app.errorhandler(429)
+    def too_many_requests(e):
+        return render_template('errors/429.html'), 429
+
+    @app.errorhandler(500)
+    def internal_error(e):
+        db.session.rollback()
+        return render_template('errors/500.html'), 500
+
     import os
     if not app.testing:
         if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':

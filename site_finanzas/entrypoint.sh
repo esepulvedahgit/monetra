@@ -1,4 +1,4 @@
-#!/bin/sh
+﻿#!/bin/sh
 set -e
 
 echo "Waiting for MySQL..."
@@ -23,4 +23,4 @@ done
 echo "MySQL ready."
 
 python init_db.py
-exec gunicorn --workers 2 --bind 0.0.0.0:8000 --timeout 120 "run:app"
+exec gunicorn --workers 1 --bind 0.0.0.0:8000 --timeout 120 "run:app"

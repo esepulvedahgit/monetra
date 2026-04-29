@@ -1,0 +1,11 @@
+﻿{% extends "errors/base_error.html" %}
+
+{% block error_title %}429{% endblock %}
+{% block error_code %}429{% endblock %}
+{% block error_code_color %}var(--monetra-gold, #F59E0B){% endblock %}
+{% block error_heading %}Demasiados intentos{% endblock %}
+{% block error_message %}
+    Detectamos varios intentos seguidos desde tu conexión.<br>
+    Espera un momento e inténtalo de nuevo.
+{% endblock %}
+{% block btn_class %}btn-warning{% endblock %}

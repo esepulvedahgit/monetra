@@ -1,4 +1,4 @@
-import secrets
+﻿import secrets
 import hashlib
 from datetime import datetime, timezone, timedelta
 import pyotp
@@ -13,6 +13,7 @@ from app.email_service import send_user_email, send_recovery_email, decrypt_mfa_
 
 
 @auth.route('/register', methods=['GET', 'POST'])
+@limiter.limit("5 per minute", methods=['POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
@@ -44,6 +45,7 @@ def register():
 
 
 @auth.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute", methods=['POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
@@ -62,6 +64,7 @@ def login():
 
 
 @auth.route('/mfa-verify', methods=['GET', 'POST'])
+@limiter.limit("5 per minute", methods=['POST'])
 def mfa_verify():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))

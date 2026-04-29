@@ -1,4 +1,4 @@
-services:
+﻿services:
   flask:
     build:
       context: ../site_finanzas
@@ -11,8 +11,16 @@ services:
       - /app/venv
     ports:
       - "8000:8000"
-    env_file:
-      - ../site_finanzas/.env
+    environment:
+      FLASK_DEBUG: "1"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY}
+      FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     depends_on:
       mysql:
         condition: service_healthy
@@ -23,16 +31,17 @@ services:
     image: mysql:8.0
     container_name: mysql_finanzas_db
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
-      MYSQL_DATABASE: finanzas_db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
       - mysql_finanzas_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${MYSQL_USER:-finanzas_user}", "-p${MYSQL_PASSWORD:-FinanzasPass123!}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER:-finanzas_user}", "-p${DB_PASSWORD:-FinanzasPass123!}"]
       interval: 10s
       timeout: 5s
       retries: 5
