@@ -221,6 +221,7 @@ class RecurringTransaction(db.Model):
     description = db.Column(db.String(200), nullable=True)
     day_of_month = db.Column(db.Integer, nullable=False, default=1)
     is_active = db.Column(db.Boolean, nullable=False, default=True)
+    end_date = db.Column(db.Date, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = db.relationship('User', backref=db.backref('recurring_transactions', lazy=True,

@@ -122,8 +122,13 @@ def _available_years():
 def _generate_pending_recurring(user_id, year, month):
     import calendar as _cal
     recs = RecurringTransaction.query.filter_by(user_id=user_id, is_active=True).all()
+    period_date = date(year, month, 1)
     changed = False
     for rec in recs:
+        if rec.created_at and rec.created_at.date() > period_date:
+            continue
+        if rec.end_date and period_date > rec.end_date:
+            continue
         exists = Transaction.query.filter_by(
             user_id=user_id, recurring_id=rec.id
         ).filter(
@@ -315,21 +320,13 @@ def dashboard():
     year, month = _get_period()
     _generate_pending_recurring(current_user.id, year, month)
 
-    monthly = Transaction.query.filter(
-        Transaction.user_id == current_user.id,
-        extract('year', Transaction.date) == year,
-        extract('month', Transaction.date) == month,
-    ).all()
-
-    total_income = float(sum((t.amount for t in monthly if t.type == 'income'), Decimal('0')))
-    total_expense = float(sum((t.amount for t in monthly if t.type == 'expense'), Decimal('0')))
-    balance = total_income - total_expense
-
-    budget = Budget.query.filter_by(user_id=current_user.id, year=year, month=month).first()
-    budget_amount = float(budget.amount) if budget else 0.0
-    budget_used_pct = min(
-        (total_expense / budget_amount * 100) if budget_amount > 0 else 0, 100
-    )
+    from app.services.finance import get_monthly_summary
+    summary = get_monthly_summary(current_user.id, year, month)
+    total_income    = summary['total_income']
+    total_expense   = summary['total_expense']
+    balance         = summary['balance']
+    budget_amount   = summary['budget_amount']
+    budget_used_pct = min(summary['budget_used_pct'] or 0, 100)
 
     rows = (
         db.session.query(
@@ -1071,6 +1068,7 @@ def recurrente_form(rec_id=None):
             rec.category_id  = form.category_id.data
             rec.description  = form.description.data
             rec.day_of_month = form.day_of_month.data
+            rec.end_date     = form.end_date.data or None
             rec.is_active    = form.is_active.data
             db.session.commit()
             flash(_('Transacción recurrente guardada.'), 'success')

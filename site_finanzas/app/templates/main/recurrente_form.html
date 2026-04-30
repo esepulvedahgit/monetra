@@ -61,6 +61,17 @@
                     {% endfor %}
                 </div>
 
+                <!-- Fecha de término -->
+                <div class="col-md-6">
+                    {{ form.end_date.label(class="form-label fw-semibold") }}
+                    {{ form.end_date(class="form-control" + (" is-invalid" if form.end_date.errors else ""),
+                                    type="date") }}
+                    <div class="form-text text-muted">{{ _('Opcional. Sin fecha, la recurrente continúa indefinidamente.') }}</div>
+                    {% for e in form.end_date.errors %}
+                    <div class="invalid-feedback">{{ e }}</div>
+                    {% endfor %}
+                </div>
+
                 <!-- Descripción -->
                 <div class="col-12">
                     {{ form.description.label(class="form-label fw-semibold") }}

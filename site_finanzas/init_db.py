@@ -131,6 +131,13 @@ with app.app_context():
     # category_budgets table is created by db.create_all() via the model.
     # No ALTER TABLE needed — new table, not a column addition.
 
+    rec_cols = [c['name'] for c in inspect(db.engine).get_columns('recurring_transactions')]
+    with db.engine.connect() as conn:
+        if 'end_date' not in rec_cols:
+            conn.execute(text("ALTER TABLE recurring_transactions ADD COLUMN end_date DATE NULL"))
+            conn.commit()
+            print("Columna end_date agregada a recurring_transactions.")
+
     cat_cols = [c['name'] for c in inspect(db.engine).get_columns('categories')]
     with db.engine.connect() as conn:
         if 'color' not in cat_cols:

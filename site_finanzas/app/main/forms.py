@@ -71,6 +71,7 @@ class RecurringTransactionForm(FlaskForm):
     day_of_month = SelectField(_l('Día del mes'), coerce=int,
                                choices=[(i, str(i)) for i in range(1, 29)],
                                validators=[DataRequired()])
+    end_date = DateField(_l('Fecha de término'), validators=[Optional()], format='%Y-%m-%d')
     is_active = BooleanField(_l('Activa'))
     submit = SubmitField(_l('Guardar'))
 

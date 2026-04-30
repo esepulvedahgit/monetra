@@ -80,7 +80,12 @@
                         {% endif %}
                     </td>
                     <td><span class="badge bg-secondary">{{ r.category.name }}</span></td>
-                    <td class="text-muted small">{{ _('Día') }} {{ r.day_of_month }}</td>
+                    <td class="text-muted small">
+                        {{ _('Día') }} {{ r.day_of_month }}
+                        {% if r.end_date %}
+                        <br><span style="font-size:0.72rem;">{{ _('Hasta:') }} {{ r.end_date.strftime('%d/%m/%Y') }}</span>
+                        {% endif %}
+                    </td>
                     <td class="text-end fw-bold {% if r.type == 'income' %}text-success{% else %}text-danger{% endif %}">
                         {% if r.type == 'income' %}+{% else %}−{% endif %}{{ r.amount|money }}
                     </td>
