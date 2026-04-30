@@ -1,0 +1,17 @@
+.mtr-hint {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 4px;
+    color: var(--monetra-primary, #00C896);
+    opacity: 0.6;
+    cursor: help;
+    font-size: 0.8rem;
+    vertical-align: middle;
+    transition: opacity 0.18s;
+    line-height: 1;
+}
+.mtr-hint:hover,
+.mtr-hint:focus {
+    opacity: 1;
+    outline: none;
+}

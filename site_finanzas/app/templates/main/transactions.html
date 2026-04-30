@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% from 'partials/hint.html' import hint with context %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0 fw-bold">
+        <i class="bi bi-arrow-left-right text-primary"></i> {{ _('Movimientos') }}{{ hint(_('Historial completo de transacciones. Filtra por tipo, categoría o descripción y edita cualquier registro.')) }}
+        <span class="text-muted fs-5 fw-normal ms-1">{{ sel_year }}</span>
+    </h2>
+    <a href="{{ url_for('main.add_transaction') }}" class="btn btn-success">
+        <i class="bi bi-plus-lg"></i> {{ _('Nuevo Movimiento') }}
+    </a>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">{{ _('Tipo') }}</label>
+                <select name="type" class="form-select">
+                    <option value="all"     {% if type_filter == 'all' %}selected{% endif %}>{{ _('Todos') }}</option>
+                    <option value="income"  {% if type_filter == 'income' %}selected{% endif %}>{{ _('Ingresos') }}</option>
+                    <option value="expense" {% if type_filter == 'expense' %}selected{% endif %}>{{ _('Gastos') }}</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">{{ _('Categoría') }}</label>
+                <select name="category_id" class="form-select">
+                    <option value="0">{{ _('Todas') }}</option>
+                    {% for c in categories %}
+                    <option value="{{ c.id }}" {% if category_filter == c.id %}selected{% endif %}>
+                        {{ c.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">{{ _('Mes') }}</label>
+                <select name="month" class="form-select">
+                    <option value="0" {% if month_filter == 0 %}selected{% endif %}>
+                        {{ _('Todos los meses') }}
+                    </option>
+                    {% for num, name in month_names.items() %}
+                    <option value="{{ num }}" {% if num == month_filter %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1">
+                        <i class="bi bi-funnel"></i> {{ _('Filtrar') }}
+                    </button>
+                    <a href="{{ url_for('main.transactions') }}" class="btn btn-outline-secondary"
+                       title="{{ _('Limpiar filtros') }}">
+                        <i class="bi bi-x"></i>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabla -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="mtr-thead">
+                    <tr>
+                        <th>{{ _('Fecha') }}</th>
+                        <th>{{ _('Tipo') }}</th>
+                        <th>{{ _('Categoría') }}</th>
+                        <th>{{ _('Descripción') }}</th>
+                        <th class="text-center">{{ _('Origen') }}</th>
+                        <th class="text-end">{{ _('Monto') }}</th>
+                        <th class="text-center">{{ _('Acciones') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in transactions %}
+                    <tr>
+                        <td class="text-nowrap small">{{ t.date.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            {% if t.type == 'income' %}
+                            <span class="badge bg-success"><i class="bi bi-arrow-up"></i> {{ _('Ingreso') }}</span>
+                            {% else %}
+                            <span class="badge bg-danger"><i class="bi bi-arrow-down"></i> {{ _('Gasto') }}</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge bg-light text-dark border">{{ t.category.name }}</span></td>
+                        <td class="small text-muted">{{ t.description or '—' }}</td>
+                        <td class="text-center">
+                            {% if t.recurring_id %}
+                            <span class="badge" style="background:rgba(56,189,248,0.15); color:#38BDF8; border:1px solid rgba(56,189,248,0.3);">
+                                <i class="bi bi-arrow-repeat"></i> {{ _('Recurrente') }}
+                            </span>
+                            {% else %}
+                            <span class="badge" style="background:rgba(255,255,255,0.06); color:#78909C; border:1px solid rgba(255,255,255,0.1);">
+                                <i class="bi bi-pencil-square"></i> {{ _('Manual') }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end fw-bold
+                            {% if t.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                            {% if t.type == 'income' %}+{% else %}−{% endif %}{{ t.amount|money }}
+                        </td>
+                        <td class="text-center text-nowrap">
+                            <a href="{{ url_for('main.edit_transaction', tx_id=t.id) }}"
+                               class="btn btn-sm btn-outline-secondary me-1" title="{{ _('Editar') }}">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST"
+                                  action="{{ url_for('main.delete_transaction', tx_id=t.id) }}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('{{ _('¿Eliminar este movimiento?') }}')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Eliminar') }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox" style="font-size: 2.5rem;"></i>
+                            <p class="mt-2 mb-0">{{ _('No hay movimientos con los filtros seleccionados.') }}</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                {% if transactions %}
+                <tfoot class="mtr-tfoot">
+                    <tr>
+                        <td colspan="5" class="fw-bold text-end">{{ _('Resultado filtrado:') }}</td>
+                        <td class="text-end fw-bold">
+                            {% set ns = namespace(total=0) %}
+                            {% for t in transactions %}
+                                {% if t.type == 'income' %}
+                                    {% set ns.total = ns.total + t.amount|float %}
+                                {% else %}
+                                    {% set ns.total = ns.total - t.amount|float %}
+                                {% endif %}
+                            {% endfor %}
+                            <span class="{% if ns.total >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ ns.total|money }}
+                            </span>
+                        </td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

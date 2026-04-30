@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% from 'partials/hint.html' import hint with context %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0 fw-bold">
+        <i class="bi bi-arrow-repeat text-primary"></i>
+        {% if rec %}{{ _('Editar Recurrente') }}{% else %}{{ _('Nueva Recurrente') }}{% endif %}
+    </h2>
+    <a href="{{ url_for('main.recurrentes') }}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> {{ _('Volver') }}
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="row g-3">
+                <!-- Tipo -->
+                <div class="col-md-6">
+                    {{ form.type.label(class="form-label fw-semibold") }}
+                    {{ form.type(class="form-select" + (" is-invalid" if form.type.errors else ""),
+                                 id="recurType") }}
+                    {% for e in form.type.errors %}
+                    <div class="invalid-feedback">{{ e }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Monto -->
+                <div class="col-md-6">
+                    {{ form.amount.label(class="form-label fw-semibold") }}
+                    <div class="input-group">
+                        <span class="input-group-text">{{ currency_symbol }}</span>
+                        {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""),
+                                      placeholder="0.00", step="0.01") }}
+                        {% for e in form.amount.errors %}
+                        <div class="invalid-feedback">{{ e }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Categoría -->
+                <div class="col-md-6">
+                    {{ form.category_id.label(class="form-label fw-semibold") }}
+                    {{ form.category_id(class="form-select" + (" is-invalid" if form.category_id.errors else ""),
+                                        id="recurCat") }}
+                    {% for e in form.category_id.errors %}
+                    <div class="invalid-feedback">{{ e }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Día del mes -->
+                <div class="col-md-6">
+                    {{ form.day_of_month.label(class="form-label fw-semibold") }}{{ hint(_('Usa máx. 28 para que funcione en todos los meses, incluido febrero.')) }}
+                    {{ form.day_of_month(class="form-select" + (" is-invalid" if form.day_of_month.errors else "")) }}
+                    <div class="form-text text-muted">{{ _('Se generará el día indicado de cada mes (máx. 28 para meses cortos).') }}</div>
+                    {% for e in form.day_of_month.errors %}
+                    <div class="invalid-feedback">{{ e }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Descripción -->
+                <div class="col-12">
+                    {{ form.description.label(class="form-label fw-semibold") }}
+                    {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""),
+                                        placeholder=_('Ej: Arriendo, Netflix, Sueldo…'), maxlength=200) }}
+                    {% for e in form.description.errors %}
+                    <div class="invalid-feedback">{{ e }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Activa -->
+                <div class="col-12">
+                    <div class="form-check form-switch">
+                        {{ form.is_active(class="form-check-input", id="recurActive") }}
+                        {{ form.is_active.label(class="form-check-label fw-semibold", for="recurActive") }}{{ hint(_('Activa = se genera una transacción automática cada mes en el día indicado.')) }}
+                    </div>
+                    <div class="form-text text-muted">{{ _('Las recurrentes inactivas no generan transacciones automáticas.') }}</div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <a href="{{ url_for('main.recurrentes') }}" class="btn btn-secondary">{{ _('Cancelar') }}</a>
+                {{ form.submit(class="btn btn-primary fw-semibold px-4") }}
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    var allCats = {{ all_cats_json|safe }};
+
+    function filterCats() {
+        var type = document.getElementById('recurType').value;
+        var sel  = document.getElementById('recurCat');
+        var prev = sel.value;
+        sel.innerHTML = '';
+        var filtered = allCats.filter(function(c) { return c.type === type; });
+        filtered.forEach(function(c) {
+            var opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            if (String(c.id) === String(prev)) opt.selected = true;
+            sel.appendChild(opt);
+        });
+        if (!filtered.length) {
+            var opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = '{{ _("Sin categorías disponibles") }}';
+            sel.appendChild(opt);
+        }
+    }
+
+    document.getElementById('recurType').addEventListener('change', filterCats);
+    filterCats();
+})();
+</script>
+{% endblock %}

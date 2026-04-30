@@ -1,0 +1,39 @@
+<div class="modal-header"
+     style="background: var(--monetra-primary, #00C896); color: #000;">
+    <h5 class="modal-title fw-bold">
+        <i class="bi bi-stars me-2"></i>
+        {{ _('¡Novedades en Monetra v1.8!') }}
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"
+            aria-label="{{ _('Cerrar') }}"></button>
+</div>
+
+<div class="modal-body py-4">
+    <p class="mb-3" style="color: var(--monetra-text);">
+        {{ _('Esta versión v1.8 trae mejoras visuales y nuevas funcionalidades:') }}
+    </p>
+    <ul class="list-unstyled mb-0 ps-1" style="color: var(--monetra-text-soft); line-height: 2;">
+        <li>
+            <i class="bi bi-file-earmark-excel-fill me-2" style="color: #1D6F42;"></i>
+            {{ _('Descarga Excel movida a Configurar → Reporte semanal, junto a "Enviar ahora"') }}
+        </li>
+        <li>
+            <i class="bi bi-palette-fill me-2" style="color: var(--monetra-primary, #00C896);"></i>
+            {{ _('Colores únicos por categoría en badges y gráficos') }}
+        </li>
+        <li>
+            <i class="bi bi-tags-fill me-2" style="color: var(--monetra-primary, #00C896);"></i>
+            {{ _('Separación visual entre categorías por defecto y las tuyas') }}
+        </li>
+        <li>
+            <i class="bi bi-trash3-fill me-2" style="color: var(--monetra-primary, #00C896);"></i>
+            {{ _('Eliminación de categorías personalizadas sin datos asociados') }}
+        </li>
+    </ul>
+</div>
+
+<div class="modal-footer" style="border-top: 1px solid var(--card-border);">
+    <button type="button" class="btn btn-primary fw-semibold px-4" data-bs-dismiss="modal">
+        {{ _('¡Genial!') }}
+    </button>
+</div>

@@ -1,0 +1,25 @@
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Variables de entorno y secretos
+.env
+*.env.local
+
+# Imágenes Docker exportadas
+*.tar
+*.tar.gz
+
+# Claude Code
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+*.sql

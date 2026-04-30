@@ -1,0 +1,156 @@
+{% extends 'auth_base.html' %}
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-center" style="min-height: 100vh; padding: 2rem 1rem;">
+    <div style="width: 100%; max-width: 420px;">
+
+        <!-- Logo + Identidad -->
+        <div class="text-center mb-4">
+            <img src="{{ url_for('static', filename='img/monetra-icon.png') }}"
+                 alt="Monetra"
+                 class="monetra-icon-glow auth-logo mx-auto">
+            <h1 class="fw-bold text-white mb-1" style="font-size: 1.8rem; letter-spacing: -0.01em;">Monetra</h1>
+            <p style="color: var(--monetra-text-muted); font-size: 0.85rem;">
+                {{ _('Empieza a ordenar tus finanzas personales') }}
+            </p>
+        </div>
+
+        {% if registration_blocked %}
+        <!-- Registro deshabilitado -->
+        <div class="auth-card p-4 text-center">
+            <div class="mb-3" style="font-size: 3rem; color: var(--monetra-primary, #00C896);">
+                <i class="bi bi-lock-fill"></i>
+            </div>
+            <h5 class="fw-semibold text-white mb-2">{{ _('Registro deshabilitado') }}</h5>
+            <p style="color: var(--monetra-text-muted); font-size: 0.9rem;">
+                {{ _('El registro de nuevos usuarios está deshabilitado por el administrador.') }}
+            </p>
+            <hr class="my-3">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-monetra-primary w-100 py-2 fs-6">
+                <i class="bi bi-box-arrow-in-right me-1"></i>{{ _('Ir al inicio de sesión') }}
+            </a>
+        </div>
+
+        {% else %}
+        <!-- Card del formulario -->
+        <div class="auth-card p-4">
+            <h5 class="fw-semibold text-white mb-4 text-center" style="font-size: 0.95rem; opacity: 0.85;">
+                {{ _('Crea tu cuenta en Monetra') }}
+            </h5>
+
+            <form method="POST" novalidate>
+                {{ form.hidden_tag() }}
+
+                <div class="mb-3">
+                    {{ form.username.label(class="form-label") }}
+                    {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""),
+                                    placeholder=_('Tu nombre de usuario')) }}
+                    {% for e in form.username.errors %}
+                    <div class="invalid-feedback">{{ e }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""),
+                                 placeholder="correo@ejemplo.com") }}
+                    {% for e in form.email.errors %}
+                    <div class="invalid-feedback">{{ e }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-2">
+                    {{ form.password.label(class="form-label") }}
+                    {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""),
+                                    placeholder=_('Mínimo 10 caracteres'),
+                                    id="pw-input", autocomplete="new-password") }}
+                    {% for e in form.password.errors %}
+                    <div class="invalid-feedback">{{ e }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Indicador de complejidad -->
+                <div id="pw-strength" class="mb-3" style="display:none;">
+                    <div style="display:flex; gap:3px; margin-bottom:7px;">
+                        <div class="pw-seg" style="height:3px; flex:1; border-radius:2px; background:var(--card-border); transition:background .2s;"></div>
+                        <div class="pw-seg" style="height:3px; flex:1; border-radius:2px; background:var(--card-border); transition:background .2s;"></div>
+                        <div class="pw-seg" style="height:3px; flex:1; border-radius:2px; background:var(--card-border); transition:background .2s;"></div>
+                        <div class="pw-seg" style="height:3px; flex:1; border-radius:2px; background:var(--card-border); transition:background .2s;"></div>
+                        <div class="pw-seg" style="height:3px; flex:1; border-radius:2px; background:var(--card-border); transition:background .2s;"></div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:3px 12px; font-size:0.76rem; color:var(--monetra-text-muted);">
+                        <span id="req-len"><i class="bi bi-circle me-1"></i>{{ _('10 caracteres') }}</span>
+                        <span id="req-upper"><i class="bi bi-circle me-1"></i>{{ _('Mayúscula') }}</span>
+                        <span id="req-lower"><i class="bi bi-circle me-1"></i>{{ _('Minúscula') }}</span>
+                        <span id="req-digit"><i class="bi bi-circle me-1"></i>{{ _('Número') }}</span>
+                        <span id="req-special"><i class="bi bi-circle me-1"></i>{{ _('Carácter especial') }}</span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    {{ form.confirm_password.label(class="form-label") }}
+                    {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else ""),
+                                             placeholder=_('Repite la contraseña')) }}
+                    {% for e in form.confirm_password.errors %}
+                    <div class="invalid-feedback">{{ e }}</div>
+                    {% endfor %}
+                </div>
+
+                {{ form.submit(class="btn btn-monetra-primary w-100 py-2 fs-6") }}
+            </form>
+
+            <hr class="my-4">
+
+            <p class="text-center mb-0" style="font-size: 0.88rem; color: var(--monetra-text-muted);">
+                {{ _('¿Ya tienes cuenta?') }}
+                <a href="{{ url_for('auth.login') }}">{{ _('Inicia sesión') }}</a>
+            </p>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+(function () {
+    var input     = document.getElementById('pw-input');
+    var indicator = document.getElementById('pw-strength');
+    var segs      = document.querySelectorAll('.pw-seg');
+    var checks    = [
+        { id: 'req-len',     test: function (v) { return v.length >= 10; } },
+        { id: 'req-upper',   test: function (v) { return /[A-Z]/.test(v); } },
+        { id: 'req-lower',   test: function (v) { return /[a-z]/.test(v); } },
+        { id: 'req-digit',   test: function (v) { return /\d/.test(v); } },
+        { id: 'req-special', test: function (v) { return /[!@#$%^&*(),.?":{}|<>]/.test(v); } }
+    ];
+    var colors = ['', '#dc3545', '#fd7e14', '#ffc107', '#20c997', '#00C896'];
+
+    if (!input) return;
+
+    input.addEventListener('input', function () {
+        var val = this.value;
+        if (!val) { indicator.style.display = 'none'; return; }
+        indicator.style.display = 'block';
+
+        var score = 0;
+        checks.forEach(function (c) {
+            var el  = document.getElementById(c.id);
+            var met = c.test(val);
+            if (met) score++;
+            el.style.color = met ? 'var(--monetra-primary, #00C896)' : 'var(--monetra-text-muted)';
+            el.querySelector('i').className = met
+                ? 'bi bi-check-circle-fill me-1'
+                : 'bi bi-circle me-1';
+        });
+
+        var color = colors[score];
+        segs.forEach(function (seg, i) {
+            seg.style.background = i < score ? color : 'var(--card-border)';
+        });
+    });
+}());
+</script>
+{% endblock %}
+
+{% endblock %}

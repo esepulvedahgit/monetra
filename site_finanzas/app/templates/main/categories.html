@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% from 'partials/hint.html' import hint with context %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0 fw-bold">
+        <i class="bi bi-tags text-primary"></i> {{ _('Categorías') }}
+        {{ hint(_('Las categorías por defecto son globales y no se pueden eliminar. Las tuyas son personales y puedes borrarlas si no tienen datos asociados.')) }}
+    </h2>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">
+                <i class="bi bi-plus-circle text-success"></i> {{ _('Nueva Categoría') }}
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label fw-semibold") }}
+                        {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""),
+                                    placeholder=_('Ej: Gimnasio, Mascotas...')) }}
+                        {% for e in form.name.errors %}
+                        <div class="invalid-feedback">{{ e }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.type.label(class="form-label fw-semibold") }}
+                        {{ form.type(class="form-select" + (" is-invalid" if form.type.errors else "")) }}
+                        {% for e in form.type.errors %}
+                        <div class="invalid-feedback">{{ e }}</div>
+                        {% endfor %}
+                    </div>
+                    {{ form.submit(class="btn btn-primary w-100") }}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="row g-3">
+
+            {% macro category_section(label, icon, header_color_var, header_fallback, default_cats, user_cats) %}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header fw-semibold"
+                         style="background: var(--{{ header_color_var }}-color, {{ header_fallback }}); color: #fff;">
+                        <i class="bi bi-{{ icon }}"></i> {{ label }}
+                        <span class="badge bg-white ms-2"
+                              style="color: var(--{{ header_color_var }}-color, {{ header_fallback }});">
+                            {{ (default_cats|length) + (user_cats|length) }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+
+                        <p class="small fw-semibold mb-2" style="color: var(--monetra-text-muted);">
+                            <i class="bi bi-globe2 me-1"></i>{{ _('Por defecto') }}
+                        </p>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            {% for c in default_cats %}
+                            {% set col = c.color if c.color else header_fallback %}
+                            <span class="badge rounded-pill border px-3 py-2 fs-6"
+                                  style="border-color: {{ col }} !important;
+                                         color: {{ col }};
+                                         background: transparent;">
+                                {{ c.name }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted fst-italic small">{{ _('Sin categorías por defecto.') }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <hr class="my-2" style="border-color: var(--card-border);">
+
+                        <p class="small fw-semibold mb-2" style="color: var(--monetra-text-muted);">
+                            <i class="bi bi-person me-1"></i>{{ _('Tuyas') }}
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for c in user_cats %}
+                            {% set col = c.color if c.color else header_fallback %}
+                            <span class="badge rounded-pill border d-inline-flex align-items-center gap-1 px-3 py-2 fs-6"
+                                  style="border-color: {{ col }} !important;
+                                         color: {{ col }};
+                                         background: color-mix(in srgb, {{ col }} 12%, transparent);">
+                                {{ c.name }}
+                                <form method="POST"
+                                      action="{{ url_for('main.delete_category', cat_id=c.id) }}"
+                                      class="d-inline m-0 p-0"
+                                      onsubmit="return confirm('{{ _('¿Eliminar la categoría %(name)s?', name=c.name) }}')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit"
+                                            class="border-0 bg-transparent p-0 lh-1"
+                                            style="color: inherit; opacity: .6; font-size: .7rem; cursor: pointer;"
+                                            title="{{ _('Eliminar') }}">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </form>
+                            </span>
+                            {% else %}
+                            <span class="text-muted fst-italic small">{{ _('Aún no creaste ninguna.') }}</span>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            {% endmacro %}
+
+            {{ category_section(_('Gastos'), 'arrow-down-circle-fill', 'expense', '#EF4444', default_expense, user_expense) }}
+            {{ category_section(_('Ingresos'), 'arrow-up-circle-fill', 'income', '#00C896', default_income, user_income) }}
+
+        </div>
+    </div>
+</div>
+
+{% if blocked %}
+<div class="modal fade" id="catBlockedModal" tabindex="-1" aria-labelledby="catBlockedLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+        <div class="modal-content"
+             style="border-radius: 0;
+                    border: 1px solid var(--monetra-gold, #F2C94C);
+                    background: var(--card-bg);
+                    color: var(--monetra-text);">
+
+            <div class="modal-header"
+                 style="border-radius: 0;
+                        border-bottom: 1px solid rgba(242,201,76,0.25);
+                        background: rgba(242,201,76,0.08);">
+                <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="catBlockedLabel"
+                    style="color: var(--monetra-gold, #F2C94C);">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    {{ _('No se puede eliminar') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        style="filter: invert(85%) sepia(60%) saturate(400%) hue-rotate(5deg);"
+                        aria-label="{{ _('Cerrar') }}"></button>
+            </div>
+
+            <div class="modal-body py-4">
+                <p class="mb-3" style="color: var(--monetra-text);">
+                    {{ _('La categoría') }}
+                    <strong style="color: var(--monetra-gold, #F2C94C);">{{ blocked.name }}</strong>
+                    {{ _('no puede eliminarse porque tiene datos asociados:') }}
+                </p>
+                <ul class="list-unstyled mb-3 ps-1" style="color: var(--monetra-text-soft);">
+                    {% if blocked.tx %}
+                    <li class="mb-2">
+                        <i class="bi bi-arrow-left-right me-2" style="color: var(--expense-color, #EF4444);"></i>
+                        <strong>{{ blocked.tx }}</strong> {{ _('movimiento(s)') }}
+                    </li>
+                    {% endif %}
+                    {% if blocked.rec %}
+                    <li class="mb-2">
+                        <i class="bi bi-arrow-repeat me-2" style="color: var(--monetra-primary, #00C896);"></i>
+                        <strong>{{ blocked.rec }}</strong> {{ _('transacción(es) recurrente(s)') }}
+                    </li>
+                    {% endif %}
+                    {% if blocked.cb %}
+                    <li class="mb-2">
+                        <i class="bi bi-piggy-bank me-2" style="color: var(--budget-color, #F2C94C);"></i>
+                        <strong>{{ blocked.cb }}</strong> {{ _('presupuesto(s) de categoría') }}
+                    </li>
+                    {% endif %}
+                </ul>
+                <p class="mb-0 small" style="color: var(--monetra-text-muted);">
+                    <i class="bi bi-info-circle me-1"></i>
+                    {{ _('Reasigna o elimina esos datos primero para poder borrar esta categoría.') }}
+                </p>
+            </div>
+
+            <div class="modal-footer"
+                 style="border-radius: 0; border-top: 1px solid var(--card-border);">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    {{ _('Entendido') }}
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        new bootstrap.Modal(document.getElementById('catBlockedModal')).show();
+    });
+</script>
+{% endif %}
+
+{% endblock %}

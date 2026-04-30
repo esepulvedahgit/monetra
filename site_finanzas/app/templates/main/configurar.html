@@ -1,0 +1,839 @@
+﻿{% extends 'base.html' %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+
+        <h2 class="mb-4 fw-bold">
+            <i class="bi bi-gear text-primary"></i> {{ _('Configurar Cuenta') }}
+            {% if current_user.is_admin %}
+            <span class="badge ms-2 py-1 px-3 align-middle"
+                style="background:var(--monetra-primary,#00C896); color:#000; font-size:.75rem; border-radius:999px;">
+                <i class="bi bi-shield-fill-check me-1"></i>{{ _('Administrador') }}
+            </span>
+            {% endif %}
+        </h2>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="POST" novalidate id="mainConfigForm">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-4">
+                        {{ form.country.label(class="form-label fw-semibold") }}
+                        {{ form.country(class="form-select" + (" is-invalid" if form.country.errors else ""),
+                        id="countrySelect") }}
+                        {% for e in form.country.errors %}
+                        <div class="invalid-feedback">{{ e }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form.currency_symbol.label(class="form-label fw-semibold") }}
+                        <div class="input-group">
+                            {{ form.currency_symbol(
+                            class="form-control" + (" is-invalid" if form.currency_symbol.errors else ""),
+                            id="currencyInput",
+                            placeholder="$",
+                            maxlength="10"
+                            ) }}
+                            <span class="input-group-text fw-bold fs-5" id="currencyPreview">
+                                {{ current_user.currency_symbol or '$' }}
+                            </span>
+                        </div>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle text-primary"></i>
+                            {{ _('Se usará en todos los montos de la app (meses, años, presupuestos).') }}
+                        </div>
+                        {% for e in form.currency_symbol.errors %}
+                        <div class="invalid-feedback d-block">{{ e }}</div>
+                        {% endfor %}
+                    </div>
+
+                    {{ form.submit(class="btn btn-primary w-100 py-2 fw-semibold") }}
+                </form>
+            </div>
+        </div>
+
+        {% if current_user.country %}
+        <div class="small py-2 px-3 rounded mt-3"
+            style="background: rgba(0,200,150,0.08); border: 1px solid rgba(0,200,150,0.2); color: #B0BEC5;">
+            <i class="bi bi-check-circle-fill" style="color: #00C896;"></i>
+            {{ _('Configuración actual:') }}
+            <strong style="color: #fff;">{{ current_user.country }}</strong> —
+            {{ _('Símbolo:') }} <strong style="color: #00C896; font-size: 1.1rem;">{{ current_user.currency_symbol or
+                '$' }}</strong>
+        </div>
+        {% endif %}
+
+        <!-- Bloque Apariencia -->
+        <div class="card shadow-sm mt-4 mb-4">
+            <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                <i class="bi bi-palette text-primary"></i>
+                <span
+                    style="color:var(--monetra-primary,#00C896); text-transform:uppercase; letter-spacing:.05em; font-size:.85rem;">
+                    {{ _('Apariencia') }}
+                </span>
+            </div>
+            <div class="card-body p-4">
+                <p class="small mb-4" style="color:var(--monetra-text-muted,#78909C);">
+                    {{ _('Elige el tema visual de tu cuenta. El cambio se aplica de inmediato.') }}
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+
+                    {% set themes = [
+                    ('dark', _('Dark'), '#070E1E', '#102040', '#00C896'),
+                    ('ocean', _('Ocean'), '#071626', '#0F2A54', '#0EA5E9'),
+                    ('carbon', _('Carbon'), '#0A0A0A', '#181818', '#A3E635'),
+                    ('dusk', _('Dusk'), '#130D22', '#211540', '#F59E0B'),
+                    ('forest', _('Forest'), '#071810', '#0D2B1C', '#34D399'),
+                    ('pearl', _('Pearl'), '#F1F5F9', '#FFFFFF', '#00A67E'),
+                    ('abyss', _('Abyss'), '#020609', '#08111F', '#00C896'),
+                    ('graphite', _('Graphite'), '#0F0F0F', '#242424', '#606060'),
+                    ] %}
+
+                    {% for tid, tname, tbg1, tbg2, tacc in themes %}
+                    <form method="POST" action="{{ url_for('main.set_theme') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="theme" value="{{ tid }}">
+                        <button type="submit" title="{{ tname }}"
+                            style="background:none; border:none; padding:0; cursor:pointer;">
+                            <div style="
+                                width:72px; text-align:center;
+                                border-radius:12px;
+                                padding:4px;
+                                border: 2px solid {% if (current_user.theme or 'dark') == tid %}var(--monetra-primary,#00C896){% else %}rgba(255,255,255,0.08){% endif %};
+                                transition: border-color .2s;">
+                                <div style="
+                                    height:44px; border-radius:8px; position:relative; overflow:hidden;
+                                    background:linear-gradient(135deg, {{ tbg1 }}, {{ tbg2 }});">
+                                    <span style="
+                                        position:absolute; bottom:6px; right:6px;
+                                        width:14px; height:14px; border-radius:50%;
+                                        background:{{ tacc }};
+                                        box-shadow: 0 0 6px {{ tacc }}88;">
+                                    </span>
+                                    {% if (current_user.theme or 'dark') == tid %}
+                                    <span style="
+                                        position:absolute; top:5px; left:5px;
+                                        width:16px; height:16px; border-radius:50%;
+                                        background:rgba(255,255,255,0.15);
+                                        display:flex; align-items:center; justify-content:center;">
+                                        <i class="bi bi-check" style="font-size:.6rem; color:#fff;"></i>
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <div class="mt-1"
+                                    style="font-size:.7rem; font-weight:600;
+                                    color:{% if (current_user.theme or 'dark') == tid %}var(--monetra-primary,#00C896){% else %}var(--monetra-text-muted,#78909C){% endif %};">
+                                    {{ tname }}
+                                </div>
+                            </div>
+                        </button>
+                    </form>
+                    {% endfor %}
+
+                </div>
+            </div>
+        </div>
+
+        {% if current_user.is_admin and current_user.is_first_admin %}
+        <!-- Bloque Opciones de Administrador -->
+        <div class="card shadow-sm mt-4 mb-4">
+            <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                <i class="bi bi-shield-lock text-primary"></i>
+                <span
+                    style="color:var(--monetra-primary,#00C896); text-transform:uppercase; letter-spacing:.05em; font-size:.85rem;">
+                    {{ _('Opciones de Administrador') }}
+                </span>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('main.configurar') }}" novalidate>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="submit_admin" value="1">
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" role="switch" id="allowRegistration"
+                            name="allow_registration" {% if app_config.allow_registration %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold" for="allowRegistration">
+                            {{ _('Permitir registro de nuevos usuarios') }}
+                        </label>
+                    </div>
+                    <div class="form-text mb-3">
+                        <i class="bi bi-info-circle text-primary"></i>
+                        {{ _('Si está desactivado, nadie podrá crear cuentas nuevas.') }}
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                        <i class="bi bi-floppy"></i> {{ _('Guardar') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Bloque Token API -->
+        <div class="card shadow-sm mt-4 mb-4">
+            <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                <i class="bi bi-key text-primary"></i>
+                <span
+                    style="color:var(--monetra-primary,#00C896); text-transform:uppercase; letter-spacing:.05em; font-size:.85rem;">
+                    {{ _('Token API') }}
+                </span>
+            </div>
+            <div class="card-body p-4">
+                <p class="small mb-3" style="color: var(--monetra-text-muted, #B0BEC5);">
+                    {{ _('Genera un token de acceso personal (válido 365 días) para consumir la API desde Flutter u
+                    otras aplicaciones.') }}
+                </p>
+                <button id="btnGenToken" class="btn btn-sm btn-primary fw-semibold" onclick="generateToken()">
+                    <i class="bi bi-key-fill"></i> {{ _('Generar Token') }}
+                </button>
+                <div id="tokenResult" class="mt-3 d-none">
+                    <div class="small mb-1 fw-semibold" style="color: #F2C94C;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        {{ _('Copia este token ahora. No se volverá a mostrar.') }}
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <input type="text" id="tokenValue" class="form-control font-monospace" readonly
+                            style="font-size:0.7rem; background:rgba(7,24,33,0.8); color:#00C896; border-color:rgba(0,200,150,0.3);">
+                        <button class="btn btn-outline-secondary" type="button" id="btnCopyToken" onclick="copyToken()"
+                            title="{{ _('Copiar') }}">
+                            <i class="bi bi-clipboard" id="copyIcon"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloque Seguridad: MFA + Cambiar Contraseña -->
+        <div class="card shadow-sm mt-4 mb-4">
+            <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                <i class="bi bi-shield-lock text-primary"></i>
+                <span
+                    style="color:var(--monetra-primary,#00C896); text-transform:uppercase; letter-spacing:.05em; font-size:.85rem;">
+                    {{ _('Seguridad') }}
+                </span>
+            </div>
+
+            <!-- MFA -->
+            <div class="card-body p-4 pb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-semibold">{{ _('Autenticación en dos pasos (MFA)') }}</span>
+                    {% if current_user.mfa_enabled %}
+                    <span class="badge" style="background:var(--monetra-primary,#00C896); color:#000;">{{ _('Activo')
+                        }}</span>
+                    {% else %}
+                    <span class="badge bg-secondary">{{ _('Inactivo') }}</span>
+                    {% endif %}
+                </div>
+                <p class="small mb-3" style="color: var(--monetra-text-muted, #B0BEC5);">
+                    {{ _('Protege tu cuenta con un código adicional generado por Google Authenticator, Authy u otra
+                    aplicación TOTP.') }}
+                </p>
+                {% if current_user.mfa_enabled %}
+                <button class="btn btn-sm btn-outline-danger fw-semibold" data-bs-toggle="modal"
+                    data-bs-target="#mfaDisableModal">
+                    <i class="bi bi-shield-x"></i> {{ _('Desactivar MFA') }}
+                </button>
+                {% else %}
+                <button class="btn btn-sm btn-primary fw-semibold" id="btnMfaSetup" onclick="startMfaSetup()">
+                    <i class="bi bi-shield-check"></i> {{ _('Activar MFA') }}
+                </button>
+                {% endif %}
+            </div>
+
+            <hr class="my-0" style="border-color: rgba(255,255,255,0.07);">
+
+            <!-- Cambiar Contraseña -->
+            <div class="card-body p-4 pt-3">
+                <span class="fw-semibold d-block mb-2">{{ _('Cambiar Contraseña') }}</span>
+                <p class="small mb-3" style="color: var(--monetra-text-muted, #B0BEC5);">
+                    {{ _('Al guardar se cerrará la sesión automáticamente.') }}
+                </p>
+                <form method="POST" action="{{ url_for('main.change_password') }}" novalidate>
+                    {{ pwd_form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ pwd_form.current_password.label(class="form-label small fw-semibold mb-1") }}
+                        {{ pwd_form.current_password(class="form-control form-control-sm",
+                        autocomplete="current-password") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ pwd_form.new_password.label(class="form-label small fw-semibold mb-1") }}
+                        {{ pwd_form.new_password(class="form-control form-control-sm", autocomplete="new-password") }}
+                        <div class="form-text" style="font-size:0.72rem;">
+                            {{ _('Mín. 10 caracteres, mayúscula, minúscula, número y carácter especial.') }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        {{ pwd_form.confirm_password.label(class="form-label small fw-semibold mb-1") }}
+                        {{ pwd_form.confirm_password(class="form-control form-control-sm", autocomplete="new-password")
+                        }}
+                    </div>
+                    {{ pwd_form.submit_password(class="btn btn-sm btn-primary fw-semibold w-100") }}
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal: Activar MFA -->
+        <div class="modal fade" id="mfaSetupModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold"><i class="bi bi-shield-check text-primary"></i> {{ _('Activar
+                            autenticación en dos pasos') }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <p class="small text-muted mb-3">{{ _('Escanea este código QR con tu aplicación autenticadora y
+                            luego ingresa el código de 6 dígitos para confirmar.') }}</p>
+                        <div id="mfaQrContainer" class="mb-3">
+                            <div class="spinner-border text-primary" role="status"></div>
+                        </div>
+                        <p class="small text-muted mb-1">{{ _('¿No puedes escanear? Ingresa esta clave manualmente:') }}
+                        </p>
+                        <code id="mfaSecretText" class="small"
+                            style="color:var(--monetra-primary,#00C896); word-break:break-all;"></code>
+                        <div class="mt-4">
+                            <label class="form-label fw-semibold">{{ _('Código de verificación') }}</label>
+                            <input type="text" id="mfaSetupCode" class="form-control text-center font-monospace fs-5"
+                                placeholder="000000" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+                            <div id="mfaSetupError" class="text-danger small mt-1 d-none"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancelar')
+                            }}</button>
+                        <button type="button" class="btn btn-primary fw-semibold" onclick="confirmMfaSetup()">
+                            <i class="bi bi-check-lg"></i> {{ _('Confirmar y activar') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Desactivar MFA -->
+        <div class="modal fade" id="mfaDisableModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-sm modal-dialog-centered">
+                <div class="modal-content border-danger">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title fw-bold"><i class="bi bi-shield-x"></i> {{ _('Desactivar MFA') }}</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="small text-muted mb-3">{{ _('Ingresa el código actual de tu aplicación autenticadora
+                            para desactivar la protección.') }}</p>
+                        <input type="text" id="mfaDisableCode" class="form-control text-center font-monospace fs-5"
+                            placeholder="000000" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+                        <div id="mfaDisableError" class="text-danger small mt-1 d-none"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _('Cancelar')
+                            }}</button>
+                        <button type="button" class="btn btn-danger btn-sm fw-semibold" onclick="confirmMfaDisable()">
+                            <i class="bi bi-shield-x"></i> {{ _('Desactivar') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloque SMTP -->
+        <div class="card shadow-sm mt-4 mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-envelope-check text-primary"></i> {{ _('Configuración de correo
+                    (SMTP)') }}</h5>
+                <p class="small text-muted mb-3">{{ _('Permite enviar correos desde tu propia cuenta, como recordatorios
+                    o recuperación de contraseña.') }}</p>
+
+                {% if not current_user.is_first_admin %}
+                <div class="rounded p-3 mb-4 small"
+                    style="background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.18);">
+                    <div class="fw-semibold mb-1" style="color:#00C896;">
+                        <i class="bi bi-info-circle-fill me-1"></i>{{ _('¿Cómo funciona la recuperación de contraseña?')
+                        }}
+                    </div>
+                    <ul class="mb-0 ps-3" style="color:#B0BEC5; line-height:1.7;">
+                        <li>{{ _('Si activas tu propio SMTP, tus correos de recuperación se enviarán desde tu cuenta.')
+                            }}</li>
+                        <li>{% if admin_smtp_available %}{{ _('Si no lo activas, el sistema usará automáticamente el
+                            SMTP del administrador para enviarte el correo (sin necesidad de que configures nada).')
+                            }}{% else %}{{ _('Si no lo activas y el administrador no tiene SMTP configurado, la
+                            recuperación por correo no estará disponible.') }}{% endif %}</li>
+                    </ul>
+                </div>
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('main.configurar') }}" novalidate>
+                    {{ smtp_form.hidden_tag() }}
+
+                    <div class="form-check form-switch mb-4">
+                        {{ smtp_form.smtp_enabled(class="form-check-input", id="smtpEnabled") }}
+                        {{ smtp_form.smtp_enabled.label(class="form-check-label fw-semibold", for="smtpEnabled") }}
+                    </div>
+
+                    <div id="smtpFields"
+                        class="{% if not smtp_form.smtp_enabled.data %}d-none{% endif %} bg-dark p-3 rounded mb-4"
+                        style="background: rgba(0,0,0,0.15) !important; border: 1px solid rgba(255,255,255,0.05);">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                {{ smtp_form.smtp_host.label(class="form-label small mb-1") }}
+                                {{ smtp_form.smtp_host(class="form-control form-control-sm" + (" is-invalid" if
+                                smtp_form.smtp_host.errors else ""), placeholder=_('ej. smtp.gmail.com')) }}
+                                {% for e in smtp_form.smtp_host.errors %}<div class="invalid-feedback">{{ e }}</div>{%
+                                endfor %}
+                            </div>
+                            <div class="col-md-4">
+                                {{ smtp_form.smtp_port.label(class="form-label small mb-1") }}
+                                {{ smtp_form.smtp_port(class="form-control form-control-sm" + (" is-invalid" if
+                                smtp_form.smtp_port.errors else ""), placeholder="587") }}
+                                {% for e in smtp_form.smtp_port.errors %}<div class="invalid-feedback">{{ e }}</div>{%
+                                endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ smtp_form.smtp_username.label(class="form-label small mb-1") }}
+                                {{ smtp_form.smtp_username(class="form-control form-control-sm" + (" is-invalid" if
+                                smtp_form.smtp_username.errors else "")) }}
+                                {% for e in smtp_form.smtp_username.errors %}<div class="invalid-feedback">{{ e }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ smtp_form.smtp_password.label(class="form-label small mb-1") }}
+                                {{ smtp_form.smtp_password(class="form-control form-control-sm" + (" is-invalid" if
+                                smtp_form.smtp_password.errors else ""), placeholder=("********" if
+                                email_config.smtp_password_encrypted else "")) }}
+                                <div class="form-text" style="font-size:0.7rem;">
+                                    {% if email_config.smtp_password_encrypted %}{{ _('Deja en blanco para conservar la
+                                    actual.') }} {% endif %}{{ _('Usa contraseñas de aplicación si es Gmail.') }}
+                                </div>
+                                {% for e in smtp_form.smtp_password.errors %}<div class="invalid-feedback d-block">{{ e
+                                    }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ smtp_form.sender_email.label(class="form-label small mb-1") }}
+                                {{ smtp_form.sender_email(class="form-control form-control-sm" + (" is-invalid" if
+                                smtp_form.sender_email.errors else "")) }}
+                                {% for e in smtp_form.sender_email.errors %}<div class="invalid-feedback">{{ e }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ smtp_form.sender_name.label(class="form-label small mb-1") }}
+                                {{ smtp_form.sender_name(class="form-control form-control-sm" + (" is-invalid" if
+                                smtp_form.sender_name.errors else ""), placeholder="Monetra") }}
+                                {% for e in smtp_form.sender_name.errors %}<div class="invalid-feedback">{{ e }}</div>{%
+                                endfor %}
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex gap-4">
+                                    <div class="form-check">
+                                        {{ smtp_form.smtp_use_tls(class="form-check-input", id="useTls") }}
+                                        {{ smtp_form.smtp_use_tls.label(class="form-check-label small", for="useTls") }}
+                                    </div>
+                                    <div class="form-check">
+                                        {{ smtp_form.smtp_use_ssl(class="form-check-input", id="useSsl") }}
+                                        {{ smtp_form.smtp_use_ssl.label(class="form-check-label small", for="useSsl") }}
+                                    </div>
+                                </div>
+                                {% for e in smtp_form.smtp_use_tls.errors %}<div class="text-danger small mt-1">{{ e }}
+                                </div>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {{ smtp_form.submit_smtp(class="btn btn-outline-primary w-100 py-2 fw-semibold") }}
+                </form>
+
+                {% if email_config.smtp_enabled %}
+                <hr class="my-4" style="border-color: rgba(255,255,255,0.08);">
+                <form method="POST" action="{{ url_for('main.test_email') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-secondary w-100 fw-semibold">
+                        <i class="bi bi-envelope-paper"></i> {{ _('Enviar correo de prueba a %(email)s',
+                        email=current_user.email) }}
+                    </button>
+                    <div class="form-text text-center mt-2" style="font-size:0.75rem;"><i
+                            class="bi bi-info-circle text-primary"></i> {{ _('Utilizará los ajustes guardados.') }}
+                    </div>
+                </form>
+                {% endif %}
+
+                <!-- Reporte Semanal -->
+                <hr class="my-4" style="border-color: var(--card-border, rgba(255,255,255,0.08));">
+                <h6 class="fw-bold mb-2">
+                    <i class="bi bi-calendar-week" style="color:var(--monetra-primary,#00C896);"></i>
+                    {{ _('Reporte semanal por email') }}
+                </h6>
+                <p class="small mb-3" style="color:var(--monetra-text-muted,#78909C);">
+                    {{ _('Recibe tu resumen Excel todos los lunes a las 10:00 AM (UTC). Incluye el año en curso desde
+                    enero hasta el mes actual.') }}
+                </p>
+                <form method="POST" action="{{ url_for('main.save_weekly_report') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" name="weekly_report_enabled"
+                                id="weeklyReportEnabled" role="switch" {% if current_user.weekly_report_enabled
+                                %}checked{% endif %}>
+                            <label class="form-check-label fw-semibold" for="weeklyReportEnabled">
+                                {{ _('Activar reporte semanal') }}
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-outline-primary fw-semibold">
+                            <i class="bi bi-floppy"></i> {{ _('Guardar') }}
+                        </button>
+                    </div>
+                </form>
+                {% if admin_smtp_available or (current_user.email_config and current_user.email_config.smtp_enabled and
+                current_user.email_config.smtp_password_encrypted) %}
+                <form method="POST" action="{{ url_for('main.send_report_now') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary fw-semibold">
+                            <i class="bi bi-send"></i> {{ _('Enviar ahora') }}
+                        </button>
+                        <a href="{{ url_for('export.export_excel', year=sel_year) }}"
+                           class="btn btn-sm fw-semibold"
+                           style="color:#1D6F42; border:1px solid #1D6F42; background:rgba(29,111,66,0.08);">
+                            <i class="bi bi-file-earmark-excel-fill"></i> {{ _('Descargar') }}
+                        </a>
+                        <span class="small" style="color:var(--monetra-text-muted,#78909C);">
+                            {{ _('Genera y envía el Excel del año en curso a') }}
+                            <strong>{{ current_user.email }}</strong>
+                        </span>
+                    </div>
+                </form>
+                {% else %}
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <div class="d-flex align-items-center gap-2 small" style="color:var(--monetra-text-muted,#78909C);">
+                        <i class="bi bi-exclamation-triangle" style="color:#F2C94C;"></i>
+                        {{ _('Para enviar reportes necesitas configurar un SMTP (propio o del administrador).') }}
+                    </div>
+                    <a href="{{ url_for('export.export_excel', year=sel_year) }}"
+                       class="btn btn-sm fw-semibold"
+                       style="color:#1D6F42; border:1px solid #1D6F42; background:rgba(29,111,66,0.08);">
+                        <i class="bi bi-file-earmark-excel-fill"></i> {{ _('Descargar') }}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-transparent border-0 text-center pb-3">
+                {% if email_config.smtp_enabled and email_config.smtp_password_encrypted %}
+                <span class="badge" style="background: rgba(0,200,150,0.15); color: #00C896; padding: 0.5rem 0.8rem;">
+                    <i class="bi bi-shield-check"></i> {{ _('Recuperación activa — SMTP propio') }}
+                </span>
+                {% elif admin_smtp_available %}
+                <span class="badge" style="background: rgba(242,201,76,0.15); color: #F2C94C; padding: 0.5rem 0.8rem;">
+                    <i class="bi bi-shield-check"></i> {{ _('Recuperación activa — vía administrador') }}
+                </span>
+                {% else %}
+                <span class="badge" style="background: rgba(239,68,68,0.15); color: #EF4444; padding: 0.5rem 0.8rem;">
+                    <i class="bi bi-shield-x"></i> {{ _('Recuperación por correo: no disponible') }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Bloque Ayuda Progresiva -->
+        <div class="card shadow-sm mt-4 mb-4">
+            <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                <i class="bi bi-question-circle text-primary"></i>
+                <span
+                    style="color:var(--monetra-primary,#00C896); text-transform:uppercase; letter-spacing:.05em; font-size:.85rem;">
+                    {{ _('Ayuda Progresiva') }}
+                </span>
+            </div>
+            <div class="card-body p-4">
+                <p class="small mb-3" style="color:var(--monetra-text-muted,#B0BEC5);">
+                    {{ _('Cuando está activa, los formularios muestran íconos de ayuda con explicaciones contextuales
+                    sobre cada campo.') }}
+                </p>
+                <form method="POST" action="{{ url_for('main.help_toggle') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="helpModeCheck" {% if
+                            current_user.help_mode_enabled %}checked{% endif %} onchange="this.form.submit()">
+                        <label class="form-check-label fw-semibold" for="helpModeCheck">
+                            {{ _('Mostrar íconos de ayuda en formularios') }}
+                        </label>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bloque Datos Demo -->
+        <div class="card shadow-sm mt-4 mb-4">
+            <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-database text-primary"></i> {{ _('Datos Demo') }}</span>
+                <span id="demoBadge" class="badge"></span>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">
+                    {{ _('Carga transacciones de ejemplo para explorar los dashboards sin ingresar datos reales. Puedes
+                    eliminarlos en cualquier momento sin afectar tus datos.') }}
+                </p>
+
+                <div id="demoSummary" class="mb-3 d-none">
+                    <div class="row g-2 text-center small">
+                        <div class="col-4">
+                            <div class="fw-bold fs-5" id="demoCount">—</div>
+                            <div class="text-muted">{{ _('Transacciones') }}</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="fw-bold fs-5" id="demoTotal">—</div>
+                            <div class="text-muted">{{ _('Total gastos') }}</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="fw-bold small" id="demoRange">—</div>
+                            <div class="text-muted">{{ _('Período') }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <button id="btnLoadDemo" class="btn btn-sm btn-primary" onclick="demoLoad()">
+                        <i class="bi bi-cloud-download"></i> {{ _('Cargar demo') }}
+                    </button>
+                    <button id="btnResetDemo" class="btn btn-sm btn-outline-danger d-none" onclick="demoReset()">
+                        <i class="bi bi-trash3"></i> {{ _('Resetear demo') }}
+                    </button>
+                </div>
+                <div id="demoMsg" class="mt-2 small"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Versión -->
+<div class="text-center mt-4 mb-2">
+    <small style="color:var(--monetra-text-muted, #78909C); opacity:0.6;">
+        <i class="bi bi-code-slash"></i> Monetra v1.8
+    </small>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const COUNTRY_DATA = {{ countries_json| safe }};
+
+    const countrySelect = document.getElementById('countrySelect');
+    const currencyInput = document.getElementById('currencyInput');
+    const currencyPreview = document.getElementById('currencyPreview');
+
+    countrySelect.addEventListener('change', function () {
+        const data = COUNTRY_DATA[this.value];
+        if (data) {
+            currencyInput.value = data.symbol;
+            currencyPreview.textContent = data.symbol;
+        }
+    });
+
+    currencyInput.addEventListener('input', function () {
+        currencyPreview.textContent = this.value || '$';
+    });
+
+    const smtpEnabled = document.getElementById('smtpEnabled');
+    const smtpFields = document.getElementById('smtpFields');
+    if (smtpEnabled) {
+        smtpEnabled.addEventListener('change', function () {
+            if (this.checked) {
+                smtpFields.classList.remove('d-none');
+            } else {
+                smtpFields.classList.add('d-none');
+            }
+        });
+    }
+</script>
+
+<script>
+    (function () {
+        const csrfToken = '{{ csrf_token() }}';
+        const sym = '{{ current_user.currency_symbol or "$" }}';
+
+        const T = {
+            loaded:       {{ _('Cargado') | tojson }},
+            notLoaded:    {{ _('No cargado') | tojson }},
+            loading:      {{ _('Cargando…') | tojson }},
+            loadBtn:      {{ _('Cargar demo') | tojson }},
+            connError:    {{ _('Error de conexión.') | tojson }},
+            confirmReset: {{ _('¿Eliminar todos los datos demo? Esta acción no se puede deshacer.') | tojson }},
+        };
+
+    function fmtNum(n) {
+        return sym + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function setMsg(text, ok) {
+        const el = document.getElementById('demoMsg');
+        el.className = 'mt-2 small ' + (ok ? 'text-success' : 'text-danger');
+        el.textContent = text;
+    }
+
+    function applyStatus(data) {
+        const badge = document.getElementById('demoBadge');
+        const summary = document.getElementById('demoSummary');
+        const btnLoad = document.getElementById('btnLoadDemo');
+        const btnReset = document.getElementById('btnResetDemo');
+
+        if (data.has_demo) {
+            badge.textContent = T.loaded;
+            badge.className = 'badge';
+            badge.style.background = 'rgba(0,200,150,0.15)';
+            badge.style.color = '#00C896';
+            summary.classList.remove('d-none');
+            document.getElementById('demoCount').textContent = data.count;
+            document.getElementById('demoTotal').textContent = fmtNum(data.total);
+            document.getElementById('demoRange').textContent = (data.from_date || '—') + ' → ' + (data.to_date || '—');
+            btnLoad.classList.add('d-none');
+            btnReset.classList.remove('d-none');
+        } else {
+            badge.textContent = T.notLoaded;
+            badge.className = 'badge';
+            badge.style.background = 'rgba(239,68,68,0.15)';
+            badge.style.color = '#EF4444';
+            summary.classList.add('d-none');
+            btnLoad.classList.remove('d-none');
+            btnReset.classList.add('d-none');
+        }
+    }
+
+    async function demoFetch(url) {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/json' },
+        });
+        return res.json();
+    }
+
+    window.demoLoad = async function () {
+        const btn = document.getElementById('btnLoadDemo');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> ' + T.loading;
+        setMsg('', true);
+        try {
+            const data = await demoFetch('{{ url_for("demo_data.load") }}');
+            setMsg(data.message, data.ok);
+            if (data.ok) applyStatus({ ...data, has_demo: true });
+        } catch {
+            setMsg(T.connError, false);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-cloud-download"></i> ' + T.loadBtn;
+        }
+    };
+
+    window.demoReset = async function () {
+        if (!confirm(T.confirmReset)) return;
+        const btn = document.getElementById('btnResetDemo');
+        btn.disabled = true;
+        setMsg('', true);
+        try {
+            const data = await demoFetch('{{ url_for("demo_data.reset") }}');
+            setMsg(data.message, data.ok);
+            if (data.ok) applyStatus({ has_demo: false });
+        } catch {
+            setMsg(T.connError, false);
+        } finally {
+            btn.disabled = false;
+        }
+    };
+
+    fetch('{{ url_for("demo_data.status") }}')
+        .then(r => r.json())
+        .then(applyStatus)
+        .catch(() => { });
+}) ();
+</script>
+
+<script>
+    async function generateToken() {
+        const btn = document.getElementById('btnGenToken');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        try {
+            const res = await fetch('{{ url_for("main.generate_api_token") }}', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+            });
+            const data = await res.json();
+            if (data.token) {
+                document.getElementById('tokenValue').value = data.token;
+                document.getElementById('tokenResult').classList.remove('d-none');
+                document.getElementById('copyIcon').className = 'bi bi-clipboard';
+            }
+        } catch {
+            alert('{{ _("Error al generar el token.") }}');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-key-fill"></i> {{ _("Generar Token") }}';
+        }
+    }
+
+    function copyToken() {
+        const input = document.getElementById('tokenValue');
+        navigator.clipboard.writeText(input.value).then(() => {
+            const icon = document.getElementById('copyIcon');
+            icon.className = 'bi bi-clipboard-check';
+            setTimeout(() => { icon.className = 'bi bi-clipboard'; }, 2000);
+        });
+    }
+</script>
+
+<script>
+    (function () {
+        const csrf = '{{ csrf_token() }}';
+
+        async function mfaPost(url, body) {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            return { ok: res.ok, data: await res.json() };
+        }
+
+        window.startMfaSetup = async function () {
+            const modal = new bootstrap.Modal(document.getElementById('mfaSetupModal'));
+            document.getElementById('mfaQrContainer').innerHTML = '<div class="spinner-border text-primary" role="status"></div>';
+            document.getElementById('mfaSecretText').textContent = '';
+            document.getElementById('mfaSetupCode').value = '';
+            document.getElementById('mfaSetupError').classList.add('d-none');
+            modal.show();
+            try {
+                const { data } = await mfaPost('{{ url_for("main.mfa_setup") }}', {});
+                document.getElementById('mfaQrContainer').innerHTML =
+                    '<img src="data:image/png;base64,' + data.qr + '" alt="QR MFA" style="width:200px; height:200px; border-radius:8px;">';
+                document.getElementById('mfaSecretText').textContent = data.secret;
+                document.getElementById('mfaSetupCode').focus();
+            } catch {
+                document.getElementById('mfaQrContainer').innerHTML = '<p class="text-danger small">{{ _("Error al generar el QR.") }}</p>';
+            }
+        };
+
+        window.confirmMfaSetup = async function () {
+            const code = document.getElementById('mfaSetupCode').value.trim();
+            const errEl = document.getElementById('mfaSetupError');
+            errEl.classList.add('d-none');
+            const { ok, data } = await mfaPost('{{ url_for("main.mfa_confirm") }}', { code });
+            if (ok) {
+                location.reload();
+            } else {
+                errEl.textContent = data.error || '{{ _("Error.") }}';
+                errEl.classList.remove('d-none');
+            }
+        };
+
+        window.confirmMfaDisable = async function () {
+            const code = document.getElementById('mfaDisableCode').value.trim();
+            const errEl = document.getElementById('mfaDisableError');
+            errEl.classList.add('d-none');
+            const { ok, data } = await mfaPost('{{ url_for("main.mfa_disable") }}', { code });
+            if (ok) {
+                location.reload();
+            } else {
+                errEl.textContent = data.error || '{{ _("Error.") }}';
+                errEl.classList.remove('d-none');
+            }
+        };
+    })();
+</script>
+{% endblock %}
