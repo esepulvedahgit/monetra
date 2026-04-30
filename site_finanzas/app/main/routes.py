@@ -832,45 +832,14 @@ def global_dashboard():
     _fb = list(islice(cycle(CHART_COLORS), max(len(bar_rows), 1)))
     bar_colors = [r.color if r.color else _fb[i] for i, r in enumerate(bar_rows)]
 
-    # ── Line chart: 12-month trend ──
-    trend_income, trend_expense = [], []
-    for m in range(1, 13):
-        inc = db.session.query(func.sum(Transaction.amount)).filter(
-            Transaction.user_id == current_user.id,
-            Transaction.type == 'income',
-            extract('year', Transaction.date) == sel_year_g,
-            extract('month', Transaction.date) == m,
-        ).scalar() or 0
-        exp = db.session.query(func.sum(Transaction.amount)).filter(
-            Transaction.user_id == current_user.id,
-            Transaction.type == 'expense',
-            extract('year', Transaction.date) == sel_year_g,
-            extract('month', Transaction.date) == m,
-        ).scalar() or 0
-        trend_income.append(float(inc))
-        trend_expense.append(float(exp))
-
-    # ── Grouped bar chart: yearly totals (all years) ──
-    all_tx = (
-        db.session.query(
-            extract('year', Transaction.date).label('yr'),
-            Transaction.type,
-            func.sum(Transaction.amount).label('total'),
-        )
-        .filter(Transaction.user_id == current_user.id)
-        .group_by(extract('year', Transaction.date), Transaction.type)
-        .order_by(extract('year', Transaction.date))
-        .all()
-    )
-    all_yrs = sorted(set([int(r.yr) for r in all_tx]))
-    yearly_income = [
-        float(next((r.total for r in all_tx if int(r.yr) == y and r.type == 'income'), 0))
-        for y in all_yrs
-    ]
-    yearly_expense = [
-        float(next((r.total for r in all_tx if int(r.yr) == y and r.type == 'expense'), 0))
-        for y in all_yrs
-    ]
+    # ── Line chart: 12-month trend + yearly totals ──
+    from app.services.finance import get_global_summary
+    summary = get_global_summary(current_user.id, sel_year_g, from_month, to_month)
+    trend_income = summary['trend_income']
+    trend_expense = summary['trend_expense']
+    all_yrs = [r['year'] for r in summary['yearly_summary']]
+    yearly_income = [r['income'] for r in summary['yearly_summary']]
+    yearly_expense = [r['expense'] for r in summary['yearly_summary']]
 
     # ── Multi-year trend line chart: expenses grouped by year and month ──
     multi_year_tx = (
