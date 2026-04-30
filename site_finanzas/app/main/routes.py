@@ -1014,16 +1014,30 @@ def meta_completar(goal_id):
 @main.route('/recurrentes')
 @login_required
 def recurrentes():
-    items = RecurringTransaction.query.filter_by(user_id=current_user.id)\
+    all_items = RecurringTransaction.query.filter_by(user_id=current_user.id)\
         .order_by(RecurringTransaction.is_active.desc(), RecurringTransaction.type, RecurringTransaction.description).all()
 
-    active = [r for r in items if r.is_active]
-    total_expense = float(sum(r.amount for r in active if r.type == 'expense'))
-    total_income  = float(sum(r.amount for r in active if r.type == 'income'))
+    year, month = _get_period()
+    period_start = date(year, month, 1)
+    period_end   = date(year, month, calendar.monthrange(year, month)[1])
 
-    # Chart data: group active by category
+    def _vigente(r):
+        if r.created_at and r.created_at.date() > period_end:
+            return False
+        if r.end_date and r.end_date < period_start:
+            return False
+        return True
+
+    items       = [r for r in all_items if _vigente(r)]
+    finalizadas = [r for r in all_items if not _vigente(r)]
+
+    active_vigentes = [r for r in items if r.is_active]
+    total_expense = float(sum(r.amount for r in active_vigentes if r.type == 'expense'))
+    total_income  = float(sum(r.amount for r in active_vigentes if r.type == 'income'))
+
+    # Chart data: group active vigentes by category
     cat_map = {}
-    for r in active:
+    for r in active_vigentes:
         key = (r.category.name, r.type)
         cat_map[key] = cat_map.get(key, 0) + float(r.amount)
 
@@ -1033,6 +1047,7 @@ def recurrentes():
 
     return render_template('main/recurrentes.html',
                            items=items,
+                           finalizadas=finalizadas,
                            total_expense=total_expense,
                            total_income=total_income,
                            chart_labels=chart_labels,

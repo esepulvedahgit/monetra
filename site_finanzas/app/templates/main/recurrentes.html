@@ -49,10 +49,11 @@
 </div>
 {% endif %}
 
-<!-- Lista -->
-<div class="card shadow-sm">
+<!-- Lista vigentes -->
+<div class="card shadow-sm mb-3">
     <div class="card-header fw-semibold">
-        <i class="bi bi-list-ul text-primary"></i> {{ _('Todas las recurrentes') }}
+        <i class="bi bi-list-ul text-primary"></i> {{ _('Recurrentes vigentes') }}
+        <span class="text-muted fw-normal small ms-1">({{ sel_year }})</span>
     </div>
     {% if items %}
     <div class="table-responsive">
@@ -125,6 +126,72 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Lista finalizadas (colapsable) -->
+{% if finalizadas %}
+<div class="card shadow-sm">
+    <div class="card-header fw-semibold" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#collapseFinalizadas" aria-expanded="false" aria-controls="collapseFinalizadas">
+        <i class="bi bi-archive text-muted"></i>
+        {{ _('Finalizadas en este período') }}
+        <span class="badge bg-secondary ms-1">{{ finalizadas|length }}</span>
+        <i class="bi bi-chevron-down ms-auto float-end" style="font-size:0.85rem; opacity:0.6;"></i>
+    </div>
+    <div id="collapseFinalizadas" class="collapse">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 opacity-60">
+                <thead>
+                    <tr>
+                        <th>{{ _('Descripción') }}</th>
+                        <th>{{ _('Tipo') }}</th>
+                        <th>{{ _('Categoría') }}</th>
+                        <th>{{ _('Finalizó') }}</th>
+                        <th class="text-end">{{ _('Monto') }}</th>
+                        <th class="text-center">{{ _('Acciones') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in finalizadas %}
+                    <tr class="opacity-50">
+                        <td class="fw-semibold">{{ r.description or '—' }}</td>
+                        <td>
+                            {% if r.type == 'income' %}
+                            <span class="badge" style="background:rgba(0,200,150,0.15); color:#00C896;">{{ _('Ingreso') }}</span>
+                            {% else %}
+                            <span class="badge" style="background:rgba(239,68,68,0.15); color:#EF4444;">{{ _('Gasto') }}</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge bg-secondary">{{ r.category.name }}</span></td>
+                        <td class="text-muted small">
+                            {% if r.end_date %}
+                            {{ r.end_date.strftime('%d/%m/%Y') }}
+                            {% endif %}
+                            <br><span class="badge" style="background:rgba(176,190,197,0.15); color:#B0BEC5; font-size:0.7rem;">{{ _('Finalizada') }}</span>
+                        </td>
+                        <td class="text-end fw-bold text-muted">
+                            {% if r.type == 'income' %}+{% else %}−{% endif %}{{ r.amount|money }}
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ url_for('main.recurrente_form', rec_id=r.id) }}"
+                               class="btn btn-sm btn-outline-secondary me-1" title="{{ _('Editar') }}">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('main.recurrente_delete', rec_id=r.id) }}"
+                                  style="display:inline;"
+                                  onsubmit="return confirm('{{ _('¿Eliminar esta recurrente?') }}')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Eliminar') }}">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 {% endblock %}
 

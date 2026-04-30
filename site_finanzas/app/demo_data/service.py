@@ -48,7 +48,7 @@ def get_demo_data_summary(user_id):
     }
 
 
-def generate_demo_data(user_id, years=4, seed=42):
+def generate_demo_data(user_id, years=3, seed=42):
     if has_demo_data(user_id):
         return False, 'Ya existen datos demo cargados.'
 
@@ -75,14 +75,14 @@ def generate_demo_data(user_id, years=4, seed=42):
         return False, 'No hay categorías de gasto disponibles.'
 
     today = date.today()
-    end_year = today.year
-    start_year = end_year - years + 1
+    end_year = today.year - 1
+    start_year = today.year - years
 
     transactions = []
     years_to_ensure = set()
 
     for year in range(start_year, end_year + 1):
-        end_month = today.month if year == end_year else 12
+        end_month = 12
         for month in range(1, end_month + 1):
             years_to_ensure.add(year)
             days_in_month = calendar.monthrange(year, month)[1]
@@ -138,7 +138,10 @@ def generate_demo_data(user_id, years=4, seed=42):
         db.session.rollback()
         return False, 'Error al guardar los datos demo.'
 
-    return True, f'{len(transactions)} transacciones demo generadas correctamente.'
+    return True, (
+        f'{len(transactions)} transacciones demo generadas para {start_year}–{end_year}. '
+        f'Selecciona esos años en el selector de período para explorar el funcionamiento.'
+    )
 
 
 def reset_demo_data(user_id):
