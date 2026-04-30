@@ -1,12 +1,13 @@
+import json
 import random
 import calendar
-from datetime import date
+from datetime import date, datetime, timezone
 from decimal import Decimal
 
 from sqlalchemy import func
 
 from app import db
-from app.models import Transaction, Category, UserYear
+from app.models import Transaction, Category, UserYear, DemoState
 
 
 DEMO_EXPENSE_RANGES = {
@@ -113,7 +114,19 @@ def generate_demo_data(user_id, years=4, seed=42):
                     is_demo=True,
                 ))
 
+    # Snapshot: capture years that exist BEFORE adding demo years
     existing_years = {uy.year for uy in UserYear.query.filter_by(user_id=user_id).all()}
+
+    state = DemoState.query.filter_by(user_id=user_id).first()
+    if state:
+        state.pre_demo_years = json.dumps(sorted(existing_years))
+        state.loaded_at = datetime.now(timezone.utc)
+    else:
+        db.session.add(DemoState(
+            user_id=user_id,
+            pre_demo_years=json.dumps(sorted(existing_years)),
+        ))
+
     for year in years_to_ensure:
         if year not in existing_years:
             db.session.add(UserYear(user_id=user_id, year=year))
@@ -130,6 +143,21 @@ def generate_demo_data(user_id, years=4, seed=42):
 
 def reset_demo_data(user_id):
     count = Transaction.query.filter_by(user_id=user_id, is_demo=True).delete()
+
+    state = DemoState.query.filter_by(user_id=user_id).first()
+    if state:
+        pre_years = set(json.loads(state.pre_demo_years))
+        if pre_years:
+            # Delete only years added by the demo (not in pre-demo snapshot)
+            UserYear.query.filter(
+                UserYear.user_id == user_id,
+                ~UserYear.year.in_(pre_years),
+            ).delete(synchronize_session=False)
+        else:
+            # User had no years before demo — remove all
+            UserYear.query.filter_by(user_id=user_id).delete()
+        db.session.delete(state)
+
     try:
         db.session.commit()
     except Exception:

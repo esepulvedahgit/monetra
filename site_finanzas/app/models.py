@@ -266,3 +266,18 @@ class SavingsGoal(db.Model):
 
     def __repr__(self):
         return f'<SavingsGoal {self.name} {self.current_amount}/{self.target_amount}>'
+
+
+class DemoState(db.Model):
+    """Snapshot of user_years before demo data was loaded. Used to restore years on reset."""
+    __tablename__ = 'demo_state'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, unique=True)
+    pre_demo_years = db.Column(db.Text, nullable=False, default='[]')
+    loaded_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship('User', backref=db.backref('demo_state', uselist=False,
+                                                       cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<DemoState user={self.user_id}>'
