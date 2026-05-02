@@ -1,5 +1,5 @@
 from app import create_app, db
-from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState
+from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget
 from sqlalchemy import inspect, text
 
 app = create_app()
@@ -163,3 +163,64 @@ with app.app_context():
             print(f'{updated} categorías predeterminadas actualizadas con color.')
         else:
             print('La base de datos ya estaba inicializada.')
+
+    # ── CategoryBudget: add year+month columns and update unique constraint ──────
+    cb_cols = [c['name'] for c in inspect(db.engine).get_columns('category_budgets')]
+    with db.engine.connect() as conn:
+        if 'year' not in cb_cols:
+            conn.execute(text("ALTER TABLE category_budgets ADD COLUMN year INT NULL"))
+            conn.commit()
+            print("Columna year agregada a category_budgets.")
+        if 'month' not in cb_cols:
+            conn.execute(text("ALTER TABLE category_budgets ADD COLUMN month INT NULL"))
+            conn.commit()
+            print("Columna month agregada a category_budgets.")
+        conn.execute(text(
+            "UPDATE category_budgets SET year = YEAR(NOW()), month = MONTH(NOW()) "
+            "WHERE year IS NULL OR month IS NULL"
+        ))
+        conn.commit()
+
+    cb_cols_now = {c['name']: c for c in inspect(db.engine).get_columns('category_budgets')}
+    with db.engine.connect() as conn:
+        if cb_cols_now.get('year', {}).get('nullable', True):
+            conn.execute(text("ALTER TABLE category_budgets MODIFY COLUMN year INT NOT NULL"))
+            conn.commit()
+            print("Columna year NOT NULL en category_budgets.")
+        if cb_cols_now.get('month', {}).get('nullable', True):
+            conn.execute(text("ALTER TABLE category_budgets MODIFY COLUMN month INT NOT NULL"))
+            conn.commit()
+            print("Columna month NOT NULL en category_budgets.")
+
+    cb_constraints = {uc['name'] for uc in inspect(db.engine).get_unique_constraints('category_budgets')}
+    old_exists = 'uq_user_category_budget' in cb_constraints
+    new_exists = 'uq_user_year_month_cat_budget' in cb_constraints
+    with db.engine.connect() as conn:
+        if old_exists and not new_exists:
+            # Drop old + add new in one atomic statement — MySQL won't allow dropping
+            # the old index alone while a FK depends on it; the combined statement works
+            # because MySQL sees user_id is still covered by the new index.
+            conn.execute(text(
+                "ALTER TABLE category_budgets "
+                "DROP INDEX uq_user_category_budget, "
+                "ADD CONSTRAINT uq_user_year_month_cat_budget UNIQUE (user_id, year, month, category_id)"
+            ))
+            conn.commit()
+            print("Constraint uq_user_category_budget reemplazado por uq_user_year_month_cat_budget.")
+        elif old_exists:
+            conn.execute(text("ALTER TABLE category_budgets DROP INDEX uq_user_category_budget"))
+            conn.commit()
+            print("Constraint uq_user_category_budget eliminado.")
+        elif not new_exists:
+            conn.execute(text(
+                "ALTER TABLE category_budgets ADD CONSTRAINT uq_user_year_month_cat_budget "
+                "UNIQUE (user_id, year, month, category_id)"
+            ))
+            conn.commit()
+            print("Constraint uq_user_year_month_cat_budget creado.")
+
+    # Ensure global fallback category for custom budget deletions
+    if not Category.query.filter_by(user_id=None, name='Sin categoría').first():
+        db.session.add(Category(name='Sin categoría', type='expense', user_id=None, color='#78909C'))
+        db.session.commit()
+        print("Categoría global 'Sin categoría' creada.")

@@ -66,6 +66,7 @@
                     <th>{{ _('Día') }}</th>
                     <th class="text-end">{{ _('Monto') }}</th>
                     <th class="text-center">{{ _('Estado') }}</th>
+                    <th class="text-muted small">{{ _('Creado') }}</th>
                     <th class="text-center">{{ _('Acciones') }}</th>
                 </tr>
             </thead>
@@ -97,6 +98,7 @@
                         <span class="badge bg-secondary">{{ _('Inactiva') }}</span>
                         {% endif %}
                     </td>
+                    <td class="text-muted small">{{ r.created_at.strftime('%d/%m/%Y') if r.created_at else '—' }}</td>
                     <td class="text-center">
                         <a href="{{ url_for('main.recurrente_form', rec_id=r.id) }}"
                            class="btn btn-sm btn-outline-secondary me-1" title="{{ _('Editar') }}">
@@ -146,6 +148,7 @@
                         <th>{{ _('Categoría') }}</th>
                         <th>{{ _('Finalizó') }}</th>
                         <th class="text-end">{{ _('Monto') }}</th>
+                        <th class="text-muted small">{{ _('Creado') }}</th>
                         <th class="text-center">{{ _('Acciones') }}</th>
                     </tr>
                 </thead>
@@ -170,6 +173,7 @@
                         <td class="text-end fw-bold text-muted">
                             {% if r.type == 'income' %}+{% else %}−{% endif %}{{ r.amount|money }}
                         </td>
+                        <td class="text-muted small">{{ r.created_at.strftime('%d/%m/%Y') if r.created_at else '—' }}</td>
                         <td class="text-center">
                             <a href="{{ url_for('main.recurrente_form', rec_id=r.id) }}"
                                class="btn btn-sm btn-outline-secondary me-1" title="{{ _('Editar') }}">

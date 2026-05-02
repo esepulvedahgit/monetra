@@ -156,16 +156,18 @@ class UserEmailConfig(db.Model):
 
 
 class CategoryBudget(db.Model):
-    """Monthly spending limit for a specific category (recurring, no year/month key)."""
+    """Monthly spending limit for a specific category, scoped to a year+month period."""
     __tablename__ = 'category_budgets'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    month = db.Column(db.Integer, nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
     amount = db.Column(db.Numeric(12, 2), nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     __table_args__ = (
-        db.UniqueConstraint('user_id', 'category_id', name='uq_user_category_budget'),
+        db.UniqueConstraint('user_id', 'year', 'month', 'category_id', name='uq_user_year_month_cat_budget'),
     )
 
     user = db.relationship('User', backref=db.backref('category_budgets', lazy=True,
@@ -173,7 +175,7 @@ class CategoryBudget(db.Model):
     category = db.relationship('Category')
 
     def __repr__(self):
-        return f'<CategoryBudget user={self.user_id} cat={self.category_id} amount={self.amount}>'
+        return f'<CategoryBudget user={self.user_id} y={self.year} m={self.month} cat={self.category_id}>'
 
 
 class UserSeenAnnouncement(db.Model):
@@ -266,6 +268,30 @@ class SavingsGoal(db.Model):
 
     def __repr__(self):
         return f'<SavingsGoal {self.name} {self.current_amount}/{self.target_amount}>'
+
+
+class CustomBudget(db.Model):
+    """One free-range budget per user, linked to an auto-created expense category."""
+    __tablename__ = 'custom_budgets'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
+    start_date = db.Column(db.Date, nullable=False)
+    end_date = db.Column(db.Date, nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', name='uq_user_custom_budget'),
+    )
+
+    user = db.relationship('User', backref=db.backref('custom_budget', uselist=False,
+                                                       cascade='all, delete-orphan'))
+    category = db.relationship('Category')
+
+    def __repr__(self):
+        return f'<CustomBudget {self.name} {self.amount}>'
 
 
 class DemoState(db.Model):

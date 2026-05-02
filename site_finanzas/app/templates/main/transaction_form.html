@@ -25,7 +25,7 @@
                             <div class="input-group">
                                 <span class="input-group-text">{{ currency_symbol }}</span>
                                 {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""),
-                                              placeholder="0.00") }}
+                                              placeholder="0") }}
                                 {% if form.amount.errors %}
                                 <div class="invalid-feedback d-block">
                                     {% for e in form.amount.errors %}{{ e }}{% endfor %}
@@ -40,6 +40,10 @@
                             {% for e in form.category_id.errors %}
                             <div class="invalid-feedback">{{ e }}</div>
                             {% endfor %}
+                            <div id="cbLinked" class="d-none mt-2 px-2 py-1 rounded small"
+                                 style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.35); color:#a5b4fc;">
+                                <i class="bi bi-link-45deg me-1"></i><span id="cbLinkedText"></span>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             {{ form.date.label(class="form-label fw-semibold") }}{{ hint(_('Solo el mes activo. Para ajustes de meses pasados, usa edición desde el listado.')) }}
@@ -102,5 +106,27 @@
 
     typeSelect.addEventListener('change', filterCategories);
     filterCategories();
+
+    // ── Custom budget category notice ────────────────────────────────────────
+    const customBudget = {{ custom_budget_info|tojson }};
+    if (customBudget) {
+        const linkedEl   = document.getElementById('cbLinked');
+        const linkedText = document.getElementById('cbLinkedText');
+
+        function checkBudgetCategory() {
+            if (parseInt(categorySelect.value) === customBudget.category_id) {
+                linkedText.textContent =
+                    {{ _('Esta categoría está estrictamente vinculada al presupuesto')|tojson }} +
+                    ' "' + customBudget.name + '". ' +
+                    {{ _('Toda transacción registrada con esta categoría se contabiliza en dicho presupuesto, independientemente de la fecha.')|tojson }};
+                linkedEl.classList.remove('d-none');
+            } else {
+                linkedEl.classList.add('d-none');
+            }
+        }
+
+        categorySelect.addEventListener('change', checkBudgetCategory);
+        checkBudgetCategory();
+    }
 </script>
 {% endblock %}

@@ -1,7 +1,7 @@
 from datetime import date as _date
 from sqlalchemy import func, extract
 from app import db
-from app.models import Transaction, Category, Budget, RecurringTransaction, SavingsGoal
+from app.models import Transaction, Category, Budget, RecurringTransaction, SavingsGoal, CustomBudget
 
 
 def _tx_dict(tx):
@@ -335,6 +335,25 @@ def get_category_actuals(user_id: int, year: int, month: int, category_ids: list
         .all()
     )
     return {cat_id: float(total) for cat_id, total in rows}
+
+
+# ── Custom budget ──────────────────────────────────────────────────────────────
+
+def get_custom_budget_actual(user_id: int, category_id: int) -> float:
+    """Total expense spending for a category across all dates.
+
+    The category is permanently linked to the custom budget — every transaction
+    with this category counts toward the budget regardless of its date.
+    """
+    return float(
+        db.session.query(func.coalesce(func.sum(Transaction.amount), 0))
+        .filter(
+            Transaction.user_id == user_id,
+            Transaction.type == 'expense',
+            Transaction.category_id == category_id,
+        )
+        .scalar()
+    )
 
 
 # ── Recurring transactions ─────────────────────────────────────────────────────

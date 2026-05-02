@@ -504,6 +504,21 @@ main.py-4 {
   font-weight: 700;
 }
 
+/* Date/time picker calendar icon — white on all themes */
+input[type="date"]:not(:disabled)::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]:not(:disabled)::-webkit-calendar-picker-indicator,
+input[type="time"]:not(:disabled)::-webkit-calendar-picker-indicator {
+  filter: brightness(0) invert(1);
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+input[type="date"]:not(:disabled)::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]:not(:disabled)::-webkit-calendar-picker-indicator:hover,
+input[type="time"]:not(:disabled)::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
 /* Navbar period selects (override with inline styles already set) */
 .monetra-navbar .form-select {
   background-color: rgba(255, 255, 255, 0.1) !important;

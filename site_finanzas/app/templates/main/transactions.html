@@ -112,6 +112,24 @@
                                class="btn btn-sm btn-outline-secondary me-1" title="{{ _('Editar') }}">
                                 <i class="bi bi-pencil"></i>
                             </a>
+                            {% if t.recurring_id and t.recurring_id in active_rec_ids %}
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalRecurringDelete"
+                                    title="{{ _('Eliminar') }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            {% elif t.recurring_id and t.recurring_id in inactive_rec_ids %}
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalInactiveRecurringDelete"
+                                    data-delete-url="{{ url_for('main.delete_transaction', tx_id=t.id) }}"
+                                    title="{{ _('Eliminar') }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            {% else %}
                             <form method="POST"
                                   action="{{ url_for('main.delete_transaction', tx_id=t.id) }}"
                                   class="d-inline"
@@ -121,6 +139,7 @@
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
+                            {% endif %}
                         </td>
                     </tr>
                     {% else %}
@@ -158,4 +177,79 @@
     </div>
 </div>
 
+<!-- Modal: eliminar transacción recurrente -->
+<div class="modal fade" id="modalRecurringDelete" tabindex="-1" aria-labelledby="modalRecurringDeleteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalRecurringDeleteLabel">
+                    <i class="bi bi-arrow-repeat text-warning me-2"></i>{{ _('Transacción recurrente') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">{{ _('Esta transacción fue generada automáticamente por una regla recurrente.') }}</p>
+                <p class="mb-0 text-warning small">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    {{ _('Si la eliminas, se volverá a generar la próxima vez que abras el dashboard, porque la regla recurrente sigue activa.') }}
+                </p>
+                <p class="mt-3 mb-0 small text-muted">
+                    {{ _('Para evitar que se regenere, desactiva o elimina la regla en') }}
+                    <a href="{{ url_for('main.recurrentes') }}" class="text-primary">{{ _('Recurrentes') }}</a>,
+                    {{ _('vuelve a esta sección y elimina la transacción.') }}
+                </p>
+            </div>
+            <div class="modal-footer gap-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cerrar') }}</button>
+                <a href="{{ url_for('main.recurrentes') }}" class="btn btn-primary">
+                    <i class="bi bi-arrow-repeat me-1"></i>{{ _('Ir a Recurrentes') }}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: eliminar transacción con regla recurrente INACTIVA -->
+<div class="modal fade" id="modalInactiveRecurringDelete" tabindex="-1" aria-labelledby="modalInactiveRecurringDeleteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalInactiveRecurringDeleteLabel">
+                    <i class="bi bi-trash text-danger me-2"></i>{{ _('Eliminar movimiento') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">{{ _('El movimiento será eliminado.') }}</p>
+                <p class="mb-0 small text-warning">
+                    <i class="bi bi-info-circle me-1"></i>
+                    {{ _('Este movimiento pertenece a una regla recurrente que actualmente está desactivada. Si en el futuro vuelves a activar esa regla, el movimiento se creará nuevamente de forma automática.') }}
+                </p>
+            </div>
+            <div class="modal-footer gap-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+                <form id="formDeleteInactiveRecurring" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>{{ _('Eliminar') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    var modal = document.getElementById('modalInactiveRecurringDelete');
+    if (!modal) return;
+    modal.addEventListener('show.bs.modal', function (e) {
+        document.getElementById('formDeleteInactiveRecurring').action =
+            e.relatedTarget.getAttribute('data-delete-url');
+    });
+})();
+</script>
 {% endblock %}

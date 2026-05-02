@@ -34,7 +34,7 @@
                     <div class="input-group">
                         <span class="input-group-text">{{ currency_symbol }}</span>
                         {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""),
-                                      placeholder="0.00", step="0.01") }}
+                                      placeholder="0", step="0.01") }}
                         {% for e in form.amount.errors %}
                         <div class="invalid-feedback">{{ e }}</div>
                         {% endfor %}
