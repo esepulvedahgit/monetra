@@ -15,11 +15,12 @@ def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
     total_expense = sum(r["amount"] for r in active if r["type"] == "expense")
     total_income = sum(r["amount"] for r in active if r["type"] == "income")
 
+    year = data["global_summary"]["year"]
     title = "TRANSACCIONES RECURRENTES" if lang == "es" else "RECURRING TRANSACTIONS"
     subtitle = (
-        f"  Activas: {len(active)} · Gasto fijo: {total_expense:,.0f} · Ingreso fijo: {total_income:,.0f} /mes"
+        f"  Año {year} · Activas: {len(active)} · Gasto fijo: {total_expense:,.0f} · Ingreso fijo: {total_income:,.0f} /mes"
         if lang == "es"
-        else f"  Active: {len(active)} · Fixed expense: {total_expense:,.0f} · Fixed income: {total_income:,.0f} /mo"
+        else f"  Year {year} · Active: {len(active)} · Fixed expense: {total_expense:,.0f} · Fixed income: {total_income:,.0f} /mo"
     )
 
     # ── Column widths ─────────────────────────────────────────────────────────
@@ -29,8 +30,9 @@ def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
     ws.set_column(3, 3, 8)    # Día
     ws.set_column(4, 4, 15)   # Monto
     ws.set_column(5, 5, 13)   # Estado
-    ws.set_column(6, 6, 2)    # spacer
-    ws.set_column(7, 17, 8)   # chart area
+    ws.set_column(6, 6, 12)   # Término
+    ws.set_column(7, 7, 2)    # spacer
+    ws.set_column(8, 18, 8)   # chart area
 
     # ── Title ─────────────────────────────────────────────────────────────────
     write_title_row(ws, 0, f"  {title}", subtitle, fmt, 18)
@@ -58,9 +60,9 @@ def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
 
     # ── Table headers ─────────────────────────────────────────────────────────
     hdrs = (
-        ["Descripción", "Tipo", "Categoría", "Día", "Monto /Mes", "Estado"]
+        ["Descripción", "Tipo", "Categoría", "Día", "Monto /Mes", "Estado", "Término"]
         if lang == "es"
-        else ["Description", "Type", "Category", "Day", "Amount /Mo", "Status"]
+        else ["Description", "Type", "Category", "Day", "Amount /Mo", "Status", "End"]
     )
     ws.set_row(6, 22)
     for c, h in enumerate(hdrs):
@@ -68,7 +70,7 @@ def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
 
     if not items:
         empty = "Sin transacciones recurrentes registradas." if lang == "es" else "No recurring transactions registered."
-        ws.merge_range(7, 0, 7, 5, empty, fmt["status_none"])
+        ws.merge_range(7, 0, 7, 6, empty, fmt["status_none"])
         return
 
     lbl_income = "Ingreso" if lang == "es" else "Income"
@@ -104,6 +106,7 @@ def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
         ws.write(row, 3, f"{lbl_dia} {r['day_of_month']}", ccfmt)
         ws.write(row, 4, r["amount"], mfmt)
         ws.write(row, 5, s_lbl, sbadge)
+        ws.write(row, 6, r.get("end_date") or "31/12", ccfmt)
 
     data_end = data_start + len(all_items) - 1
 
@@ -165,4 +168,4 @@ def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
             chart.set_legend({"none": True})
             chart.set_style(10)
             chart.set_size({"width": 420, "height": max(220, len(sorted_cats) * 35 + 100)})
-            ws.insert_chart(6, 7, chart, {"x_offset": 5, "y_offset": 5})
+            ws.insert_chart(6, 8, chart, {"x_offset": 5, "y_offset": 5})

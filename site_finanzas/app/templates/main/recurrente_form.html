@@ -14,6 +14,16 @@
 
 <div class="card shadow-sm">
     <div class="card-body p-4">
+        <div class="rounded p-3 mb-4 small"
+             style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); color:var(--monetra-text-muted);">
+            <div class="fw-semibold mb-1" style="color:#38BDF8;">
+                <i class="bi bi-calendar-event me-1"></i>{{ _('Inicio de generación:') }} {{ generation_start_label }}
+            </div>
+            <div>
+                {{ _('Las recurrentes son anuales: se generan desde su fecha de creación hasta el 31/12 del mismo año, o hasta la fecha de término indicada dentro de ese año.') }}
+            </div>
+        </div>
+
         <form method="POST" novalidate>
             {{ form.hidden_tag() }}
 
@@ -65,8 +75,8 @@
                 <div class="col-md-6">
                     {{ form.end_date.label(class="form-label fw-semibold") }}
                     {{ form.end_date(class="form-control" + (" is-invalid" if form.end_date.errors else ""),
-                                    type="date") }}
-                    <div class="form-text text-muted">{{ _('Opcional. Sin fecha, la recurrente continúa indefinidamente.') }}</div>
+                                    type="date", min=today_iso, max=recurrence_year_end) }}
+                    <div class="form-text text-muted">{{ _('Opcional. Sin fecha, la recurrente continúa hasta el 31/12 de su año de creación.') }}</div>
                     {% for e in form.end_date.errors %}
                     <div class="invalid-feedback">{{ e }}</div>
                     {% endfor %}

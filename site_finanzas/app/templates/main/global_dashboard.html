@@ -39,10 +39,23 @@
         <button type="submit" class="btn btn-sm btn-primary">
             <i class="bi bi-funnel"></i> {{ _('Aplicar') }}
         </button>
-        <a href="{{ url_for('export.export_excel', year=sel_year_g, from_month=from_month, to_month=to_month) }}"
-           class="btn btn-sm btn-success fw-semibold">
-            <i class="bi bi-file-earmark-excel-fill"></i> {{ _('Exportar Excel') }}
-        </a>
+        <div class="btn-group">
+            <button type="button" class="btn btn-sm btn-success fw-semibold dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-file-earmark-excel-fill"></i> {{ _('Exportar Excel') }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" href="{{ url_for('export.export_excel', year=sel_year_g, from_month=from_month, to_month=to_month) }}">
+                        <i class="bi bi-globe2 me-2"></i>{{ _('Global') }}
+                    </a>
+                </li>
+                <li>
+                    <span class="dropdown-item disabled" aria-disabled="true">
+                        <i class="bi bi-calendar-month me-2"></i>{{ _('Mensual') }}
+                    </span>
+                </li>
+            </ul>
+        </div>
     </form>
 </div>
 

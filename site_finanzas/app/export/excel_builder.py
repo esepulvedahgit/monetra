@@ -32,6 +32,7 @@ def build_excel(user, year: int, from_month: int = 1, to_month: int = 12) -> io.
     lang = user.language or "es"
     sym = user.currency_symbol or "$"
     dec = _dec(user.currency_code or "USD")
+    svc.generate_pending_recurring_range(user.id, year, from_month, to_month)
 
     # ── Fetch all data once ───────────────────────────────────────────────────
     data = {
@@ -41,7 +42,7 @@ def build_excel(user, year: int, from_month: int = 1, to_month: int = 12) -> io.
         ),
         "budget_vs_actual": svc.get_budget_vs_actual(user.id, year, from_month, to_month),
         "savings": svc.get_savings(user.id),
-        "recurring": svc.get_recurring(user.id),
+        "recurring": svc.get_recurring(user.id, year=year),
         "all_transactions": svc.get_transactions(user.id),  # full history for raw sheet
     }
 

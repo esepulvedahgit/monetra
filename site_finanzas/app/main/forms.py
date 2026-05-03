@@ -105,8 +105,8 @@ class CustomBudgetForm(FlaskForm):
         if self.start_date.data and field.data:
             if field.data < self.start_date.data:
                 raise ValidationError(_l('La fecha de término debe ser posterior al inicio.'))
-            if (field.data - self.start_date.data).days > 365:
-                raise ValidationError(_l('El rango máximo es de 365 días.'))
+            if (field.data.year, field.data.month) != (self.start_date.data.year, self.start_date.data.month):
+                raise ValidationError(_l('El presupuesto personalizado debe estar dentro del mismo mes.'))
 
 
 class ChangePasswordForm(FlaskForm):

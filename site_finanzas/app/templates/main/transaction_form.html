@@ -34,15 +34,22 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            {{ form.category_id.label(class="form-label fw-semibold") }}
+                            <div class="d-flex align-items-center justify-content-between gap-2">
+                                {{ form.category_id.label(class="form-label fw-semibold mb-0") }}
+                                <span id="cbLinkedBadge" class="badge d-none"
+                                      title="{{ _('Pertenece a presupuesto personalizado') }}"
+                                      style="background:rgba(242,201,76,0.15); color:#F2C94C; border:1px solid rgba(242,201,76,0.35);">
+                                    <i class="bi bi-piggy-bank me-1"></i>{{ _('Presupuesto personalizado') }}
+                                </span>
+                            </div>
                             {{ form.category_id(class="form-select" + (" is-invalid" if form.category_id.errors else ""),
                                                id="categorySelect") }}
                             {% for e in form.category_id.errors %}
                             <div class="invalid-feedback">{{ e }}</div>
                             {% endfor %}
                             <div id="cbLinked" class="d-none mt-2 px-2 py-1 rounded small"
-                                 style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.35); color:#a5b4fc;">
-                                <i class="bi bi-link-45deg me-1"></i><span id="cbLinkedText"></span>
+                                 style="background:rgba(242,201,76,0.08); border:1px solid rgba(242,201,76,0.25); color:var(--monetra-text-muted);">
+                                <i class="bi bi-link-45deg me-1" style="color:#F2C94C;"></i><span id="cbLinkedText"></span>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -84,6 +91,29 @@
     const categorySelect = document.getElementById('categorySelect');
     const currentCatId = {{ form.category_id.data|tojson }};
     const noCategMsg = {{ _('Sin categorías disponibles')|tojson }};
+    const customBudget = {{ custom_budget_info|tojson }};
+    const linkedEl = document.getElementById('cbLinked');
+    const linkedBadge = document.getElementById('cbLinkedBadge');
+    const linkedText = document.getElementById('cbLinkedText');
+
+    function updateCustomBudgetNotice() {
+        if (!customBudget || !categorySelect.value) {
+            linkedEl.classList.add('d-none');
+            linkedBadge.classList.add('d-none');
+            return;
+        }
+
+        if (parseInt(categorySelect.value) === customBudget.category_id) {
+            linkedText.textContent =
+                {{ _('Este movimiento se contabilizará en el presupuesto personalizado')|tojson }} +
+                ' "' + customBudget.name + '".';
+            linkedEl.classList.remove('d-none');
+            linkedBadge.classList.remove('d-none');
+        } else {
+            linkedEl.classList.add('d-none');
+            linkedBadge.classList.add('d-none');
+        }
+    }
 
     function filterCategories() {
         const selectedType = typeSelect.value;
@@ -102,31 +132,11 @@
             placeholder.disabled = true;
             categorySelect.appendChild(placeholder);
         }
+        updateCustomBudgetNotice();
     }
 
     typeSelect.addEventListener('change', filterCategories);
+    categorySelect.addEventListener('change', updateCustomBudgetNotice);
     filterCategories();
-
-    // ── Custom budget category notice ────────────────────────────────────────
-    const customBudget = {{ custom_budget_info|tojson }};
-    if (customBudget) {
-        const linkedEl   = document.getElementById('cbLinked');
-        const linkedText = document.getElementById('cbLinkedText');
-
-        function checkBudgetCategory() {
-            if (parseInt(categorySelect.value) === customBudget.category_id) {
-                linkedText.textContent =
-                    {{ _('Esta categoría está estrictamente vinculada al presupuesto')|tojson }} +
-                    ' "' + customBudget.name + '". ' +
-                    {{ _('Toda transacción registrada con esta categoría se contabiliza en dicho presupuesto, independientemente de la fecha.')|tojson }};
-                linkedEl.classList.remove('d-none');
-            } else {
-                linkedEl.classList.add('d-none');
-            }
-        }
-
-        categorySelect.addEventListener('change', checkBudgetCategory);
-        checkBudgetCategory();
-    }
 </script>
 {% endblock %}

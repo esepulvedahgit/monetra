@@ -282,11 +282,9 @@ class CustomBudget(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    __table_args__ = (
-        db.UniqueConstraint('user_id', name='uq_user_custom_budget'),
-    )
 
-    user = db.relationship('User', backref=db.backref('custom_budget', uselist=False,
+
+    user = db.relationship('User', backref=db.backref('custom_budgets', lazy=True,
                                                        cascade='all, delete-orphan'))
     category = db.relationship('Category')
 
