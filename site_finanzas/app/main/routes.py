@@ -490,10 +490,11 @@ def dashboard():
         insights_alerts = insights_service.get_dashboard_alerts(current_user.id, year, month)
         insights_forecast = insights_service.get_monthly_forecast(current_user.id, year, month)
         insights_health = insights_service.get_health_score(current_user.id, year, month)
+        insights_maturity = insights_service.get_data_maturity(current_user.id, year, month)
     except Exception:
         import logging
         logging.getLogger(__name__).exception('insights pipeline failed for user_id=%s', current_user.id)
-        insights_alerts, insights_forecast, insights_health = [], None, None
+        insights_alerts, insights_forecast, insights_health, insights_maturity = [], None, None, None
 
     return render_template(
         'main/dashboard.html',
@@ -515,6 +516,7 @@ def dashboard():
         alerts=insights_alerts,
         forecast=insights_forecast,
         health=insights_health,
+        insights_maturity=insights_maturity,
         alerts_limit=3,
     )
 

@@ -1,0 +1,76 @@
+<div class="modal-header"
+     style="background: linear-gradient(135deg, var(--monetra-primary, #00C896) 0%, #2563EB 100%); color: #fff;">
+    <h5 class="modal-title fw-bold">
+        <i class="bi bi-stars me-2"></i>
+        {{ _('¡Monetra 2.1 ya está aquí!') }}
+    </h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+            aria-label="{{ _('Cerrar') }}"></button>
+</div>
+
+<div class="modal-body py-4">
+    <p class="mb-3 fw-semibold" style="color: var(--monetra-text);">
+        {{ _('Una versión más inteligente para entender tu dinero, anticiparte a problemas y tomar mejores decisiones financieras.') }}
+    </p>
+
+    <ul class="list-unstyled mb-3 ps-1" style="color: var(--monetra-text-soft); line-height: 1.9;">
+        <li class="mb-2">
+            <i class="bi bi-currency-dollar me-2" style="color: #38BDF8;"></i>
+            <strong>{{ _('Cuenta en dólares') }}</strong>
+            {{ _('— Registra y administra gastos en USD de forma separada, sin mezclar manualmente tus movimientos.') }}
+        </li>
+        <li class="mb-2">
+            <i class="bi bi-layers-fill me-2" style="color: var(--monetra-primary, #00C896);"></i>
+            <strong>{{ _('Vista consolidada') }}</strong>
+            {{ _('— Consulta tus movimientos locales y en dólares convertidos a una sola moneda para ver tu gasto total real.') }}
+        </li>
+        <li class="mb-2">
+            <i class="bi bi-graph-up-arrow me-2" style="color: #A78BFA;"></i>
+            <strong>{{ _('Análisis financiero inteligente') }}</strong>
+            {{ _('— Monetra revisa ingresos, gastos, presupuesto, recurrentes y metas para entregarte una lectura clara del mes.') }}
+        </li>
+        <li class="mb-2">
+            <i class="bi bi-calendar2-check-fill me-2" style="color: #F59E0B;"></i>
+            <strong>{{ _('Proyección de cierre') }}</strong>
+            {{ _('— Anticipa cómo podrías terminar el mes si mantienes un ritmo parecido al actual.') }}
+        </li>
+        <li class="mb-2">
+            <i class="bi bi-bell-fill me-2" style="color: #F87171;"></i>
+            <strong>{{ _('Alertas financieras claras') }}</strong>
+            {{ _('— Recibe avisos sobre presupuesto, déficit, ahorro, metas y movimientos fuera de lo habitual.') }}
+        </li>
+        <li class="mb-2">
+            <i class="bi bi-cpu-fill me-2" style="color: #22C55E;"></i>
+            <strong>{{ _('Aprendizaje automático') }}</strong>
+            {{ _('— Monetra aprende de tu comportamiento financiero y ajusta sus alertas según tu historial disponible.') }}
+        </li>
+        <li>
+            <i class="bi bi-lightbulb-fill me-2" style="color: #FCD34D;"></i>
+            <strong>{{ _('Modo aprendizaje') }}</strong>
+            {{ _('— Si eres nuevo, las alertas serán más suaves y orientativas mientras Monetra conoce tus hábitos.') }}
+        </li>
+    </ul>
+
+    <div class="p-3 rounded"
+         style="background: rgba(56,189,248,0.10); border: 1px solid rgba(56,189,248,0.25); color: var(--monetra-text-soft);">
+        <div class="fw-semibold mb-1" style="color: var(--monetra-text);">
+            <i class="bi bi-info-circle-fill me-1" style="color:#38BDF8;"></i>
+            {{ _('Importante para la vista consolidada') }}
+        </div>
+        <div class="small">
+            {{ _('Desde Configuración de Cuenta, define el valor de referencia actual del dólar según tu moneda. Así Monetra puede convertir correctamente tus gastos USD y mostrar un consolidado más preciso.') }}
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer" style="border-top: 1px solid var(--card-border);">
+    <span class="text-muted small me-auto">
+        <i class="bi bi-code-slash me-1"></i>v2.1
+    </span>
+    <button type="button" class="btn btn-outline-secondary fw-semibold px-3" data-bs-dismiss="modal">
+        {{ _('Entendido') }}
+    </button>
+    <a href="{{ url_for('main.configurar') }}" class="btn btn-primary fw-semibold px-4">
+        {{ _('Configurar mi cuenta') }}
+    </a>
+</div>

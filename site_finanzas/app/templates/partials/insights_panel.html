@@ -3,21 +3,24 @@
      - alerts        : list[AlertDTO]   (sorted critical → warning → info)
      - forecast      : ForecastDTO | None
      - health        : HealthScoreDTO | None
-     - alerts_limit  : int  (how many to show; remainder collapsed)
+      - alerts_limit  : int  (how many to show; remainder collapsed)
 ─────────────────────────────────────────────────────────────────────────────── #}
+{% from 'partials/hint.html' import hint with context %}
 {% set _sev_cls = {
     'critical': {'bg':'rgba(239,68,68,0.10)', 'border':'rgba(239,68,68,0.45)', 'fg':'#EF4444', 'icon':'exclamation-octagon-fill'},
     'warning':  {'bg':'rgba(245,158,11,0.10)', 'border':'rgba(245,158,11,0.45)', 'fg':'#F59E0B', 'icon':'exclamation-triangle-fill'},
     'info':     {'bg':'rgba(56,189,248,0.10)', 'border':'rgba(56,189,248,0.40)', 'fg':'#38BDF8', 'icon':'info-circle-fill'},
 } %}
 {% set _conf_label = {'high': _('Alta'), 'medium': _('Media'), 'low': _('Baja')} %}
+{% set _learning_mode = insights_maturity and insights_maturity.learning_mode %}
+{% set _known_recurring_income = forecast and forecast.evidence and forecast.evidence.get('recurring_income_known', 0) > 0 %}
 
 <div class="card mb-4">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <h6 class="mb-0 fw-semibold">
                 <i class="bi bi-stars" style="color:var(--monetra-primary,#00C896);"></i>
-                {{ _('Insights del mes') }}
+                {{ _('Insights del mes') }}{{ hint(_('Resumen automático de tu situación del mes. Reúne salud financiera, proyección de cierre y alertas importantes para que veas rápido si vas bien o necesitas ajustar algo.')) }}
             </h6>
             <a href="{{ url_for('analytics.dashboard') }}"
                class="btn btn-sm btn-outline-primary">
@@ -25,15 +28,32 @@
             </a>
         </div>
 
+        {% if _learning_mode %}
+        <div class="mb-3 p-2 rounded small d-flex gap-2 align-items-start"
+             style="background:rgba(56,189,248,0.10); border:1px solid rgba(56,189,248,0.25); color:var(--monetra-text-soft);">
+            <i class="bi bi-info-circle-fill flex-shrink-0 mt-1" style="color:#38BDF8;"></i>
+            <div>
+                <span class="fw-semibold" style="color:var(--monetra-text);">{{ _('Datos iniciales:') }}</span>
+                {% if _known_recurring_income %}
+                {{ _('Monetra ya considera tus ingresos recurrentes registrados. Como aún hay poco historial, seguirá aprendiendo tus gastos variables durante los próximos meses.') }}
+                {% else %}
+                {{ _('Monetra está aprendiendo de tus primeros movimientos. Las alertas de este mes son orientativas y se volverán más precisas cuando tengas al menos 3 meses de historial.') }}
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
         <div class="row g-3">
             {# ── Health score card ─── #}
             <div class="col-lg-3 col-md-4">
                 {% if health %}
                 {% set _hs = health.overall_score %}
-                {% set _hs_color = '#EF4444' if _hs < 40 else ('#F59E0B' if _hs < 70 else '#00C896') %}
+                {% set _hs_color = '#F59E0B' if _learning_mode and _hs < 70 else ('#EF4444' if _hs < 40 else ('#F59E0B' if _hs < 70 else '#00C896')) %}
                 <div class="p-3 rounded h-100"
                      style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
-                    <div class="small text-muted fw-semibold mb-2">{{ _('Salud financiera') }}</div>
+                    <div class="small text-muted fw-semibold mb-2">
+                        {{ _('Salud financiera') }}{{ hint(_('Puntaje general de 0 a 100. Mientras más alto, mejor se ve tu mes considerando ingresos, gastos, presupuesto, ahorro y movimientos fuera de lo normal.')) }}
+                    </div>
                     <div class="d-flex align-items-baseline gap-2">
                         <div class="fw-bold" style="font-size:2.4rem; color:{{ _hs_color }}; line-height:1;">{{ _hs }}</div>
                         <div class="small text-muted">/ 100</div>
@@ -45,7 +65,10 @@
                              aria-valuenow="{{ _hs }}" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                     <div class="small text-muted mt-2">
-                        {{ _('Cashflow') }} {{ health.cashflow_score }} · {{ _('Pres.') }} {{ health.budget_score }} · {{ _('Ahorro') }} {{ health.savings_score }} · {{ _('Anom.') }} {{ health.anomaly_score }}
+                        {{ _('Cashflow') }}{{ hint(_('Mide si está entrando más dinero del que sale.')) }} {{ health.cashflow_score }} ·
+                        {{ _('Pres.') }}{{ hint(_('Mide qué tan bien vas respecto al presupuesto definido.')) }} {{ health.budget_score }} ·
+                        {{ _('Ahorro') }}{{ hint(_('Mide si tus metas de ahorro parecen alcanzables con tu ritmo actual.')) }} {{ health.savings_score }} ·
+                        {{ _('Anom.') }}{{ hint(_('Mide si hay gastos o movimientos poco habituales frente a tu historial.')) }} {{ health.anomaly_score }}
                     </div>
                 </div>
                 {% else %}
@@ -63,15 +86,27 @@
                 <div class="p-3 rounded h-100"
                      style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="small text-muted fw-semibold">{{ _('Proyección de cierre') }}</div>
+                        <div class="small text-muted fw-semibold">
+                            {{ _('Proyección de cierre') }}{{ hint(_('Estimación de cómo podrías terminar el mes si sigues con un ritmo parecido al actual. No es un valor definitivo, sirve como aviso anticipado.')) }}
+                        </div>
                         <span class="badge"
                               style="font-size:.65rem;
                                      background:rgba(0,200,150,0.10);
                                      color:#00C896;
                                      border:1px solid rgba(0,200,150,0.35);">
-                            {{ _conf_label.get(forecast.confidence, forecast.confidence) }}
+                            {{ _conf_label.get(forecast.confidence, forecast.confidence) }}{{ hint(_('Indica qué tan segura es la estimación. Si tienes ingresos recurrentes, Monetra los considera como datos conocidos; la confianza puede seguir baja mientras aprende tus gastos variables.')) }}
                         </span>
                     </div>
+                    {% if _learning_mode and _known_recurring_income %}
+                    <div class="mb-2 p-2 rounded small d-flex gap-2 align-items-start"
+                         style="background:rgba(0,200,150,0.08); border:1px solid rgba(0,200,150,0.20); color:var(--monetra-text-muted);">
+                        <i class="bi bi-arrow-repeat flex-shrink-0 mt-1" style="color:#00C896;"></i>
+                        <div>
+                            <span class="fw-semibold" style="color:var(--monetra-text);">{{ _('Ingresos conocidos:') }}</span>
+                            {{ _('esta proyección incluye tus ingresos recurrentes registrados. Los gastos variables siguen en aprendizaje hasta tener más historial.') }}
+                        </div>
+                    </div>
+                    {% endif %}
                     <div class="row g-2 small">
                         <div class="col-6">
                             <div class="text-muted">{{ _('Ingresos') }}</div>
@@ -110,7 +145,7 @@
                 <div class="p-3 rounded h-100"
                      style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
                     <div class="small text-muted fw-semibold mb-2">
-                        {{ _('Alertas') }}
+                        {{ _('Alertas') }}{{ hint(_('Avisos importantes detectados automáticamente, como riesgo de pasar el presupuesto, gastos altos o metas que podrían necesitar ajuste.')) }}
                         <span class="badge ms-1"
                               style="background:rgba(255,255,255,0.05); color:var(--monetra-text-muted); font-weight:500;">
                             {{ alerts|length }}

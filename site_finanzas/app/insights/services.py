@@ -9,6 +9,7 @@ import logging
 
 from app.insights.engine import InsightEngine
 from app.insights.schemas import AlertDTO, ForecastDTO, HealthScoreDTO
+from app.insights.signals import data_maturity_from_months
 
 log = logging.getLogger(__name__)
 
@@ -59,6 +60,22 @@ def get_health_score(user_id: int, year: int, month: int) -> HealthScoreDTO | No
         anomaly_score=int(s.anomaly_score),
         evidence=s.evidence,
     )
+
+
+def get_data_maturity(user_id: int, year: int, month: int) -> dict:
+    from app.analytics.features import build_feature_bundle
+    try:
+        bundle = build_feature_bundle(user_id, year, month)
+        historical_months = int(bundle.historical_months or 0)
+    except Exception:
+        log.exception('build_feature_bundle failed for user_id=%s', user_id)
+        historical_months = 0
+    maturity = data_maturity_from_months(historical_months)
+    return {
+        'historical_months': historical_months,
+        'data_maturity': maturity,
+        'learning_mode': maturity == 'learning',
+    }
 
 
 def _alert_to_dto(alert) -> AlertDTO:

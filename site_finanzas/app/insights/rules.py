@@ -77,10 +77,28 @@ class RuleEngine:
             source_signal=sig.signal_type,
         )
 
+    def _is_learning(self, sig: Signal) -> bool:
+        return bool(sig.evidence.get('learning_mode'))
+
+    def _learning_severity(self, alert_type: AlertType, severity: Severity,
+                           allow_critical: bool = False) -> Severity:
+        if allow_critical or severity == Severity.INFO:
+            return severity
+        candidates = {
+            Severity.CRITICAL: (Severity.WARNING, Severity.INFO),
+            Severity.WARNING: (Severity.INFO, Severity.WARNING),
+        }.get(severity, (severity,))
+        for candidate in candidates:
+            if get_template(alert_type, candidate) is not None:
+                return candidate
+        return severity
+
     def _handle_deficit(self, sig: Signal) -> Alert | None:
         severity = self.classifier.classify_deficit_risk(sig.value)
         if severity == Severity.INFO:
             return None
+        if self._is_learning(sig):
+            severity = self._learning_severity(AlertType.DEFICIT_RISK, severity)
         ev = sig.evidence
         return self._build_alert(
             AlertType.DEFICIT_RISK, InsightCategory.CASHFLOW, severity, sig,
@@ -98,6 +116,8 @@ class RuleEngine:
         severity = self.classifier.classify_budget_burn_rate(projected_pct, elapsed_pct)
         if severity == Severity.INFO:
             return None
+        if self._is_learning(sig):
+            severity = self._learning_severity(AlertType.BUDGET_BURN_RATE, severity)
         return self._build_alert(
             AlertType.BUDGET_BURN_RATE, InsightCategory.BUDGET, severity, sig,
             fmt={
@@ -112,6 +132,8 @@ class RuleEngine:
         severity = self.classifier.classify_category_spike(sig.value, baseline)
         if severity == Severity.INFO:
             return None
+        if self._is_learning(sig):
+            severity = self._learning_severity(AlertType.CATEGORY_SPIKE, severity)
         ev = sig.evidence
         return self._build_alert(
             AlertType.CATEGORY_SPIKE, InsightCategory.CATEGORY, severity, sig,
@@ -132,6 +154,8 @@ class RuleEngine:
         # Force WARNING (template only defines WARNING for this alert type)
         if severity == Severity.CRITICAL:
             severity = Severity.WARNING
+        if self._is_learning(sig):
+            severity = self._learning_severity(AlertType.UNUSUAL_TRANSACTION, severity)
         return self._build_alert(
             AlertType.UNUSUAL_TRANSACTION, InsightCategory.ANOMALY, severity, sig,
             fmt={
@@ -145,6 +169,8 @@ class RuleEngine:
         severity = self.classifier.classify_savings(sig.value)
         if severity == Severity.INFO:
             return None
+        if self._is_learning(sig):
+            severity = self._learning_severity(AlertType.LOW_SAVINGS, severity)
         return self._build_alert(
             AlertType.LOW_SAVINGS, InsightCategory.SAVINGS, severity, sig,
             fmt={'savings_rate_pct': sig.value},
@@ -154,6 +180,10 @@ class RuleEngine:
         ev = sig.evidence
         goal = ev.get('priority_goal') or {}
         severity = Severity.CRITICAL if goal.get('status') == 'overdue' else Severity.WARNING
+        if self._is_learning(sig):
+            severity = self._learning_severity(
+                AlertType.SAVINGS_GOAL_RISK, severity,
+                allow_critical=goal.get('status') == 'overdue')
         return self._build_alert(
             AlertType.SAVINGS_GOAL_RISK, InsightCategory.SAVINGS, severity, sig,
             fmt={

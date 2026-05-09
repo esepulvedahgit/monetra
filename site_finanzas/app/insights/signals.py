@@ -22,6 +22,22 @@ def _to_confidence(value: str | None) -> Confidence:
     return Confidence.MEDIUM
 
 
+def data_maturity_from_months(historical_months: int) -> str:
+    if historical_months < 3:
+        return 'learning'
+    if historical_months < 6:
+        return 'building'
+    return 'stable'
+
+
+def _maturity_evidence(historical_months: int) -> dict:
+    return {
+        'historical_months': historical_months,
+        'data_maturity': data_maturity_from_months(historical_months),
+        'learning_mode': historical_months < 3,
+    }
+
+
 def build_signals(user_id: int, year: int, month: int) -> list[Signal]:
     """Pull analytics results and convert each into a normalized Signal."""
     from app.analytics.features import build_feature_bundle
@@ -38,11 +54,13 @@ def build_signals(user_id: int, year: int, month: int) -> list[Signal]:
     capacity = calculate_sustainable_savings_capacity(user_id, year, month)
     anomalies = detect_anomalies(user_id, year, month)
 
-    signals.extend(_signals_from_forecast(forecast, bundle))
-    signals.extend(_signals_from_bundle(bundle))
+    maturity = _maturity_evidence(bundle.historical_months)
+
+    signals.extend(_signals_from_forecast(forecast, bundle, maturity))
+    signals.extend(_signals_from_bundle(bundle, maturity))
     signals.extend(_signals_from_goals(
-        analyze_savings_goals(user_id, capacity['sustainable_capacity']), capacity))
-    signals.extend(_signals_from_anomalies(anomalies))
+        analyze_savings_goals(user_id, capacity['sustainable_capacity']), capacity, maturity))
+    signals.extend(_signals_from_anomalies(anomalies, maturity))
     signals.extend(_signals_from_trend(user_id, year, month, bundle))
 
     log.debug('Built %d signals for user_id=%s period=%s-%02d',
@@ -52,7 +70,7 @@ def build_signals(user_id: int, year: int, month: int) -> list[Signal]:
 
 # ── From forecast ────────────────────────────────────────────────────────────
 
-def _signals_from_forecast(forecast, bundle) -> list[Signal]:
+def _signals_from_forecast(forecast, bundle, maturity: dict) -> list[Signal]:
     out: list[Signal] = []
     conf = _to_confidence(forecast.confidence)
 
@@ -68,6 +86,7 @@ def _signals_from_forecast(forecast, bundle) -> list[Signal]:
             'expected_expense': forecast.expected_expense,
             'expected_balance': forecast.expected_balance,
             'method': forecast.method,
+            **maturity,
             **forecast.evidence,
         },
     ))
@@ -87,13 +106,14 @@ def _signals_from_forecast(forecast, bundle) -> list[Signal]:
                 'budget_amount': bundle.budget_amount,
                 'expected_expense': forecast.expected_expense,
                 'method': forecast.method,
+                **maturity,
             },
         ))
 
     return out
 
 
-def _signals_from_goals(goal_analysis: dict, capacity: dict) -> list[Signal]:
+def _signals_from_goals(goal_analysis: dict, capacity: dict, maturity: dict) -> list[Signal]:
     if not goal_analysis.get('active_count'):
         return []
     if not goal_analysis.get('overdue_count') and not goal_analysis.get('at_risk_count'):
@@ -115,6 +135,7 @@ def _signals_from_goals(goal_analysis: dict, capacity: dict) -> list[Signal]:
         source='analytics.savings_goals',
         evidence={
             **goal_analysis,
+            **maturity,
             'sustainable_capacity': capacity,
             'priority_goal': priority_goal,
         },
@@ -123,7 +144,7 @@ def _signals_from_goals(goal_analysis: dict, capacity: dict) -> list[Signal]:
 
 # ── From feature bundle ──────────────────────────────────────────────────────
 
-def _signals_from_bundle(bundle) -> list[Signal]:
+def _signals_from_bundle(bundle, maturity: dict) -> list[Signal]:
     out: list[Signal] = []
 
     # Savings rate
@@ -139,6 +160,7 @@ def _signals_from_bundle(bundle) -> list[Signal]:
                 'savings_rate_pct': round(rate, 2),
                 'total_income': bundle.total_income,
                 'total_expense': bundle.total_expense,
+                **maturity,
             },
         ))
 
@@ -147,7 +169,7 @@ def _signals_from_bundle(bundle) -> list[Signal]:
 
 # ── From anomalies ───────────────────────────────────────────────────────────
 
-def _signals_from_anomalies(anomalies) -> list[Signal]:
+def _signals_from_anomalies(anomalies, maturity: dict) -> list[Signal]:
     out: list[Signal] = []
     for a in anomalies:
         conf = _to_confidence(a.confidence)
@@ -170,6 +192,7 @@ def _signals_from_anomalies(anomalies) -> list[Signal]:
                 'category_name': a.category_name,
                 'deviation_pct': a.deviation_pct,
                 'method': a.method,
+                **maturity,
                 **a.evidence,
             },
         ))

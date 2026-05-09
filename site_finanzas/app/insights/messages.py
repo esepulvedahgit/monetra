@@ -25,6 +25,12 @@ from app.insights.enums import Severity, AlertType
 TEMPLATES: dict[AlertType, dict[Severity, dict[str, str]]] = {
 
     AlertType.BUDGET_BURN_RATE: {
+        Severity.INFO: {
+            'title':              _l('Presupuesto en observación'),
+            'message':            _l('Monetra aún está aprendiendo de tus primeros meses. Por ahora toma este ritmo de gasto como una referencia inicial.'),
+            'explanation':        _l('Con poco historial, una proyección puede cambiar bastante a medida que registres más movimientos.'),
+            'recommended_action': _l('Sigue registrando tus gastos y revisa si este ritmo se repite durante los próximos meses.'),
+        },
         Severity.WARNING: {
             'title':              _l('Ritmo de gasto alto'),
             'message':            _l('Has usado el {budget_used_pct:.0f}% del presupuesto y solo ha transcurrido el {month_elapsed_pct:.0f}% del mes.'),
@@ -40,6 +46,12 @@ TEMPLATES: dict[AlertType, dict[Severity, dict[str, str]]] = {
     },
 
     AlertType.DEFICIT_RISK: {
+        Severity.WARNING: {
+            'title':              _l('Posible déficit este mes'),
+            'message':            _l('Con los datos actuales podrías cerrar el mes con balance negativo.'),
+            'explanation':        _l('Monetra todavía está aprendiendo de tu comportamiento. Esta proyección es una orientación inicial, no una conclusión definitiva.'),
+            'recommended_action': _l('Revisa tus próximos gastos e ingresos esperados antes de hacer ajustes fuertes.'),
+        },
         Severity.CRITICAL: {
             'title':              _l('Riesgo de déficit mensual'),
             'message':            _l('Con el ritmo actual podrías cerrar el mes con balance negativo.'),
@@ -64,6 +76,12 @@ TEMPLATES: dict[AlertType, dict[Severity, dict[str, str]]] = {
     },
 
     AlertType.UNUSUAL_TRANSACTION: {
+        Severity.INFO: {
+            'title':              _l('Movimiento para revisar'),
+            'message':            _l('Una transacción de {value:.0f} en {category_name} destaca frente a los datos disponibles.'),
+            'explanation':        _l('Como aún hay poco historial, Monetra lo muestra como una revisión sugerida y no como una alerta fuerte.'),
+            'recommended_action': _l('Confirma que el monto y la categoría sean correctos.'),
+        },
         Severity.WARNING: {
             'title':              _l('Transacción inusual detectada'),
             'message':            _l('Una transacción de {value:.0f} en {category_name} se aleja del patrón habitual.'),
@@ -73,6 +91,12 @@ TEMPLATES: dict[AlertType, dict[Severity, dict[str, str]]] = {
     },
 
     AlertType.LOW_SAVINGS: {
+        Severity.INFO: {
+            'title':              _l('Ahorro en observación'),
+            'message':            _l('Tu tasa de ahorro este mes es de {savings_rate_pct:.1f}%. Monetra necesita más meses para saber si esto es habitual.'),
+            'explanation':        _l('Durante los primeros meses, el ahorro puede variar mucho por gastos de inicio, compras puntuales o ingresos aún no registrados.'),
+            'recommended_action': _l('Sigue registrando movimientos. Si este patrón se repite, Monetra te avisará con mayor seguridad.'),
+        },
         Severity.WARNING: {
             'title':              _l('Tasa de ahorro baja'),
             'message':            _l('Tu tasa de ahorro este mes es de {savings_rate_pct:.1f}%.'),
