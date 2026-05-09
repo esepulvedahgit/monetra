@@ -32,18 +32,27 @@ def build_excel(user, year: int, from_month: int = 1, to_month: int = 12) -> io.
     lang = user.language or "es"
     sym = user.currency_symbol or "$"
     dec = _dec(user.currency_code or "USD")
+    is_monthly = from_month == to_month
     svc.generate_pending_recurring_range(user.id, year, from_month, to_month)
 
     # ── Fetch all data once ───────────────────────────────────────────────────
+    transactions = svc.get_transactions(
+        user.id, year=year, from_month=from_month, to_month=to_month
+    )
     data = {
+        "from_month": from_month,
+        "to_month": to_month,
         "global_summary": svc.get_global_summary(user.id, year, from_month, to_month),
-        "transactions": svc.get_transactions(
-            user.id, year=year, from_month=from_month, to_month=to_month
-        ),
+        "transactions": transactions,
         "budget_vs_actual": svc.get_budget_vs_actual(user.id, year, from_month, to_month),
         "savings": svc.get_savings(user.id),
-        "recurring": svc.get_recurring(user.id, year=year),
-        "all_transactions": svc.get_transactions(user.id),  # full history for raw sheet
+        "recurring": (
+            svc.get_recurring_for_month(user.id, year, from_month)
+            if is_monthly
+            else svc.get_recurring(user.id, year=year)
+        ),
+        # Monthly: same filtered set; annual: full history for pivot/raw analysis
+        "all_transactions": transactions if is_monthly else svc.get_transactions(user.id),
     }
 
     # ── Build workbook ────────────────────────────────────────────────────────

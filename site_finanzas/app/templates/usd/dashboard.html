@@ -1,0 +1,410 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{# ── Helpers para formatear USD localmente sin tocar el filtro |money global ─ #}
+{% macro usd(value) -%}
+US${{ '%.2f'|format(value or 0) }}
+{%- endmacro %}
+
+{% set pct = (progress or 0) %}
+{% set pct_capped = (pct if pct < 100 else 100) %}
+{% set bar_color =
+   ('var(--monetra-danger,#EF4444)' if pct >= 100 else
+   ('var(--monetra-gold,#F2C94C)'  if pct >= 80  else
+    'var(--monetra-primary,#00C896)')) %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="mb-0 fw-bold">
+        <i class="bi bi-currency-dollar text-primary"></i> {{ _('Cuenta USD') }}
+        <span class="text-muted fs-5 fw-normal ms-1">{{ month|month_name }} {{ year }}</span>
+    </h2>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                data-bs-target="#budgetModal">
+            <i class="bi bi-piggy-bank"></i> {{ _('Editar presupuesto') }}
+        </button>
+    </div>
+</div>
+
+<!-- ═══ KPIs ═══ -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-muted fw-semibold mb-1">{{ _('Presupuesto') }}</div>
+                <div class="fs-4 fw-bold text-primary">{{ usd(budget_amount) }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-muted fw-semibold mb-1">{{ _('Gastado') }}</div>
+                <div class="fs-4 fw-bold" style="color:{{ bar_color }};">{{ usd(total_spent) }}</div>
+                {% if budget_amount > 0 %}
+                <div class="progress mt-2" style="height:6px; background:rgba(255,255,255,0.08);">
+                    <div class="progress-bar" role="progressbar"
+                         style="width:{{ pct_capped }}%; background:{{ bar_color }};"></div>
+                </div>
+                <div class="small mt-1" style="color:var(--monetra-text-muted);">
+                    {{ '%.0f'|format(pct) }}% {{ _('del presupuesto') }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-muted fw-semibold mb-1">{{ _('Restante') }}</div>
+                <div class="fs-4 fw-bold" style="color:{{ 'var(--monetra-danger,#EF4444)' if remaining < 0 else 'var(--monetra-primary,#00C896)' }};">
+                    {{ usd(remaining) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Gráfico de torta + Form agregar movimiento ═══ -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold">
+                <i class="bi bi-pie-chart text-primary"></i> {{ _('Gasto por categoría') }}
+            </div>
+            <div class="card-body">
+                {% if chart_data %}
+                <div style="position:relative; height:300px; width:100%;">
+                    <canvas id="usdPieChart"></canvas>
+                </div>
+                <ul class="list-unstyled mt-3 mb-0 small">
+                    {% for c in category_breakdown %}
+                    <li class="d-flex justify-content-between align-items-center py-1">
+                        <span>
+                            <span class="d-inline-block rounded-circle me-2"
+                                  style="width:10px; height:10px; background:{{ c.color or '#6c757d' }};"></span>
+                            {{ c.name }}
+                        </span>
+                        <span class="fw-semibold">{{ usd(c.total) }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-pie-chart" style="font-size:2.5rem;"></i>
+                    <p class="mt-2 mb-0">{{ _('Sin movimientos en este mes.') }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold">
+                <i class="bi bi-plus-circle text-primary"></i> {{ _('Nuevo movimiento') }}
+            </div>
+            <div class="card-body">
+                {% if categories %}
+                <form method="POST" action="{{ url_for('usd.transaction_new') }}" novalidate>
+                    {{ tx_form.hidden_tag() }}
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            {{ tx_form.date.label(class='form-label small fw-semibold') }}
+                            {{ tx_form.date(class='form-control form-control-sm', value=(today_iso or '')) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ tx_form.category_id.label(class='form-label small fw-semibold') }}
+                            {{ tx_form.category_id(class='form-select form-select-sm') }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ tx_form.amount.label(class='form-label small fw-semibold') }}
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">US$</span>
+                                {{ tx_form.amount(class='form-control', placeholder='0.00') }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            {{ tx_form.description.label(class='form-label small fw-semibold') }}
+                            {{ tx_form.description(class='form-control form-control-sm', placeholder=_('Opcional')) }}
+                        </div>
+                    </div>
+                    <div class="d-grid mt-3">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-lg"></i> {{ _('Agregar') }}
+                        </button>
+                    </div>
+                </form>
+
+                <hr class="my-3" style="border-color:var(--card-border); opacity:0.5;">
+                {% endif %}
+
+                {# ── Gestión inline de categorías USD ── #}
+                <div class="small fw-semibold mb-2" style="color:var(--monetra-text-muted);">
+                    <i class="bi bi-tags me-1" style="color:var(--monetra-primary,#00C896);"></i>
+                    {{ _('Categorías USD') }}
+                    {% if categories %}
+                    <span class="badge ms-1" style="background:rgba(0,200,150,0.12); color:#00C896; font-size:.65rem;">
+                        {{ categories|length }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                <form method="POST" action="{{ url_for('usd.category_new') }}" class="mb-2" novalidate>
+                    {{ cat_form.hidden_tag() }}
+                    <div class="input-group input-group-sm">
+                        {{ cat_form.name(class='form-control', placeholder=_('Nueva categoría')) }}
+                        <button type="submit" class="btn btn-outline-primary" title="{{ _('Agregar categoría') }}">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                </form>
+
+                {% if categories %}
+                <div class="d-flex flex-wrap gap-1 mt-2">
+                    {% for c in categories %}
+                    {% set tx_count = cat_tx_counts.get(c.id, 0) %}
+                    <div class="usd-cat-chip d-inline-flex align-items-center gap-1 px-2 py-1 rounded">
+                        <span class="d-inline-block rounded-circle"
+                              style="width:8px; height:8px; background:{{ c.color or '#6c757d' }};"></span>
+                        <span class="small">{{ c.name }}</span>
+                        {% if tx_count > 0 %}
+                        <i class="bi bi-lock-fill ms-1"
+                           style="font-size:0.65rem; color:var(--monetra-text-muted);"
+                           title="{{ _('En uso (%(n)s movimientos)', n=tx_count) }}"></i>
+                        {% else %}
+                        <form method="POST" action="{{ url_for('usd.category_delete', cat_id=c.id) }}"
+                              class="m-0 d-inline"
+                              onsubmit="return confirm('{{ _('¿Eliminar la categoría %(n)s?', n=c.name) }}')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-link p-0 m-0 ms-1 usd-cat-delete"
+                                    title="{{ _('Eliminar categoría') }}">
+                                <i class="bi bi-x-circle-fill" style="font-size:0.85rem;"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="small text-muted mt-1">
+                    <i class="bi bi-info-circle me-1"></i>
+                    {{ _('Crea tu primera categoría arriba para empezar a registrar movimientos.') }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Tabla de movimientos ═══ -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list-ul text-primary"></i> {{ _('Movimientos') }}</span>
+        <span class="badge" style="background:rgba(0,200,150,0.15); color:var(--monetra-primary,#00C896);">
+            {{ transactions|length }}
+        </span>
+    </div>
+    <div class="card-body p-0">
+        {% if transactions %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="small text-uppercase" style="color:var(--monetra-text-muted);">
+                    <tr>
+                        <th class="ps-3">{{ _('Fecha') }}</th>
+                        <th>{{ _('Categoría') }}</th>
+                        <th>{{ _('Descripción') }}</th>
+                        <th class="text-end">{{ _('Monto') }}</th>
+                        <th class="text-end pe-3">{{ _('Acciones') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in transactions %}
+                    <tr>
+                        <td class="ps-3">{{ tx.date.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            <span class="d-inline-block rounded-circle me-1"
+                                  style="width:8px; height:8px; background:{{ tx.category.color or '#6c757d' }};"></span>
+                            {{ tx.category.name }}
+                        </td>
+                        <td class="text-muted small">{{ tx.description or '—' }}</td>
+                        <td class="text-end fw-semibold">{{ usd(tx.amount) }}</td>
+                        <td class="text-end pe-3">
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                    data-bs-toggle="modal" data-bs-target="#editTxModal"
+                                    data-id="{{ tx.id }}"
+                                    data-date="{{ tx.date.isoformat() }}"
+                                    data-category="{{ tx.category_id }}"
+                                    data-amount="{{ '%.2f'|format(tx.amount) }}"
+                                    data-description="{{ tx.description or '' }}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <form method="POST" action="{{ url_for('usd.transaction_delete', tx_id=tx.id) }}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('{{ _('¿Eliminar este movimiento?') }}')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr style="background:rgba(0,200,150,0.04);">
+                        <td colspan="3" class="ps-3 fw-bold">{{ _('Total') }}</td>
+                        <td class="text-end fw-bold text-primary">{{ usd(total_spent) }}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-inbox" style="font-size:2.5rem;"></i>
+            <p class="mt-2 mb-0">{{ _('Sin movimientos en este mes.') }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ═══ Modal: Editar presupuesto ═══ -->
+<div class="modal fade" id="budgetModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" action="{{ url_for('usd.budget_set', year=year, month=month) }}" class="modal-content">
+            {{ budget_form.hidden_tag() }}
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-piggy-bank text-primary"></i>
+                    {{ _('Presupuesto USD') }} — {{ month|month_name }} {{ year }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label fw-semibold">{{ _('Monto presupuesto mensual') }}</label>
+                <div class="input-group">
+                    <span class="input-group-text">US$</span>
+                    {{ budget_form.amount(class='form-control', placeholder='0.00') }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+                <button type="submit" class="btn btn-primary">{{ _('Guardar') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═══ Modal: Editar movimiento (compartido, populado vía JS) ═══ -->
+<div class="modal fade" id="editTxModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" id="editTxForm" class="modal-content" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil text-primary"></i> {{ _('Editar movimiento') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">{{ _('Fecha') }}</label>
+                        <input type="date" name="date" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">{{ _('Categoría') }}</label>
+                        <select name="category_id" class="form-select form-select-sm" required>
+                            {% for c in categories %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">{{ _('Monto') }}</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">US$</span>
+                            <input type="number" step="0.01" min="0.01" name="amount" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">{{ _('Descripción') }}</label>
+                        <input type="text" name="description" maxlength="200" class="form-control form-control-sm">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+                <button type="submit" class="btn btn-primary">{{ _('Guardar') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    // ── Pie chart ────────────────────────────────────────────────────────────
+    var ctx = document.getElementById('usdPieChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ chart_labels|tojson }},
+                datasets: [{
+                    data: {{ chart_data|tojson }},
+                    backgroundColor: {{ chart_colors|tojson }},
+                    borderColor: 'transparent',
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                resizeDelay: 200,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function (ctx) {
+                                return ctx.label + ': US$' + ctx.parsed.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                cutout: '60%',
+            }
+        });
+    }
+
+    // ── Edit transaction modal ───────────────────────────────────────────────
+    var editModalEl = document.getElementById('editTxModal');
+    if (editModalEl) {
+        editModalEl.addEventListener('show.bs.modal', function (event) {
+            var btn = event.relatedTarget;
+            if (!btn) return;
+            var form = document.getElementById('editTxForm');
+            form.action = "{{ url_for('usd.transaction_edit', tx_id=0) }}".replace('/0/', '/' + btn.dataset.id + '/');
+            form.querySelector('[name="date"]').value = btn.dataset.date;
+            form.querySelector('[name="category_id"]').value = btn.dataset.category;
+            form.querySelector('[name="amount"]').value = btn.dataset.amount;
+            form.querySelector('[name="description"]').value = btn.dataset.description || '';
+        });
+    }
+
+    // ── Default date for new transaction = today ─────────────────────────────
+    var newTxDate = document.querySelector('input[name="date"]:not([form])');
+    if (newTxDate && !newTxDate.value) {
+        var t = new Date();
+        var iso = t.getFullYear() + '-' +
+                  String(t.getMonth() + 1).padStart(2, '0') + '-' +
+                  String(t.getDate()).padStart(2, '0');
+        newTxDate.value = iso;
+    }
+})();
+</script>
+{% endblock %}

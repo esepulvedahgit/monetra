@@ -1,0 +1,46 @@
+<div class="modal-header"
+     style="background: linear-gradient(135deg, var(--monetra-primary, #00C896) 0%, #00a87c 100%); color: #000;">
+    <h5 class="modal-title fw-bold">
+        <i class="bi bi-stars me-2"></i>
+        {{ _('¡Monetra 2.0 Release!') }}
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"
+            aria-label="{{ _('Cerrar') }}"></button>
+</div>
+
+<div class="modal-body py-4">
+    <p class="mb-3 fw-semibold" style="color: var(--monetra-text);">
+        {{ _('Una actualización mayor con nuevas herramientas para gestionar mejor tus finanzas:') }}
+    </p>
+    <ul class="list-unstyled mb-0 ps-1" style="color: var(--monetra-text-soft); line-height: 2.1;">
+        <li>
+            <i class="bi bi-tags-fill me-2" style="color: var(--monetra-primary, #00C896);"></i>
+            <strong>{{ _('Presupuestos por categoría') }}</strong>
+            {{ _('— Define límites mensuales para categorías específicas y visualiza tu progreso.') }}
+        </li>
+        <li>
+            <i class="bi bi-calendar-range-fill me-2" style="color: #38BDF8;"></i>
+            <strong>{{ _('Presupuestos personalizados') }}</strong>
+            {{ _('— Crea presupuestos para rangos de fechas libres dentro del mes.') }}
+        </li>
+        <li>
+            <i class="bi bi-file-earmark-excel-fill me-2" style="color: #1D6F42;"></i>
+            <strong>{{ _('Exportar Excel — versión mensual y anual') }}</strong>
+            {{ _('— Descarga el reporte del mes actual o el resumen completo del año, con hojas detalladas por sección.') }}
+        </li>
+        <li>
+            <i class="bi bi-database-fill-check me-2" style="color: #FCD34D;"></i>
+            <strong>{{ _('Datos de demostración') }}</strong>
+            {{ _('— Explora todos los paneles con datos de ejemplo de 3 años precargados.') }}
+        </li>
+    </ul>
+</div>
+
+<div class="modal-footer" style="border-top: 1px solid var(--card-border);">
+    <span class="text-muted small me-auto">
+        <i class="bi bi-code-slash me-1"></i>v2.0 Release
+    </span>
+    <button type="button" class="btn btn-primary fw-semibold px-4" data-bs-dismiss="modal">
+        {{ _('¡Explorar ahora!') }}
+    </button>
+</div>

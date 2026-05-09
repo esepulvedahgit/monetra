@@ -64,12 +64,32 @@
                 <!-- Día del mes -->
                 <div class="col-md-6">
                     {{ form.day_of_month.label(class="form-label fw-semibold") }}{{ hint(_('Usa máx. 28 para que funcione en todos los meses, incluido febrero.')) }}
-                    {{ form.day_of_month(class="form-select" + (" is-invalid" if form.day_of_month.errors else "")) }}
+                    {{ form.day_of_month(class="form-select" + (" is-invalid" if form.day_of_month.errors else ""), id="recurDay") }}
                     <div class="form-text text-muted">{{ _('Se generará el día indicado de cada mes (máx. 28 para meses cortos).') }}</div>
                     {% for e in form.day_of_month.errors %}
                     <div class="invalid-feedback">{{ e }}</div>
                     {% endfor %}
                 </div>
+
+                <!-- Aviso mes actual (solo al crear, mostrado por JS) -->
+                {% if not rec %}
+                <div class="col-12 d-none" id="currentMonthAlert">
+                    <div class="rounded p-3" style="background:rgba(251,191,36,0.08); border:1px solid rgba(251,191,36,0.35);">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-calendar-check" style="color:#F59E0B; font-size:1.1rem; margin-top:2px;"></i>
+                            <div class="w-100">
+                                <div class="fw-semibold mb-1" style="color:#F59E0B;">{{ _('El día indicado ya pasó este mes') }}</div>
+                                <div class="small mb-2" style="color:var(--monetra-text-muted);" id="currentMonthMsg"></div>
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="checkbox"
+                                           id="includeCurrentMonth" name="include_current_month" value="y">
+                                    <label class="form-check-label fw-semibold small" for="includeCurrentMonth" id="includeCurrentMonthLabel"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
 
                 <!-- Fecha de término -->
                 <div class="col-md-6">
@@ -115,7 +135,25 @@
 {% block scripts %}
 <script>
 (function () {
-    var allCats = {{ all_cats_json|safe }};
+    // ── Filtro de categorías por tipo ─────────────────────────────────────────
+    var allCats = {{ all_cats_json|tojson }};
+    var defaultLabel = {{ _('Por defecto')|tojson }};
+    var customLabel = {{ _('Tus categorías')|tojson }};
+    var noCategoriesLabel = {{ _('Sin categorías disponibles')|tojson }};
+
+    function appendGroup(select, label, categories, previousValue) {
+        if (!categories.length) return;
+        var group = document.createElement('optgroup');
+        group.label = label;
+        categories.forEach(function(c) {
+            var opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            if (String(c.id) === String(previousValue)) opt.selected = true;
+            group.appendChild(opt);
+        });
+        select.appendChild(group);
+    }
 
     function filterCats() {
         var type = document.getElementById('recurType').value;
@@ -123,23 +161,67 @@
         var prev = sel.value;
         sel.innerHTML = '';
         var filtered = allCats.filter(function(c) { return c.type === type; });
-        filtered.forEach(function(c) {
-            var opt = document.createElement('option');
-            opt.value = c.id;
-            opt.textContent = c.name;
-            if (String(c.id) === String(prev)) opt.selected = true;
-            sel.appendChild(opt);
-        });
+        appendGroup(sel, defaultLabel, filtered.filter(function(c) { return !c.is_custom; }), prev);
+        appendGroup(sel, customLabel, filtered.filter(function(c) { return c.is_custom; }), prev);
         if (!filtered.length) {
             var opt = document.createElement('option');
             opt.value = '';
-            opt.textContent = '{{ _("Sin categorías disponibles") }}';
+            opt.disabled = true;
+            opt.selected = true;
+            opt.textContent = noCategoriesLabel;
             sel.appendChild(opt);
         }
     }
 
     document.getElementById('recurType').addEventListener('change', filterCats);
     filterCats();
+
+    // ── Aviso mes actual (solo formulario de creación) ────────────────────────
+    var alertEl   = document.getElementById('currentMonthAlert');
+    var daySelect = document.getElementById('recurDay');
+
+    if (alertEl && daySelect) {
+        var todayDay   = {{ today_day }};
+        var todayParts = '{{ today_iso }}'.split('-');
+        var todayYear  = parseInt(todayParts[0], 10);
+        var todayMonth = parseInt(todayParts[1], 10);
+        var locale     = '{{ get_locale() }}'.replace('_', '-');
+
+        var msgEl      = document.getElementById('currentMonthMsg');
+        var labelEl    = document.getElementById('includeCurrentMonthLabel');
+        var checkboxEl = document.getElementById('includeCurrentMonth');
+
+        function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+        function monthName(month, year) {
+            return new Date(year, month - 1, 1)
+                .toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+        }
+
+        function updateAlert() {
+            var day = parseInt(daySelect.value, 10);
+
+            if (isNaN(day) || day >= todayDay) {
+                alertEl.classList.add('d-none');
+                return;
+            }
+
+            var nextMonth = todayMonth === 12 ? 1 : todayMonth + 1;
+            var nextYear  = todayMonth === 12 ? todayYear + 1 : todayYear;
+            var dateLabel = pad(day) + '/' + pad(todayMonth) + '/' + todayYear;
+
+            msgEl.textContent = (
+                'El día ' + day + ' de este mes ya pasó. ' +
+                'La primera entrada automática será el ' + day + ' de ' + monthName(nextMonth, nextYear) + '.'
+            );
+            labelEl.textContent = '✅ Registrar también el ' + dateLabel + ' (mes actual)';
+
+            alertEl.classList.remove('d-none');
+        }
+
+        daySelect.addEventListener('change', updateAlert);
+        updateAlert();
+    }
 })();
 </script>
 {% endblock %}

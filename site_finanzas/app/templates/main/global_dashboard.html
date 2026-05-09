@@ -50,9 +50,9 @@
                     </a>
                 </li>
                 <li>
-                    <span class="dropdown-item disabled" aria-disabled="true">
+                    <a class="dropdown-item" href="{{ url_for('export.export_excel', year=sel_year, from_month=sel_month, to_month=sel_month) }}">
                         <i class="bi bi-calendar-month me-2"></i>{{ _('Mensual') }}
-                    </span>
+                    </a>
                 </li>
             </ul>
         </div>

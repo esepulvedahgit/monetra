@@ -20,6 +20,7 @@ class User(db.Model, UserMixin):
     currency_symbol = db.Column(db.String(10), nullable=True, default='$')
     currency_code = db.Column(db.String(10), nullable=True, default='USD')
     currency_locale = db.Column(db.String(20), nullable=True, default='es')
+    usd_rate = db.Column(db.Numeric(12, 4), nullable=True)  # 1 USD = N moneda local; null si la moneda principal es USD
     role = db.Column(db.String(20), nullable=False, default='user')
     is_first_admin = db.Column(db.Boolean, nullable=False, default=False)
     language = db.Column(db.String(5), nullable=True, default='es')
@@ -224,6 +225,7 @@ class RecurringTransaction(db.Model):
     day_of_month = db.Column(db.Integer, nullable=False, default=1)
     is_active = db.Column(db.Boolean, nullable=False, default=True)
     end_date = db.Column(db.Date, nullable=True)
+    is_demo = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = db.relationship('User', backref=db.backref('recurring_transactions', lazy=True,
@@ -244,6 +246,7 @@ class SavingsGoal(db.Model):
     target_date = db.Column(db.Date, nullable=True)
     description = db.Column(db.String(200), nullable=True)
     is_completed = db.Column(db.Boolean, nullable=False, default=False)
+    is_demo = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = db.relationship('User', backref=db.backref('savings_goals', lazy=True,
@@ -293,11 +296,12 @@ class CustomBudget(db.Model):
 
 
 class DemoState(db.Model):
-    """Snapshot of user_years before demo data was loaded. Used to restore years on reset."""
+    """Tracks which years were created by demo data. Used to restore state on reset."""
     __tablename__ = 'demo_state'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, unique=True)
     pre_demo_years = db.Column(db.Text, nullable=False, default='[]')
+    demo_years = db.Column(db.Text, nullable=False, default='[]')
     loaded_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = db.relationship('User', backref=db.backref('demo_state', uselist=False,
@@ -305,3 +309,84 @@ class DemoState(db.Model):
 
     def __repr__(self):
         return f'<DemoState user={self.user_id}>'
+
+
+class UsdCategory(db.Model):
+    """Expense category for the standalone USD section."""
+    __tablename__ = 'usd_categories'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    name = db.Column(db.String(50), nullable=False)
+    color = db.Column(db.String(7), nullable=True)
+    is_demo = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'name', name='uq_usd_category_user_name'),
+    )
+
+    user = db.relationship('User', backref=db.backref('usd_categories', lazy=True,
+                                                       cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<UsdCategory {self.name}>'
+
+
+class UsdTransaction(db.Model):
+    """Expense entry in the standalone USD section."""
+    __tablename__ = 'usd_transactions'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('usd_categories.id'), nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
+    description = db.Column(db.String(200), nullable=True)
+    date = db.Column(db.Date, nullable=False, default=_date.today)
+    is_demo = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship('User', backref=db.backref('usd_transactions', lazy=True,
+                                                       cascade='all, delete-orphan'))
+    category = db.relationship('UsdCategory', backref=db.backref('transactions', lazy=True,
+                                                                  cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<UsdTransaction {self.amount} {self.date}>'
+
+
+class UsdBudget(db.Model):
+    """Monthly USD budget per user."""
+    __tablename__ = 'usd_budgets'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    month = db.Column(db.Integer, nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False, default=0)
+    is_demo = db.Column(db.Boolean, nullable=False, default=False)
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'year', 'month', name='uq_usd_budget'),
+    )
+
+    user = db.relationship('User', backref=db.backref('usd_budgets', lazy=True,
+                                                       cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<UsdBudget {self.year}/{self.month} {self.amount}>'
+
+
+class AuditLog(db.Model):
+    """Security and application event log. user_id is nullable (pre-auth events)."""
+    __tablename__ = 'audit_logs'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    event_type = db.Column(db.String(50), nullable=False, index=True)
+    description = db.Column(db.String(500), nullable=True)
+    ip_address = db.Column(db.String(45), nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False,
+                           default=lambda: datetime.now(timezone.utc), index=True)
+
+    user = db.relationship('User', backref=db.backref('audit_logs', lazy=True,
+                                                       passive_deletes=True))
+
+    def __repr__(self):
+        return f'<AuditLog {self.event_type} user={self.user_id}>'

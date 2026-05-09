@@ -1,5 +1,5 @@
 from app import create_app, db
-from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget
+from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget
 from sqlalchemy import inspect, text
 
 app = create_app()
@@ -93,6 +93,10 @@ with app.app_context():
             conn.execute(text("ALTER TABLE users ADD COLUMN weekly_report_enabled TINYINT(1) NOT NULL DEFAULT 0"))
             conn.commit()
             print("Columna weekly_report_enabled agregada a users.")
+        if 'usd_rate' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN usd_rate DECIMAL(12,4) NULL"))
+            conn.commit()
+            print("Columna usd_rate agregada a users.")
 
         # Assign first admin to the designated user if it exists
         result = conn.execute(
@@ -137,6 +141,26 @@ with app.app_context():
             conn.execute(text("ALTER TABLE recurring_transactions ADD COLUMN end_date DATE NULL"))
             conn.commit()
             print("Columna end_date agregada a recurring_transactions.")
+        if 'is_demo' not in rec_cols:
+            conn.execute(text("ALTER TABLE recurring_transactions ADD COLUMN is_demo TINYINT(1) NOT NULL DEFAULT 0"))
+            conn.commit()
+            print("Columna is_demo agregada a recurring_transactions.")
+
+    savings_cols = [c['name'] for c in inspect(db.engine).get_columns('savings_goals')]
+    with db.engine.connect() as conn:
+        if 'is_demo' not in savings_cols:
+            conn.execute(text("ALTER TABLE savings_goals ADD COLUMN is_demo TINYINT(1) NOT NULL DEFAULT 0"))
+            conn.commit()
+            print("Columna is_demo agregada a savings_goals.")
+
+    demo_state_cols = [c['name'] for c in inspect(db.engine).get_columns('demo_state')]
+    with db.engine.connect() as conn:
+        if 'demo_years' not in demo_state_cols:
+            conn.execute(text("ALTER TABLE demo_state ADD COLUMN demo_years TEXT NULL"))
+            conn.execute(text("UPDATE demo_state SET demo_years = '[]' WHERE demo_years IS NULL"))
+            conn.execute(text("ALTER TABLE demo_state MODIFY COLUMN demo_years TEXT NOT NULL"))
+            conn.commit()
+            print("Columna demo_years agregada a demo_state.")
 
     cat_cols = [c['name'] for c in inspect(db.engine).get_columns('categories')]
     with db.engine.connect() as conn:
@@ -224,3 +248,31 @@ with app.app_context():
         db.session.add(Category(name='Sin categoría', type='expense', user_id=None, color='#78909C'))
         db.session.commit()
         print("Categoría global 'Sin categoría' creada.")
+
+    # ── AuditLog: table created by db.create_all() via the model. ─────────────
+    # Add any future column migrations here using the ALTER TABLE pattern.
+    if 'audit_logs' in inspect(db.engine).get_table_names():
+        print("Tabla audit_logs verificada.")
+
+    # ── USD section: tables created by db.create_all() via the models. ────────
+    tbls = inspect(db.engine).get_table_names()
+    for t in ('usd_categories', 'usd_transactions', 'usd_budgets'):
+        if t in tbls:
+            print(f"Tabla {t} verificada.")
+
+    usd_category_cols = [c['name'] for c in inspect(db.engine).get_columns('usd_categories')]
+    usd_transaction_cols = [c['name'] for c in inspect(db.engine).get_columns('usd_transactions')]
+    usd_budget_cols = [c['name'] for c in inspect(db.engine).get_columns('usd_budgets')]
+    with db.engine.connect() as conn:
+        if 'is_demo' not in usd_category_cols:
+            conn.execute(text("ALTER TABLE usd_categories ADD COLUMN is_demo TINYINT(1) NOT NULL DEFAULT 0"))
+            conn.commit()
+            print("Columna is_demo agregada a usd_categories.")
+        if 'is_demo' not in usd_transaction_cols:
+            conn.execute(text("ALTER TABLE usd_transactions ADD COLUMN is_demo TINYINT(1) NOT NULL DEFAULT 0"))
+            conn.commit()
+            print("Columna is_demo agregada a usd_transactions.")
+        if 'is_demo' not in usd_budget_cols:
+            conn.execute(text("ALTER TABLE usd_budgets ADD COLUMN is_demo TINYINT(1) NOT NULL DEFAULT 0"))
+            conn.commit()
+            print("Columna is_demo agregada a usd_budgets.")

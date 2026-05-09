@@ -28,6 +28,8 @@ class ConfigForm(FlaskForm):
     country = SelectField(_l('País'), validators=[DataRequired()])
     currency_symbol = StringField(_l('Símbolo de Moneda'),
                                   validators=[DataRequired(), Length(max=10)])
+    usd_rate = CleanDecimalField(_l('Valor del dólar (1 USD = ?)'), places=4,
+                                 validators=[Optional(), NumberRange(min=0.0001)])
     submit = SubmitField(_l('Guardar Configuración'))
 
 

@@ -1,11 +1,11 @@
-﻿from flask import Flask, render_template, request, session
+﻿from flask import Flask, render_template, request, session, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFProtect, CSRFError
 from config import Config
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_babel import Babel, lazy_gettext as _l
+from flask_babel import Babel, lazy_gettext as _l, gettext as _
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 
@@ -104,17 +104,52 @@ def create_app(config_class=Config):
     from app.export import export_bp
     app.register_blueprint(export_bp)
 
+    from app.audit import audit_bp
+    app.register_blueprint(audit_bp)
+
+    from app.usd import usd_bp
+    app.register_blueprint(usd_bp)
+
+    from app.analytics import analytics_bp
+    app.register_blueprint(analytics_bp)
+
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(e):
+        if current_user.is_authenticated:
+            flash(_('La solicitud expiró. Por favor intenta de nuevo.'), 'warning')
+            return redirect(request.referrer or url_for('main.dashboard'))
+        flash(_('La sesión expiró. Por favor inicia sesión nuevamente.'), 'warning')
+        return redirect(url_for('auth.login'))
+
     @app.errorhandler(404)
     def not_found(e):
         return render_template('errors/404.html'), 404
 
     @app.errorhandler(429)
     def too_many_requests(e):
+        try:
+            from flask_login import current_user as cu
+            from app.audit.logger import log_event
+            from app.audit.events import APP_RATE_LIMITED
+            uid = cu.id if cu.is_authenticated else None
+            log_event(APP_RATE_LIMITED, description=request.path, user_id=uid, request=request)
+            db.session.commit()
+        except Exception:
+            pass
         return render_template('errors/429.html'), 429
 
     @app.errorhandler(500)
     def internal_error(e):
         db.session.rollback()
+        try:
+            from flask_login import current_user as cu
+            from app.audit.logger import log_event
+            from app.audit.events import APP_ERROR_500
+            uid = cu.id if cu.is_authenticated else None
+            log_event(APP_ERROR_500, description=str(e)[:200], user_id=uid, request=request)
+            db.session.commit()
+        except Exception:
+            pass
         return render_template('errors/500.html'), 500
 
     import os

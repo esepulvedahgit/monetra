@@ -59,11 +59,11 @@ site_finanzas/
                          # All POST endpoints rate-limited via @limiter.limit (see Rate Limiting section)
     main/
       routes.py          # All web views (~1300 lines) + inject_period() + inject_announcement() context processors
-      forms.py           # 9 WTForms: Transaction, Category, Budget, CategoryBudget,
-                         # SavingsGoal, RecurringTransaction, Config, SMTP, ChangePassword
+      forms.py           # 10 WTForms: Transaction, Category, Budget, CategoryBudget,
+                         # SavingsGoal, RecurringTransaction, Config, SMTP, ChangePassword, CustomBudget
     api/                 # REST API blueprint at /api/v1 — JWT auth, CSRF exempt
     export/              # Excel report generator (xlsxwriter), route at /export/excel
-    demo_data/           # Admin blueprint at /admin/demo — load/reset demo transactions
+    demo_data/           # Blueprint at /admin/demo — load/reset demo transactions (any authenticated user)
     services/
       finance.py         # Business logic and shared DB queries (used by both web views and API)
     templates/
@@ -87,7 +87,7 @@ site_finanzas/
 
 | Model | Table | Key notes |
 |---|---|---|
-| `User` | `users` | `role` ('admin'/'user'), `is_first_admin`, `language`, `theme`, `currency_*`, `mfa_enabled`, `weekly_report_enabled` |
+| `User` | `users` | `role` ('admin'/'user'), `is_first_admin`, `language`, `theme`, `currency_*`, `mfa_enabled`, `weekly_report_enabled`, `has_seen_onboarding`, `help_mode_enabled` |
 | `Category` | `categories` | `user_id=NULL` → global/default; `color VARCHAR(7)` for per-category hex color |
 | `Transaction` | `transactions` | `is_demo` flag for demo data; `recurring_id` FK to RecurringTransaction |
 | `Budget` | `budgets` | Monthly budget per user/year/month |
@@ -99,6 +99,8 @@ site_finanzas/
 | `AppConfig` | `app_config` | Single-row global config (`allow_registration`) |
 | `PasswordResetToken` | `password_reset_token` | Expiring tokens for password recovery |
 | `UserSeenAnnouncement` | `user_seen_announcements` | Tracks which version announcement each user has seen; UNIQUE(user_id, announcement_key) |
+| `CustomBudget` | `custom_budgets` | Free-range budget for a named date range within one month; auto-creates a linked expense `Category` |
+| `DemoState` | `demo_state` | Snapshot of `user_years` before demo load; used to restore years on demo reset |
 
 ### Context processors
 

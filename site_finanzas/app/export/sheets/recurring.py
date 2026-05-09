@@ -16,11 +16,18 @@ def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
     total_income = sum(r["amount"] for r in active if r["type"] == "income")
 
     year = data["global_summary"]["year"]
+    from_month = data.get("from_month", 1)
+    to_month = data.get("to_month", 12)
+    period_label = (
+        (f"Mes {from_month}/{year}" if lang == "es" else f"Month {from_month}/{year}")
+        if from_month == to_month
+        else (f"Año {year}" if lang == "es" else f"Year {year}")
+    )
     title = "TRANSACCIONES RECURRENTES" if lang == "es" else "RECURRING TRANSACTIONS"
     subtitle = (
-        f"  Año {year} · Activas: {len(active)} · Gasto fijo: {total_expense:,.0f} · Ingreso fijo: {total_income:,.0f} /mes"
+        f"  {period_label} · Activas: {len(active)} · Gasto fijo: {total_expense:,.0f} · Ingreso fijo: {total_income:,.0f} /mes"
         if lang == "es"
-        else f"  Year {year} · Active: {len(active)} · Fixed expense: {total_expense:,.0f} · Fixed income: {total_income:,.0f} /mo"
+        else f"  {period_label} · Active: {len(active)} · Fixed expense: {total_expense:,.0f} · Fixed income: {total_income:,.0f} /mo"
     )
 
     # ── Column widths ─────────────────────────────────────────────────────────

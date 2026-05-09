@@ -91,6 +91,11 @@
                     </div>
                 </div>
                 <div class="d-flex gap-1 flex-shrink-0">
+                    {% if g.is_demo %}
+                    <span class="badge bg-secondary align-self-center" title="{{ _('Registro de demo — solo lectura') }}">
+                        <i class="bi bi-lock-fill me-1"></i>Demo
+                    </span>
+                    {% else %}
                     <button class="btn btn-sm btn-success fw-semibold"
                             onclick="openAbonar({{ g.id }}, {{ g.target_amount|float }}, {{ g.current_amount|float }})">
                         <i class="bi bi-plus-circle"></i> {{ _('Abonar') }}
@@ -107,6 +112,7 @@
                             <i class="bi bi-trash3"></i>
                         </button>
                     </form>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -139,6 +145,11 @@
                 <small class="text-muted ms-2">{{ g.target_amount|money }}</small>
             </div>
             <div class="d-flex gap-1">
+                {% if g.is_demo %}
+                <span class="badge bg-secondary align-self-center" title="{{ _('Registro de demo — solo lectura') }}">
+                    <i class="bi bi-lock-fill me-1"></i>Demo
+                </span>
+                {% else %}
                 <form method="POST" action="{{ url_for('main.meta_completar', goal_id=g.id) }}" style="display:inline;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-sm btn-outline-secondary" title="{{ _('Reactivar') }}">
@@ -153,6 +164,7 @@
                         <i class="bi bi-trash3"></i>
                     </button>
                 </form>
+                {% endif %}
             </div>
         </div>
         {% endfor %}

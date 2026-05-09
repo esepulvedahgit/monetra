@@ -9,9 +9,28 @@ from app.export.sheets._helpers import write_title_row
 
 def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
     all_txs = data["all_transactions"]
+    from_month = data.get("from_month", 1)
+    to_month = data.get("to_month", 12)
+    year = data["global_summary"]["year"]
 
-    title = "BASE DE DATOS — HISTORIAL COMPLETO" if lang == "es" else "DATABASE — FULL HISTORY"
-    subtitle = f"  {len(all_txs)} transacciones · Todas las fechas"
+    if from_month == to_month:
+        title = (
+            f"BASE DE DATOS — MES {from_month}/{year}"
+            if lang == "es"
+            else f"DATABASE — MONTH {from_month}/{year}"
+        )
+        subtitle = (
+            f"  {len(all_txs)} transacciones · Mes {from_month}/{year}"
+            if lang == "es"
+            else f"  {len(all_txs)} transactions · Month {from_month}/{year}"
+        )
+    else:
+        title = "BASE DE DATOS — HISTORIAL COMPLETO" if lang == "es" else "DATABASE — FULL HISTORY"
+        subtitle = (
+            f"  {len(all_txs)} transacciones · Todas las fechas"
+            if lang == "es"
+            else f"  {len(all_txs)} transactions · All dates"
+        )
 
     # ── Column widths ─────────────────────────────────────────────────────────
     ws.set_column(0, 0, 6)    # ID

@@ -10,6 +10,16 @@ from app.models import User, AppConfig, PasswordResetToken
 from app.auth import auth
 from app.auth.forms import LoginForm, RegisterForm, ForgotPasswordForm, ResetPasswordForm, MFAVerifyForm
 from app.email_service import send_user_email, send_recovery_email, decrypt_mfa_secret
+from app.audit.logger import log_event
+from app.audit import events as ev
+
+
+def _audit_commit(event_type, description=None, user_id=None):
+    try:
+        log_event(event_type, description=description, user_id=user_id, request=request)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
 
 
 @auth.route('/register', methods=['GET', 'POST'])
@@ -36,6 +46,7 @@ def register():
         )
         user.set_password(form.password.data)
         db.session.add(user)
+        log_event(ev.AUTH_REGISTER, description=form.email.data, request=request)
         db.session.commit()
         flash(_('Cuenta creada exitosamente. Ya puedes iniciar sesión.'), 'success')
         return redirect(url_for('auth.login'))
@@ -57,8 +68,10 @@ def login():
                 session['mfa_pending'] = {'user_id': user.id, 'remember': form.remember.data}
                 return redirect(url_for('auth.mfa_verify'))
             login_user(user, remember=form.remember.data)
+            _audit_commit(ev.AUTH_LOGIN_SUCCESS, description=user.email, user_id=user.id)
             flash(_('¡Bienvenido, %(username)s!', username=user.username), 'success')
             return redirect(url_for('main.dashboard'))
+        _audit_commit(ev.AUTH_LOGIN_FAIL, description=form.email.data)
         flash(_('Email o contraseña incorrectos.'), 'danger')
     return render_template('auth/login.html', title=_('Iniciar Sesión'), form=form)
 
@@ -80,14 +93,18 @@ def mfa_verify():
             if totp.verify(form.code.data):
                 session.pop('mfa_pending', None)
                 login_user(user, remember=pending.get('remember', False))
+                _audit_commit(ev.AUTH_LOGIN_SUCCESS, description=f'{user.email} (MFA)', user_id=user.id)
                 flash(_('¡Bienvenido, %(username)s!', username=user.username), 'success')
                 return redirect(url_for('main.dashboard'))
+        _audit_commit(ev.AUTH_LOGIN_FAIL, description='MFA code invalid')
         flash(_('Código incorrecto. Inténtalo de nuevo.'), 'danger')
     return render_template('auth/mfa_verify.html', title=_('Verificación en dos pasos'), form=form)
 
 
 @auth.route('/logout')
 def logout():
+    uid = current_user.id if current_user.is_authenticated else None
+    _audit_commit(ev.AUTH_LOGOUT, user_id=uid)
     logout_user()
     return redirect(url_for('auth.login'))
 
@@ -167,6 +184,8 @@ def reset_password(token):
             PasswordResetToken.used_at.is_(None)
         ).delete()
 
+        log_event(ev.AUTH_PASSWORD_RESET_DONE, description=user.email,
+                  user_id=user.id, request=request)
         db.session.commit()
         flash(_('Tu contraseña ha sido actualizada exitosamente.'), 'success')
         return redirect(url_for('auth.login'))

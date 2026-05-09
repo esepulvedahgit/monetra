@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% set _sev_cls = {
+    'critical': {'bg':'rgba(239,68,68,0.10)', 'border':'rgba(239,68,68,0.45)', 'fg':'#EF4444', 'icon':'exclamation-octagon-fill', 'label': _('Crítico')},
+    'warning':  {'bg':'rgba(245,158,11,0.10)', 'border':'rgba(245,158,11,0.45)', 'fg':'#F59E0B', 'icon':'exclamation-triangle-fill', 'label': _('Advertencia')},
+    'info':     {'bg':'rgba(56,189,248,0.10)', 'border':'rgba(56,189,248,0.40)', 'fg':'#38BDF8', 'icon':'info-circle-fill', 'label': _('Informativo')},
+} %}
+{% set _conf_label = {'high': _('Alta'), 'medium': _('Media'), 'low': _('Baja')} %}
+{% set _method_label = {
+    'naive_pace_extrapolation': _('Extrapolación del ritmo actual'),
+    'naive_no_data': _('Sin datos suficientes'),
+    'weighted_moving_average': _('Promedio móvil ponderado'),
+    'linear_trend': _('Tendencia lineal'),
+    'known_recurring_only': _('Solo recurrentes conocidos'),
+    'component_current_pace': _('Recurrentes + ritmo variable actual'),
+    'component_weighted_moving_average': _('Recurrentes + promedio variable'),
+    'component_linear_trend': _('Recurrentes + tendencia variable'),
+} %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="mb-0 fw-bold">
+        <i class="bi bi-graph-up-arrow text-primary"></i> {{ _('Analítica') }}
+        <span class="text-muted fs-5 fw-normal ms-1">{{ month|month_name }} {{ year }}</span>
+    </h2>
+    <a href="{{ url_for('analytics.consolidated') }}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> {{ _('Ver consolidado') }}
+    </a>
+</div>
+
+<!-- ═══ Health Score (hero) ═══ -->
+<div class="card mb-4">
+    <div class="card-body">
+        {% if health %}
+        {% set _hs = health.overall_score %}
+        {% set _hs_color = '#EF4444' if _hs < 40 else ('#F59E0B' if _hs < 70 else '#00C896') %}
+        {% set _hs_label = _('Necesita atención') if _hs < 40 else (_('Aceptable') if _hs < 70 else _('Saludable')) %}
+        <div class="row g-3 align-items-center">
+            <div class="col-md-3 text-center">
+                <div class="small text-muted fw-semibold mb-2">{{ _('Salud financiera') }}</div>
+                <div class="fw-bold" style="font-size:4rem; color:{{ _hs_color }}; line-height:1;">{{ _hs }}</div>
+                <div class="small text-muted">/ 100</div>
+                <div class="badge mt-2" style="background:{{ _hs_color }}1f; color:{{ _hs_color }}; border:1px solid {{ _hs_color }}55;">
+                    {{ _hs_label }}
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="small text-muted fw-semibold mb-3">{{ _('Componentes del score') }}</div>
+                <div class="row g-3">
+                    {% for key, label, score in [
+                        ('cashflow', _('Flujo de caja'),    health.cashflow_score),
+                        ('budget',   _('Presupuesto'),      health.budget_score),
+                        ('savings',  _('Ahorro'),           health.savings_score),
+                        ('anomaly',  _('Anomalías'),        health.anomaly_score),
+                    ] %}
+                    {% set _c = '#EF4444' if score < 40 else ('#F59E0B' if score < 70 else '#00C896') %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="text-muted">{{ label }}</span>
+                            <span class="fw-bold" style="color:{{ _c }};">{{ score }}</span>
+                        </div>
+                        <div class="progress" style="height:6px;">
+                            <div class="progress-bar"
+                                 role="progressbar"
+                                 style="width:{{ score }}%; background-color:{{ _c }};"
+                                 aria-valuenow="{{ score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="small text-muted mt-3">
+                    <i class="bi bi-info-circle me-1"></i>
+                    {{ _('Pesos: cashflow 35%% · presupuesto 25%% · ahorro 25%% · anomalías 15%%') }}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-3 text-muted">{{ _('Score no disponible para este periodo.') }}</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ═══ Forecast ═══ -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h6 class="mb-0 fw-semibold">
+                <i class="bi bi-graph-up" style="color:var(--monetra-primary,#00C896);"></i>
+                {{ _('Proyección de cierre del mes') }}
+            </h6>
+            {% if forecast %}
+            <span class="badge"
+                  style="background:rgba(0,200,150,0.10); color:#00C896; border:1px solid rgba(0,200,150,0.35);">
+                {{ _method_label.get(forecast.method, forecast.method) }} · {{ _('confianza') }} {{ _conf_label.get(forecast.confidence, forecast.confidence) }}
+            </span>
+            {% endif %}
+        </div>
+
+        {% if forecast %}
+        {% set _bal_color = '#EF4444' if forecast.expected_balance < 0 else '#00C896' %}
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="p-3 rounded h-100" style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="small text-muted fw-semibold mb-1">{{ _('Ingresos esperados') }}</div>
+                    <div class="fs-5 fw-bold" style="color:#00C896;">{{ forecast.expected_income|money }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 rounded h-100" style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="small text-muted fw-semibold mb-1">{{ _('Gastos esperados') }}</div>
+                    <div class="fs-5 fw-bold" style="color:#EF4444;">{{ forecast.expected_expense|money }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 rounded h-100" style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="small text-muted fw-semibold mb-1">{{ _('Balance proyectado') }}</div>
+                    <div class="fs-5 fw-bold" style="color:{{ _bal_color }};">{{ forecast.expected_balance|money }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 rounded h-100" style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="small text-muted fw-semibold mb-1">{{ _('Uso proyectado del presupuesto') }}</div>
+                    <div class="fs-5 fw-bold" style="color:var(--monetra-text);">
+                        {% if forecast.projected_budget_usage_pct is not none %}
+                            {{ "%.0f"|format(forecast.projected_budget_usage_pct) }}%
+                        {% else %}
+                            <span class="text-muted small">{{ _('Sin presupuesto') }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Evidence (collapsible) #}
+        <div class="mt-3">
+            <a class="small text-muted text-decoration-none" data-bs-toggle="collapse"
+               href="#forecastEvidence" role="button" aria-expanded="false">
+                <i class="bi bi-chevron-down me-1"></i>{{ _('Ver datos que sustentan la proyección') }}
+            </a>
+            <div class="collapse mt-2" id="forecastEvidence">
+                <div class="p-2 rounded small" style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    {% for k, v in forecast.evidence.items() %}
+                    <div class="d-flex justify-content-between py-1" style="border-bottom:1px dashed var(--card-border);">
+                        <span class="text-muted">{{ k }}</span>
+                        <span class="fw-semibold text-end" style="color:var(--monetra-text); max-width:60%; word-break:break-all;">{{ v }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-3 text-muted">{{ _('Proyección no disponible.') }}</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ═══ Alerts (full list, grouped by severity) ═══ -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0 fw-semibold">
+                <i class="bi bi-bell-fill" style="color:var(--monetra-primary,#00C896);"></i>
+                {{ _('Alertas e insights') }}
+            </h6>
+            <span class="badge" style="background:rgba(255,255,255,0.05); color:var(--monetra-text-muted);">
+                {{ alerts|length }} {{ _('alertas') }}
+            </span>
+        </div>
+
+        {% if alerts %}
+        <div class="d-flex flex-column gap-3">
+            {% for a in alerts %}
+            {% set _s = _sev_cls.get(a.severity, _sev_cls['info']) %}
+            <div class="p-3 rounded"
+                 style="background:{{ _s.bg }}; border:1px solid {{ _s.border }};">
+                <div class="d-flex gap-3 align-items-start">
+                    <i class="bi bi-{{ _s.icon }} flex-shrink-0" style="color:{{ _s.fg }}; font-size:1.4rem;"></i>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-1">
+                            <div class="fw-bold" style="color:var(--monetra-text);">{{ a.title }}</div>
+                            <div class="d-flex gap-1">
+                                <span class="badge" style="background:{{ _s.fg }}1f; color:{{ _s.fg }}; border:1px solid {{ _s.border }}; font-size:.65rem;">
+                                    {{ _s.label }}
+                                </span>
+                                <span class="badge" style="background:rgba(255,255,255,0.05); color:var(--monetra-text-muted); font-size:.65rem;">
+                                    {{ _('Confianza:') }} {{ _conf_label.get(a.confidence, a.confidence) }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="small mb-2" style="color:var(--monetra-text);">{{ a.message }}</div>
+                        <div class="small text-muted mb-2">
+                            <i class="bi bi-info-circle me-1"></i>{{ a.explanation }}
+                        </div>
+                        <div class="small d-flex align-items-start gap-2"
+                             style="color:var(--monetra-primary,#00C896);">
+                            <i class="bi bi-lightbulb-fill flex-shrink-0 mt-1"></i>
+                            <span>{{ a.recommended_action }}</span>
+                        </div>
+
+                        {% if a.evidence %}
+                        <div class="mt-2">
+                            <a class="small text-muted text-decoration-none" data-bs-toggle="collapse"
+                               href="#alertEvidence{{ loop.index }}" role="button" aria-expanded="false">
+                                <i class="bi bi-chevron-down me-1"></i>{{ _('Datos que la sustentan') }}
+                            </a>
+                            <div class="collapse mt-2" id="alertEvidence{{ loop.index }}">
+                                <div class="p-2 rounded small" style="background:rgba(0,0,0,0.15); border:1px solid var(--card-border);">
+                                    {% for k, v in a.evidence.items() %}
+                                    <div class="d-flex justify-content-between py-1" style="border-bottom:1px dashed var(--card-border);">
+                                        <span class="text-muted">{{ k }}</span>
+                                        <span class="fw-semibold text-end" style="color:var(--monetra-text); max-width:65%; word-break:break-all;">{{ v }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="bi bi-check-circle-fill" style="color:#00C896; font-size:2.4rem;"></i>
+            <div class="mt-2 fw-semibold" style="color:var(--monetra-text);">{{ _('Todo en orden') }}</div>
+            <div class="small text-muted">{{ _('No se detectaron alertas para este mes.') }}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

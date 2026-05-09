@@ -1,5 +1,5 @@
-from datetime import date as _date
-from sqlalchemy import func, extract
+from datetime import date as _date, datetime, timezone
+from sqlalchemy import func, extract, or_
 from app import db
 from app.models import Transaction, Category, Budget, RecurringTransaction, SavingsGoal, CustomBudget
 
@@ -569,6 +569,23 @@ def generate_pending_recurring_range(user_id: int, year: int, from_month: int, t
     if changed:
         db.session.commit()
     return changed
+
+
+def get_recurring_for_month(user_id: int, year: int, month: int) -> list:
+    """Return active recurring transactions that apply to the given year/month."""
+    import calendar
+    month_start = _date(year, month, 1)
+    month_end_dt = datetime(year, month, calendar.monthrange(year, month)[1], 23, 59, 59, tzinfo=timezone.utc)
+    query = RecurringTransaction.query.filter(
+        RecurringTransaction.user_id == user_id,
+        RecurringTransaction.is_active == True,
+        RecurringTransaction.created_at <= month_end_dt,
+        or_(
+            RecurringTransaction.end_date.is_(None),
+            RecurringTransaction.end_date >= month_start,
+        ),
+    )
+    return [_recurring_dict(r) for r in query.order_by(RecurringTransaction.amount.desc()).all()]
 
 
 def get_recurring(user_id: int, tx_type=None, active_only=False, year=None) -> list:

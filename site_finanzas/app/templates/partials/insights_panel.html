@@ -1,0 +1,151 @@
+{# ─── Insights panel (compact) ────────────────────────────────────────────────
+   Inputs (from main.dashboard):
+     - alerts        : list[AlertDTO]   (sorted critical → warning → info)
+     - forecast      : ForecastDTO | None
+     - health        : HealthScoreDTO | None
+     - alerts_limit  : int  (how many to show; remainder collapsed)
+─────────────────────────────────────────────────────────────────────────────── #}
+{% set _sev_cls = {
+    'critical': {'bg':'rgba(239,68,68,0.10)', 'border':'rgba(239,68,68,0.45)', 'fg':'#EF4444', 'icon':'exclamation-octagon-fill'},
+    'warning':  {'bg':'rgba(245,158,11,0.10)', 'border':'rgba(245,158,11,0.45)', 'fg':'#F59E0B', 'icon':'exclamation-triangle-fill'},
+    'info':     {'bg':'rgba(56,189,248,0.10)', 'border':'rgba(56,189,248,0.40)', 'fg':'#38BDF8', 'icon':'info-circle-fill'},
+} %}
+{% set _conf_label = {'high': _('Alta'), 'medium': _('Media'), 'low': _('Baja')} %}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h6 class="mb-0 fw-semibold">
+                <i class="bi bi-stars" style="color:var(--monetra-primary,#00C896);"></i>
+                {{ _('Insights del mes') }}
+            </h6>
+            <a href="{{ url_for('analytics.dashboard') }}"
+               class="btn btn-sm btn-outline-primary">
+                {{ _('Ver análisis completo') }} <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-3">
+            {# ── Health score card ─── #}
+            <div class="col-lg-3 col-md-4">
+                {% if health %}
+                {% set _hs = health.overall_score %}
+                {% set _hs_color = '#EF4444' if _hs < 40 else ('#F59E0B' if _hs < 70 else '#00C896') %}
+                <div class="p-3 rounded h-100"
+                     style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="small text-muted fw-semibold mb-2">{{ _('Salud financiera') }}</div>
+                    <div class="d-flex align-items-baseline gap-2">
+                        <div class="fw-bold" style="font-size:2.4rem; color:{{ _hs_color }}; line-height:1;">{{ _hs }}</div>
+                        <div class="small text-muted">/ 100</div>
+                    </div>
+                    <div class="progress mt-2" style="height:6px;">
+                        <div class="progress-bar"
+                             role="progressbar"
+                             style="width: {{ _hs }}%; background-color: {{ _hs_color }};"
+                             aria-valuenow="{{ _hs }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="small text-muted mt-2">
+                        {{ _('Cashflow') }} {{ health.cashflow_score }} · {{ _('Pres.') }} {{ health.budget_score }} · {{ _('Ahorro') }} {{ health.savings_score }} · {{ _('Anom.') }} {{ health.anomaly_score }}
+                    </div>
+                </div>
+                {% else %}
+                <div class="p-3 rounded h-100 d-flex flex-column justify-content-center"
+                     style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="small text-muted">{{ _('Score no disponible') }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            {# ── Forecast card ─── #}
+            <div class="col-lg-4 col-md-8">
+                {% if forecast %}
+                {% set _bal_color = '#EF4444' if forecast.expected_balance < 0 else '#00C896' %}
+                <div class="p-3 rounded h-100"
+                     style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="small text-muted fw-semibold">{{ _('Proyección de cierre') }}</div>
+                        <span class="badge"
+                              style="font-size:.65rem;
+                                     background:rgba(0,200,150,0.10);
+                                     color:#00C896;
+                                     border:1px solid rgba(0,200,150,0.35);">
+                            {{ _conf_label.get(forecast.confidence, forecast.confidence) }}
+                        </span>
+                    </div>
+                    <div class="row g-2 small">
+                        <div class="col-6">
+                            <div class="text-muted">{{ _('Ingresos') }}</div>
+                            <div class="fw-bold" style="color:#00C896;">{{ forecast.expected_income|money }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted">{{ _('Gastos') }}</div>
+                            <div class="fw-bold" style="color:#EF4444;">{{ forecast.expected_expense|money }}</div>
+                        </div>
+                        <div class="col-12 mt-1 pt-2" style="border-top:1px solid var(--card-border);">
+                            <div class="text-muted">{{ _('Balance proyectado') }}</div>
+                            <div class="fw-bold" style="color:{{ _bal_color }}; font-size:1.1rem;">
+                                {{ forecast.expected_balance|money }}
+                            </div>
+                        </div>
+                        {% if forecast.projected_budget_usage_pct is not none %}
+                        <div class="col-12">
+                            <div class="text-muted small">
+                                {{ _('Uso proyectado del presupuesto:') }}
+                                <span class="fw-semibold">{{ "%.0f"|format(forecast.projected_budget_usage_pct) }}%</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="p-3 rounded h-100 d-flex flex-column justify-content-center"
+                     style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="small text-muted">{{ _('Proyección no disponible') }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            {# ── Alerts list ─── #}
+            <div class="col-lg-5 col-md-12">
+                <div class="p-3 rounded h-100"
+                     style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="small text-muted fw-semibold mb-2">
+                        {{ _('Alertas') }}
+                        <span class="badge ms-1"
+                              style="background:rgba(255,255,255,0.05); color:var(--monetra-text-muted); font-weight:500;">
+                            {{ alerts|length }}
+                        </span>
+                    </div>
+                    {% if alerts %}
+                        {% set _shown = alerts[:(alerts_limit or 3)] %}
+                        <div class="d-flex flex-column gap-2">
+                            {% for a in _shown %}
+                            {% set _s = _sev_cls.get(a.severity, _sev_cls['info']) %}
+                            <div class="p-2 rounded d-flex gap-2 align-items-start"
+                                 style="background:{{ _s.bg }}; border:1px solid {{ _s.border }};">
+                                <i class="bi bi-{{ _s.icon }} flex-shrink-0 mt-1" style="color:{{ _s.fg }};"></i>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold small" style="color:var(--monetra-text);">{{ a.title }}</div>
+                                    <div class="small text-muted">{{ a.message }}</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% if alerts|length > (alerts_limit or 3) %}
+                            <a href="{{ url_for('analytics.dashboard') }}"
+                               class="small text-decoration-none mt-1"
+                               style="color:var(--monetra-primary,#00C896);">
+                                {{ _('Ver') }} {{ alerts|length - (alerts_limit or 3) }} {{ _('alertas más') }} →
+                            </a>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-check-circle-fill" style="color:#00C896; font-size:1.6rem;"></i>
+                            <div class="small text-muted mt-1">{{ _('Sin alertas este mes') }}</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
