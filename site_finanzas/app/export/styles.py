@@ -213,6 +213,19 @@ def create_formats(workbook, sym: str = "$", dec: int = 2) -> dict:
             "border_color": _YELLOW_BORDER,
         }
     )
+    f["kpi_value_int"] = workbook.add_format(
+        {
+            "bold": True,
+            "font_size": 16,
+            "font_color": _BLUE,
+            "bg_color": _BLUE_BG,
+            "align": "center",
+            "valign": "vcenter",
+            "num_format": "0",
+            "border": 1,
+            "border_color": "#BFDBFE",
+        }
+    )
 
     # ── Regular cells ─────────────────────────────────────────────────────────
     f["cell"] = workbook.add_format(

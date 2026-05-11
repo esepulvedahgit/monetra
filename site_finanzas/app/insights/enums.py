@@ -41,6 +41,7 @@ class AlertType(str, Enum):
     CASHFLOW_DROP = 'cashflow_drop'
     RECURRING_INCREASE = 'recurring_increase'
     DUPLICATE_SUSPECTED = 'duplicate_suspected'
+    MISSING_CONFIG = 'missing_config'
 
 
 class SignalType(str, Enum):
@@ -54,3 +55,4 @@ class SignalType(str, Enum):
     NEGATIVE_CASHFLOW_TREND = 'negative_cashflow_trend'
     RECURRING_INCREASE = 'recurring_increase'
     DUPLICATE_SUSPECTED = 'duplicate_suspected'
+    MISSING_SETUP = 'missing_setup'

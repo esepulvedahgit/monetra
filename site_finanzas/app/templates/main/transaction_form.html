@@ -51,6 +51,13 @@
                                  style="background:rgba(242,201,76,0.08); border:1px solid rgba(242,201,76,0.25); color:var(--monetra-text-muted);">
                                 <i class="bi bi-link-45deg me-1" style="color:#F2C94C;"></i><span id="cbLinkedText"></span>
                             </div>
+                            <div class="mt-2">
+                                <a href="{{ url_for('main.categories') }}" target="_blank" id="newCatLink"
+                                   class="small text-decoration-none"
+                                   style="color:var(--monetra-primary);">
+                                    <i class="bi bi-plus-circle me-1"></i>{{ _('Crear nueva categoría') }}
+                                </a>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             {{ form.date.label(class="form-label fw-semibold") }}{{ hint(_('Solo el mes activo. Para ajustes de meses pasados, usa edición desde el listado.')) }}
@@ -86,7 +93,7 @@
 
 {% block scripts %}
 <script>
-    const allCategories = {{ cats_json|safe }};
+    let allCategories = {{ cats_json|safe }};
     const typeSelect = document.getElementById('typeSelect');
     const categorySelect = document.getElementById('categorySelect');
     const currentCatId = {{ form.category_id.data|tojson }};
@@ -95,6 +102,7 @@
     const linkedEl = document.getElementById('cbLinked');
     const linkedBadge = document.getElementById('cbLinkedBadge');
     const linkedText = document.getElementById('cbLinkedText');
+    const ajaxCatsUrl = {{ url_for('main.ajax_categories')|tojson }};
 
     function updateCustomBudgetNotice() {
         if (!customBudget || !categorySelect.value) {
@@ -102,7 +110,6 @@
             linkedBadge.classList.add('d-none');
             return;
         }
-
         if (parseInt(categorySelect.value) === customBudget.category_id) {
             linkedText.textContent =
                 {{ _('Este movimiento se contabilizará en el presupuesto personalizado')|tojson }} +
@@ -115,15 +122,18 @@
         }
     }
 
-    function filterCategories() {
+    function filterCategories(preserveSelected) {
         const selectedType = typeSelect.value;
+        const savedId = preserveSelected
+            ? parseInt(categorySelect.value) || currentCatId
+            : currentCatId;
         const filtered = allCategories.filter(c => c.type === selectedType);
         categorySelect.innerHTML = '';
         filtered.forEach(c => {
             const opt = document.createElement('option');
             opt.value = c.id;
             opt.textContent = c.name;
-            if (c.id === currentCatId) opt.selected = true;
+            if (c.id === savedId) opt.selected = true;
             categorySelect.appendChild(opt);
         });
         if (!filtered.length) {
@@ -135,8 +145,27 @@
         updateCustomBudgetNotice();
     }
 
-    typeSelect.addEventListener('change', filterCategories);
+    // Al volver a este tab tras crear una categoría, refresca el select silenciosamente
+    let wentToCategories = false;
+    document.getElementById('newCatLink').addEventListener('click', function () {
+        wentToCategories = true;
+    });
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && wentToCategories) {
+            wentToCategories = false;
+            fetch(ajaxCatsUrl)
+                .then(r => r.ok ? r.json() : null)
+                .then(function (data) {
+                    if (!data) return;
+                    allCategories = data;
+                    filterCategories(true);
+                })
+                .catch(function () {});
+        }
+    });
+
+    typeSelect.addEventListener('change', function () { filterCategories(false); });
     categorySelect.addEventListener('change', updateCustomBudgetNotice);
-    filterCategories();
+    filterCategories(false);
 </script>
 {% endblock %}

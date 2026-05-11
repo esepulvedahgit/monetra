@@ -116,6 +116,69 @@ def send_recovery_email(user, to_email, subject, body_text, body_html=None):
     return False, "No hay configuración SMTP disponible para enviar el correo."
 
 
+def send_activation_email(user, activation_url: str) -> tuple[bool, str]:
+    """Send account activation email using admin SMTP as fallback."""
+    subject = "Activa tu cuenta en Monetra"
+    body_text = (
+        f"Hola {user.username},\n\n"
+        f"¡Gracias por registrarte en Monetra!\n\n"
+        f"Para activar tu cuenta, ingresa al siguiente enlace:\n{activation_url}\n\n"
+        f"Este enlace expira en 24 horas.\n"
+        f"Si no creaste esta cuenta, puedes ignorar este correo de forma segura."
+    )
+    body_html = f"""
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#0f0f1a;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0"
+         style="background:#0f0f1a;padding:40px 0;">
+    <tr><td align="center">
+      <table width="520" cellpadding="0" cellspacing="0"
+             style="background:#1a1a2e;border-radius:12px;
+                    border:1px solid rgba(0,200,150,0.20);overflow:hidden;">
+        <tr>
+          <td style="padding:32px 40px 24px;text-align:center;">
+            <div style="font-size:2rem;margin-bottom:8px;">&#128274;</div>
+            <h1 style="color:#00C896;font-size:1.4rem;margin:0 0 8px;">
+              Activa tu cuenta
+            </h1>
+            <p style="color:#a0a0b0;font-size:.9rem;margin:0;">
+              Hola <strong style="color:#e0e0f0;">{user.username}</strong>,
+              solo falta un paso para empezar a usar Monetra.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 40px 32px;text-align:center;">
+            <a href="{activation_url}"
+               style="display:inline-block;padding:14px 36px;
+                      background:#00C896;color:#0f0f1a;
+                      font-weight:700;font-size:1rem;
+                      text-decoration:none;border-radius:8px;">
+              Activar mi cuenta
+            </a>
+            <p style="color:#606070;font-size:.8rem;margin:24px 0 0;">
+              Este enlace expira en 24 horas.<br>
+              Si no creaste esta cuenta, ignora este correo.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 40px;border-top:1px solid rgba(255,255,255,0.06);
+                     text-align:center;">
+            <p style="color:#404055;font-size:.75rem;margin:0;">
+              Monetra &mdash; Finanzas personales
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>"""
+    return send_recovery_email(user, user.email, subject, body_text, body_html)
+
+
 def send_weekly_report(user, excel_bytes: bytes, filename: str):
     """
     Sends the weekly Excel report to the user.

@@ -231,3 +231,13 @@ Never put `min-height` or `max-height` directly on `<canvas>`.
 `errors/base_error.html` is a fully standalone template — it does NOT extend `base.html`. This is intentional: a 500 error may have occurred in the DB or context processor layer, so extending `base.html` would cause a secondary failure. Error templates apply the user's theme via `data-theme="{{ current_user.theme if current_user.is_authenticated else 'dark' }}"` and use only CSS variables from `themes.css`.
 
 All three handlers (404, 429, 500) are registered in `app/__init__.py`. The 429 template uses `--monetra-gold` as the accent color to distinguish it visually from 404 (primary) and 500 (danger/red).
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+Rules:
+- ALWAYS read graphify-out/GRAPH_REPORT.md before reading any source files, running grep/glob searches, or answering codebase questions. The graph is your primary map of the codebase.
+- IF graphify-out/wiki/index.md EXISTS, navigate it instead of reading raw files
+- For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` over grep — these traverse the graph's EXTRACTED + INFERRED edges instead of scanning files
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).

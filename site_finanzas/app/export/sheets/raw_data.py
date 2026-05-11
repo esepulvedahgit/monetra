@@ -1,10 +1,10 @@
 """
 Sheet 7 – Base de Datos
-All transactions (full history), formatted as an Excel Table for analysis.
+Transactions for the selected period, formatted as an Excel Table for analysis.
 No charts — designed for pivot tables, slicers, and external tools.
 """
 from datetime import date as _date
-from app.export.sheets._helpers import write_title_row
+from app.export.sheets._helpers import month_name, write_title_row
 
 
 def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
@@ -14,23 +14,20 @@ def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
     year = data["global_summary"]["year"]
 
     if from_month == to_month:
-        title = (
-            f"BASE DE DATOS — MES {from_month}/{year}"
-            if lang == "es"
-            else f"DATABASE — MONTH {from_month}/{year}"
-        )
-        subtitle = (
-            f"  {len(all_txs)} transacciones · Mes {from_month}/{year}"
-            if lang == "es"
-            else f"  {len(all_txs)} transactions · Month {from_month}/{year}"
-        )
+        period_str = f"{month_name(from_month, lang)} {year}"
     else:
-        title = "BASE DE DATOS — HISTORIAL COMPLETO" if lang == "es" else "DATABASE — FULL HISTORY"
-        subtitle = (
-            f"  {len(all_txs)} transacciones · Todas las fechas"
-            if lang == "es"
-            else f"  {len(all_txs)} transactions · All dates"
-        )
+        period_str = f"{month_name(from_month, lang)} – {month_name(to_month, lang)} {year}"
+
+    title = (
+        f"BASE DE DATOS — {period_str.upper()}"
+        if lang == "es"
+        else f"DATABASE — {period_str.upper()}"
+    )
+    subtitle = (
+        f"  {len(all_txs)} transacciones · {period_str}"
+        if lang == "es"
+        else f"  {len(all_txs)} transactions · {period_str}"
+    )
 
     # ── Column widths ─────────────────────────────────────────────────────────
     ws.set_column(0, 0, 6)    # ID

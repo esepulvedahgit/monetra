@@ -485,8 +485,9 @@ def dashboard():
     month_names = _locale_month_names()
 
     # ── Insights (alerts + forecast + health score) ───────────────────────────
-    from app.insights import services as insights_service
+    insights_alerts, insights_forecast, insights_health, insights_maturity = [], None, None, None
     try:
+        from app.insights import services as insights_service
         insights_alerts = insights_service.get_dashboard_alerts(current_user.id, year, month)
         insights_forecast = insights_service.get_monthly_forecast(current_user.id, year, month)
         insights_health = insights_service.get_health_score(current_user.id, year, month)
@@ -494,7 +495,6 @@ def dashboard():
     except Exception:
         import logging
         logging.getLogger(__name__).exception('insights pipeline failed for user_id=%s', current_user.id)
-        insights_alerts, insights_forecast, insights_health, insights_maturity = [], None, None, None
 
     return render_template(
         'main/dashboard.html',
@@ -703,6 +703,13 @@ def _next_custom_color(user_id: int) -> str:
             return color
     count = Category.query.filter_by(user_id=user_id).count()
     return CUSTOM_PALETTE[count % len(CUSTOM_PALETTE)]
+
+
+@main.route('/ajax/categories')
+@login_required
+def ajax_categories():
+    cats = _user_categories()
+    return jsonify([{'id': c.id, 'name': c.name, 'type': c.type} for c in cats])
 
 
 @main.route('/categories', methods=['GET', 'POST'])
@@ -1548,16 +1555,25 @@ def recurrente_form(rec_id=None):
                            title=_('Editar Recurrente') if rec else _('Nueva Recurrente'))
 
 
-@main.route('/recurrentes/<int:rec_id>/eliminar', methods=['POST'])
+@main.route('/recurrentes/<int:rec_id>/finalizar', methods=['POST'])
 @login_required
-def recurrente_delete(rec_id):
+def recurrente_finalizar(rec_id):
     rec = RecurringTransaction.query.filter_by(id=rec_id, user_id=current_user.id).first_or_404()
     if rec.is_demo:
         return _reject_demo('main.recurrentes')
-    db.session.delete(rec)
+    rec.end_date = date.today()
+    rec.is_active = False
     db.session.commit()
-    flash(_('Transacción recurrente eliminada.'), 'success')
+    flash(_('Recurrente finalizada. Ya no generará nuevos movimientos.'), 'success')
     return redirect(url_for('main.recurrentes'))
+
+
+# ── Guía de usuario ───────────────────────────────────────────────────────────
+
+@main.route('/ayuda')
+@login_required
+def ayuda():
+    return render_template('main/guia.html')
 
 
 # ── Configuración de cuenta ────────────────────────────────────────────────────
@@ -1700,6 +1716,14 @@ def send_report_now():
 @login_required
 def help_toggle():
     current_user.help_mode_enabled = not current_user.help_mode_enabled
+    db.session.commit()
+    return redirect(url_for('main.configurar'))
+
+
+@main.route('/configurar/insights-panel-toggle', methods=['POST'])
+@login_required
+def insights_panel_toggle():
+    current_user.insights_panel_enabled = not current_user.insights_panel_enabled
     db.session.commit()
     return redirect(url_for('main.configurar'))
 

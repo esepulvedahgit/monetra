@@ -56,6 +56,7 @@ def build_signals(user_id: int, year: int, month: int) -> list[Signal]:
 
     maturity = _maturity_evidence(bundle.historical_months)
 
+    signals.extend(_signals_from_setup_check(bundle, maturity))
     signals.extend(_signals_from_forecast(forecast, bundle, maturity))
     signals.extend(_signals_from_bundle(bundle, maturity))
     signals.extend(_signals_from_goals(
@@ -66,6 +67,36 @@ def build_signals(user_id: int, year: int, month: int) -> list[Signal]:
     log.debug('Built %d signals for user_id=%s period=%s-%02d',
               len(signals), user_id, year, month)
     return signals
+
+
+# ── From setup check ─────────────────────────────────────────────────────────
+
+def _signals_from_setup_check(bundle, maturity: dict) -> list[Signal]:
+    """Emit an INFO signal when basic configuration is missing.
+
+    Only relevant during early months — once the user has ≥3 months of data
+    and recurring activity, this signal stops being generated.
+    """
+    missing: list[str] = []
+    if not bundle.budget_amount or bundle.budget_amount <= 0:
+        missing.append('budget')
+    if bundle.recurring_expense == 0 and bundle.historical_months < 3:
+        missing.append('recurring')
+    if not missing:
+        return []
+    return [Signal(
+        signal_type=SignalType.MISSING_SETUP,
+        value=float(len(missing)),
+        baseline=0.0,
+        confidence=Confidence.HIGH,
+        source='analytics.setup_check',
+        evidence={
+            'missing_items': missing,
+            'has_budget': bool(bundle.budget_amount and bundle.budget_amount > 0),
+            'has_recurring': bundle.recurring_expense > 0,
+            **maturity,
+        },
+    )]
 
 
 # ── From forecast ────────────────────────────────────────────────────────────

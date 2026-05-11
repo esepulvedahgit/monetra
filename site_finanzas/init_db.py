@@ -1,5 +1,5 @@
 from app import create_app, db
-from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget
+from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, EmailActivationToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget
 from sqlalchemy import inspect, text
 
 app = create_app()
@@ -93,10 +93,24 @@ with app.app_context():
             conn.execute(text("ALTER TABLE users ADD COLUMN weekly_report_enabled TINYINT(1) NOT NULL DEFAULT 0"))
             conn.commit()
             print("Columna weekly_report_enabled agregada a users.")
+        if 'insights_panel_enabled' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN insights_panel_enabled TINYINT(1) NOT NULL DEFAULT 0"))
+            conn.commit()
+            print("Columna insights_panel_enabled agregada a users.")
         if 'usd_rate' not in existing_cols:
             conn.execute(text("ALTER TABLE users ADD COLUMN usd_rate DECIMAL(12,4) NULL"))
             conn.commit()
             print("Columna usd_rate agregada a users.")
+        if 'email_verified' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN email_verified TINYINT(1) NOT NULL DEFAULT 0"))
+            conn.execute(text("UPDATE users SET email_verified = 1"))
+            conn.commit()
+            print("Columna email_verified agregada a users (usuarios existentes marcados como verificados).")
+        if 'email_verified_at' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN email_verified_at DATETIME NULL"))
+            conn.execute(text("UPDATE users SET email_verified_at = NOW() WHERE email_verified = 1"))
+            conn.commit()
+            print("Columna email_verified_at agregada a users.")
 
         # Assign first admin to the designated user if it exists
         result = conn.execute(

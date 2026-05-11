@@ -11,6 +11,8 @@ AUTH_MFA_ENABLED      = 'auth.mfa_enabled'
 AUTH_MFA_DISABLED     = 'auth.mfa_disabled'
 AUTH_PASSWORD_RESET_REQ  = 'auth.password_reset_req'
 AUTH_PASSWORD_RESET_DONE = 'auth.password_reset_done'
+AUTH_EMAIL_VERIFY        = 'auth.email_verify'
+AUTH_EMAIL_RESEND        = 'auth.email_resend'
 
 # Application events
 APP_ERROR_500    = 'app.error_500'

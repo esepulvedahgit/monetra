@@ -143,6 +143,15 @@ TEMPLATES: dict[AlertType, dict[Severity, dict[str, str]]] = {
             'recommended_action': _l('Verifica el detalle y elimínalo si corresponde.'),
         },
     },
+
+    AlertType.MISSING_CONFIG: {
+        Severity.INFO: {
+            'title':              _l('Configuración inicial pendiente'),
+            'message':            _l('Hay elementos básicos sin configurar que mejoran la precisión del análisis.'),
+            'explanation':        _l('Monetra usa el presupuesto y los gastos recurrentes como base de las proyecciones. Sin ellos, las estimaciones son menos precisas.'),
+            'recommended_action': _l('Define un presupuesto mensual y registra tus gastos fijos recurrentes (arriendo, servicios, suscripciones).'),
+        },
+    },
 }
 
 

@@ -28,6 +28,7 @@ class RuleEngine:
             SignalType.SAVINGS_GOAL_RISK: self._handle_goal_risk,
             SignalType.NEGATIVE_CASHFLOW_TREND: self._handle_negative_trend,
             SignalType.DUPLICATE_SUSPECTED: self._handle_duplicate,
+            SignalType.MISSING_SETUP: self._handle_missing_setup,
         }
 
     def evaluate(self, signals: list[Signal]) -> list[Alert]:
@@ -206,5 +207,19 @@ class RuleEngine:
             fmt={
                 'category_name': ev.get('category_name', '—'),
                 'value': sig.value,
+            },
+        )
+
+    def _handle_missing_setup(self, sig: Signal) -> Alert | None:
+        ev = sig.evidence
+        missing = ev.get('missing_items', [])
+        if not missing:
+            return None
+        return self._build_alert(
+            AlertType.MISSING_CONFIG, InsightCategory.BEHAVIOR, Severity.INFO, sig,
+            fmt={
+                'has_budget': ev.get('has_budget', False),
+                'has_recurring': ev.get('has_recurring', False),
+                'missing_count': len(missing),
             },
         )

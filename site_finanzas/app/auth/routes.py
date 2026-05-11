@@ -1,4 +1,4 @@
-﻿import secrets
+import secrets
 import hashlib
 from datetime import datetime, timezone, timedelta
 import pyotp
@@ -6,10 +6,10 @@ from flask import render_template, redirect, url_for, flash, request, session
 from flask_login import login_user, logout_user, current_user
 from flask_babel import gettext as _
 from app import db, limiter
-from app.models import User, AppConfig, PasswordResetToken
+from app.models import User, AppConfig, PasswordResetToken, EmailActivationToken
 from app.auth import auth
 from app.auth.forms import LoginForm, RegisterForm, ForgotPasswordForm, ResetPasswordForm, MFAVerifyForm
-from app.email_service import send_user_email, send_recovery_email, decrypt_mfa_secret
+from app.email_service import send_user_email, send_recovery_email, send_activation_email, decrypt_mfa_secret
 from app.audit.logger import log_event
 from app.audit import events as ev
 
@@ -20,6 +20,21 @@ def _audit_commit(event_type, description=None, user_id=None):
         db.session.commit()
     except Exception:
         db.session.rollback()
+
+
+def _generate_activation_token(user_id: int) -> str:
+    """Create a new EmailActivationToken record and return the raw token."""
+    EmailActivationToken.query.filter_by(user_id=user_id, used_at=None).delete()
+    raw_token = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    record = EmailActivationToken(
+        user_id=user_id,
+        token_hash=token_hash,
+        expires_at=datetime.now(timezone.utc) + timedelta(hours=24),
+    )
+    db.session.add(record)
+    db.session.commit()
+    return raw_token
 
 
 @auth.route('/register', methods=['GET', 'POST'])
@@ -43,16 +58,89 @@ def register():
             email=form.email.data,
             role='admin' if is_first else 'user',
             is_first_admin=is_first,
+            email_verified=is_first,
+            email_verified_at=datetime.now(timezone.utc) if is_first else None,
         )
         user.set_password(form.password.data)
         db.session.add(user)
         log_event(ev.AUTH_REGISTER, description=form.email.data, request=request)
         db.session.commit()
-        flash(_('Cuenta creada exitosamente. Ya puedes iniciar sesión.'), 'success')
-        return redirect(url_for('auth.login'))
+
+        if is_first:
+            flash(_('Cuenta creada exitosamente. Ya puedes iniciar sesión.'), 'success')
+            return redirect(url_for('auth.login'))
+
+        raw_token = _generate_activation_token(user.id)
+        activation_url = url_for('auth.verify_email', token=raw_token, _external=True)
+        ok, _ = send_activation_email(user, activation_url)
+
+        if not ok:
+            flash(_(
+                'Cuenta creada, pero no pudimos enviar el correo de activación. '
+                'Contacta al administrador para activar tu cuenta.'
+            ), 'warning')
+
+        return redirect(url_for('auth.verify_pending', email=form.email.data))
 
     return render_template('auth/register.html', title=_('Registro'),
                            form=form, registration_blocked=False)
+
+
+@auth.route('/verify-pending')
+def verify_pending():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    email = request.args.get('email', '')
+    return render_template('auth/verify_pending.html',
+                           title=_('Activa tu cuenta'), email=email)
+
+
+@auth.route('/verify-email/<token>')
+def verify_email(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    record = EmailActivationToken.query.filter_by(token_hash=token_hash).first()
+
+    if not record or record.used_at:
+        flash(_('El enlace de activación es inválido o ya fue utilizado.'), 'danger')
+        return redirect(url_for('auth.login'))
+
+    if record.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
+        user = db.session.get(User, record.user_id)
+        flash(_('El enlace de activación ha expirado. Solicita uno nuevo.'), 'warning')
+        email = user.email if user else ''
+        return redirect(url_for('auth.verify_pending', email=email))
+
+    user = db.session.get(User, record.user_id)
+    user.email_verified = True
+    user.email_verified_at = datetime.now(timezone.utc)
+    record.used_at = datetime.now(timezone.utc)
+    log_event(ev.AUTH_EMAIL_VERIFY, description=user.email, user_id=user.id, request=request)
+    db.session.commit()
+
+    flash(_('¡Cuenta activada exitosamente! Ya puedes iniciar sesión.'), 'success')
+    return redirect(url_for('auth.login'))
+
+
+@auth.route('/resend-activation', methods=['POST'])
+@limiter.limit("3 per 15 minute", methods=['POST'])
+def resend_activation():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+
+    email = request.form.get('email', '').strip()
+    user = User.query.filter_by(email=email).first()
+
+    if user and not user.email_verified:
+        raw_token = _generate_activation_token(user.id)
+        activation_url = url_for('auth.verify_email', token=raw_token, _external=True)
+        send_activation_email(user, activation_url)
+        log_event(ev.AUTH_EMAIL_RESEND, description=email, request=request)
+
+    flash(_('Si la cuenta existe y no está activada, recibirás un nuevo enlace en tu correo.'), 'info')
+    return redirect(url_for('auth.verify_pending', email=email))
 
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -64,6 +152,12 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and user.check_password(form.password.data):
+            if not user.email_verified:
+                flash(_(
+                    'Tu cuenta aún no está activada. '
+                    'Revisa tu correo o solicita un nuevo enlace de activación.'
+                ), 'warning')
+                return redirect(url_for('auth.verify_pending', email=user.email))
             if user.mfa_enabled:
                 session['mfa_pending'] = {'user_id': user.id, 'remember': form.remember.data}
                 return redirect(url_for('auth.mfa_verify'))

@@ -1,3 +1,4 @@
+from datetime import date
 from flask import request, jsonify
 from app import db
 from app.models import RecurringTransaction, Category
@@ -132,11 +133,22 @@ def update_recurring(rec_id):
 @api_v1.delete("/recurring/<int:rec_id>")
 @api_login_required
 def delete_recurring(rec_id):
+    return jsonify({
+        "error": "Las recurrentes no pueden eliminarse. Usa POST /recurring/<id>/finalize para finalizarla."
+    }), 405
+
+
+@api_v1.post("/recurring/<int:rec_id>/finalize")
+@api_login_required
+def finalize_recurring(rec_id):
     user = get_current_api_user()
     rec = RecurringTransaction.query.filter_by(id=rec_id, user_id=user.id).first()
     if not rec:
         return jsonify({"error": "Transacción recurrente no encontrada"}), 404
+    if not rec.is_active:
+        return jsonify({"error": "La recurrente ya está finalizada"}), 409
 
-    db.session.delete(rec)
+    rec.end_date = date.today()
+    rec.is_active = False
     db.session.commit()
-    return jsonify({"message": "Eliminada"}), 200
+    return jsonify(_recurring_dict(rec)), 200

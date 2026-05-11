@@ -94,6 +94,10 @@ class RecurringTransactionForm(FlaskForm):
     is_active = BooleanField(_l('Activa'))
     submit = SubmitField(_l('Guardar'))
 
+    def validate_end_date(self, field):
+        if field.data and field.data < date.today():
+            raise ValidationError(_('La fecha de término no puede ser anterior al día de hoy.'))
+
 
 class CustomBudgetForm(FlaskForm):
     name = StringField(_l('Nombre del presupuesto'), validators=[DataRequired(), Length(max=100)])

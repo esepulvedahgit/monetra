@@ -1,0 +1,64 @@
+<div class="modal-header"
+     style="background: linear-gradient(135deg, #2563EB 0%, var(--monetra-primary, #00C896) 100%); color: #fff;">
+    <h5 class="modal-title fw-bold">
+        <i class="bi bi-stars me-2"></i>
+        {{ _('¡Monetra 2.3 ya está aquí!') }}
+    </h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+            aria-label="{{ _('Cerrar') }}"></button>
+</div>
+
+<div class="modal-body py-4">
+    <p class="mb-3 fw-semibold" style="color: var(--monetra-text);">
+        {{ _('Más control sobre tu experiencia: activa lo que necesitas, gestiona tus recurrentes con claridad y exporta exactamente el período que quieres.') }}
+    </p>
+
+    <ul class="list-unstyled mb-3 ps-1" style="color: var(--monetra-text-soft); line-height: 1.9;">
+        <li class="mb-2">
+            <i class="bi bi-bar-chart-line-fill me-2" style="color: #A78BFA;"></i>
+            <strong>{{ _('Dashboard de analítica opcional') }}</strong>
+            {{ _('— Activa desde Configuración de Cuenta el panel de Salud financiera, Proyección de cierre y Alertas. Por defecto permanece oculto para no saturar la vista principal.') }}
+        </li>
+        <li class="mb-2">
+            <i class="bi bi-arrow-repeat me-2" style="color: #38BDF8;"></i>
+            <strong>{{ _('Mejoras en cargos recurrentes') }}</strong>
+            {{ _('— Los recurrentes ya no se pueden eliminar: pasan a "Finalizada" conservando todo el historial. Usa el botón Finalizar hoy o edita la fecha de término desde el formulario.') }}
+        </li>
+        <li class="mb-2">
+            <i class="bi bi-file-earmark-excel-fill me-2" style="color: #22C55E;"></i>
+            <strong>{{ _('Export global por rango de meses') }}</strong>
+            {{ _('— El export de Excel en el Dashboard Global ahora respeta el período seleccionado (ej. Mayo–Agosto) en tiempo real, sin necesidad de hacer clic en Aplicar primero.') }}
+        </li>
+        <li class="mb-2">
+            <i class="bi bi-journal-text me-2" style="color: #F59E0B;"></i>
+            <strong>{{ _('Guía de uso integrada') }}</strong>
+            {{ _('— Consulta cómo funciona cada sección de Monetra desde el menú de tu nombre (esquina superior derecha) → Guía de uso.') }}
+        </li>
+    </ul>
+
+    <div class="p-3 rounded"
+         style="background: rgba(167,139,250,0.10); border: 1px solid rgba(167,139,250,0.25); color: var(--monetra-text-soft);">
+        <div class="fw-semibold mb-1" style="color: var(--monetra-text);">
+            <i class="bi bi-toggles me-1" style="color:#A78BFA;"></i>
+            {{ _('Para activar el panel de analítica') }}
+        </div>
+        <div class="small">
+            {{ _('Ve a Configuración de Cuenta → Panel de Insights y activa el interruptor. Puedes desactivarlo cuando quieras.') }}
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer" style="border-top: 1px solid var(--card-border);">
+    <span class="text-muted small me-auto">
+        <i class="bi bi-code-slash me-1"></i>v2.3
+    </span>
+    <button type="button" class="btn btn-outline-secondary fw-semibold px-3" data-bs-dismiss="modal">
+        {{ _('Entendido') }}
+    </button>
+    <a href="{{ url_for('main.ayuda') }}" class="btn btn-outline-primary fw-semibold px-3" data-bs-dismiss="modal">
+        <i class="bi bi-journal-text me-1"></i>{{ _('Ver guía') }}
+    </a>
+    <a href="{{ url_for('main.configurar') }}#insights-panel" class="btn btn-primary fw-semibold px-4">
+        {{ _('Ir a Configuración') }}
+    </a>
+</div>

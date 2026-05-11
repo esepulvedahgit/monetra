@@ -9,6 +9,7 @@ def user_schema(user):
         "currency_locale": user.currency_locale or 'es',
         "language": user.language or 'es',
         "role": user.role,
+        "weekly_report_enabled": getattr(user, "weekly_report_enabled", False),
         "created_at": user.created_at.isoformat() if user.created_at else None,
     }
 

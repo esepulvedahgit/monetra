@@ -159,6 +159,12 @@
                                 </a>
                             </li>
                             <li>
+                                <a class="dropdown-item {% if request.endpoint == 'main.ayuda' %}active{% endif %}"
+                                    href="{{ url_for('main.ayuda') }}">
+                                    <i class="bi bi-journal-text"></i> {{ _('Guía de uso') }}
+                                </a>
+                            </li>
+                            <li>
                                 <hr class="dropdown-divider">
                             </li>
                             <!-- Language switcher -->

@@ -10,6 +10,7 @@ import xlsxwriter
 from app.services import finance as svc
 from app.export.styles import create_formats
 from app.export.sheets import (
+    portada as sh_portada,
     dashboard as sh_dashboard,
     transactions as sh_transactions,
     categories as sh_categories,
@@ -32,8 +33,6 @@ def build_excel(user, year: int, from_month: int = 1, to_month: int = 12) -> io.
     lang = user.language or "es"
     sym = user.currency_symbol or "$"
     dec = _dec(user.currency_code or "USD")
-    is_monthly = from_month == to_month
-    svc.generate_pending_recurring_range(user.id, year, from_month, to_month)
 
     # ── Fetch all data once ───────────────────────────────────────────────────
     transactions = svc.get_transactions(
@@ -46,13 +45,8 @@ def build_excel(user, year: int, from_month: int = 1, to_month: int = 12) -> io.
         "transactions": transactions,
         "budget_vs_actual": svc.get_budget_vs_actual(user.id, year, from_month, to_month),
         "savings": svc.get_savings(user.id),
-        "recurring": (
-            svc.get_recurring_for_month(user.id, year, from_month)
-            if is_monthly
-            else svc.get_recurring(user.id, year=year)
-        ),
-        # Monthly: same filtered set; annual: full history for pivot/raw analysis
-        "all_transactions": transactions if is_monthly else svc.get_transactions(user.id),
+        "recurring": svc.get_recurring(user.id),
+        "all_transactions": transactions,
     }
 
     # ── Build workbook ────────────────────────────────────────────────────────
@@ -71,6 +65,7 @@ def build_excel(user, year: int, from_month: int = 1, to_month: int = 12) -> io.
 
     # ── Sheet definitions: (name_es, name_en, writer_module) ─────────────────
     sheet_defs = [
+        ("Portada", "Cover", sh_portada),
         ("Dashboard", "Dashboard", sh_dashboard),
         ("Movimientos", "Transactions", sh_transactions),
         ("Categorías", "Categories", sh_categories),

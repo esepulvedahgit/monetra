@@ -30,6 +30,9 @@ class User(db.Model, UserMixin):
     mfa_enabled = db.Column(db.Boolean, nullable=False, default=False)
     mfa_secret_encrypted = db.Column(db.LargeBinary, nullable=True)
     weekly_report_enabled = db.Column(db.Boolean, nullable=False, default=False)
+    insights_panel_enabled = db.Column(db.Boolean, nullable=False, default=False)
+    email_verified = db.Column(db.Boolean, nullable=False, default=False)
+    email_verified_at = db.Column(db.DateTime, nullable=True)
 
     @property
     def is_admin(self):
@@ -195,6 +198,22 @@ class UserSeenAnnouncement(db.Model):
 
     def __repr__(self):
         return f'<UserSeenAnnouncement user={self.user_id} key={self.announcement_key}>'
+
+
+class EmailActivationToken(db.Model):
+    __tablename__ = 'email_activation_tokens'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    token_hash = db.Column(db.String(64), nullable=False, unique=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    expires_at = db.Column(db.DateTime, nullable=False)
+    used_at = db.Column(db.DateTime, nullable=True)
+
+    user = db.relationship('User', backref=db.backref('activation_tokens', lazy=True,
+                                                       cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<EmailActivationToken user_id={self.user_id} expires={self.expires_at}>'
 
 
 class PasswordResetToken(db.Model):

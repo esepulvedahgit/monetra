@@ -24,6 +24,20 @@
             </div>
         </div>
 
+        {% if not rec %}
+        <div class="rounded p-3 mb-4 small"
+             style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.30); color:var(--monetra-text);">
+            <div class="fw-semibold mb-1" style="color:#F59E0B;">
+                <i class="bi bi-shield-exclamation me-1"></i>{{ _('Importante antes de crear') }}
+            </div>
+            <ul class="mb-0 ps-3" style="color:var(--monetra-text-muted);">
+                <li>{{ _('Las recurrentes no se pueden eliminar una vez creadas.') }}</li>
+                <li>{{ _('Para detenerla, usa el botón') }} <strong>{{ _('Finalizar hoy') }}</strong> {{ _('o establece una fecha de término.') }}</li>
+                <li>{{ _('Los movimientos ya generados siempre quedan en tu historial.') }}</li>
+            </ul>
+        </div>
+        {% endif %}
+
         <form method="POST" novalidate>
             {{ form.hidden_tag() }}
 

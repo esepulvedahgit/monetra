@@ -42,23 +42,16 @@ def consolidated():
 @login_required
 def dashboard():
     """Vista de Analítica completa: alertas, forecast, health score y evidencia."""
-    from app.insights import services as insights_svc
     year, month = _period()
+    alerts, forecast, health, maturity = [], None, None, None
     try:
-        alerts = insights_svc.get_dashboard_alerts(current_user.id, year, month)
-    except Exception:
-        log.exception('get_dashboard_alerts failed for user_id=%s', current_user.id)
-        alerts = []
-    try:
+        from app.insights import services as insights_svc
+        alerts   = insights_svc.get_dashboard_alerts(current_user.id, year, month)
         forecast = insights_svc.get_monthly_forecast(current_user.id, year, month)
+        health   = insights_svc.get_health_score(current_user.id, year, month)
+        maturity = insights_svc.get_data_maturity(current_user.id, year, month)
     except Exception:
-        log.exception('get_monthly_forecast failed for user_id=%s', current_user.id)
-        forecast = None
-    try:
-        health = insights_svc.get_health_score(current_user.id, year, month)
-    except Exception:
-        log.exception('get_health_score failed for user_id=%s', current_user.id)
-        health = None
+        log.exception('insights pipeline failed for user_id=%s', current_user.id)
 
     return render_template(
         'analytics/dashboard.html',
@@ -68,4 +61,5 @@ def dashboard():
         alerts=alerts,
         forecast=forecast,
         health=health,
+        maturity=maturity,
     )

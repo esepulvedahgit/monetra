@@ -578,8 +578,33 @@
             </div>
         </div>
 
-        <!-- Bloque Datos Demo (solo admin) -->
-        {% if current_user.role == 'admin' %}
+        {# ── Panel de Insights ── #}
+        <div id="insights-panel" class="card shadow-sm mt-4 mb-4">
+            <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                <i class="bi bi-graph-up" style="color:var(--monetra-primary,#00C896);"></i>
+                <span style="color:var(--monetra-primary,#00C896); text-transform:uppercase; letter-spacing:.05em; font-size:.85rem;">
+                    {{ _('Panel de Insights') }}
+                </span>
+            </div>
+            <div class="card-body p-4">
+                <p class="small mb-3" style="color:var(--monetra-text-muted,#B0BEC5);">
+                    {{ _('Muestra Salud financiera, Proyección de cierre y Alertas en el dashboard mensual.') }}
+                </p>
+                <form method="POST" action="{{ url_for('main.insights_panel_toggle') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="insightsPanelCheck"
+                            {% if current_user.insights_panel_enabled %}checked{% endif %}
+                            onchange="this.form.submit()">
+                        <label class="form-check-label fw-semibold" for="insightsPanelCheck">
+                            {{ _('Activar panel de insights') }}
+                        </label>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bloque Datos Demo -->
         <div class="card shadow-sm mt-4 mb-4">
             <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
                 <span><i class="bi bi-database text-primary"></i> {{ _('Datos Demo') }}</span>
@@ -619,7 +644,6 @@
                 <div id="demoMsg" class="mt-2 small"></div>
             </div>
         </div>
-        {% endif %}
 
     </div>
 </div>
@@ -627,7 +651,7 @@
 <!-- Versión -->
 <div class="text-center mt-4 mb-2">
     <small style="color:var(--monetra-text-muted, #78909C); opacity:0.6;">
-        <i class="bi bi-code-slash"></i> Monetra v2.1
+        <i class="bi bi-code-slash"></i> Monetra v2.3
     </small>
 </div>
 
