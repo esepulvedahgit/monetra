@@ -72,7 +72,7 @@ def register():
 
         raw_token = _generate_activation_token(user.id)
         activation_url = url_for('auth.verify_email', token=raw_token, _external=True)
-        ok, _ = send_activation_email(user, activation_url)
+        ok = send_activation_email(user, activation_url)[0]
 
         if not ok:
             flash(_(
