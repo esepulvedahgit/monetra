@@ -1,5 +1,7 @@
-import calendar
+﻿import calendar
+import hashlib
 import json
+import secrets
 from datetime import date, timedelta
 from decimal import Decimal
 from itertools import cycle, islice
@@ -12,9 +14,8 @@ from sqlalchemy import extract, func
 from app import db
 from app.main import main
 from app.main.forms import TransactionForm, CategoryForm, BudgetForm, CategoryBudgetForm, ConfigForm, SMTPConfigForm, RecurringTransactionForm, SavingsGoalForm, ChangePasswordForm, CustomBudgetForm, AIConfigForm
-from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal, UserSeenAnnouncement, CustomBudget, UserAIConfig
+from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal, UserSeenAnnouncement, CustomBudget, UserAIConfig, ApiToken
 from app.email_service import encrypt_smtp_password, send_user_email, encrypt_mfa_secret, decrypt_mfa_secret, encrypt_ai_token
-from flask_jwt_extended import create_access_token
 
 # (nombre, símbolo, nombre_moneda, código_ISO, locale_babel)
 COUNTRIES_CURRENCIES = [
@@ -1685,6 +1686,7 @@ def configurar():
             admin_smtp_available = True
 
     countries_json = json.dumps(_country_map)
+    api_tok = ApiToken.query.filter_by(user_id=current_user.id).first()
     return render_template('main/configurar.html',
                            form=form,
                            smtp_form=smtp_form,
@@ -1695,6 +1697,10 @@ def configurar():
                            admin_smtp_available=admin_smtp_available,
                            countries_json=countries_json,
                            app_config=app_config,
+                           api_token_active=api_tok is not None,
+                           api_token_prefix=api_tok.prefix if api_tok else None,
+                           api_token_created_at=api_tok.created_at if api_tok else None,
+                           api_token_last_used_at=api_tok.last_used_at if api_tok else None,
                            title=_('Configurar Cuenta'))
 
 
@@ -1766,11 +1772,33 @@ def onboarding_dismiss():
 @main.route('/configurar/generate-api-token', methods=['POST'])
 @login_required
 def generate_api_token():
-    token = create_access_token(
-        identity=str(current_user.id),
-        expires_delta=timedelta(days=365),
-    )
-    return jsonify({"token": token}), 200
+    raw = 'mntr_' + secrets.token_urlsafe(32)
+    h = hashlib.sha256(raw.encode()).hexdigest()
+    prefix = raw[:12]
+
+    existing = ApiToken.query.filter_by(user_id=current_user.id).first()
+    if existing:
+        existing.token_hash = h
+        existing.prefix = prefix
+        from datetime import datetime, timezone
+        existing.created_at = datetime.now(timezone.utc)
+        existing.last_used_at = None
+    else:
+        db.session.add(ApiToken(
+            user_id=current_user.id,
+            token_hash=h,
+            prefix=prefix,
+        ))
+    db.session.commit()
+    return jsonify({"token": raw}), 200
+
+
+@main.route('/configurar/revoke-api-token', methods=['POST'])
+@login_required
+def revoke_api_token():
+    ApiToken.query.filter_by(user_id=current_user.id).delete()
+    db.session.commit()
+    return jsonify({"ok": True}), 200
 
 
 @main.route('/configurar/change-password', methods=['POST'])

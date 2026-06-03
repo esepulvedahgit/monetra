@@ -1,5 +1,5 @@
-from app import create_app, db
-from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, EmailActivationToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget, UserAIConfig
+﻿from app import create_app, db
+from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, EmailActivationToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget, UserAIConfig, ApiToken  # noqa: F401
 from sqlalchemy import inspect, text
 
 app = create_app()

@@ -2,8 +2,20 @@ import os
 import secrets
 
 
+def _require_key(env_var: str, fallback_in_debug: bool = True) -> str:
+    value = os.environ.get(env_var)
+    if value:
+        return value
+    if fallback_in_debug and os.environ.get('FLASK_DEBUG', '0') != '0':
+        return secrets.token_hex(32)
+    raise RuntimeError(
+        f"La variable de entorno '{env_var}' es obligatoria en producción. "
+        f"Agrégala al archivo docker/.env o al entorno del contenedor."
+    )
+
+
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
+    SECRET_KEY = _require_key('SECRET_KEY')
     SQLALCHEMY_DATABASE_URI = (
         os.environ.get('DATABASE_URL')
         or 'mysql+pymysql://{user}:{password}@{host}:{port}/{db}'.format(
@@ -19,7 +31,14 @@ class Config:
     BABEL_SUPPORTED_LOCALES = ['es', 'en']
     BABEL_TRANSLATION_DIRECTORIES = 'translations'
 
-    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or secrets.token_hex(32)
+    MAX_CONTENT_LENGTH = 15 * 1024 * 1024  # 15 MB — enforced before any route code runs
+
+    # WebAuthn / Passkeys — MUST match deployment domain in production
+    WEBAUTHN_RP_ID   = os.environ.get('WEBAUTHN_RP_ID',   'localhost')
+    WEBAUTHN_RP_NAME = os.environ.get('WEBAUTHN_RP_NAME', 'Monetra')
+    WEBAUTHN_ORIGIN  = os.environ.get('WEBAUTHN_ORIGIN',  'http://localhost:5000')
+
+    JWT_SECRET_KEY = _require_key('JWT_SECRET_KEY')
     JWT_ACCESS_TOKEN_EXPIRES = 900        # 15 min
     JWT_REFRESH_TOKEN_EXPIRES = 2592000   # 30 días
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',')

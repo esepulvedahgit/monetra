@@ -1,4 +1,4 @@
-from datetime import date as _date, datetime, timezone
+﻿from datetime import date as _date, datetime, timezone
 from app import db, login_manager
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -431,3 +431,18 @@ class AuditLog(db.Model):
 
     def __repr__(self):
         return f'<AuditLog {self.event_type} user={self.user_id}>'
+class ApiToken(db.Model):
+    """Personal access token for agent/automation API access. One per user, stored as SHA-256 hash."""
+    __tablename__ = 'api_tokens'
+
+    id           = db.Column(db.Integer, primary_key=True)
+    user_id      = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
+    token_hash   = db.Column(db.String(64), unique=True, nullable=False)  # SHA-256 hex of the raw token
+    prefix       = db.Column(db.String(20), nullable=False)               # first 12 chars, shown in UI
+    created_at   = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    last_used_at = db.Column(db.DateTime, nullable=True)
+
+    user = db.relationship('User', backref=db.backref('api_token', uselist=False))
+
+    def __repr__(self):
+        return f'<ApiToken {self.prefix}•••• user={self.user_id}>'
