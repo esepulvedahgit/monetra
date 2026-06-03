@@ -174,19 +174,46 @@
         <div class="card shadow-sm mt-4 mb-4">
             <div class="card-header fw-semibold d-flex align-items-center gap-2">
                 <i class="bi bi-key text-primary"></i>
-                <span
-                    style="color:var(--monetra-primary,#00C896); text-transform:uppercase; letter-spacing:.05em; font-size:.85rem;">
+                <span style="color:var(--monetra-primary,#00C896); text-transform:uppercase; letter-spacing:.05em; font-size:.85rem;">
                     {{ _('Token API') }}
                 </span>
+                {% if api_token_active %}
+                <span class="badge ms-auto" style="background:var(--monetra-primary,#00C896); color:#000;">{{ _('Activo') }}</span>
+                {% endif %}
             </div>
             <div class="card-body p-4">
                 <p class="small mb-3" style="color: var(--monetra-text-muted, #B0BEC5);">
-                    {{ _('Genera un token de acceso personal (válido 365 días) para consumir la API desde Flutter u
-                    otras aplicaciones.') }}
+                    {{ _('Token de acceso personal para consumir la API desde agentes o aplicaciones externas. Activo mientras exista; solo puede haber uno por usuario.') }}
                 </p>
+
+                {% if api_token_active %}
+                <!-- Estado: token activo -->
+                <div class="mb-3 p-3 rounded" style="background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.2);">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="font-monospace small" style="color:#00C896;">{{ api_token_prefix }}••••••••••••••••••••</span>
+                    </div>
+                    <div class="small" style="color: var(--monetra-text-muted, #B0BEC5);">
+                        {{ _('Creado') }}: {{ api_token_created_at.strftime('%Y-%m-%d %H:%M') if api_token_created_at else '—' }}
+                        &nbsp;·&nbsp;
+                        {{ _('Último uso') }}: {{ api_token_last_used_at.strftime('%Y-%m-%d %H:%M') if api_token_last_used_at else _('Nunca') }}
+                    </div>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button id="btnGenToken" class="btn btn-sm btn-outline-secondary fw-semibold" onclick="generateToken()">
+                        <i class="bi bi-arrow-repeat"></i> {{ _('Regenerar') }}
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger fw-semibold" onclick="revokeToken()">
+                        <i class="bi bi-trash"></i> {{ _('Revocar') }}
+                    </button>
+                </div>
+                {% else %}
+                <!-- Estado: sin token -->
                 <button id="btnGenToken" class="btn btn-sm btn-primary fw-semibold" onclick="generateToken()">
                     <i class="bi bi-key-fill"></i> {{ _('Generar Token') }}
                 </button>
+                {% endif %}
+
+                <!-- Resultado tras generar/regenerar (oculto hasta acción) -->
                 <div id="tokenResult" class="mt-3 d-none">
                     <div class="small mb-1 fw-semibold" style="color: #F2C94C;">
                         <i class="bi bi-exclamation-triangle-fill"></i>
@@ -747,6 +774,7 @@
 <script>
     async function generateToken() {
         const btn = document.getElementById('btnGenToken');
+        const origHtml = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
         try {
@@ -764,7 +792,20 @@
             alert('{{ _("Error al generar el token.") }}');
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-key-fill"></i> {{ _("Generar Token") }}';
+            btn.innerHTML = origHtml;
+        }
+    }
+
+    async function revokeToken() {
+        if (!confirm('{{ _("¿Seguro que quieres revocar el token? Los agentes que lo usen perderán acceso.") }}')) return;
+        try {
+            const res = await fetch('{{ url_for("main.revoke_api_token") }}', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+            });
+            if (res.ok) location.reload();
+        } catch {
+            alert('{{ _("Error al revocar el token.") }}');
         }
     }
 
