@@ -9,6 +9,7 @@ def user_schema(user):
         "currency_locale": user.currency_locale or 'es',
         "language": user.language or 'es',
         "role": user.role,
+        "weekly_report_enabled": getattr(user, "weekly_report_enabled", False),
         "created_at": user.created_at.isoformat() if user.created_at else None,
     }
 
@@ -72,4 +73,17 @@ def savings_goal_schema(g):
         "description": g.description,
         "is_completed": g.is_completed,
         "created_at": g.created_at.isoformat() if g.created_at else None,
+    }
+
+
+def audit_log_schema(log):
+    return {
+        "id":          log.id,
+        "event_type":  log.event_type,
+        "category":    log.event_type.split('.')[0] if '.' in log.event_type else 'app',
+        "description": log.description,
+        "ip_address":  log.ip_address,
+        "user_id":     log.user_id,
+        "username":    log.user.username if log.user else None,
+        "created_at":  log.created_at.isoformat(),
     }

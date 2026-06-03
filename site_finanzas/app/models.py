@@ -20,6 +20,7 @@ class User(db.Model, UserMixin):
     currency_symbol = db.Column(db.String(10), nullable=True, default='$')
     currency_code = db.Column(db.String(10), nullable=True, default='USD')
     currency_locale = db.Column(db.String(20), nullable=True, default='es')
+    usd_rate = db.Column(db.Numeric(12, 4), nullable=True)  # 1 USD = N moneda local; null si la moneda principal es USD
     role = db.Column(db.String(20), nullable=False, default='user')
     is_first_admin = db.Column(db.Boolean, nullable=False, default=False)
     language = db.Column(db.String(5), nullable=True, default='es')
@@ -29,6 +30,9 @@ class User(db.Model, UserMixin):
     mfa_enabled = db.Column(db.Boolean, nullable=False, default=False)
     mfa_secret_encrypted = db.Column(db.LargeBinary, nullable=True)
     weekly_report_enabled = db.Column(db.Boolean, nullable=False, default=False)
+    insights_panel_enabled = db.Column(db.Boolean, nullable=False, default=False)
+    email_verified = db.Column(db.Boolean, nullable=False, default=False)
+    email_verified_at = db.Column(db.DateTime, nullable=True)
 
     @property
     def is_admin(self):
@@ -89,7 +93,7 @@ class Transaction(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
     type = db.Column(db.String(10), nullable=False)  # 'income' or 'expense'
     amount = db.Column(db.Numeric(12, 2), nullable=False)
-    description = db.Column(db.String(200), nullable=True)
+    description = db.Column(db.Text, nullable=True)
     date = db.Column(db.Date, nullable=False, default=_date.today)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     is_demo = db.Column(db.Boolean, nullable=False, default=False)
@@ -155,17 +159,41 @@ class UserEmailConfig(db.Model):
         return f'<UserEmailConfig user_id={self.user_id} enabled={self.smtp_enabled}>'
 
 
+class UserAIConfig(db.Model):
+    """Per-user AI provider configuration for receipt scanning."""
+    __tablename__ = 'user_ai_config'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
+    provider = db.Column(db.String(20), nullable=False, default='openai')
+    # openai | deepseek | openrouter | anthropic | gemini
+    model = db.Column(db.String(80), nullable=True)
+    base_url = db.Column(db.String(255), nullable=True)  # custom endpoint for OpenAI-compatible providers
+    api_token_encrypted = db.Column(db.LargeBinary, nullable=True)
+    enabled = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
+                           onupdate=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship('User', backref=db.backref('ai_config', uselist=False,
+                                                       cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<UserAIConfig user={self.user_id} provider={self.provider}>'
+
+
 class CategoryBudget(db.Model):
-    """Monthly spending limit for a specific category (recurring, no year/month key)."""
+    """Monthly spending limit for a specific category, scoped to a year+month period."""
     __tablename__ = 'category_budgets'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    month = db.Column(db.Integer, nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
     amount = db.Column(db.Numeric(12, 2), nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     __table_args__ = (
-        db.UniqueConstraint('user_id', 'category_id', name='uq_user_category_budget'),
+        db.UniqueConstraint('user_id', 'year', 'month', 'category_id', name='uq_user_year_month_cat_budget'),
     )
 
     user = db.relationship('User', backref=db.backref('category_budgets', lazy=True,
@@ -173,7 +201,7 @@ class CategoryBudget(db.Model):
     category = db.relationship('Category')
 
     def __repr__(self):
-        return f'<CategoryBudget user={self.user_id} cat={self.category_id} amount={self.amount}>'
+        return f'<CategoryBudget user={self.user_id} y={self.year} m={self.month} cat={self.category_id}>'
 
 
 class UserSeenAnnouncement(db.Model):
@@ -192,6 +220,22 @@ class UserSeenAnnouncement(db.Model):
 
     def __repr__(self):
         return f'<UserSeenAnnouncement user={self.user_id} key={self.announcement_key}>'
+
+
+class EmailActivationToken(db.Model):
+    __tablename__ = 'email_activation_tokens'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    token_hash = db.Column(db.String(64), nullable=False, unique=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    expires_at = db.Column(db.DateTime, nullable=False)
+    used_at = db.Column(db.DateTime, nullable=True)
+
+    user = db.relationship('User', backref=db.backref('activation_tokens', lazy=True,
+                                                       cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<EmailActivationToken user_id={self.user_id} expires={self.expires_at}>'
 
 
 class PasswordResetToken(db.Model):
@@ -221,6 +265,8 @@ class RecurringTransaction(db.Model):
     description = db.Column(db.String(200), nullable=True)
     day_of_month = db.Column(db.Integer, nullable=False, default=1)
     is_active = db.Column(db.Boolean, nullable=False, default=True)
+    end_date = db.Column(db.Date, nullable=True)
+    is_demo = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = db.relationship('User', backref=db.backref('recurring_transactions', lazy=True,
@@ -241,6 +287,7 @@ class SavingsGoal(db.Model):
     target_date = db.Column(db.Date, nullable=True)
     description = db.Column(db.String(200), nullable=True)
     is_completed = db.Column(db.Boolean, nullable=False, default=False)
+    is_demo = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = db.relationship('User', backref=db.backref('savings_goals', lazy=True,
@@ -265,3 +312,122 @@ class SavingsGoal(db.Model):
 
     def __repr__(self):
         return f'<SavingsGoal {self.name} {self.current_amount}/{self.target_amount}>'
+
+
+class CustomBudget(db.Model):
+    """One free-range budget per user, linked to an auto-created expense category."""
+    __tablename__ = 'custom_budgets'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
+    start_date = db.Column(db.Date, nullable=False)
+    end_date = db.Column(db.Date, nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+
+    user = db.relationship('User', backref=db.backref('custom_budgets', lazy=True,
+                                                       cascade='all, delete-orphan'))
+    category = db.relationship('Category')
+
+    def __repr__(self):
+        return f'<CustomBudget {self.name} {self.amount}>'
+
+
+class DemoState(db.Model):
+    """Tracks which years were created by demo data. Used to restore state on reset."""
+    __tablename__ = 'demo_state'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, unique=True)
+    pre_demo_years = db.Column(db.Text, nullable=False, default='[]')
+    demo_years = db.Column(db.Text, nullable=False, default='[]')
+    loaded_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship('User', backref=db.backref('demo_state', uselist=False,
+                                                       cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<DemoState user={self.user_id}>'
+
+
+class UsdCategory(db.Model):
+    """Expense category for the standalone USD section."""
+    __tablename__ = 'usd_categories'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    name = db.Column(db.String(50), nullable=False)
+    color = db.Column(db.String(7), nullable=True)
+    is_demo = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'name', name='uq_usd_category_user_name'),
+    )
+
+    user = db.relationship('User', backref=db.backref('usd_categories', lazy=True,
+                                                       cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<UsdCategory {self.name}>'
+
+
+class UsdTransaction(db.Model):
+    """Expense entry in the standalone USD section."""
+    __tablename__ = 'usd_transactions'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('usd_categories.id'), nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
+    description = db.Column(db.String(200), nullable=True)
+    date = db.Column(db.Date, nullable=False, default=_date.today)
+    is_demo = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship('User', backref=db.backref('usd_transactions', lazy=True,
+                                                       cascade='all, delete-orphan'))
+    category = db.relationship('UsdCategory', backref=db.backref('transactions', lazy=True,
+                                                                  cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<UsdTransaction {self.amount} {self.date}>'
+
+
+class UsdBudget(db.Model):
+    """Monthly USD budget per user."""
+    __tablename__ = 'usd_budgets'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    month = db.Column(db.Integer, nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False, default=0)
+    is_demo = db.Column(db.Boolean, nullable=False, default=False)
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'year', 'month', name='uq_usd_budget'),
+    )
+
+    user = db.relationship('User', backref=db.backref('usd_budgets', lazy=True,
+                                                       cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<UsdBudget {self.year}/{self.month} {self.amount}>'
+
+
+class AuditLog(db.Model):
+    """Security and application event log. user_id is nullable (pre-auth events)."""
+    __tablename__ = 'audit_logs'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    event_type = db.Column(db.String(50), nullable=False, index=True)
+    description = db.Column(db.String(500), nullable=True)
+    ip_address = db.Column(db.String(45), nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False,
+                           default=lambda: datetime.now(timezone.utc), index=True)
+
+    user = db.relationship('User', backref=db.backref('audit_logs', lazy=True,
+                                                       passive_deletes=True))
+
+    def __repr__(self):
+        return f'<AuditLog {self.event_type} user={self.user_id}>'

@@ -11,9 +11,9 @@ from sqlalchemy import extract, func
 
 from app import db
 from app.main import main
-from app.main.forms import TransactionForm, CategoryForm, BudgetForm, CategoryBudgetForm, ConfigForm, SMTPConfigForm, RecurringTransactionForm, SavingsGoalForm, ChangePasswordForm
-from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal, UserSeenAnnouncement
-from app.email_service import encrypt_smtp_password, send_user_email, encrypt_mfa_secret, decrypt_mfa_secret
+from app.main.forms import TransactionForm, CategoryForm, BudgetForm, CategoryBudgetForm, ConfigForm, SMTPConfigForm, RecurringTransactionForm, SavingsGoalForm, ChangePasswordForm, CustomBudgetForm, AIConfigForm
+from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal, UserSeenAnnouncement, CustomBudget, UserAIConfig
+from app.email_service import encrypt_smtp_password, send_user_email, encrypt_mfa_secret, decrypt_mfa_secret, encrypt_ai_token
 from flask_jwt_extended import create_access_token
 
 # (nombre, símbolo, nombre_moneda, código_ISO, locale_babel)
@@ -99,6 +99,7 @@ def _get_period():
     )
 
 
+
 def _available_years():
     tx_years = (
         db.session.query(extract('year', Transaction.date).label('yr'))
@@ -119,32 +120,64 @@ def _available_years():
     return years
 
 
-def _generate_pending_recurring(user_id, year, month):
-    import calendar as _cal
-    recs = RecurringTransaction.query.filter_by(user_id=user_id, is_active=True).all()
-    changed = False
-    for rec in recs:
+def _generate_pending_recurring(user_id, year, month, commit=True):
+    from app.services.finance import generate_pending_recurring
+    return generate_pending_recurring(user_id, year, month, commit=commit)
+
+
+def _generate_pending_recurring_range(user_id, year, from_month, to_month):
+    from app.services.finance import generate_pending_recurring_range
+    return generate_pending_recurring_range(user_id, year, from_month, to_month)
+
+
+def _backfill_recurring(user_id, rec):
+    rec_start = rec.created_at.date() if rec.created_at else date.today()
+    cur = date(rec_start.year, rec_start.month, 1)
+    annual_end = date(rec_start.year, 12, 31)
+    end_date = rec.end_date if rec.end_date and rec.end_date.year == rec_start.year else annual_end
+    end = date(end_date.year, end_date.month, 1)
+
+    added = 0
+    years_needed = set()
+
+    while cur <= end:
         exists = Transaction.query.filter_by(
             user_id=user_id, recurring_id=rec.id
         ).filter(
-            extract('year', Transaction.date) == year,
-            extract('month', Transaction.date) == month,
+            extract('year', Transaction.date) == cur.year,
+            extract('month', Transaction.date) == cur.month,
         ).first()
         if not exists:
-            last_day = _cal.monthrange(year, month)[1]
-            day = min(rec.day_of_month, last_day)
+            last_day = calendar.monthrange(cur.year, cur.month)[1]
+            tx_date = date(cur.year, cur.month, min(rec.day_of_month, last_day))
+            if tx_date < rec_start or tx_date > end_date:
+                cur = date(cur.year + 1, 1, 1) if cur.month == 12 else date(cur.year, cur.month + 1, 1)
+                continue
             db.session.add(Transaction(
                 user_id=user_id,
                 category_id=rec.category_id,
                 type=rec.type,
                 amount=rec.amount,
                 description=rec.description or '',
-                date=date(year, month, day),
+                date=tx_date,
                 recurring_id=rec.id,
             ))
-            changed = True
-    if changed:
-        db.session.commit()
+            years_needed.add(cur.year)
+            added += 1
+        cur = date(cur.year + 1, 1, 1) if cur.month == 12 else date(cur.year, cur.month + 1, 1)
+
+    if years_needed:
+        existing_years = {uy.year for uy in UserYear.query.filter_by(user_id=user_id).all()}
+        for yr in years_needed:
+            if yr not in existing_years:
+                db.session.add(UserYear(user_id=user_id, year=yr))
+
+    if added:
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+    return added
 
 
 def _user_categories(type_filter=None):
@@ -168,6 +201,10 @@ def inject_period():
         year = session.get('selected_year', today.year)
         month = session.get('selected_month', today.month)
         avail = _available_years()
+
+        from app.demo_data.service import get_demo_years
+        demo_years = get_demo_years(current_user.id)
+
         return dict(
             sel_year=year,
             sel_month=month,
@@ -181,6 +218,8 @@ def inject_period():
             currency_locale=(current_user.currency_locale or 'es').replace('_', '-'),
             currency_decimals=_currency_decimals(current_user.currency_code or 'USD'),
             help_mode_enabled=bool(current_user.help_mode_enabled),
+            demo_years=demo_years,
+            is_demo_year=(year in demo_years),
         )
     return {}
 
@@ -191,6 +230,53 @@ def _currency_decimals(code):
         return get_currency_precision(code)
     except Exception:
         return 2
+
+
+def _is_demo_year(year: int) -> bool:
+    from app.demo_data.service import get_demo_years
+    return year in get_demo_years(current_user.id)
+
+
+def _reject_demo(redirect_target='main.dashboard'):
+    flash(_('Este registro es de demostración y no puede modificarse.'), 'warning')
+    return redirect(url_for(redirect_target))
+
+
+@main.app_context_processor
+def inject_account_types():
+    """Modular list of account sections shown in the account-switcher modal.
+    Add a new dict here to expose another account type — no template changes needed."""
+    if not current_user.is_authenticated:
+        return {'account_types': []}
+    endpoint = request.endpoint or ''
+    return {
+        'account_types': [
+            {
+                'key': 'main',
+                'name': _('Cuenta principal'),
+                'description': _('Movimientos en moneda local'),
+                'icon': 'bi-cash-coin',
+                'url': url_for('main.transactions'),
+                'active': endpoint.startswith('main.') and 'transaction' in endpoint,
+            },
+            {
+                'key': 'usd',
+                'name': _('Cuenta USD'),
+                'description': _('Gastos en dólares'),
+                'icon': 'bi-currency-dollar',
+                'url': url_for('usd.dashboard'),
+                'active': endpoint.startswith('usd.'),
+            },
+            {
+                'key': 'consolidated',
+                'name': _('Consolidado'),
+                'description': _('Vista unificada en moneda principal'),
+                'icon': 'bi-graph-up-arrow',
+                'url': url_for('analytics.consolidated'),
+                'active': endpoint.startswith('analytics.'),
+            },
+        ]
+    }
 
 
 @main.app_context_processor
@@ -315,21 +401,13 @@ def dashboard():
     year, month = _get_period()
     _generate_pending_recurring(current_user.id, year, month)
 
-    monthly = Transaction.query.filter(
-        Transaction.user_id == current_user.id,
-        extract('year', Transaction.date) == year,
-        extract('month', Transaction.date) == month,
-    ).all()
-
-    total_income = float(sum((t.amount for t in monthly if t.type == 'income'), Decimal('0')))
-    total_expense = float(sum((t.amount for t in monthly if t.type == 'expense'), Decimal('0')))
-    balance = total_income - total_expense
-
-    budget = Budget.query.filter_by(user_id=current_user.id, year=year, month=month).first()
-    budget_amount = float(budget.amount) if budget else 0.0
-    budget_used_pct = min(
-        (total_expense / budget_amount * 100) if budget_amount > 0 else 0, 100
-    )
+    from app.services.finance import get_monthly_summary
+    summary = get_monthly_summary(current_user.id, year, month)
+    total_income    = summary['total_income']
+    total_expense   = summary['total_expense']
+    balance         = summary['balance']
+    budget_amount   = summary['budget_amount']
+    budget_used_pct = min(summary['budget_used_pct'] or 0, 100)
 
     rows = (
         db.session.query(
@@ -368,7 +446,7 @@ def dashboard():
         SavingsGoal.target_date.asc()
     ).limit(4).all()
 
-    cat_budgets = CategoryBudget.query.filter_by(user_id=current_user.id).all()
+    cat_budgets = CategoryBudget.query.filter_by(user_id=current_user.id, year=year, month=month).all()
     cat_budget_data = []
     if cat_budgets:
         from app.services.finance import get_category_actuals
@@ -389,7 +467,35 @@ def dashboard():
                 'status': 'over' if used_pct >= 100 else 'warning' if used_pct >= 80 else 'ok',
             })
 
+    # ── Custom budget: only the budget created for the selected month ────────
+    custom_budget = _custom_budget_for_period(current_user.id, year, month)
+    custom_budget_data = None
+    if custom_budget:
+        from app.services.finance import calculate_custom_budget_usage
+        usage = calculate_custom_budget_usage(current_user.id, custom_budget)
+        actual = usage['total_consumed']
+        used_pct = usage['usage_percent']
+        custom_budget_data = {
+            'actual': actual,
+            'remaining': usage['remaining'],
+            'used_pct': min(used_pct, 100),
+            'status': 'over' if used_pct >= 100 else 'warning' if used_pct >= 80 else 'ok',
+        }
+
     month_names = _locale_month_names()
+
+    # ── Insights (alerts + forecast + health score) ───────────────────────────
+    insights_alerts, insights_forecast, insights_health, insights_maturity = [], None, None, None
+    try:
+        from app.insights import services as insights_service
+        insights_alerts = insights_service.get_dashboard_alerts(current_user.id, year, month)
+        insights_forecast = insights_service.get_monthly_forecast(current_user.id, year, month)
+        insights_health = insights_service.get_health_score(current_user.id, year, month)
+        insights_maturity = insights_service.get_data_maturity(current_user.id, year, month)
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception('insights pipeline failed for user_id=%s', current_user.id)
+
     return render_template(
         'main/dashboard.html',
         total_income=total_income,
@@ -404,7 +510,14 @@ def dashboard():
         current_month=f"{month_names[month]} {year}",
         active_goals=active_goals,
         cat_budget_data=cat_budget_data,
+        custom_budget=custom_budget,
+        custom_budget_data=custom_budget_data,
         sel_month_name=month_names.get(month, ''),
+        alerts=insights_alerts,
+        forecast=insights_forecast,
+        health=insights_health,
+        insights_maturity=insights_maturity,
+        alerts_limit=3,
     )
 
 
@@ -417,18 +530,34 @@ def transactions():
     _generate_pending_recurring(current_user.id, year, month)
     type_f = request.args.get('type', 'all')
     cat_f = request.args.get('category_id', 0, type=int)
-    month_f = request.args.get('month', month, type=int)
+    day_f = request.args.get('day', 0, type=int)
+    last_day = calendar.monthrange(year, month)[1]
 
     q = Transaction.query.filter(
         Transaction.user_id == current_user.id,
         extract('year', Transaction.date) == year,
+        extract('month', Transaction.date) == month,
     )
     if type_f in ('income', 'expense'):
         q = q.filter(Transaction.type == type_f)
     if cat_f:
         q = q.filter(Transaction.category_id == cat_f)
-    if month_f and 1 <= month_f <= 12:
-        q = q.filter(extract('month', Transaction.date) == month_f)
+    if day_f and 1 <= day_f <= last_day:
+        q = q.filter(extract('day', Transaction.date) == day_f)
+    else:
+        day_f = 0
+
+    active_rec_ids   = {r.id for r in RecurringTransaction.query.filter_by(
+        user_id=current_user.id, is_active=True).all()}
+    inactive_rec_ids = {r.id for r in RecurringTransaction.query.filter_by(
+        user_id=current_user.id, is_active=False).all()}
+    custom_budget_category_ids = {
+        cb.category_id for cb in CustomBudget.query.filter(
+            CustomBudget.user_id == current_user.id,
+            extract('year', CustomBudget.start_date) == year,
+            extract('month', CustomBudget.start_date) == month,
+        ).all()
+    }
 
     return render_template(
         'main/transactions.html',
@@ -436,8 +565,12 @@ def transactions():
         categories=_user_categories(),
         type_filter=type_f,
         category_filter=cat_f,
-        month_filter=month_f,
-        month_names=_locale_month_names(),
+        day_filter=day_f,
+        days_in_month=range(1, last_day + 1),
+        selected_month_name=_locale_month_names().get(month, ''),
+        active_rec_ids=active_rec_ids,
+        inactive_rec_ids=inactive_rec_ids,
+        custom_budget_category_ids=custom_budget_category_ids,
     )
 
 
@@ -445,6 +578,8 @@ def transactions():
 @login_required
 def add_transaction():
     year, month = _get_period()
+    if _is_demo_year(year):
+        return _reject_demo('main.transactions')
     last_day = calendar.monthrange(year, month)[1]
     date_min = date(year, month, 1)
     date_max = date(year, month, last_day)
@@ -463,8 +598,13 @@ def add_transaction():
             flash(_('La fecha debe estar dentro de %(month)s %(year)s.',
                     month=_locale_month_names()[month], year=year), 'warning')
         else:
-            cat = db.session.get(Category, form.category_id.data)
-            if cat and cat.type != form.type.data:
+            cat = Category.query.filter(
+                Category.id == form.category_id.data,
+                (Category.user_id == current_user.id) | (Category.user_id.is_(None)),
+            ).first()
+            if not cat:
+                flash(_('La categoría seleccionada no es válida.'), 'warning')
+            elif cat.type != form.type.data:
                 flash(_('La categoría no corresponde al tipo de movimiento seleccionado.'), 'warning')
             else:
                 db.session.add(Transaction(
@@ -482,13 +622,16 @@ def add_transaction():
     return render_template('main/transaction_form.html',
                            form=form, title=_('Nuevo Movimiento'), cats_json=cats_json,
                            date_min=date_min.isoformat(), date_max=date_max.isoformat(),
-                           date_month_name=_locale_month_names()[month], date_year=year)
+                           date_month_name=_locale_month_names()[month], date_year=year,
+                            custom_budget_info=_custom_budget_info(year, month))
 
 
 @main.route('/transactions/<int:tx_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_transaction(tx_id):
     tx = Transaction.query.filter_by(id=tx_id, user_id=current_user.id).first_or_404()
+    if tx.is_demo:
+        return _reject_demo('main.transactions')
     year, month = tx.date.year, tx.date.month
     last_day = calendar.monthrange(year, month)[1]
     date_min = date(year, month, 1)
@@ -504,8 +647,13 @@ def edit_transaction(tx_id):
             flash(_('La fecha debe estar dentro de %(month)s %(year)s.',
                     month=_locale_month_names()[month], year=year), 'warning')
         else:
-            cat = db.session.get(Category, form.category_id.data)
-            if cat and cat.type != form.type.data:
+            cat = Category.query.filter(
+                Category.id == form.category_id.data,
+                (Category.user_id == current_user.id) | (Category.user_id.is_(None)),
+            ).first()
+            if not cat:
+                flash(_('La categoría seleccionada no es válida.'), 'warning')
+            elif cat.type != form.type.data:
                 flash(_('La categoría no corresponde al tipo de movimiento.'), 'warning')
             else:
                 tx.type = form.type.data
@@ -520,13 +668,16 @@ def edit_transaction(tx_id):
     return render_template('main/transaction_form.html',
                            form=form, title=_('Editar Movimiento'), cats_json=cats_json,
                            date_min=date_min.isoformat(), date_max=date_max.isoformat(),
-                           date_month_name=_locale_month_names()[month], date_year=year)
+                           date_month_name=_locale_month_names()[month], date_year=year,
+                            custom_budget_info=_custom_budget_info(year, month))
 
 
 @main.route('/transactions/<int:tx_id>/delete', methods=['POST'])
 @login_required
 def delete_transaction(tx_id):
     tx = Transaction.query.filter_by(id=tx_id, user_id=current_user.id).first_or_404()
+    if tx.is_demo:
+        return _reject_demo('main.transactions')
     db.session.delete(tx)
     db.session.commit()
     flash(_('Movimiento eliminado.'), 'success')
@@ -552,6 +703,13 @@ def _next_custom_color(user_id: int) -> str:
             return color
     count = Category.query.filter_by(user_id=user_id).count()
     return CUSTOM_PALETTE[count % len(CUSTOM_PALETTE)]
+
+
+@main.route('/ajax/categories')
+@login_required
+def ajax_categories():
+    cats = _user_categories()
+    return jsonify([{'id': c.id, 'name': c.name, 'type': c.type} for c in cats])
 
 
 @main.route('/categories', methods=['GET', 'POST'])
@@ -598,9 +756,13 @@ def categories():
 def delete_category(cat_id):
     category = Category.query.filter_by(id=cat_id, user_id=current_user.id).first_or_404()
 
-    tx_count  = Transaction.query.filter_by(category_id=cat_id).count()
-    rec_count = RecurringTransaction.query.filter_by(category_id=cat_id).count()
-    cb_count  = CategoryBudget.query.filter_by(category_id=cat_id).count()
+    if CustomBudget.query.filter_by(category_id=cat_id, user_id=current_user.id).first():
+        flash(_('Esta categoría pertenece a un presupuesto personalizado. Elimínalo desde la sección Presupuesto.'), 'warning')
+        return redirect(url_for('main.categories'))
+
+    tx_count  = Transaction.query.filter_by(user_id=current_user.id, category_id=cat_id).count()
+    rec_count = RecurringTransaction.query.filter_by(user_id=current_user.id, category_id=cat_id).count()
+    cb_count  = CategoryBudget.query.filter_by(user_id=current_user.id, category_id=cat_id).count()
 
     if tx_count or rec_count or cb_count:
         session['_cat_blocked'] = {
@@ -617,6 +779,42 @@ def delete_category(cat_id):
     return redirect(url_for('main.categories'))
 
 
+def _custom_budget_info(year=None, month=None):
+    """Returns serialisable dict for the user's custom budget in one month, or None."""
+    if year is None or month is None:
+        year, month = _get_period()
+    cb = _custom_budget_for_period(current_user.id, year, month)
+    if not cb:
+        return None
+    return {
+        'category_id': cb.category_id,
+        'name':        cb.name,
+    }
+
+
+def _expire_custom_budget(cb):
+    """
+    Deprecated/no destructiva:
+    Los presupuestos personalizados ya no se eliminan al vencer.
+    El estado se calcula dinámicamente según el período consultado.
+    """
+    return None
+
+
+def _custom_budget_for_period(user_id, year, month, active_only=True):
+    """Return one CustomBudget created for the selected month.
+    By default returns only the active (vigente) one — finalized budgets
+    are part of historical archive and shouldn't be surfaced as 'current'."""
+    q = CustomBudget.query.filter(
+        CustomBudget.user_id == user_id,
+        extract('year', CustomBudget.start_date) == year,
+        extract('month', CustomBudget.start_date) == month,
+    )
+    if active_only:
+        q = q.filter(CustomBudget.end_date >= date.today())
+    return q.order_by(CustomBudget.start_date.desc()).first()
+
+
 # ── Budget ─────────────────────────────────────────────────────────────────────
 
 @main.route('/budget', methods=['GET', 'POST'])
@@ -629,44 +827,47 @@ def budget():
     # ── Monthly budget form ────────────────────────────────────────────────────
     form = BudgetForm()
     form.month.choices = list(month_names.items())
+    form.month.data = month
+
+    edit_budget_id = None
+    edit_budget = request.args.get('edit_budget', type=int)
+    current_budget = Budget.query.filter_by(
+        user_id=current_user.id, year=year, month=month
+    ).first()
+    if edit_budget and not current_budget:
+        edit_budget = None
 
     if form.validate_on_submit():
-        existing = Budget.query.filter_by(
-            user_id=current_user.id,
-            year=year,
-            month=form.month.data,
-        ).first()
-        if existing:
-            existing.amount = form.amount.data
+        if _is_demo_year(year):
+            return _reject_demo('main.budget')
+        budget_id = request.form.get('budget_id', 0, type=int)
+        if budget_id:
+            target = Budget.query.filter_by(
+                id=budget_id, user_id=current_user.id, year=year, month=month
+            ).first_or_404()
+            target.amount = form.amount.data
+            db.session.commit()
             flash(_('Presupuesto actualizado.'), 'success')
+            return redirect(url_for('main.budget'))
+        if current_budget:
+            current_budget.amount = form.amount.data
+            db.session.commit()
+            flash(_('Presupuesto actualizado.'), 'success')
+            return redirect(url_for('main.budget'))
         else:
             db.session.add(Budget(
                 user_id=current_user.id,
                 year=year,
-                month=form.month.data,
+                month=month,
                 amount=form.amount.data,
             ))
+            db.session.commit()
             flash(_('Presupuesto creado.'), 'success')
-        db.session.commit()
-        return redirect(url_for('main.budget'))
+            return redirect(url_for('main.budget'))
 
     if request.method == 'GET':
-        edit_month = request.args.get('edit_month', type=int)
-        form.month.data = edit_month if edit_month else month
-        if edit_month:
-            current_budget = Budget.query.filter_by(
-                user_id=current_user.id, year=year, month=edit_month
-            ).first()
-            if current_budget:
-                form.amount.data = current_budget.amount
-        else:
-            form.amount.data = None
-
-    budgets = (
-        Budget.query.filter_by(user_id=current_user.id, year=year)
-        .order_by(Budget.month)
-        .all()
-    )
+        form.amount.data = current_budget.amount if current_budget else None
+    edit_budget_id = current_budget.id if current_budget else None
 
     # ── Category budget form ───────────────────────────────────────────────────
     cat_form = CategoryBudgetForm()
@@ -677,9 +878,9 @@ def budget():
         ).order_by(Category.name).all()
     )
 
-    # Exclude categories that already have a budget for this user
+    # Exclude categories that already have a budget for this period
     cat_budgets = (
-        CategoryBudget.query.filter_by(user_id=current_user.id)
+        CategoryBudget.query.filter_by(user_id=current_user.id, year=year, month=month)
         .order_by(CategoryBudget.id)
         .all()
     )
@@ -719,24 +920,73 @@ def budget():
             'status': 'over' if used_pct >= 100 else 'warning' if used_pct >= 80 else 'ok',
         })
 
+    # ── Custom budget: datos preparados por estado dinámico para este período ─
+    from app.services.finance import group_custom_budgets_for_period
+    custom_budget_groups = group_custom_budgets_for_period(current_user.id, year, month)
+    today = date.today()
+    period_start = date(year, month, 1)
+    period_end = date(year, month, calendar.monthrange(year, month)[1])
+    custom_budget = None
+    if custom_budget_groups['active']:
+        custom_budget = custom_budget_groups['active'][0]['budget']
+    # Solo los activos bloquean creación; los finalizados quedan como historial
+    has_current_custom_budget = bool(custom_budget_groups['active'])
+
+    # Si hay finalizados en el mes, el nuevo budget debe arrancar después del último end_date
+    last_finalized_end = None
+    if custom_budget_groups['finalized']:
+        last_finalized_end = max(item['end_date'] for item in custom_budget_groups['finalized'])
+
+    custom_date_min_date = max(today, period_start)
+    if last_finalized_end:
+        custom_date_min_date = max(custom_date_min_date, last_finalized_end + timedelta(days=1))
+    can_create_custom_budget = custom_date_min_date <= period_end
+    custom_date_min = custom_date_min_date.isoformat()
+    custom_date_max = period_end.isoformat()
+    custom_form = CustomBudgetForm()
+    edit_custom = request.args.get('edit_custom', type=int)
+    if edit_custom and not custom_budget:
+        edit_custom = None
+
+    if custom_budget and edit_custom and request.method == 'GET':
+        custom_form.name.data = custom_budget.name
+        custom_form.amount.data = custom_budget.amount
+        custom_form.start_date.data = custom_budget.start_date
+        custom_form.end_date.data = custom_budget.end_date
+
     return render_template(
         'main/budget.html',
         form=form,
         cat_form=cat_form,
-        budgets=budgets,
+        monthly_budget=current_budget,
         cat_budgets=cat_budgets,
         cat_budget_data=cat_budget_data,
         month_names=month_names,
         budget_year=year,
         sel_month_name=month_names.get(month, ''),
-        can_add_cat_budget=len(cat_budgets) < 3,
+        can_add_cat_budget=len(cat_budgets) < 5,
+        edit_budget_id=edit_budget_id,
+        edit_budget=edit_budget,
+        custom_budget=custom_budget,
+        custom_budget_groups=custom_budget_groups,
+        has_current_custom_budget=has_current_custom_budget,
+        can_create_custom_budget=can_create_custom_budget,
+        custom_date_min=custom_date_min,
+        custom_date_max=custom_date_max,
+        custom_form=custom_form,
+        edit_custom=edit_custom,
     )
 
 
 @main.route('/budget/<int:budget_id>/delete', methods=['POST'])
 @login_required
 def delete_budget(budget_id):
-    b = Budget.query.filter_by(id=budget_id, user_id=current_user.id).first_or_404()
+    year, month = _get_period()
+    if _is_demo_year(year):
+        return _reject_demo('main.budget')
+    b = Budget.query.filter_by(
+        id=budget_id, user_id=current_user.id, year=year, month=month
+    ).first_or_404()
     db.session.delete(b)
     db.session.commit()
     flash(_('Presupuesto eliminado.'), 'success')
@@ -746,8 +996,11 @@ def delete_budget(budget_id):
 @main.route('/budget/categoria/guardar', methods=['POST'])
 @login_required
 def save_category_budget():
+    year, month = _get_period()
+    if _is_demo_year(year):
+        return _reject_demo('main.budget')
     month_names = _locale_month_names()
-    cat_budgets_count = CategoryBudget.query.filter_by(user_id=current_user.id).count()
+    cat_budgets_count = CategoryBudget.query.filter_by(user_id=current_user.id, year=year, month=month).count()
 
     cat_form = CategoryBudgetForm()
     expense_cats = Category.query.filter(
@@ -756,11 +1009,13 @@ def save_category_budget():
     ).order_by(Category.name).all()
     taken_ids = {
         cb.category_id for cb in
-        CategoryBudget.query.filter_by(user_id=current_user.id).all()
+        CategoryBudget.query.filter_by(user_id=current_user.id, year=year, month=month).all()
     }
-    # Allow the same category if updating
+    # Allow the same category if updating within this period
     existing_for_cat = CategoryBudget.query.filter_by(
         user_id=current_user.id,
+        year=year,
+        month=month,
         category_id=request.form.get('category_id', type=int),
     ).first()
     available_cats = [
@@ -773,11 +1028,13 @@ def save_category_budget():
         if existing_for_cat:
             existing_for_cat.amount = cat_form.amount.data
             flash(_('Presupuesto de categoría actualizado.'), 'success')
-        elif cat_budgets_count >= 3:
-            flash(_('Ya tienes el máximo de 3 presupuestos de categoría.'), 'warning')
+        elif cat_budgets_count >= 5:
+            flash(_('Ya tienes el máximo de 5 presupuestos de categoría.'), 'warning')
         else:
             db.session.add(CategoryBudget(
                 user_id=current_user.id,
+                year=year,
+                month=month,
                 category_id=cat_form.category_id.data,
                 amount=cat_form.amount.data,
             ))
@@ -795,9 +1052,162 @@ def save_category_budget():
 @login_required
 def delete_category_budget(cb_id):
     cb = CategoryBudget.query.filter_by(id=cb_id, user_id=current_user.id).first_or_404()
+    if _is_demo_year(cb.year):
+        return _reject_demo('main.budget')
     db.session.delete(cb)
     db.session.commit()
     flash(_('Presupuesto de categoría eliminado.'), 'success')
+    return redirect(url_for('main.budget'))
+
+
+@main.route('/budget/personalizado/guardar', methods=['POST'])
+@login_required
+def save_custom_budget():
+    year, month = _get_period()
+    custom_form = CustomBudgetForm()
+    current_budget_id = request.form.get('custom_budget_id', type=int)
+    current_budget = None
+    if current_budget_id:
+        current_budget = CustomBudget.query.filter_by(
+            id=current_budget_id, user_id=current_user.id
+        ).first_or_404()
+
+    today = date.today()
+
+    # Bloquear edición de presupuestos finalizados (historial inmutable)
+    if current_budget and current_budget.end_date < today:
+        flash(_('No se puede editar un presupuesto finalizado. Queda como historial.'), 'warning')
+        return redirect(url_for('main.budget'))
+
+    if not custom_form.validate_on_submit():
+        for field_errors in custom_form.errors.values():
+            for e in field_errors:
+                flash(e, 'danger')
+        return redirect(url_for('main.budget', edit_custom=1 if current_budget else None))
+
+    name = custom_form.name.data.strip()
+    start = custom_form.start_date.data
+    end = custom_form.end_date.data
+
+    if (start.year, start.month) != (year, month) or (end.year, end.month) != (year, month):
+        flash(_('El presupuesto personalizado debe pertenecer al mes seleccionado.'), 'danger')
+        return redirect(url_for('main.budget', edit_custom=1 if current_budget else None))
+
+    if start < today and (not current_budget or start != current_budget.start_date):
+        flash(_('La fecha de inicio no puede ser anterior a hoy.'), 'danger')
+        return redirect(url_for('main.budget', edit_custom=1 if current_budget else None))
+
+    if (start.year, start.month) != (end.year, end.month):
+        flash(_('El presupuesto personalizado debe estar dentro del mismo mes.'), 'danger')
+        return redirect(url_for('main.budget', edit_custom=1 if current_budget else None))
+
+    # Bloqueo solo si hay otro presupuesto VIGENTE en el mes (los finalizados no bloquean)
+    existing_active = CustomBudget.query.filter(
+        CustomBudget.user_id == current_user.id,
+        extract('year', CustomBudget.start_date) == year,
+        extract('month', CustomBudget.start_date) == month,
+        CustomBudget.end_date >= today,
+    )
+    if current_budget:
+        existing_active = existing_active.filter(CustomBudget.id != current_budget.id)
+    existing_active = existing_active.first()
+
+    if existing_active:
+        flash(_('Ya tienes un presupuesto personalizado vigente para este mes.'), 'danger')
+        return redirect(url_for('main.budget', edit_custom=1 if current_budget else None))
+
+    # Si hay finalizados en el mes, el nuevo start debe ser posterior al último end_date
+    if not current_budget:
+        last_finalized_end = db.session.query(func.max(CustomBudget.end_date)).filter(
+            CustomBudget.user_id == current_user.id,
+            extract('year', CustomBudget.start_date) == year,
+            extract('month', CustomBudget.start_date) == month,
+            CustomBudget.end_date < today,
+        ).scalar()
+        if last_finalized_end and start <= last_finalized_end:
+            flash(_('La fecha de inicio debe ser posterior al %(d)s (último presupuesto finalizado).',
+                    d=last_finalized_end.strftime('%d/%m/%Y')), 'danger')
+            return redirect(url_for('main.budget'))
+
+    conflict = Category.query.filter(
+        (Category.user_id == current_user.id) | (Category.user_id.is_(None)),
+        Category.name == name,
+    )
+    if current_budget:
+        conflict = conflict.filter(Category.id != current_budget.category_id)
+    conflict = conflict.first()
+    if conflict:
+        flash(_('Ya existe una categoría con ese nombre. Elige otro.'), 'danger')
+        return redirect(url_for('main.budget', edit_custom=1 if current_budget else None))
+
+    if current_budget:
+        current_budget.name = name
+        current_budget.amount = custom_form.amount.data
+        current_budget.start_date = start
+        current_budget.end_date = end
+        if current_budget.category and current_budget.category.user_id == current_user.id:
+            current_budget.category.name = name
+        db.session.commit()
+        flash(_('Presupuesto personalizado actualizado.'), 'success')
+        return redirect(url_for('main.budget'))
+
+    cat = Category(
+        name=name, type='expense',
+        user_id=current_user.id,
+        color=_next_custom_color(current_user.id),
+    )
+    db.session.add(cat)
+    db.session.flush()
+    db.session.add(CustomBudget(
+        user_id=current_user.id,
+        name=name,
+        amount=custom_form.amount.data,
+        start_date=start,
+        end_date=end,
+        category_id=cat.id,
+    ))
+    db.session.commit()
+    flash(_('Presupuesto personalizado creado. La categoría "%(name)s" fue creada automáticamente.', name=name), 'success')
+
+    return redirect(url_for('main.budget'))
+
+
+@main.route('/budget/personalizado/<int:cb_id>/delete', methods=['POST'])
+@login_required
+def delete_custom_budget(cb_id):
+    cb = CustomBudget.query.filter_by(id=cb_id, user_id=current_user.id).first_or_404()
+    today = date.today()
+
+    # Finalizado → historial inmutable, no se puede eliminar
+    if cb.end_date < today:
+        flash(_('No se puede eliminar un presupuesto finalizado. Queda como historial.'), 'warning')
+        return redirect(url_for('main.budget'))
+
+    # Activo → eliminación en cascada: budget + movimientos + recurrentes + cat-budgets + categoría.
+    # Toda esa data sólo existe por este presupuesto, así que se va junta.
+    category = cb.category if cb.category and cb.category.user_id == current_user.id else None
+    cat_name = category.name if category else ''
+
+    tx_deleted = Transaction.query.filter_by(
+        user_id=current_user.id, category_id=cb.category_id
+    ).delete(synchronize_session=False)
+    rec_deleted = RecurringTransaction.query.filter_by(
+        user_id=current_user.id, category_id=cb.category_id
+    ).delete(synchronize_session=False)
+    CategoryBudget.query.filter_by(
+        user_id=current_user.id, category_id=cb.category_id
+    ).delete(synchronize_session=False)
+
+    db.session.delete(cb)
+    if category:
+        db.session.delete(category)
+    db.session.commit()
+
+    if tx_deleted or rec_deleted:
+        flash(_('Presupuesto "%(n)s" eliminado junto con %(tx)s movimientos y %(rec)s recurrentes asociados.',
+                n=cat_name, tx=tx_deleted, rec=rec_deleted), 'success')
+    else:
+        flash(_('Presupuesto y categoría "%(n)s" eliminados.', n=cat_name), 'success')
     return redirect(url_for('main.budget'))
 
 
@@ -810,100 +1220,30 @@ def global_dashboard():
     sel_year_g = request.args.get('year', session.get('selected_year', today.year), type=int)
     from_month = max(1, min(12, request.args.get('from_month', 1, type=int)))
     to_month = max(from_month, min(12, request.args.get('to_month', 12, type=int)))
+    _generate_pending_recurring_range(current_user.id, sel_year_g, from_month, to_month)
 
-    # ── Bar chart: expenses by category ──
-    bar_rows = (
-        db.session.query(
-            Category.id, Category.name, Category.color,
-            func.sum(Transaction.amount).label('total'),
-        )
-        .join(Transaction)
-        .filter(
-            Transaction.user_id == current_user.id,
-            Transaction.type == 'expense',
-            extract('year', Transaction.date) == sel_year_g,
-            extract('month', Transaction.date) >= from_month,
-            extract('month', Transaction.date) <= to_month,
-        )
-        .group_by(Category.id, Category.name, Category.color)
-        .order_by(func.sum(Transaction.amount).desc())
-        .all()
-    )
+    from app.services.finance import get_global_summary
+    summary = get_global_summary(current_user.id, sel_year_g, from_month, to_month)
+
+    # ── Range charts: expense categories + selected-year monthly trend ───────
+    bar_rows = summary['expense_by_category']
     _fb = list(islice(cycle(CHART_COLORS), max(len(bar_rows), 1)))
-    bar_colors = [r.color if r.color else _fb[i] for i, r in enumerate(bar_rows)]
+    bar_colors = [r.get('color') or _fb[i] for i, r in enumerate(bar_rows)]
+    trend_income = summary['trend_income']
+    trend_expense = summary['trend_expense']
 
-    # ── Line chart: 12-month trend ──
-    trend_income, trend_expense = [], []
-    for m in range(1, 13):
-        inc = db.session.query(func.sum(Transaction.amount)).filter(
-            Transaction.user_id == current_user.id,
-            Transaction.type == 'income',
-            extract('year', Transaction.date) == sel_year_g,
-            extract('month', Transaction.date) == m,
-        ).scalar() or 0
-        exp = db.session.query(func.sum(Transaction.amount)).filter(
-            Transaction.user_id == current_user.id,
-            Transaction.type == 'expense',
-            extract('year', Transaction.date) == sel_year_g,
-            extract('month', Transaction.date) == m,
-        ).scalar() or 0
-        trend_income.append(float(inc))
-        trend_expense.append(float(exp))
-
-    # ── Grouped bar chart: yearly totals (all years) ──
-    all_tx = (
-        db.session.query(
-            extract('year', Transaction.date).label('yr'),
-            Transaction.type,
-            func.sum(Transaction.amount).label('total'),
-        )
-        .filter(Transaction.user_id == current_user.id)
-        .group_by(extract('year', Transaction.date), Transaction.type)
-        .order_by(extract('year', Transaction.date))
-        .all()
-    )
-    all_yrs = sorted(set([int(r.yr) for r in all_tx]))
-    yearly_income = [
-        float(next((r.total for r in all_tx if int(r.yr) == y and r.type == 'income'), 0))
-        for y in all_yrs
-    ]
-    yearly_expense = [
-        float(next((r.total for r in all_tx if int(r.yr) == y and r.type == 'expense'), 0))
-        for y in all_yrs
-    ]
-
-    # ── Multi-year trend line chart: expenses grouped by year and month ──
-    multi_year_tx = (
-        db.session.query(
-            extract('year', Transaction.date).label('yr'),
-            extract('month', Transaction.date).label('mo'),
-            func.sum(Transaction.amount).label('total'),
-        )
-        .filter(
-            Transaction.user_id == current_user.id,
-            Transaction.type == 'expense'
-        )
-        .group_by(extract('year', Transaction.date), extract('month', Transaction.date))
-        .order_by(extract('year', Transaction.date), extract('month', Transaction.date))
-        .all()
-    )
-    
+    # ── Annual charts: yearly totals + expense trend by year ─────────────────
+    all_yrs = [r['year'] for r in summary['yearly_summary']]
+    yearly_income = [r['income'] for r in summary['yearly_summary']]
+    yearly_expense = [r['expense'] for r in summary['yearly_summary']]
     multi_year_datasets = []
     my_color_cycle = cycle(CHART_COLORS)
-    
-    # We only show years where tracking info actually exists under 'expense'
-    my_yrs = sorted(set([int(r.yr) for r in multi_year_tx]))
-    
-    for y in my_yrs:
+
+    for row in summary['multi_year_expense_trend']:
         color = next(my_color_cycle)
-        m_data = [0.0] * 12
-        for r in multi_year_tx:
-            if int(r.yr) == y:
-                m_data[int(r.mo) - 1] = float(r.total)
-                
         multi_year_datasets.append({
-            "label": str(y),
-            "data": m_data,
+            "label": str(row['year']),
+            "data": row['monthly'],
             "borderColor": color,
             "backgroundColor": "transparent",
             "borderWidth": 2.5,
@@ -924,8 +1264,8 @@ def global_dashboard():
         from_month=from_month,
         to_month=to_month,
         bar_count=len(bar_rows),
-        bar_labels=json.dumps([r.name for r in bar_rows]),
-        bar_data=json.dumps([float(r.total) for r in bar_rows]),
+        bar_labels=json.dumps([r['name'] for r in bar_rows]),
+        bar_data=json.dumps([r['total'] for r in bar_rows]),
         bar_colors=json.dumps(bar_colors),
         trend_income=json.dumps(trend_income),
         trend_expense=json.dumps(trend_expense),
@@ -981,6 +1321,8 @@ def meta_form(goal_id=None):
     goal = None
     if goal_id:
         goal = SavingsGoal.query.filter_by(id=goal_id, user_id=current_user.id).first_or_404()
+        if goal.is_demo:
+            return _reject_demo('main.metas')
 
     form = SavingsGoalForm(obj=goal)
     if form.validate_on_submit():
@@ -1004,6 +1346,8 @@ def meta_form(goal_id=None):
 @login_required
 def meta_delete(goal_id):
     goal = SavingsGoal.query.filter_by(id=goal_id, user_id=current_user.id).first_or_404()
+    if goal.is_demo:
+        return _reject_demo('main.metas')
     db.session.delete(goal)
     db.session.commit()
     flash(_('Meta eliminada.'), 'success')
@@ -1014,6 +1358,8 @@ def meta_delete(goal_id):
 @login_required
 def meta_abonar(goal_id):
     goal = SavingsGoal.query.filter_by(id=goal_id, user_id=current_user.id).first_or_404()
+    if goal.is_demo:
+        return jsonify({'error': _('Esta meta es de demostración y no puede modificarse.')}), 403
     data = request.get_json(silent=True) or {}
     try:
         amount = float(data.get('amount', 0))
@@ -1038,6 +1384,8 @@ def meta_abonar(goal_id):
 @login_required
 def meta_completar(goal_id):
     goal = SavingsGoal.query.filter_by(id=goal_id, user_id=current_user.id).first_or_404()
+    if goal.is_demo:
+        return _reject_demo('main.metas')
     goal.is_completed = not goal.is_completed
     db.session.commit()
     return redirect(url_for('main.metas'))
@@ -1048,16 +1396,28 @@ def meta_completar(goal_id):
 @main.route('/recurrentes')
 @login_required
 def recurrentes():
-    items = RecurringTransaction.query.filter_by(user_id=current_user.id)\
-        .order_by(RecurringTransaction.is_active.desc(), RecurringTransaction.type, RecurringTransaction.description).all()
+    year, month = _get_period()
+    period_start = date(year, month, 1)
+    period_end = date(year, month, calendar.monthrange(year, month)[1])
+    all_items = RecurringTransaction.query.filter(
+        RecurringTransaction.user_id == current_user.id,
+        extract('year', RecurringTransaction.created_at) == year,
+    ).order_by(RecurringTransaction.is_active.desc(), RecurringTransaction.type, RecurringTransaction.description).all()
 
-    active = [r for r in items if r.is_active]
-    total_expense = float(sum(r.amount for r in active if r.type == 'expense'))
-    total_income  = float(sum(r.amount for r in active if r.type == 'income'))
+    def _vigente(r):
+        start = r.created_at.date() if r.created_at else date(year, 1, 1)
+        return start <= period_end and not (r.end_date and r.end_date < period_start)
 
-    # Chart data: group active by category
+    items       = [r for r in all_items if _vigente(r)]
+    finalizadas = [r for r in all_items if not _vigente(r)]
+
+    active_vigentes = [r for r in items if r.is_active]
+    total_expense = float(sum(r.amount for r in active_vigentes if r.type == 'expense'))
+    total_income  = float(sum(r.amount for r in active_vigentes if r.type == 'income'))
+
+    # Chart data: group active vigentes by category
     cat_map = {}
-    for r in active:
+    for r in active_vigentes:
         key = (r.category.name, r.type)
         cat_map[key] = cat_map.get(key, 0) + float(r.amount)
 
@@ -1067,6 +1427,7 @@ def recurrentes():
 
     return render_template('main/recurrentes.html',
                            items=items,
+                           finalizadas=finalizadas,
                            total_expense=total_expense,
                            total_income=total_income,
                            chart_labels=chart_labels,
@@ -1083,48 +1444,136 @@ def recurrente_form(rec_id=None):
     rec = None
     if rec_id:
         rec = RecurringTransaction.query.filter_by(id=rec_id, user_id=current_user.id).first_or_404()
+        if rec.is_demo:
+            return _reject_demo('main.recurrentes')
+    rec_year = rec.created_at.year if rec and rec.created_at else date.today().year
 
     form = RecurringTransactionForm(obj=rec)
     cats = _user_categories()
     form.category_id.choices = [(c.id, c.name) for c in cats]
-    all_cats_json = json.dumps([{'id': c.id, 'name': c.name, 'type': c.type} for c in cats])
+    all_cats_json = [
+        {
+            'id': c.id,
+            'name': c.name,
+            'type': c.type,
+            'is_custom': c.user_id == current_user.id,
+        }
+        for c in cats
+    ]
 
     if form.validate_on_submit():
-        cat = db.session.get(Category, form.category_id.data)
+        cat = Category.query.filter(
+            Category.id == form.category_id.data,
+            (Category.user_id == current_user.id) | (Category.user_id.is_(None)),
+        ).first()
         if not cat or cat.type != form.type.data:
             flash(_('La categoría no corresponde al tipo seleccionado.'), 'danger')
+        elif form.end_date.data and form.end_date.data.year != rec_year:
+            flash(_('La fecha de término debe estar dentro del año de la recurrente.'), 'danger')
+        elif form.end_date.data and form.end_date.data < date.today() and rec is None:
+            flash(_('La fecha de término no puede ser anterior a hoy.'), 'danger')
         else:
-            if rec is None:
+            is_new = rec is None
+            if is_new:
                 rec = RecurringTransaction(user_id=current_user.id)
                 db.session.add(rec)
+                was_active = False
+            else:
+                was_active = rec.is_active
             rec.type         = form.type.data
             rec.amount       = form.amount.data
             rec.category_id  = form.category_id.data
             rec.description  = form.description.data
             rec.day_of_month = form.day_of_month.data
+            rec.end_date     = form.end_date.data or None
             rec.is_active    = form.is_active.data
             db.session.commit()
-            flash(_('Transacción recurrente guardada.'), 'success')
+
+            current_month_date = None
+            added = 0
+
+            # 1) Backfill solo cuando la recurrente acaba de activarse
+            if not was_active and rec.is_active:
+                added = _backfill_recurring(current_user.id, rec)
+
+            # 2) Mes actual: opt-in explícito del usuario (independiente de is_active)
+            if is_new and request.form.get('include_current_month') == 'y':
+                today = date.today()
+                if rec.day_of_month < today.day:
+                    last_day = calendar.monthrange(today.year, today.month)[1]
+                    tx_date = date(today.year, today.month, min(rec.day_of_month, last_day))
+                    already = Transaction.query.filter_by(
+                        user_id=current_user.id, recurring_id=rec.id
+                    ).filter(
+                        extract('year', Transaction.date) == today.year,
+                        extract('month', Transaction.date) == today.month,
+                    ).first()
+                    if not already:
+                        db.session.add(Transaction(
+                            user_id=current_user.id,
+                            category_id=rec.category_id,
+                            type=rec.type,
+                            amount=rec.amount,
+                            description=rec.description or '',
+                            date=tx_date,
+                            recurring_id=rec.id,
+                        ))
+                        db.session.commit()
+                        current_month_date = tx_date
+
+            # 3) Mensaje de éxito según los caminos ejecutados
+            if current_month_date and added:
+                flash(_('Recurrente creada. Se registró el mes actual (%(date)s) y %(n)s entradas futuras generadas.',
+                        date=current_month_date.strftime('%d/%m/%Y'), n=added), 'success')
+            elif current_month_date:
+                flash(_('Recurrente creada. Se registró el mes actual (%(date)s).',
+                        date=current_month_date.strftime('%d/%m/%Y')), 'success')
+            elif is_new and added:
+                flash(_('Recurrente creada. %(n)s entradas generadas hasta fin de año.', n=added), 'success')
+            elif added:
+                flash(_('Recurrente activada. %(n)s transacciones generadas retroactivamente.', n=added), 'success')
+            else:
+                flash(_('Transacción recurrente guardada.'), 'success')
             return redirect(url_for('main.recurrentes'))
 
     if request.method == 'GET' and rec is None:
         form.is_active.data = True
 
+    month_names = _locale_month_names()
+    generation_start = rec.created_at.date() if rec and rec.created_at else date.today()
+    generation_start_label = f"{month_names[generation_start.month]} {generation_start.year}"
+    recurrence_year_end = date(generation_start.year, 12, 31)
+
     return render_template('main/recurrente_form.html',
                            form=form,
                            rec=rec,
                            all_cats_json=all_cats_json,
+                           today_iso=date.today().isoformat(),
+                           today_day=date.today().day,
+                           generation_start_label=generation_start_label,
+                           recurrence_year_end=recurrence_year_end.isoformat(),
                            title=_('Editar Recurrente') if rec else _('Nueva Recurrente'))
 
 
-@main.route('/recurrentes/<int:rec_id>/eliminar', methods=['POST'])
+@main.route('/recurrentes/<int:rec_id>/finalizar', methods=['POST'])
 @login_required
-def recurrente_delete(rec_id):
+def recurrente_finalizar(rec_id):
     rec = RecurringTransaction.query.filter_by(id=rec_id, user_id=current_user.id).first_or_404()
-    db.session.delete(rec)
+    if rec.is_demo:
+        return _reject_demo('main.recurrentes')
+    rec.end_date = date.today()
+    rec.is_active = False
     db.session.commit()
-    flash(_('Transacción recurrente eliminada.'), 'success')
+    flash(_('Recurrente finalizada. Ya no generará nuevos movimientos.'), 'success')
     return redirect(url_for('main.recurrentes'))
+
+
+# ── Guía de usuario ───────────────────────────────────────────────────────────
+
+@main.route('/ayuda')
+@login_required
+def ayuda():
+    return render_template('main/guia.html')
 
 
 # ── Configuración de cuenta ────────────────────────────────────────────────────
@@ -1134,6 +1583,13 @@ def recurrente_delete(rec_id):
 def configurar():
     form = ConfigForm()
     smtp_form = SMTPConfigForm()
+    ai_form = AIConfigForm()
+
+    # Get or lazy-create the AI config row
+    ai_config = current_user.ai_config
+    if not ai_config:
+        ai_config = UserAIConfig(user_id=current_user.id)
+        db.session.add(ai_config)
 
     form.country.choices = [(c[0], f"{c[0]}  —  {c[2]}") for c in COUNTRIES_CURRENCIES]
     _country_map = {c[0]: {'symbol': c[1], 'currency': c[2], 'code': c[3], 'locale': c[4]}
@@ -1166,6 +1622,18 @@ def configurar():
             flash(_('Configuración de correo (SMTP) guardada exitosamente.'), 'success')
             return redirect(url_for('main.configurar'))
 
+    elif 'submit_ai' in request.form:
+        if ai_form.validate_on_submit():
+            ai_config.enabled = ai_form.enabled.data
+            ai_config.provider = ai_form.provider.data
+            ai_config.model = ai_form.model.data or None
+            ai_config.base_url = ai_form.base_url.data or None
+            if ai_form.api_token.data:
+                ai_config.api_token_encrypted = encrypt_ai_token(ai_form.api_token.data)
+            db.session.commit()
+            flash(_('Configuración del escáner IA guardada.'), 'success')
+            return redirect(url_for('main.configurar'))
+
     elif 'submit_admin' in request.form:
         if not (current_user.is_admin and current_user.is_first_admin):
             abort(403)
@@ -1180,6 +1648,11 @@ def configurar():
         current_user.currency_symbol = form.currency_symbol.data.strip() or '$'
         current_user.currency_code = country_data['code']
         current_user.currency_locale = country_data['locale']
+        # Tasa del dólar: solo aplica si la moneda principal NO es USD; si lo es, se limpia.
+        if country_data['code'] == 'USD':
+            current_user.usd_rate = None
+        else:
+            current_user.usd_rate = form.usd_rate.data
         db.session.commit()
         flash(_('Configuración regional guardada exitosamente.'), 'success')
         return redirect(url_for('main.configurar'))
@@ -1187,6 +1660,7 @@ def configurar():
     if request.method == 'GET':
         form.country.data = current_user.country or 'Otro'
         form.currency_symbol.data = current_user.currency_symbol or '$'
+        form.usd_rate.data = current_user.usd_rate
 
         smtp_form.smtp_enabled.data = email_config.smtp_enabled
         smtp_form.smtp_host.data = email_config.smtp_host
@@ -1196,6 +1670,12 @@ def configurar():
         smtp_form.smtp_use_ssl.data = email_config.smtp_use_ssl
         smtp_form.sender_email.data = email_config.sender_email
         smtp_form.sender_name.data = email_config.sender_name
+
+        ai_form.enabled.data = ai_config.enabled
+        ai_form.provider.data = ai_config.provider or 'openai'
+        ai_form.model.data = ai_config.model
+        ai_form.base_url.data = ai_config.base_url
+        # Never repopulate api_token (PasswordField — never shown)
 
     admin_smtp_available = False
     if not current_user.is_first_admin:
@@ -1208,6 +1688,8 @@ def configurar():
     return render_template('main/configurar.html',
                            form=form,
                            smtp_form=smtp_form,
+                           ai_form=ai_form,
+                           ai_config=ai_config,
                            pwd_form=ChangePasswordForm(),
                            email_config=email_config,
                            admin_smtp_available=admin_smtp_available,
@@ -1219,7 +1701,7 @@ def configurar():
 @main.route('/configurar/theme', methods=['POST'])
 @login_required
 def set_theme():
-    valid_themes = {'dark', 'ocean', 'carbon', 'dusk', 'forest', 'pearl', 'abyss', 'graphite'}
+    valid_themes = {'dark', 'ocean', 'carbon', 'dusk', 'forest', 'pearl', 'abyss', 'graphite', 'enterprise'}
     theme = request.form.get('theme', 'dark')
     if theme not in valid_themes:
         theme = 'dark'
@@ -1261,6 +1743,14 @@ def send_report_now():
 @login_required
 def help_toggle():
     current_user.help_mode_enabled = not current_user.help_mode_enabled
+    db.session.commit()
+    return redirect(url_for('main.configurar'))
+
+
+@main.route('/configurar/insights-panel-toggle', methods=['POST'])
+@login_required
+def insights_panel_toggle():
+    current_user.insights_panel_enabled = not current_user.insights_panel_enabled
     db.session.commit()
     return redirect(url_for('main.configurar'))
 

@@ -1,0 +1,264 @@
+{# ─── Insights panel (compact) ────────────────────────────────────────────────
+   Inputs (from main.dashboard):
+     - alerts          : list[AlertDTO]   (sorted critical → warning → info)
+     - forecast        : ForecastDTO | None
+     - health          : HealthScoreDTO | None
+     - alerts_limit    : int  (how many to show; remainder collapsed)
+     - insights_maturity : dict | None  (historical_months, data_maturity, learning_mode)
+─────────────────────────────────────────────────────────────────────────────── #}
+{% set _sev_cls = {
+    'critical': {'bg':'rgba(239,68,68,0.10)', 'border':'rgba(239,68,68,0.45)', 'fg':'#EF4444', 'icon':'exclamation-octagon-fill'},
+    'warning':  {'bg':'rgba(245,158,11,0.10)', 'border':'rgba(245,158,11,0.45)', 'fg':'#F59E0B', 'icon':'exclamation-triangle-fill'},
+    'info':     {'bg':'rgba(56,189,248,0.10)', 'border':'rgba(56,189,248,0.40)', 'fg':'#38BDF8', 'icon':'info-circle-fill'},
+} %}
+{% set _conf_label = {'high': _('Alta'), 'medium': _('Media'), 'low': _('Baja')} %}
+
+{# Precalcular step de madurez (disponible para header y barra) #}
+{% if insights_maturity %}
+{% set _m = insights_maturity.historical_months %}
+{% set _step = 1 if _m == 0 else (2 if _m < 3 else (3 if _m < 6 else 4)) %}
+{% set _step_labels = [_('Configurando'), _('Aprendiendo'), _('Desarrollando'), _('Completo')] %}
+{% set _pcts = [0, 33, 66, 100] %}
+{% endif %}
+
+<div class="card mb-4">
+    <div class="card-body">
+
+        {# ── Header ── #}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0 fw-semibold">
+                <i class="bi bi-stars" style="color:var(--monetra-primary,#00C896);"></i>
+                {{ _('Insights del mes') }}
+            </h6>
+            {% if insights_maturity %}
+            <span class="badge"
+                  style="font-size:.65rem;
+                         background:rgba(0,200,150,0.10);
+                         color:#00C896;
+                         border:1px solid rgba(0,200,150,0.30);">
+                {{ _step_labels[_step - 1] }}
+                &nbsp;·&nbsp;
+                {{ _m }} {{ _('mes') if _m == 1 else _('meses') }}
+            </span>
+            {% endif %}
+        </div>
+
+        {# ── Barra de madurez ── #}
+        {% if insights_maturity %}
+        <div class="mb-4 pb-3" style="border-bottom:1px solid var(--card-border);">
+
+            {# Track + dots #}
+            <div class="position-relative d-flex align-items-center mb-2" style="height:18px;">
+                {# Línea de fondo #}
+                <div class="position-absolute w-100"
+                     style="top:50%; transform:translateY(-50%); height:2px;
+                            background:rgba(255,255,255,0.08); border-radius:2px;"></div>
+                {# Línea de progreso #}
+                <div class="position-absolute"
+                     style="top:50%; left:0; transform:translateY(-50%); height:2px;
+                            width:{{ _pcts[_step - 1] }}%;
+                            background:var(--monetra-primary,#00C896);
+                            border-radius:2px; transition:width .4s ease;"></div>
+                {# Dots #}
+                <div class="position-absolute w-100 d-flex justify-content-between" style="padding:0 1px;">
+                    {% for i in [1, 2, 3, 4] %}
+                    <div style="width:14px; height:14px; border-radius:50%; position:relative; z-index:2;
+                                background:{{ 'var(--monetra-primary,#00C896)' if i <= _step else 'var(--card-bg,#1e1e2e)' }};
+                                border:2px solid {{ 'var(--monetra-primary,#00C896)' if i <= _step else 'rgba(255,255,255,0.15)' }};
+                                {{ 'box-shadow:0 0 8px rgba(0,200,150,.5);' if i == _step else '' }}">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {# Etiquetas #}
+            <div class="d-flex justify-content-between" style="padding:0 1px;">
+                {% for label in _step_labels %}
+                <span style="font-size:.6rem;
+                             {{ 'color:var(--monetra-primary,#00C896); font-weight:600;' if loop.index == _step else 'color:var(--monetra-text-muted);' }}">
+                    {{ label }}
+                </span>
+                {% endfor %}
+            </div>
+
+            {# Mensaje contextual #}
+            <div class="mt-2 small text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                {% if _step == 4 %}
+                    {{ _('El análisis opera con máxima precisión') }}
+                {% elif _step == 3 %}
+                    {% set _left = 6 - _m %}
+                    {{ _('Faltan') }} {{ _left }} {{ _('mes') if _left == 1 else _('meses') }} {{ _('para activar análisis completo') }}
+                {% elif _step == 2 %}
+                    {% set _left = 3 - _m %}
+                    {{ _('Faltan') }} {{ _left }} {{ _('mes') if _left == 1 else _('meses') }} {{ _('para activar predicciones precisas') }}
+                {% else %}
+                    {{ _('Registra transacciones este mes para comenzar el análisis') }}
+                {% endif %}
+            </div>
+
+            {% if not current_user.insights_panel_enabled %}
+            <div class="mt-3 pt-2" style="border-top:1px solid var(--card-border);">
+                <a href="{{ url_for('main.configurar') }}#insights-panel"
+                   class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-lightning-charge me-1"></i>
+                    {{ _('Activar Salud financiera, Proyección y Alertas') }}
+                </a>
+            </div>
+            {% endif %}
+
+        </div>
+        {% endif %}
+
+        {# ── Contenido: health + forecast + alertas ── #}
+        {% if current_user.insights_panel_enabled %}
+        <div class="row g-3">
+
+            {# ── Health score ─── #}
+            <div class="col-lg-3 col-md-4">
+                {% if health %}
+                {% set _hs = health.overall_score %}
+                {% set _hs_color = '#EF4444' if _hs < 40 else ('#F59E0B' if _hs < 70 else '#00C896') %}
+                {% set _learning = insights_maturity and insights_maturity.learning_mode %}
+                <div class="p-3 rounded h-100"
+                     style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="small text-muted fw-semibold mb-2 d-flex align-items-center gap-1">
+                        {{ _('Salud financiera') }}
+                        {% if _learning %}
+                        <span style="font-size:.6rem; background:rgba(245,158,11,0.12);
+                                     color:#F59E0B; border:1px solid rgba(245,158,11,0.35);
+                                     border-radius:.25rem; padding:0 .35rem;">
+                            {{ _('estimado') }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex align-items-baseline gap-2">
+                        <div class="fw-bold" style="font-size:2.4rem; color:{{ _hs_color }}; line-height:1;">{{ _hs }}</div>
+                        <div class="small text-muted">/ 100</div>
+                    </div>
+                    <div class="progress mt-2" style="height:6px;">
+                        <div class="progress-bar"
+                             role="progressbar"
+                             style="width:{{ _hs }}%; background-color:{{ _hs_color }};"
+                             aria-valuenow="{{ _hs }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="small text-muted mt-2">
+                        {{ _('Cashflow') }} {{ health.cashflow_score }} · {{ _('Pres.') }} {{ health.budget_score }} · {{ _('Ahorro') }} {{ health.savings_score }}
+                    </div>
+                </div>
+                {% else %}
+                <div class="p-3 rounded h-100 d-flex flex-column justify-content-center"
+                     style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="small text-muted">{{ _('Score no disponible') }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            {# ── Forecast ─── #}
+            <div class="col-lg-4 col-md-8">
+                {% if forecast %}
+                {% set _bal_color = '#EF4444' if forecast.expected_balance < 0 else '#00C896' %}
+                <div class="p-3 rounded h-100"
+                     style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="small text-muted fw-semibold">{{ _('Proyección de cierre') }}</div>
+                        <span class="badge"
+                              style="font-size:.65rem; background:rgba(0,200,150,0.10);
+                                     color:#00C896; border:1px solid rgba(0,200,150,0.35);">
+                            {{ _conf_label.get(forecast.confidence, forecast.confidence) }}
+                        </span>
+                    </div>
+                    <div class="row g-2 small">
+                        <div class="col-6">
+                            <div class="text-muted">{{ _('Ingresos') }}</div>
+                            <div class="fw-bold" style="color:#00C896;">{{ forecast.expected_income|money }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted">{{ _('Gastos') }}</div>
+                            <div class="fw-bold" style="color:#EF4444;">{{ forecast.expected_expense|money }}</div>
+                        </div>
+                        <div class="col-12 mt-1 pt-2" style="border-top:1px solid var(--card-border);">
+                            <div class="text-muted">{{ _('Balance proyectado') }}</div>
+                            <div class="fw-bold" style="color:{{ _bal_color }}; font-size:1.1rem;">
+                                {{ forecast.expected_balance|money }}
+                            </div>
+                        </div>
+                        {% if forecast.projected_budget_usage_pct is not none %}
+                        <div class="col-12">
+                            <div class="text-muted small">
+                                {{ _('Uso proyectado del presupuesto:') }}
+                                <span class="fw-semibold">{{ "%.0f"|format(forecast.projected_budget_usage_pct) }}%</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="p-3 rounded h-100 d-flex flex-column justify-content-center"
+                     style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="small text-muted">{{ _('Proyección no disponible') }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            {# ── Alertas ─── #}
+            <div class="col-lg-5 col-md-12">
+                <div class="p-3 rounded h-100"
+                     style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="small text-muted fw-semibold mb-2">
+                        {{ _('Alertas') }}
+                        <span class="badge ms-1"
+                              style="background:rgba(255,255,255,0.05); color:var(--monetra-text-muted); font-weight:500;">
+                            {{ alerts|length }}
+                        </span>
+                    </div>
+                    {% if alerts %}
+                        {% set _shown = alerts[:(alerts_limit or 3)] %}
+                        <div class="d-flex flex-column gap-2">
+                            {% for a in _shown %}
+                            {% set _s = _sev_cls.get(a.severity, _sev_cls['info']) %}
+                            <div class="p-2 rounded d-flex gap-2 align-items-start"
+                                 style="background:{{ _s.bg }}; border:1px solid {{ _s.border }};">
+                                <i class="bi bi-{{ _s.icon }} flex-shrink-0 mt-1" style="color:{{ _s.fg }};"></i>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold small" style="color:var(--monetra-text);">{{ a.title }}</div>
+                                    <div class="small text-muted">{{ a.message }}</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% if alerts|length > (alerts_limit or 3) %}
+                            <div class="small text-muted mt-1">
+                                + {{ alerts|length - (alerts_limit or 3) }} {{ _('alertas más') }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-check-circle-fill" style="color:#00C896; font-size:1.6rem;"></i>
+                            <div class="small text-muted mt-1">{{ _('Sin alertas este mes') }}</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+        {# ── CTA: ir al análisis completo ── #}
+        <div class="mt-4 pt-3" style="border-top:1px solid var(--card-border);">
+            <a href="{{ url_for('analytics.dashboard') }}"
+               class="btn w-100 fw-semibold"
+               style="background:rgba(0,200,150,0.12);
+                      color:#00C896;
+                      border:1px solid rgba(0,200,150,0.35);
+                      padding:.65rem 1rem;
+                      transition:background .2s, border-color .2s;">
+                <i class="bi bi-graph-up-arrow me-2"></i>
+                {{ _('Ver análisis completo') }}
+                <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+        </div>
+
+        {% endif %}{# insights_panel_enabled #}
+
+    </div>
+</div>

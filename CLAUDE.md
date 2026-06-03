@@ -59,11 +59,11 @@ site_finanzas/
                          # All POST endpoints rate-limited via @limiter.limit (see Rate Limiting section)
     main/
       routes.py          # All web views (~1300 lines) + inject_period() + inject_announcement() context processors
-      forms.py           # 9 WTForms: Transaction, Category, Budget, CategoryBudget,
-                         # SavingsGoal, RecurringTransaction, Config, SMTP, ChangePassword
+      forms.py           # 10 WTForms: Transaction, Category, Budget, CategoryBudget,
+                         # SavingsGoal, RecurringTransaction, Config, SMTP, ChangePassword, CustomBudget
     api/                 # REST API blueprint at /api/v1 — JWT auth, CSRF exempt
     export/              # Excel report generator (xlsxwriter), route at /export/excel
-    demo_data/           # Admin blueprint at /admin/demo — load/reset demo transactions
+    demo_data/           # Blueprint at /admin/demo — load/reset demo transactions (any authenticated user)
     services/
       finance.py         # Business logic and shared DB queries (used by both web views and API)
     templates/
@@ -87,7 +87,7 @@ site_finanzas/
 
 | Model | Table | Key notes |
 |---|---|---|
-| `User` | `users` | `role` ('admin'/'user'), `is_first_admin`, `language`, `theme`, `currency_*`, `mfa_enabled`, `weekly_report_enabled` |
+| `User` | `users` | `role` ('admin'/'user'), `is_first_admin`, `language`, `theme`, `currency_*`, `mfa_enabled`, `weekly_report_enabled`, `has_seen_onboarding`, `help_mode_enabled` |
 | `Category` | `categories` | `user_id=NULL` → global/default; `color VARCHAR(7)` for per-category hex color |
 | `Transaction` | `transactions` | `is_demo` flag for demo data; `recurring_id` FK to RecurringTransaction |
 | `Budget` | `budgets` | Monthly budget per user/year/month |
@@ -99,6 +99,8 @@ site_finanzas/
 | `AppConfig` | `app_config` | Single-row global config (`allow_registration`) |
 | `PasswordResetToken` | `password_reset_token` | Expiring tokens for password recovery |
 | `UserSeenAnnouncement` | `user_seen_announcements` | Tracks which version announcement each user has seen; UNIQUE(user_id, announcement_key) |
+| `CustomBudget` | `custom_budgets` | Free-range budget for a named date range within one month; auto-creates a linked expense `Category` |
+| `DemoState` | `demo_state` | Snapshot of `user_years` before demo load; used to restore years on demo reset |
 
 ### Context processors
 
@@ -229,3 +231,13 @@ Never put `min-height` or `max-height` directly on `<canvas>`.
 `errors/base_error.html` is a fully standalone template — it does NOT extend `base.html`. This is intentional: a 500 error may have occurred in the DB or context processor layer, so extending `base.html` would cause a secondary failure. Error templates apply the user's theme via `data-theme="{{ current_user.theme if current_user.is_authenticated else 'dark' }}"` and use only CSS variables from `themes.css`.
 
 All three handlers (404, 429, 500) are registered in `app/__init__.py`. The 429 template uses `--monetra-gold` as the accent color to distinguish it visually from 404 (primary) and 500 (danger/red).
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+Rules:
+- ALWAYS read graphify-out/GRAPH_REPORT.md before reading any source files, running grep/glob searches, or answering codebase questions. The graph is your primary map of the codebase.
+- IF graphify-out/wiki/index.md EXISTS, navigate it instead of reading raw files
+- For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` over grep — these traverse the graph's EXTRACTED + INFERRED edges instead of scanning files
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).

@@ -1,0 +1,406 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% set _sev_cls = {
+    'critical': {'bg':'rgba(239,68,68,0.10)', 'border':'rgba(239,68,68,0.45)', 'fg':'#EF4444', 'icon':'exclamation-octagon-fill', 'label': _('Crítico')},
+    'warning':  {'bg':'rgba(245,158,11,0.10)', 'border':'rgba(245,158,11,0.45)', 'fg':'#F59E0B', 'icon':'exclamation-triangle-fill', 'label': _('Advertencia')},
+    'info':     {'bg':'rgba(56,189,248,0.10)', 'border':'rgba(56,189,248,0.40)', 'fg':'#38BDF8', 'icon':'info-circle-fill', 'label': _('Informativo')},
+} %}
+{% set _conf_label = {'high': _('Alta'), 'medium': _('Media'), 'low': _('Baja')} %}
+{% set _method_label = {
+    'naive_pace_extrapolation': _('Extrapolación del ritmo actual'),
+    'naive_no_data': _('Sin datos suficientes'),
+    'weighted_moving_average': _('Promedio móvil ponderado'),
+    'linear_trend': _('Tendencia lineal'),
+    'known_recurring_only': _('Solo recurrentes conocidos'),
+    'component_current_pace': _('Recurrentes + ritmo variable actual'),
+    'component_weighted_moving_average': _('Recurrentes + promedio variable'),
+    'component_linear_trend': _('Recurrentes + tendencia variable'),
+} %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="mb-0 fw-bold">
+        <i class="bi bi-graph-up-arrow text-primary"></i> {{ _('Analítica') }}
+        <span class="text-muted fs-5 fw-normal ms-1">{{ month|month_name }} {{ year }}</span>
+    </h2>
+    <a href="{{ url_for('analytics.consolidated') }}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> {{ _('Ver consolidado') }}
+    </a>
+</div>
+
+{# ── Barra de madurez del modelo ── #}
+{% if maturity %}
+{% set _m = maturity.historical_months %}
+{% set _step = 1 if _m == 0 else (2 if _m < 3 else (3 if _m < 6 else 4)) %}
+{% set _step_labels = [_('Configurando'), _('Aprendiendo'), _('Desarrollando'), _('Completo')] %}
+{% set _pcts = [0, 33, 66, 100] %}
+<div class="card mb-4">
+    <div class="card-body py-3">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-bar-chart-steps" style="color:var(--monetra-primary,#00C896);"></i>
+                <span class="fw-semibold small" style="color:var(--monetra-text);">{{ _('Madurez del análisis') }}</span>
+            </div>
+            <span class="badge"
+                  style="font-size:.7rem; background:rgba(0,200,150,0.12);
+                         color:#00C896; border:1px solid rgba(0,200,150,0.35);">
+                {{ _step_labels[_step - 1] }}
+                &nbsp;·&nbsp;
+                {{ _m }} {{ _('mes') if _m == 1 else _('meses') }} {{ _('con datos') }}
+            </span>
+        </div>
+
+        {# Track + dots #}
+        <div class="position-relative d-flex align-items-center mb-2" style="height:20px;">
+            <div class="position-absolute w-100"
+                 style="top:50%; transform:translateY(-50%); height:3px;
+                        background:rgba(255,255,255,0.08); border-radius:3px;"></div>
+            <div class="position-absolute"
+                 style="top:50%; left:0; transform:translateY(-50%); height:3px;
+                        width:{{ _pcts[_step - 1] }}%;
+                        background:var(--monetra-primary,#00C896);
+                        border-radius:3px; transition:width .4s ease;"></div>
+            <div class="position-absolute w-100 d-flex justify-content-between" style="padding:0 2px;">
+                {% for i in [1, 2, 3, 4] %}
+                <div style="width:16px; height:16px; border-radius:50%; position:relative; z-index:2;
+                            background:{{ 'var(--monetra-primary,#00C896)' if i <= _step else 'var(--card-bg,#1e1e2e)' }};
+                            border:2px solid {{ 'var(--monetra-primary,#00C896)' if i <= _step else 'rgba(255,255,255,0.15)' }};
+                            {{ 'box-shadow:0 0 10px rgba(0,200,150,.55);' if i == _step else '' }}">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# Etiquetas #}
+        <div class="d-flex justify-content-between mb-3" style="padding:0 2px;">
+            {% for label in _step_labels %}
+            <span style="font-size:.65rem;
+                         {{ 'color:var(--monetra-primary,#00C896); font-weight:600;' if loop.index == _step else 'color:var(--monetra-text-muted);' }}">
+                {{ label }}
+            </span>
+            {% endfor %}
+        </div>
+
+        {# Qué se activa en cada nivel #}
+        <div class="row g-2">
+            {% for i, feat in [(1, _('Alertas básicas')), (2, _('Predicciones')), (3, _('Tendencias')), (4, _('Análisis completo'))] %}
+            <div class="col-3 text-center">
+                <div style="color:{{ 'var(--monetra-primary,#00C896)' if i <= _step else 'var(--monetra-text-muted)' }};">
+                    <i class="bi bi-{{ 'check-circle-fill' if i <= _step else 'circle' }} d-block mb-1"></i>
+                    <span style="font-size:.6rem;">{{ feat }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if _step < 4 %}
+        <div class="mt-3 pt-2 small text-muted" style="border-top:1px solid var(--card-border);">
+            <i class="bi bi-lightbulb me-1" style="color:var(--monetra-primary,#00C896);"></i>
+            {% if _step == 1 %}
+                {{ _('Registra transacciones durante este mes para activar las primeras predicciones') }}
+            {% elif _step == 2 %}
+                {% set _left = 3 - _m %}
+                {{ _('Faltan') }} {{ _left }} {{ _('mes') if _left == 1 else _('meses') }} {{ _('para predicciones más precisas basadas en tendencias históricas') }}
+            {% else %}
+                {% set _left = 6 - _m %}
+                {{ _('Faltan') }} {{ _left }} {{ _('mes') if _left == 1 else _('meses') }} {{ _('para que el modelo opere con máxima precisión') }}
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- ═══ Panel: Primeros pasos (solo usuario nuevo sin datos aún) ═══ -->
+{% if maturity and maturity.historical_months == 0 %}
+<div class="card mb-4"
+     style="border:1px solid rgba(0,200,150,0.30); background:rgba(0,200,150,0.04);">
+    <div class="card-body">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <i class="bi bi-rocket-takeoff-fill" style="color:var(--monetra-primary,#00C896); font-size:1.3rem;"></i>
+            <h6 class="mb-0 fw-semibold" style="color:var(--monetra-text);">{{ _('Primeros pasos') }}</h6>
+            <span class="badge ms-auto"
+                  style="font-size:.65rem; background:rgba(0,200,150,0.12);
+                         color:#00C896; border:1px solid rgba(0,200,150,0.35);">
+                {{ _('Configuración inicial') }}
+            </span>
+        </div>
+        <p class="small text-muted mb-3">
+            {{ _('Completa estos pasos para que Monetra pueda generar proyecciones y alertas precisas desde el primer mes.') }}
+        </p>
+        <div class="row g-3">
+            <div class="col-sm-6 col-lg-3">
+                <div class="p-3 rounded h-100 d-flex gap-2 align-items-start"
+                     style="background:rgba(255,255,255,0.03); border:1px solid var(--card-border);">
+                    <i class="bi bi-currency-dollar flex-shrink-0 mt-1" style="color:#00C896; font-size:1.1rem;"></i>
+                    <div>
+                        <div class="small fw-semibold" style="color:var(--monetra-text);">{{ _('Registra ingresos') }}</div>
+                        <div class="small text-muted">{{ _('Agrega tus fuentes de ingreso del mes actual.') }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="p-3 rounded h-100 d-flex gap-2 align-items-start"
+                     style="background:rgba(255,255,255,0.03); border:1px solid var(--card-border);">
+                    <i class="bi bi-wallet2 flex-shrink-0 mt-1" style="color:#F59E0B; font-size:1.1rem;"></i>
+                    <div>
+                        <div class="small fw-semibold" style="color:var(--monetra-text);">{{ _('Define un presupuesto') }}</div>
+                        <div class="small text-muted">{{ _('Establece cuánto puedes gastar este mes.') }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="p-3 rounded h-100 d-flex gap-2 align-items-start"
+                     style="background:rgba(255,255,255,0.03); border:1px solid var(--card-border);">
+                    <i class="bi bi-arrow-repeat flex-shrink-0 mt-1" style="color:#38BDF8; font-size:1.1rem;"></i>
+                    <div>
+                        <div class="small fw-semibold" style="color:var(--monetra-text);">{{ _('Agrega gastos fijos') }}</div>
+                        <div class="small text-muted">{{ _('Arriendo, servicios y suscripciones que se repiten cada mes.') }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="p-3 rounded h-100 d-flex gap-2 align-items-start"
+                     style="background:rgba(255,255,255,0.03); border:1px solid var(--card-border);">
+                    <i class="bi bi-piggy-bank flex-shrink-0 mt-1" style="color:#A78BFA; font-size:1.1rem;"></i>
+                    <div>
+                        <div class="small fw-semibold" style="color:var(--monetra-text);">{{ _('Crea una meta de ahorro') }}</div>
+                        <div class="small text-muted">{{ _('Define un objetivo con fecha para que el modelo lo siga.') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-3 pt-3 d-flex gap-2 flex-wrap" style="border-top:1px solid rgba(0,200,150,0.15);">
+            <a href="{{ url_for('main.dashboard') }}"
+               class="btn btn-sm"
+               style="background:rgba(0,200,150,0.12); color:#00C896; border:1px solid rgba(0,200,150,0.35);">
+                <i class="bi bi-plus-lg me-1"></i>{{ _('Ir al dashboard') }}
+            </a>
+            <a href="{{ url_for('main.recurrentes') }}"
+               class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-repeat me-1"></i>{{ _('Configurar recurrentes') }}
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- ═══ Health Score (hero) ═══ -->
+<div class="card mb-4">
+    <div class="card-body">
+        {% if health %}
+        {% set _hs = health.overall_score %}
+        {% set _hs_color = '#EF4444' if _hs < 40 else ('#F59E0B' if _hs < 70 else '#00C896') %}
+        {% set _hs_label = _('Necesita atención') if _hs < 40 else (_('Aceptable') if _hs < 70 else _('Saludable')) %}
+        {% set _learning = maturity and maturity.learning_mode %}
+        <div class="row g-3 align-items-center">
+            <div class="col-md-3 text-center">
+                <div class="small text-muted fw-semibold mb-2">
+                    {{ _('Salud financiera') }}
+                    {% if _learning %}
+                    <span class="badge ms-1"
+                          style="font-size:.6rem; background:rgba(245,158,11,0.12);
+                                 color:#F59E0B; border:1px solid rgba(245,158,11,0.35);">
+                        {{ _('estimado') }}
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="fw-bold" style="font-size:4rem; color:{{ _hs_color }}; line-height:1;">{{ _hs }}</div>
+                <div class="small text-muted">/ 100</div>
+                <div class="badge mt-2" style="background:{{ _hs_color }}1f; color:{{ _hs_color }}; border:1px solid {{ _hs_color }}55;">
+                    {{ _hs_label }}
+                </div>
+                {% if _learning %}
+                <div class="mt-2 small text-muted" style="font-size:.7rem;">
+                    <i class="bi bi-info-circle me-1"></i>
+                    {{ _('Score mejorará con más datos') }}
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-md-9">
+                <div class="small text-muted fw-semibold mb-3">{{ _('Componentes del score') }}</div>
+                <div class="row g-3">
+                    {% for key, label, score in [
+                        ('cashflow', _('Flujo de caja'),    health.cashflow_score),
+                        ('budget',   _('Presupuesto'),      health.budget_score),
+                        ('savings',  _('Ahorro'),           health.savings_score),
+                        ('anomaly',  _('Anomalías'),        health.anomaly_score),
+                    ] %}
+                    {% set _c = '#EF4444' if score < 40 else ('#F59E0B' if score < 70 else '#00C896') %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="text-muted">{{ label }}</span>
+                            <span class="fw-bold" style="color:{{ _c }};">{{ score }}</span>
+                        </div>
+                        <div class="progress" style="height:6px;">
+                            <div class="progress-bar"
+                                 role="progressbar"
+                                 style="width:{{ score }}%; background-color:{{ _c }};"
+                                 aria-valuenow="{{ score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="small text-muted mt-3">
+                    <i class="bi bi-info-circle me-1"></i>
+                    {{ _('Pesos: cashflow 35%% · presupuesto 25%% · ahorro 25%% · anomalías 15%%') }}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-3 text-muted">{{ _('Score no disponible para este periodo.') }}</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ═══ Forecast ═══ -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h6 class="mb-0 fw-semibold">
+                <i class="bi bi-graph-up" style="color:var(--monetra-primary,#00C896);"></i>
+                {{ _('Proyección de cierre del mes') }}
+            </h6>
+            {% if forecast %}
+            <span class="badge"
+                  style="background:rgba(0,200,150,0.10); color:#00C896; border:1px solid rgba(0,200,150,0.35);">
+                {{ _method_label.get(forecast.method, forecast.method) }} · {{ _('confianza') }} {{ _conf_label.get(forecast.confidence, forecast.confidence) }}
+            </span>
+            {% endif %}
+        </div>
+
+        {% if forecast %}
+        {% set _bal_color = '#EF4444' if forecast.expected_balance < 0 else '#00C896' %}
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="p-3 rounded h-100" style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="small text-muted fw-semibold mb-1">{{ _('Ingresos esperados') }}</div>
+                    <div class="fs-5 fw-bold" style="color:#00C896;">{{ forecast.expected_income|money }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 rounded h-100" style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="small text-muted fw-semibold mb-1">{{ _('Gastos esperados') }}</div>
+                    <div class="fs-5 fw-bold" style="color:#EF4444;">{{ forecast.expected_expense|money }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 rounded h-100" style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="small text-muted fw-semibold mb-1">{{ _('Balance proyectado') }}</div>
+                    <div class="fs-5 fw-bold" style="color:{{ _bal_color }};">{{ forecast.expected_balance|money }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 rounded h-100" style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    <div class="small text-muted fw-semibold mb-1">{{ _('Uso proyectado del presupuesto') }}</div>
+                    <div class="fs-5 fw-bold" style="color:var(--monetra-text);">
+                        {% if forecast.projected_budget_usage_pct is not none %}
+                            {{ "%.0f"|format(forecast.projected_budget_usage_pct) }}%
+                        {% else %}
+                            <span class="text-muted small">{{ _('Sin presupuesto') }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Evidence (collapsible) #}
+        <div class="mt-3">
+            <a class="small text-muted text-decoration-none" data-bs-toggle="collapse"
+               href="#forecastEvidence" role="button" aria-expanded="false">
+                <i class="bi bi-chevron-down me-1"></i>{{ _('Ver datos que sustentan la proyección') }}
+            </a>
+            <div class="collapse mt-2" id="forecastEvidence">
+                <div class="p-2 rounded small" style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border);">
+                    {% for k, v in forecast.evidence.items() %}
+                    <div class="d-flex justify-content-between py-1" style="border-bottom:1px dashed var(--card-border);">
+                        <span class="text-muted">{{ k }}</span>
+                        <span class="fw-semibold text-end" style="color:var(--monetra-text); max-width:60%; word-break:break-all;">{{ v }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-3 text-muted">{{ _('Proyección no disponible.') }}</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ═══ Alerts (full list, grouped by severity) ═══ -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0 fw-semibold">
+                <i class="bi bi-bell-fill" style="color:var(--monetra-primary,#00C896);"></i>
+                {{ _('Alertas e insights') }}
+            </h6>
+            <span class="badge" style="background:rgba(255,255,255,0.05); color:var(--monetra-text-muted);">
+                {{ alerts|length }} {{ _('alertas') }}
+            </span>
+        </div>
+
+        {% if alerts %}
+        <div class="d-flex flex-column gap-3">
+            {% for a in alerts %}
+            {% set _s = _sev_cls.get(a.severity, _sev_cls['info']) %}
+            <div class="p-3 rounded"
+                 style="background:{{ _s.bg }}; border:1px solid {{ _s.border }};">
+                <div class="d-flex gap-3 align-items-start">
+                    <i class="bi bi-{{ _s.icon }} flex-shrink-0" style="color:{{ _s.fg }}; font-size:1.4rem;"></i>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-1">
+                            <div class="fw-bold" style="color:var(--monetra-text);">{{ a.title }}</div>
+                            <div class="d-flex gap-1">
+                                <span class="badge" style="background:{{ _s.fg }}1f; color:{{ _s.fg }}; border:1px solid {{ _s.border }}; font-size:.65rem;">
+                                    {{ _s.label }}
+                                </span>
+                                <span class="badge" style="background:rgba(255,255,255,0.05); color:var(--monetra-text-muted); font-size:.65rem;">
+                                    {{ _('Confianza:') }} {{ _conf_label.get(a.confidence, a.confidence) }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="small mb-2" style="color:var(--monetra-text);">{{ a.message }}</div>
+                        <div class="small text-muted mb-2">
+                            <i class="bi bi-info-circle me-1"></i>{{ a.explanation }}
+                        </div>
+                        <div class="small d-flex align-items-start gap-2"
+                             style="color:var(--monetra-primary,#00C896);">
+                            <i class="bi bi-lightbulb-fill flex-shrink-0 mt-1"></i>
+                            <span>{{ a.recommended_action }}</span>
+                        </div>
+
+                        {% if a.evidence %}
+                        <div class="mt-2">
+                            <a class="small text-muted text-decoration-none" data-bs-toggle="collapse"
+                               href="#alertEvidence{{ loop.index }}" role="button" aria-expanded="false">
+                                <i class="bi bi-chevron-down me-1"></i>{{ _('Datos que la sustentan') }}
+                            </a>
+                            <div class="collapse mt-2" id="alertEvidence{{ loop.index }}">
+                                <div class="p-2 rounded small" style="background:rgba(0,0,0,0.15); border:1px solid var(--card-border);">
+                                    {% for k, v in a.evidence.items() %}
+                                    <div class="d-flex justify-content-between py-1" style="border-bottom:1px dashed var(--card-border);">
+                                        <span class="text-muted">{{ k }}</span>
+                                        <span class="fw-semibold text-end" style="color:var(--monetra-text); max-width:65%; word-break:break-all;">{{ v }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="bi bi-check-circle-fill" style="color:#00C896; font-size:2.4rem;"></i>
+            <div class="mt-2 fw-semibold" style="color:var(--monetra-text);">{{ _('Todo en orden') }}</div>
+            <div class="small text-muted">{{ _('No se detectaron alertas para este mes.') }}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

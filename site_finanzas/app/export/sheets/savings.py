@@ -17,11 +17,13 @@ def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
 
     total_saved = sum(g["current_amount"] for g in goals)
     total_target = sum(g["target_amount"] for g in goals)
+    # Goals are cumulative (not per-month); always shown in full regardless of export period.
+    state_label = "Estado actual" if lang == "es" else "Current state"
     subtitle = (
-        f"  {len(active)} activas · {len(completed)} completadas · "
+        f"  {state_label} · {len(active)} activas · {len(completed)} completadas · "
         f"Total ahorrado: {total_saved:,.0f} / {total_target:,.0f}"
         if lang == "es"
-        else f"  {len(active)} active · {len(completed)} completed · "
+        else f"  {state_label} · {len(active)} active · {len(completed)} completed · "
         f"Total saved: {total_saved:,.0f} / {total_target:,.0f}"
     )
 

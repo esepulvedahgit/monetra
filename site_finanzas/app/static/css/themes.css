@@ -237,6 +237,357 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
+/* ── Enterprise (clasico, claro, tonos pastel) ─────── */
+[data-theme="enterprise"] {
+  --monetra-bg-dark:     #E8EBEF;
+  --monetra-bg:          #F1F3F5;
+  --monetra-bg-soft:     #F8F9FA;
+  --monetra-bg-accent:   #FFFFFF;
+  --monetra-green:       #6F8FAF;
+  --monetra-green-dark:  #5E7C99;
+  --monetra-green-light: #8FA9C2;
+  --monetra-primary:     #6F8FAF;
+  --monetra-gold:        #B8A77A;
+  --monetra-gold-dark:   #9A895F;
+  --monetra-gold-light:  #D6C9A4;
+  --monetra-text:        #2E3440;
+  --monetra-text-soft:   #4F5968;
+  --monetra-text-muted:  #7B8491;
+  --income-color:        #7FA68E;
+  --expense-color:       #C58E8E;
+  --budget-color:        #B8A77A;
+  --info-color:          #7D9DB8;
+  --card-bg:             rgba(255, 255, 255, 0.88);
+  --card-header-bg:      rgba(239, 242, 245, 0.82);
+  --card-border:         rgba(80, 90, 105, 0.16);
+  --table-border:        rgba(80, 90, 105, 0.13);
+  --surface-hover:       rgba(111, 143, 175, 0.10);
+  --navbar-bg:           rgba(248, 249, 250, 0.94);
+  --navbar-border:       rgba(111, 143, 175, 0.24);
+  --dropdown-bg:         #FFFFFF;
+}
+
+[data-theme="enterprise"] {
+  font-family: Georgia, "Times New Roman", Times, serif;
+}
+
+[data-theme="enterprise"] h1,
+[data-theme="enterprise"] h2,
+[data-theme="enterprise"] h3,
+[data-theme="enterprise"] h4,
+[data-theme="enterprise"] h5,
+[data-theme="enterprise"] h6,
+[data-theme="enterprise"] .navbar-brand,
+[data-theme="enterprise"] .btn,
+[data-theme="enterprise"] .form-label,
+[data-theme="enterprise"] .badge {
+  font-family: Georgia, "Times New Roman", Times, serif;
+  letter-spacing: 0.01em;
+}
+
+[data-theme="enterprise"] .monetra-navbar {
+  box-shadow: 0 10px 28px rgba(60, 70, 84, 0.10);
+}
+
+[data-theme="enterprise"] .monetra-navbar .navbar-brand,
+[data-theme="enterprise"] .monetra-navbar .nav-link,
+[data-theme="enterprise"] .monetra-navbar .nav-link.dropdown-toggle {
+  color: var(--monetra-text-soft) !important;
+}
+
+[data-theme="enterprise"] .monetra-navbar .nav-link:hover,
+[data-theme="enterprise"] .monetra-navbar .nav-link.active,
+[data-theme="enterprise"] .monetra-navbar .nav-link.dropdown-toggle:hover {
+  color: var(--monetra-primary) !important;
+  background: rgba(111, 143, 175, 0.10);
+}
+
+[data-theme="enterprise"] .navbar-toggler {
+  border-color: rgba(79, 89, 104, 0.28);
+}
+
+[data-theme="enterprise"] .navbar-toggler-icon {
+  filter: invert(32%) sepia(9%) saturate(679%) hue-rotate(177deg) brightness(91%) contrast(86%);
+}
+
+[data-theme="enterprise"] .monetra-navbar .navbar-brand img {
+  filter: drop-shadow(0 4px 8px rgba(80, 90, 105, 0.12));
+}
+
+[data-theme="enterprise"] .card {
+  box-shadow: 0 14px 34px rgba(60, 70, 84, 0.11);
+}
+
+[data-theme="enterprise"] .card-footer {
+  background: rgba(239, 242, 245, 0.65);
+}
+
+[data-theme="enterprise"] .col-sm-6 .card:hover,
+[data-theme="enterprise"] .col-xl-3 .card:hover {
+  box-shadow: 0 18px 42px rgba(60, 70, 84, 0.15);
+}
+
+[data-theme="enterprise"] .card-income {
+  background: linear-gradient(135deg, #DDE9E1, #EEF5F0) !important;
+  border: 1px solid rgba(127, 166, 142, 0.28) !important;
+  border-left: 5px solid #7FA68E !important;
+  color: #2E3440 !important;
+}
+
+[data-theme="enterprise"] .card-income * {
+  color: #2E3440 !important;
+}
+
+[data-theme="enterprise"] .card-expense {
+  background: linear-gradient(135deg, #F0DEDE, #FAF2F2) !important;
+  border: 1px solid rgba(197, 142, 142, 0.28) !important;
+  border-left: 5px solid #C58E8E !important;
+  color: #2E3440 !important;
+}
+
+[data-theme="enterprise"] .card-expense * {
+  color: #2E3440 !important;
+}
+
+[data-theme="enterprise"] .card-balance {
+  background: linear-gradient(135deg, #E5EBF1, #F7F9FB) !important;
+  border: 1px solid rgba(111, 143, 175, 0.28) !important;
+  border-left: 5px solid #6F8FAF !important;
+  color: #2E3440 !important;
+}
+
+[data-theme="enterprise"] .card-balance * {
+  color: #2E3440 !important;
+}
+
+[data-theme="enterprise"] .card-budget {
+  background: linear-gradient(135deg, #ECE6D7, #FAF7EF) !important;
+  border: 1px solid rgba(184, 167, 122, 0.30) !important;
+  border-left: 5px solid #B8A77A !important;
+  color: #2E3440 !important;
+}
+
+[data-theme="enterprise"] .card-budget * {
+  color: #2E3440 !important;
+}
+
+[data-theme="enterprise"] .btn-success,
+[data-theme="enterprise"] .btn-primary,
+[data-theme="enterprise"] .btn-monetra-primary {
+  background-color: #6F8FAF !important;
+  border-color: #6F8FAF !important;
+  color: #FFFFFF !important;
+  box-shadow: none !important;
+}
+
+[data-theme="enterprise"] .btn-success:hover,
+[data-theme="enterprise"] .btn-primary:hover,
+[data-theme="enterprise"] .btn-monetra-primary:hover {
+  background-color: #5E7C99 !important;
+  border-color: #5E7C99 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 6px 16px rgba(111, 143, 175, 0.20) !important;
+}
+
+[data-theme="enterprise"] .btn-outline-primary {
+  border-color: #6F8FAF !important;
+  color: #5E7C99 !important;
+}
+
+[data-theme="enterprise"] .btn-outline-primary:hover {
+  background-color: rgba(111, 143, 175, 0.14) !important;
+  color: #435E78 !important;
+}
+
+[data-theme="enterprise"] .btn-outline-secondary,
+[data-theme="enterprise"] .btn-outline-light {
+  border-color: rgba(79, 89, 104, 0.28) !important;
+  color: #5D6672 !important;
+}
+
+[data-theme="enterprise"] .btn-outline-secondary:hover,
+[data-theme="enterprise"] .btn-outline-light:hover {
+  background: rgba(111, 143, 175, 0.10) !important;
+  border-color: #8FA9C2 !important;
+  color: #435E78 !important;
+}
+
+[data-theme="enterprise"] .btn-secondary {
+  background: rgba(223, 228, 233, 0.82) !important;
+  border-color: rgba(79, 89, 104, 0.22) !important;
+  color: #4F5968 !important;
+}
+
+[data-theme="enterprise"] .form-control,
+[data-theme="enterprise"] .form-select {
+  background-color: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(79, 89, 104, 0.20);
+  color: #2E3440;
+}
+
+[data-theme="enterprise"] .form-control:focus,
+[data-theme="enterprise"] .form-select:focus {
+  background-color: #FFFFFF;
+  border-color: #6F8FAF;
+  box-shadow: 0 0 0 3px rgba(111, 143, 175, 0.18);
+  color: #2E3440;
+}
+
+[data-theme="enterprise"] .form-control::placeholder {
+  color: #8D96A1;
+}
+
+[data-theme="enterprise"] .form-check-input {
+  background-color: #FFFFFF;
+  border-color: rgba(79, 89, 104, 0.32);
+}
+
+[data-theme="enterprise"] .form-check-input:checked {
+  background-color: #6F8FAF;
+  border-color: #6F8FAF;
+}
+
+[data-theme="enterprise"] .input-group-text {
+  background: rgba(239, 242, 245, 0.92);
+  border: 1px solid rgba(79, 89, 104, 0.20);
+  color: #5E7C99;
+}
+
+[data-theme="enterprise"] input[type="date"]:not(:disabled)::-webkit-calendar-picker-indicator,
+[data-theme="enterprise"] input[type="datetime-local"]:not(:disabled)::-webkit-calendar-picker-indicator,
+[data-theme="enterprise"] input[type="time"]:not(:disabled)::-webkit-calendar-picker-indicator {
+  filter: none;
+}
+
+[data-theme="enterprise"] .monetra-navbar .form-select {
+  background-color: rgba(255, 255, 255, 0.86) !important;
+  border: 1px solid rgba(79, 89, 104, 0.18) !important;
+  color: #2E3440 !important;
+}
+
+[data-theme="enterprise"] .monetra-navbar .dropdown-menu {
+  border: 1px solid rgba(79, 89, 104, 0.14);
+  box-shadow: 0 12px 28px rgba(60, 70, 84, 0.14);
+}
+
+[data-theme="enterprise"] .dropdown-item {
+  color: #4F5968;
+}
+
+[data-theme="enterprise"] .dropdown-item:hover,
+[data-theme="enterprise"] .dropdown-item:focus {
+  background: rgba(111, 143, 175, 0.10);
+  color: #435E78;
+}
+
+[data-theme="enterprise"] .dropdown-divider {
+  border-color: rgba(79, 89, 104, 0.12);
+}
+
+[data-theme="enterprise"] .table td,
+[data-theme="enterprise"] .table th {
+  border-color: rgba(80, 90, 105, 0.13) !important;
+}
+
+[data-theme="enterprise"] .table-hover tbody tr:hover > * {
+  --bs-table-bg-state: rgba(111, 143, 175, 0.10) !important;
+  color: #2E3440 !important;
+}
+
+[data-theme="enterprise"] .mtr-thead {
+  background-color: rgba(229, 234, 239, 0.92) !important;
+  color: #4F5968;
+  --bs-table-bg: rgba(229, 234, 239, 0.92) !important;
+  --bs-table-color: #4F5968 !important;
+}
+
+[data-theme="enterprise"] .mtr-thead th {
+  color: #4F5968 !important;
+  border-color: rgba(80, 90, 105, 0.14) !important;
+}
+
+[data-theme="enterprise"] .mtr-tfoot {
+  background-color: rgba(239, 242, 245, 0.82) !important;
+  --bs-table-bg: rgba(239, 242, 245, 0.82) !important;
+  --bs-table-color: #4F5968 !important;
+  border-top: 1px solid rgba(80, 90, 105, 0.14) !important;
+}
+
+[data-theme="enterprise"] .mtr-tfoot td {
+  color: #4F5968 !important;
+}
+
+[data-theme="enterprise"] .modal-content {
+  background: #FFFFFF;
+  border: 1px solid rgba(79, 89, 104, 0.16);
+  color: #2E3440;
+  box-shadow: 0 18px 48px rgba(60, 70, 84, 0.18);
+}
+
+[data-theme="enterprise"] .modal-header,
+[data-theme="enterprise"] .modal-footer {
+  border-color: rgba(79, 89, 104, 0.12);
+}
+
+[data-theme="enterprise"] .modal-header .btn-close,
+[data-theme="enterprise"] .alert .btn-close {
+  filter: none;
+}
+
+[data-theme="enterprise"] .badge.bg-success {
+  background-color: #DDE9E1 !important;
+  color: #4E735B !important;
+}
+
+[data-theme="enterprise"] .badge.bg-primary,
+[data-theme="enterprise"] .badge.bg-info {
+  background-color: #E5EBF1 !important;
+  color: #4F6F8E !important;
+}
+
+[data-theme="enterprise"] .badge.bg-warning {
+  background-color: #ECE6D7 !important;
+  color: #7E704B !important;
+}
+
+[data-theme="enterprise"] .badge.bg-danger {
+  background-color: #F0DEDE !important;
+  color: #8E5F5F !important;
+}
+
+[data-theme="enterprise"] .badge.bg-secondary,
+[data-theme="enterprise"] .badge.bg-light {
+  background: rgba(223, 228, 233, 0.85) !important;
+  color: #5D6672 !important;
+  border-color: rgba(79, 89, 104, 0.12) !important;
+}
+
+[data-theme="enterprise"] .progress {
+  background-color: rgba(79, 89, 104, 0.12);
+}
+
+[data-theme="enterprise"] .text-dark,
+[data-theme="enterprise"] .text-white {
+  color: #2E3440 !important;
+}
+
+[data-theme="enterprise"] .text-success {
+  color: #5F8A6D !important;
+}
+
+[data-theme="enterprise"] .text-danger {
+  color: #A46F6F !important;
+}
+
+[data-theme="enterprise"] .text-info,
+[data-theme="enterprise"] .text-primary {
+  color: #5E7C99 !important;
+}
+
+[data-theme="enterprise"] .text-warning {
+  color: #9A895F !important;
+}
+
 /* ── Abyss (negro profundo, frío) ─────────────────── */
 [data-theme="abyss"] {
   --monetra-bg-dark:     #010306;

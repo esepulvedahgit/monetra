@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% set source_label = {'main': _('Local'), 'usd': 'USD'} %}
+{% set source_color = {'main': '#00C896', 'usd': '#38BDF8'} %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="mb-0 fw-bold">
+        <i class="bi bi-graph-up-arrow text-primary"></i> {{ _('Consolidado') }}
+        <span class="text-muted fs-5 fw-normal ms-1">{{ month|month_name }} {{ year }}</span>
+    </h2>
+    {% if rate and rate != 1.0 %}
+    <span class="badge px-3 py-2"
+          style="background:rgba(56,189,248,0.12); color:#38BDF8; border:1px solid rgba(56,189,248,0.35); font-size:.75rem;">
+        <i class="bi bi-arrow-left-right me-1"></i>
+        {{ _('Tipo de cambio:') }} 1 USD = {{ '%.2f'|format(rate) }} {{ currency_symbol }}
+    </span>
+    {% endif %}
+</div>
+
+<!-- ═══ KPIs ═══ -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-muted fw-semibold mb-1">{{ _('Ingresos') }}</div>
+                <div class="fs-4 fw-bold" style="color:#00C896;">{{ total_income|money }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-muted fw-semibold mb-1">{{ _('Gastos') }}</div>
+                <div class="fs-4 fw-bold" style="color:#EF4444;">{{ total_expense|money }}</div>
+                <div class="small mt-1" style="color:var(--monetra-text-muted);">
+                    <span>{{ _('Peso') }}: {{ main_expense|money }}</span>
+                </div>
+                {% if usd_expense_orig > 0 %}
+                <div class="small" style="color:var(--monetra-text-muted);">
+                    <span>USD: US${{ '%.2f'|format(usd_expense_orig) }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-muted fw-semibold mb-1">{{ _('Balance') }}</div>
+                <div class="fs-4 fw-bold"
+                     style="color:{{ '#EF4444' if balance < 0 else '#00C896' }};">
+                    {{ balance|money }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Donut + tabla ═══ -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold">
+                <i class="bi bi-pie-chart text-primary"></i> {{ _('Gasto por categoría') }}
+            </div>
+            <div class="card-body">
+                {% if categories %}
+                <div style="position:relative; height:280px; width:100%;">
+                    <canvas id="consolidatedPieChart"></canvas>
+                </div>
+                <ul class="list-unstyled mt-3 mb-0 small">
+                    {% for c in categories %}
+                    <li class="d-flex justify-content-between align-items-center py-1">
+                        <span>
+                            <span class="d-inline-block rounded-circle me-2"
+                                  style="width:10px; height:10px; background:{{ c.color }};"></span>
+                            {{ c.name }}
+                            <span class="badge ms-1"
+                                  style="background:rgba({{ '0,200,150' if c.source == 'main' else '56,189,248' }},0.12);
+                                         color:{{ source_color[c.source] }};
+                                         border:1px solid rgba({{ '0,200,150' if c.source == 'main' else '56,189,248' }},0.35);
+                                         font-size:.65rem;">
+                                {{ source_label[c.source] }}
+                            </span>
+                        </span>
+                        <span class="fw-semibold">{{ c.amount|money }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-pie-chart" style="font-size:2.5rem;"></i>
+                    <p class="mt-2 mb-0">{{ _('Sin gastos en este mes.') }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-list-ul text-primary"></i> {{ _('Movimientos del mes') }}</span>
+                <span class="badge" style="background:rgba(0,200,150,0.15); color:#00C896;">
+                    {{ transactions|length }}
+                </span>
+            </div>
+            <div class="card-body p-0">
+                {% if transactions %}
+                <div class="table-responsive" style="max-height:480px;">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="small text-uppercase" style="color:var(--monetra-text-muted);">
+                            <tr>
+                                <th class="ps-3">{{ _('Fecha') }}</th>
+                                <th>{{ _('Categoría') }}</th>
+                                <th>{{ _('Origen') }}</th>
+                                <th class="text-end pe-3">{{ _('Monto') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in transactions %}
+                            <tr>
+                                <td class="ps-3 small">{{ t.date.strftime('%d/%m/%Y') }}</td>
+                                <td>
+                                    <span class="d-inline-block rounded-circle me-1"
+                                          style="width:8px; height:8px; background:{{ t.category_color }};"></span>
+                                    {{ t.category_name }}
+                                    {% if t.description %}
+                                    <div class="small" style="color:var(--monetra-text-muted);">{{ t.description }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge"
+                                          style="background:rgba({{ '0,200,150' if t.source == 'main' else '56,189,248' }},0.12);
+                                                 color:{{ source_color[t.source] }};
+                                                 border:1px solid rgba({{ '0,200,150' if t.source == 'main' else '56,189,248' }},0.35);
+                                                 font-size:.7rem;">
+                                        {{ source_label[t.source] }}
+                                    </span>
+                                </td>
+                                <td class="text-end pe-3">
+                                    <div class="fw-semibold"
+                                         style="color:{{ '#00C896' if t.type == 'income' else '#EF4444' }};">
+                                        {{ '+' if t.type == 'income' else '−' }}{{ t.amount_local|money }}
+                                    </div>
+                                    {% if t.source == 'usd' and t.amount_usd %}
+                                    <div class="small" style="color:var(--monetra-text-muted);">
+                                        US${{ '%.2f'|format(t.amount_usd) }}
+                                    </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-inbox" style="font-size:2.5rem;"></i>
+                    <p class="mt-2 mb-0">{{ _('Sin movimientos en este mes.') }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{% if categories %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    var ctx = document.getElementById('consolidatedPieChart');
+    if (!ctx) return;
+    var labels = {{ categories|map(attribute='name')|list|tojson }};
+    var data   = {{ categories|map(attribute='amount')|list|tojson }};
+    var colors = {{ categories|map(attribute='color')|list|tojson }};
+    var sources = {{ categories|map(attribute='source')|list|tojson }};
+    var sym = {{ currency_symbol|tojson }};
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: colors,
+                borderColor: 'transparent',
+                borderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            resizeDelay: 200,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function (c) {
+                            var src = sources[c.dataIndex] === 'usd' ? 'USD' : 'Local';
+                            return c.label + ' [' + src + ']: ' + sym +
+                                   c.parsed.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        }
+                    }
+                }
+            },
+            cutout: '60%',
+        }
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

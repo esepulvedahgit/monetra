@@ -18,7 +18,10 @@ def export_excel():
         year = today.year
 
     output: io.BytesIO = build_excel(current_user, year, from_month, to_month)
-    filename = f"monetra_{current_user.username}_{year}.xlsx"
+    if from_month == to_month:
+        filename = f"monetra_{current_user.username}_{year}_{from_month:02d}.xlsx"
+    else:
+        filename = f"monetra_{current_user.username}_{year}.xlsx"
 
     return send_file(
         output,

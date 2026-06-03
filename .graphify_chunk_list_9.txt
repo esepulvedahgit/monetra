@@ -1,0 +1,2 @@
+C:\Users\eesep\OneDrive\Documentos\Github\monetra\site_finanzas\app\templates\partials\announcements\v2_1.html
+C:\Users\eesep\OneDrive\Documentos\Github\monetra\site_finanzas\app\templates\usd\dashboard.html

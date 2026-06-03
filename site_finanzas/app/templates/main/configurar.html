@@ -50,6 +50,31 @@
                         {% endfor %}
                     </div>
 
+                    {# ── Tasa del dólar — solo si la moneda principal NO es USD ── #}
+                    <div class="mb-4 {% if current_user.currency_code == 'USD' %}d-none{% endif %}" id="usdRateBlock">
+                        {{ form.usd_rate.label(class="form-label fw-semibold") }}
+                        <div class="input-group">
+                            <span class="input-group-text">1 USD =</span>
+                            {{ form.usd_rate(
+                                class="form-control" + (" is-invalid" if form.usd_rate.errors else ""),
+                                id="usdRateInput",
+                                placeholder="0.00",
+                                step="0.0001",
+                                min="0"
+                            ) }}
+                            <span class="input-group-text fw-bold" id="usdRateSymbol">
+                                {{ current_user.currency_symbol or '$' }}
+                            </span>
+                        </div>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle text-primary"></i>
+                            {{ _('Se usará para convertir los movimientos USD al consolidado en tu moneda principal.') }}
+                        </div>
+                        {% for e in form.usd_rate.errors %}
+                        <div class="invalid-feedback d-block">{{ e }}</div>
+                        {% endfor %}
+                    </div>
+
                     {{ form.submit(class="btn btn-primary w-100 py-2 fw-semibold") }}
                 </form>
             </div>
@@ -88,6 +113,7 @@
                     ('dusk', _('Dusk'), '#130D22', '#211540', '#F59E0B'),
                     ('forest', _('Forest'), '#071810', '#0D2B1C', '#34D399'),
                     ('pearl', _('Pearl'), '#F1F5F9', '#FFFFFF', '#00A67E'),
+                    ('enterprise', _('Enterprise'), '#ECEFF3', '#FFFFFF', '#6F8FAF'),
                     ('abyss', _('Abyss'), '#020609', '#08111F', '#00C896'),
                     ('graphite', _('Graphite'), '#0F0F0F', '#242424', '#606060'),
                     ] %}
@@ -166,6 +192,12 @@
                         <i class="bi bi-floppy"></i> {{ _('Guardar') }}
                     </button>
                 </form>
+                <hr class="my-3" style="border-color:rgba(255,255,255,0.07);">
+                <a href="{{ url_for('audit.index') }}" target="_blank" rel="noopener noreferrer"
+                   class="btn btn-outline-secondary w-100 py-2 fw-semibold">
+                    <i class="bi bi-shield-check me-1"></i>{{ _('Registro de Auditoría') }}
+                    <i class="bi bi-box-arrow-up-right ms-1" style="font-size:0.8rem; opacity:0.6;"></i>
+                </a>
             </div>
         </div>
         {% endif %}
@@ -201,6 +233,82 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Bloque Escáner IA -->
+        <div class="card shadow-sm mt-4 mb-4">
+            <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                <i class="bi bi-camera text-primary"></i>
+                <span style="color:var(--monetra-primary,#00C896); text-transform:uppercase; letter-spacing:.05em; font-size:.85rem;">
+                    {{ _('Escáner IA') }}
+                </span>
+            </div>
+            <div class="card-body p-4">
+                <p class="small mb-3" style="color: var(--monetra-text-muted, #B0BEC5);">
+                    {{ _('Usa la cámara de tu dispositivo para fotografiar un recibo. La IA extrae el monto y los productos automáticamente.') }}
+                </p>
+
+                <!-- Privacy notice -->
+                <div class="rounded p-3 mb-4 small"
+                     style="background:rgba(242,201,76,0.07); border:1px solid rgba(242,201,76,0.25);">
+                    <i class="bi bi-shield-exclamation me-1" style="color:#F2C94C;"></i>
+                    <span style="color:#B0BEC5;">
+                        {{ _('La imagen del recibo se envía al proveedor de IA que configures. No se almacena en Monetra.') }}
+                    </span>
+                </div>
+
+                <form method="POST" action="{{ url_for('main.configurar') }}" novalidate>
+                    {{ ai_form.hidden_tag() }}
+
+                    <!-- Enable toggle -->
+                    <div class="form-check form-switch mb-4">
+                        {{ ai_form.enabled(class="form-check-input", id="aiEnabled") }}
+                        {{ ai_form.enabled.label(class="form-check-label fw-semibold", for="aiEnabled") }}
+                    </div>
+
+                    <div id="aiFields" class="{% if not ai_form.enabled.data %}d-none{% endif %}">
+                        <div class="row g-3">
+                            <!-- Provider -->
+                            <div class="col-md-6">
+                                {{ ai_form.provider.label(class="form-label small mb-1") }}
+                                {{ ai_form.provider(class="form-select form-select-sm" + (" is-invalid" if ai_form.provider.errors else ""), id="aiProvider") }}
+                                {% for e in ai_form.provider.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                            </div>
+                            <!-- Model -->
+                            <div class="col-md-6">
+                                {{ ai_form.model.label(class="form-label small mb-1") }}
+                                {{ ai_form.model(class="form-control form-control-sm" + (" is-invalid" if ai_form.model.errors else ""), id="aiModel", placeholder=_('ej. gpt-4o')) }}
+                                <div class="form-text" id="aiModelHint" style="font-size:0.7rem;"></div>
+                                {% for e in ai_form.model.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                            </div>
+                            <!-- Base URL (conditional: OpenAI-compatible only) -->
+                            <div class="col-12" id="aiBaseUrlRow" style="display:none;">
+                                {{ ai_form.base_url.label(class="form-label small mb-1") }}
+                                {{ ai_form.base_url(class="form-control form-control-sm" + (" is-invalid" if ai_form.base_url.errors else ""), placeholder=_('https://api.openai.com/v1  (dejar vacío para usar el default)')) }}
+                                <div class="form-text" style="font-size:0.7rem;">{{ _('Solo para proveedores compatibles con OpenAI (OpenAI, DeepSeek, OpenRouter). Dejar vacío usa la URL oficial.') }}</div>
+                                {% for e in ai_form.base_url.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                            </div>
+                            <!-- API Token -->
+                            <div class="col-12">
+                                {{ ai_form.api_token.label(class="form-label small mb-1") }}
+                                {{ ai_form.api_token(class="form-control form-control-sm" + (" is-invalid" if ai_form.api_token.errors else ""), placeholder=("••••••••" if ai_config and ai_config.api_token_encrypted else "sk-...")) }}
+                                <div class="form-text" style="font-size:0.7rem;">
+                                    {% if ai_config and ai_config.api_token_encrypted %}
+                                        {{ _('Token guardado. Deja en blanco para conservar el actual.') }}
+                                    {% else %}
+                                        {{ _('Tu token de API del proveedor seleccionado. Se guarda cifrado.') }}
+                                    {% endif %}
+                                </div>
+                                {% for e in ai_form.api_token.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        {{ ai_form.submit_ai(class="btn btn-primary btn-sm fw-semibold") }}
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -489,11 +597,6 @@
                         <button type="submit" class="btn btn-sm btn-outline-secondary fw-semibold">
                             <i class="bi bi-send"></i> {{ _('Enviar ahora') }}
                         </button>
-                        <a href="{{ url_for('export.export_excel', year=sel_year) }}"
-                           class="btn btn-sm fw-semibold"
-                           style="color:#1D6F42; border:1px solid #1D6F42; background:rgba(29,111,66,0.08);">
-                            <i class="bi bi-file-earmark-excel-fill"></i> {{ _('Descargar') }}
-                        </a>
                         <span class="small" style="color:var(--monetra-text-muted,#78909C);">
                             {{ _('Genera y envía el Excel del año en curso a') }}
                             <strong>{{ current_user.email }}</strong>
@@ -501,16 +604,9 @@
                     </div>
                 </form>
                 {% else %}
-                <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <div class="d-flex align-items-center gap-2 small" style="color:var(--monetra-text-muted,#78909C);">
-                        <i class="bi bi-exclamation-triangle" style="color:#F2C94C;"></i>
-                        {{ _('Para enviar reportes necesitas configurar un SMTP (propio o del administrador).') }}
-                    </div>
-                    <a href="{{ url_for('export.export_excel', year=sel_year) }}"
-                       class="btn btn-sm fw-semibold"
-                       style="color:#1D6F42; border:1px solid #1D6F42; background:rgba(29,111,66,0.08);">
-                        <i class="bi bi-file-earmark-excel-fill"></i> {{ _('Descargar') }}
-                    </a>
+                <div class="d-flex align-items-center gap-2 small" style="color:var(--monetra-text-muted,#78909C);">
+                    <i class="bi bi-exclamation-triangle" style="color:#F2C94C;"></i>
+                    {{ _('Para enviar reportes necesitas configurar un SMTP (propio o del administrador).') }}
                 </div>
                 {% endif %}
             </div>
@@ -552,6 +648,32 @@
                             current_user.help_mode_enabled %}checked{% endif %} onchange="this.form.submit()">
                         <label class="form-check-label fw-semibold" for="helpModeCheck">
                             {{ _('Mostrar íconos de ayuda en formularios') }}
+                        </label>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {# ── Panel de Insights ── #}
+        <div id="insights-panel" class="card shadow-sm mt-4 mb-4">
+            <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                <i class="bi bi-graph-up" style="color:var(--monetra-primary,#00C896);"></i>
+                <span style="color:var(--monetra-primary,#00C896); text-transform:uppercase; letter-spacing:.05em; font-size:.85rem;">
+                    {{ _('Panel de Insights') }}
+                </span>
+            </div>
+            <div class="card-body p-4">
+                <p class="small mb-3" style="color:var(--monetra-text-muted,#B0BEC5);">
+                    {{ _('Muestra Salud financiera, Proyección de cierre y Alertas en el dashboard mensual.') }}
+                </p>
+                <form method="POST" action="{{ url_for('main.insights_panel_toggle') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="insightsPanelCheck"
+                            {% if current_user.insights_panel_enabled %}checked{% endif %}
+                            onchange="this.form.submit()">
+                        <label class="form-check-label fw-semibold" for="insightsPanelCheck">
+                            {{ _('Activar panel de insights') }}
                         </label>
                     </div>
                 </form>
@@ -605,7 +727,7 @@
 <!-- Versión -->
 <div class="text-center mt-4 mb-2">
     <small style="color:var(--monetra-text-muted, #78909C); opacity:0.6;">
-        <i class="bi bi-code-slash"></i> Monetra v1.8
+        <i class="bi bi-code-slash"></i> Monetra v2.3
     </small>
 </div>
 
@@ -618,17 +740,33 @@
     const countrySelect = document.getElementById('countrySelect');
     const currencyInput = document.getElementById('currencyInput');
     const currencyPreview = document.getElementById('currencyPreview');
+    const usdRateBlock = document.getElementById('usdRateBlock');
+    const usdRateSymbol = document.getElementById('usdRateSymbol');
+    const usdRateInput = document.getElementById('usdRateInput');
+
+    function toggleUsdRate(code, symbol) {
+        if (!usdRateBlock) return;
+        if (code === 'USD') {
+            usdRateBlock.classList.add('d-none');
+            if (usdRateInput) usdRateInput.value = '';
+        } else {
+            usdRateBlock.classList.remove('d-none');
+            if (usdRateSymbol) usdRateSymbol.textContent = symbol || '$';
+        }
+    }
 
     countrySelect.addEventListener('change', function () {
         const data = COUNTRY_DATA[this.value];
         if (data) {
             currencyInput.value = data.symbol;
             currencyPreview.textContent = data.symbol;
+            toggleUsdRate(data.code, data.symbol);
         }
     });
 
     currencyInput.addEventListener('input', function () {
         currencyPreview.textContent = this.value || '$';
+        if (usdRateSymbol) usdRateSymbol.textContent = this.value || '$';
     });
 
     const smtpEnabled = document.getElementById('smtpEnabled');
@@ -836,4 +974,58 @@
         };
     })();
 </script>
+
+    <script>
+    (function () {
+        'use strict';
+
+        var AI_MODEL_SUGGESTIONS = {
+            openai:     'gpt-4o',
+            deepseek:   'deepseek-chat',
+            openrouter: 'openai/gpt-4o',
+            anthropic:  'claude-3-5-sonnet-20241022',
+            gemini:     'gemini-1.5-flash',
+        };
+        var OPENAI_COMPAT = ['openai', 'deepseek', 'openrouter'];
+
+        var aiEnabledToggle = document.getElementById('aiEnabled');
+        var aiFields        = document.getElementById('aiFields');
+        var aiProvider      = document.getElementById('aiProvider');
+        var aiModel         = document.getElementById('aiModel');
+        var aiModelHint     = document.getElementById('aiModelHint');
+        var aiBaseUrlRow    = document.getElementById('aiBaseUrlRow');
+
+        function updateAiFields() {
+            if (!aiEnabledToggle || !aiFields) return;
+            if (aiEnabledToggle.checked) {
+                aiFields.classList.remove('d-none');
+            } else {
+                aiFields.classList.add('d-none');
+            }
+        }
+
+        function updateProviderUI() {
+            if (!aiProvider) return;
+            var p = aiProvider.value;
+            // Show base URL row only for OpenAI-compatible providers
+            if (aiBaseUrlRow) {
+                aiBaseUrlRow.style.display = OPENAI_COMPAT.includes(p) ? '' : 'none';
+            }
+            // Update model hint
+            if (aiModelHint) {
+                var suggestion = AI_MODEL_SUGGESTIONS[p];
+                aiModelHint.textContent = suggestion
+                    ? '{{ _("Modelo recomendado: ") }}' + suggestion
+                    : '';
+            }
+        }
+
+        if (aiEnabledToggle) aiEnabledToggle.addEventListener('change', updateAiFields);
+        if (aiProvider)      aiProvider.addEventListener('change', updateProviderUI);
+
+        // Run on load
+        updateAiFields();
+        updateProviderUI();
+    })();
+    </script>
 {% endblock %}

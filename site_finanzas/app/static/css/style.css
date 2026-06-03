@@ -145,6 +145,79 @@ h6 {
   border-color: rgba(255, 255, 255, 0.07);
 }
 
+/* ── Account switcher modal cards ──────────────────────────────────────── */
+.account-switch-card {
+  background: var(--surface-hover);
+  border: 1px solid var(--card-border);
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.account-switch-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--monetra-primary, #00C896);
+  background: var(--surface-hover);
+}
+
+.account-switch-card.is-active {
+  border-color: var(--monetra-primary, #00C896);
+  background: rgba(0, 200, 150, 0.08);
+}
+
+.account-switch-card.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.account-switch-card.is-disabled:hover {
+  transform: none;
+  border-color: var(--card-border);
+  background: var(--surface-hover);
+}
+
+.account-switch-badge {
+  background: rgba(242, 201, 76, 0.18);
+  color: #F2C94C;
+  border: 1px solid rgba(242, 201, 76, 0.35);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.25rem 0.55rem;
+}
+
+/* ── USD inline category chips ──────────────────────────────────────────── */
+.usd-cat-chip {
+  background: var(--surface-hover);
+  border: 1px solid var(--card-border);
+  transition: border-color 0.15s ease;
+}
+
+.usd-cat-chip:hover {
+  border-color: var(--monetra-primary, #00C896);
+}
+
+.usd-cat-delete {
+  color: var(--monetra-text-muted) !important;
+  line-height: 1;
+  text-decoration: none !important;
+  border: 0;
+  background: transparent;
+}
+
+.usd-cat-delete:hover {
+  color: #EF4444 !important;
+}
+
+.account-switch-icon {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: rgba(0, 200, 150, 0.12);
+  color: var(--monetra-primary, #00C896);
+  font-size: 1.1rem;
+}
+
 /* ── Main content ─────────────────────────────────── */
 main.py-4 {
   padding-top: 2rem !important;
@@ -502,6 +575,21 @@ main.py-4 {
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--monetra-green);
   font-weight: 700;
+}
+
+/* Date/time picker calendar icon — white on all themes */
+input[type="date"]:not(:disabled)::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]:not(:disabled)::-webkit-calendar-picker-indicator,
+input[type="time"]:not(:disabled)::-webkit-calendar-picker-indicator {
+  filter: brightness(0) invert(1);
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+input[type="date"]:not(:disabled)::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]:not(:disabled)::-webkit-calendar-picker-indicator:hover,
+input[type="time"]:not(:disabled)::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }
 
 /* Navbar period selects (override with inline styles already set) */

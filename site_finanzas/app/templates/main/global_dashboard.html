@@ -39,10 +39,24 @@
         <button type="submit" class="btn btn-sm btn-primary">
             <i class="bi bi-funnel"></i> {{ _('Aplicar') }}
         </button>
-        <a href="{{ url_for('export.export_excel', year=sel_year_g, from_month=from_month, to_month=to_month) }}"
-           class="btn btn-sm btn-success fw-semibold">
-            <i class="bi bi-file-earmark-excel-fill"></i> {{ _('Exportar Excel') }}
-        </a>
+        <div class="btn-group">
+            <button type="button" class="btn btn-sm btn-success fw-semibold dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-file-earmark-excel-fill"></i> {{ _('Exportar Excel') }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" id="exportGlobalLink"
+                       href="{{ url_for('export.export_excel', year=sel_year_g, from_month=from_month, to_month=to_month) }}">
+                        <i class="bi bi-globe2 me-2"></i>{{ _('Global') }}
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{{ url_for('export.export_excel', year=sel_year, from_month=sel_month, to_month=sel_month) }}">
+                        <i class="bi bi-calendar-month me-2"></i>{{ _('Mensual') }}
+                    </a>
+                </li>
+            </ul>
+        </div>
     </form>
 </div>
 
@@ -370,4 +384,25 @@
 })();
 </script>
 {% endif %}
+<script>
+(function () {
+    var yearSel    = document.querySelector('select[name="year"]');
+    var fromSel    = document.querySelector('select[name="from_month"]');
+    var toSel      = document.querySelector('select[name="to_month"]');
+    var exportLink = document.getElementById('exportGlobalLink');
+    var base       = "{{ url_for('export.export_excel') }}";
+
+    function syncExportLink() {
+        if (!exportLink || !yearSel || !fromSel || !toSel) return;
+        exportLink.href = base
+            + '?year='       + yearSel.value
+            + '&from_month=' + fromSel.value
+            + '&to_month='   + toSel.value;
+    }
+
+    [yearSel, fromSel, toSel].forEach(function(sel) {
+        if (sel) sel.addEventListener('change', syncExportLink);
+    });
+}());
+</script>
 {% endblock %}

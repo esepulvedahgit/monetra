@@ -1,0 +1,585 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0 fw-bold">
+        <i class="bi bi-journal-text text-primary"></i> {{ _('Guía de uso') }}
+    </h2>
+    <span class="badge bg-secondary fw-normal">v2.3</span>
+</div>
+
+<div class="row g-4">
+
+    {# ── Sidebar (sticky) ─────────────────────────────────────────────────── #}
+    <div class="col-lg-3 d-none d-lg-block">
+        <div class="card shadow-sm" style="position:sticky; top:80px; max-height:calc(100vh - 100px); overflow-y:auto;">
+            <div class="card-header fw-semibold small py-2">
+                <i class="bi bi-list-ul me-1 text-primary"></i>{{ _('Contenido') }}
+            </div>
+            <div class="card-body p-0">
+                <nav class="nav flex-column" id="guiaSidebar">
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s1">1. {{ _('Conceptos básicos') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s2">2. {{ _('Selección de período') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s3">3. {{ _('Dashboard mensual') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s4">4. {{ _('Dashboard global') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s5">5. {{ _('Transacciones') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s6">6. {{ _('Categorías') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s7">7. {{ _('Presupuestos') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s8">8. {{ _('Metas de ahorro') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s9">9. {{ _('Recurrentes') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s10">10. {{ _('Exportar a Excel') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s11">11. {{ _('Configuración') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s12">12. {{ _('Panel de analítica') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s13">13. {{ _('Preguntas frecuentes') }}</a>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    {# ── Contenido principal ──────────────────────────────────────────────── #}
+    <div class="col-lg-9">
+
+        {# 1. Conceptos básicos #}
+        <section id="s1" class="guia-section mb-5">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-lightbulb text-primary me-2"></i>1. {{ _('Conceptos básicos') }}
+            </h4>
+
+            <h6 class="fw-semibold mt-3">{{ _('Tipos de movimiento') }}</h6>
+            <p class="text-muted">{{ _('Todo movimiento en Monetra es de uno de dos tipos:') }}</p>
+            <ul>
+                <li><strong>{{ _('Ingreso') }}</strong> — {{ _('dinero que entra (sueldo, freelance, venta, etc.)') }}</li>
+                <li><strong>{{ _('Gasto') }}</strong> — {{ _('dinero que sale (arriendo, supermercado, servicios, etc.)') }}</li>
+            </ul>
+
+            <h6 class="fw-semibold mt-3">{{ _('Años y meses') }}</h6>
+            <p class="text-muted">{{ _('Monetra organiza tus datos por año. Puedes tener datos de múltiples años y navegar entre ellos con el selector de período en la barra superior.') }}</p>
+
+            <h6 class="fw-semibold mt-3">{{ _('Datos de demostración') }}</h6>
+            <div class="alert alert-secondary small py-2">
+                <i class="bi bi-info-circle me-1"></i>
+                {{ _('Al crear tu cuenta verás datos de ejemplo precargados. Están marcados como') }} <strong>Demo</strong> {{ _('y no pueden editarse — sirven solo como referencia.') }}
+            </div>
+        </section>
+
+        {# 2. Selección de período #}
+        <section id="s2" class="guia-section mb-5">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-calendar3 text-primary me-2"></i>2. {{ _('Selección de período') }}
+            </h4>
+            <p class="text-muted">{{ _('El selector de período en la barra superior controla qué datos ves en toda la aplicación.') }}</p>
+            <ul>
+                <li><strong>{{ _('Año') }}</strong>: {{ _('selecciona el año de trabajo (ej. 2026).') }}</li>
+                <li><strong>{{ _('Mes') }}</strong>: {{ _('selecciona el mes dentro de ese año (ej. Mayo).') }}</li>
+            </ul>
+            <div class="alert alert-warning small py-2">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                {{ _('Las transacciones nuevas deben crearse dentro del mes seleccionado. Si intentas guardar una con fecha fuera del mes activo, el formulario mostrará un error.') }}
+            </div>
+
+            <h6 class="fw-semibold mt-3">{{ _('Crear un nuevo año') }}</h6>
+            <p class="text-muted">{{ _('Si necesitas registrar datos de un año que no aparece en el selector, ve a') }} <strong>Dashboard → {{ _('Nuevo año') }}</strong> {{ _('e ingresa el año deseado.') }}</p>
+
+            <h6 class="fw-semibold mt-3">{{ _('Eliminar un año') }}</h6>
+            <div class="alert alert-danger small py-2">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                {{ _('Eliminar un año borra permanentemente todas las transacciones, presupuestos y recurrentes de ese año. Es irreversible.') }}
+            </div>
+        </section>
+
+        {# 3. Dashboard mensual #}
+        <section id="s3" class="guia-section mb-5">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-house text-primary me-2"></i>3. {{ _('Dashboard mensual') }}
+            </h4>
+            <p class="text-muted">{{ _('Vista principal. Muestra un resumen completo del mes seleccionado.') }}</p>
+            <table class="table table-sm table-bordered small">
+                <thead class="table-dark">
+                    <tr><th>{{ _('Sección') }}</th><th>{{ _('Descripción') }}</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>{{ _('Ingresos') }}</strong></td><td>{{ _('Suma de todos los ingresos del mes') }}</td></tr>
+                    <tr><td><strong>{{ _('Gastos') }}</strong></td><td>{{ _('Suma de todos los gastos del mes') }}</td></tr>
+                    <tr><td><strong>{{ _('Balance') }}</strong></td><td>{{ _('Ingresos − Gastos') }}</td></tr>
+                    <tr><td><strong>{{ _('Presupuesto') }}</strong></td><td>{{ _('Barra de progreso: gastos vs. límite mensual') }}</td></tr>
+                    <tr><td><strong>{{ _('Gastos por categoría') }}</strong></td><td>{{ _('Gráfico de torta con la distribución') }}</td></tr>
+                    <tr><td><strong>{{ _('Últimas transacciones') }}</strong></td><td>{{ _('Los 5 movimientos más recientes del mes') }}</td></tr>
+                    <tr><td><strong>{{ _('Metas de ahorro') }}</strong></td><td>{{ _('Hasta 4 metas activas con su progreso') }}</td></tr>
+                    <tr><td><strong>{{ _('Panel de analítica') }}</strong></td><td>{{ _('Salud financiera, proyección y alertas (opcional)') }}</td></tr>
+                </tbody>
+            </table>
+
+            <h6 class="fw-semibold mt-3">{{ _('Panel de analítica (opcional)') }}</h6>
+            <p class="text-muted">{{ _('Incluye salud financiera, proyección de cierre del mes y alertas inteligentes. Está desactivado por defecto.') }}</p>
+            <div class="alert alert-info small py-2">
+                <i class="bi bi-toggles me-1"></i>
+                {{ _('Para activarlo:') }} <strong>{{ _('Configuración de Cuenta → Panel de Insights') }}</strong> → {{ _('activa el interruptor.') }}
+            </div>
+
+            <h6 class="fw-semibold mt-3">{{ _('Generación automática de recurrentes') }}</h6>
+            <p class="text-muted">{{ _('Cada vez que abres el Dashboard, Monetra verifica si hay transacciones recurrentes pendientes para el mes y las crea automáticamente.') }}</p>
+        </section>
+
+        {# 4. Dashboard global #}
+        <section id="s4" class="guia-section mb-5">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-globe2 text-primary me-2"></i>4. {{ _('Dashboard global') }}
+            </h4>
+            <p class="text-muted">{{ _('Analiza tus finanzas en un rango de meses. Se accede desde el menú') }} <strong>Global</strong>.</p>
+            <ul>
+                <li><strong>{{ _('Tendencia mensual') }}</strong> — {{ _('gráfico de líneas con ingresos y gastos mes a mes.') }}</li>
+                <li><strong>{{ _('Gastos por categoría') }}</strong> — {{ _('acumulado de todo el período.') }}</li>
+                <li><strong>{{ _('Comparativa anual') }}</strong> — {{ _('evolución de cada año disponible.') }}</li>
+            </ul>
+            <h6 class="fw-semibold mt-3">{{ _('Exportar desde el Dashboard global') }}</h6>
+            <p class="text-muted">{{ _('El botón') }} <strong>{{ _('Exportar Excel → Global') }}</strong> {{ _('genera un archivo con los datos exactos del rango seleccionado. El enlace se actualiza en tiempo real al cambiar los selectores.') }}</p>
+        </section>
+
+        {# 5. Transacciones #}
+        <section id="s5" class="guia-section mb-5">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-arrow-left-right text-primary me-2"></i>5. {{ _('Transacciones') }}
+            </h4>
+            <p class="text-muted">{{ _('Movimientos individuales de dinero. Se accede desde el menú') }} <strong>{{ _('Movimientos') }}</strong>.</p>
+
+            <h6 class="fw-semibold mt-3">{{ _('Crear una transacción') }}</h6>
+            <ol class="text-muted small">
+                <li>{{ _('Haz clic en') }} <strong>{{ _('Nueva transacción') }}</strong>.</li>
+                <li>{{ _('Selecciona') }} <strong>{{ _('Tipo') }}</strong> ({{ _('Gasto o Ingreso') }}), <strong>{{ _('Monto') }}</strong>, <strong>{{ _('Categoría') }}</strong>, <strong>{{ _('Descripción') }}</strong> ({{ _('opcional, máx. 200 caracteres') }}) y <strong>{{ _('Fecha') }}</strong> ({{ _('debe estar dentro del mes activo') }}).</li>
+                <li>{{ _('Haz clic en') }} <strong>{{ _('Guardar') }}</strong>.</li>
+            </ol>
+
+            <h6 class="fw-semibold mt-3">{{ _('Filtros del listado') }}</h6>
+            <p class="text-muted">{{ _('Puedes filtrar por tipo (Todos / Ingresos / Gastos), por categoría específica y por día del mes.') }}</p>
+
+            <div class="alert alert-secondary small py-2">
+                <i class="bi bi-info-circle me-1"></i>
+                {{ _('Las transacciones generadas por una recurrente muestran un ícono especial. Se pueden editar o eliminar individualmente sin afectar la recurrente.') }}
+            </div>
+        </section>
+
+        {# 6. Categorías #}
+        <section id="s6" class="guia-section mb-5">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-tags text-primary me-2"></i>6. {{ _('Categorías') }}
+            </h4>
+            <p class="text-muted">{{ _('Organizan tus transacciones y recurrentes. Se accede desde el menú') }} <strong>{{ _('Categorías') }}</strong>.</p>
+
+            <h6 class="fw-semibold mt-3">{{ _('Tipos de categorías') }}</h6>
+            <ul class="text-muted small">
+                <li><strong>{{ _('Predeterminadas') }}</strong> — {{ _('vienen incluidas en Monetra. No pueden modificarse ni eliminarse.') }}
+                    <br><em>{{ _('Gastos') }}: {{ _('Alimentación, Transporte, Vivienda, Servicios, Salud, Educación, Ocio, Otros.') }}</em>
+                    <br><em>{{ _('Ingresos') }}: {{ _('Sueldo, Freelance, Inversiones, Otros Ingresos.') }}</em>
+                </li>
+                <li><strong>{{ _('Personalizadas') }}</strong> — {{ _('las que tú creas. Se asigna un color automáticamente de una paleta de 21 colores.') }}</li>
+            </ul>
+
+            <h6 class="fw-semibold mt-3">{{ _('Eliminar una categoría') }}</h6>
+            <div class="alert alert-warning small py-2">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                {{ _('Una categoría NO puede eliminarse si tiene transacciones, recurrentes, presupuestos de categoría o un presupuesto personalizado vinculados. El sistema te indicará cuántos registros la bloquean.') }}
+            </div>
+        </section>
+
+        {# 7. Presupuestos #}
+        <section id="s7" class="guia-section mb-5">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-wallet2 text-primary me-2"></i>7. {{ _('Presupuestos') }}
+            </h4>
+            <p class="text-muted">{{ _('Controla cuánto gastas. Se accede desde el menú') }} <strong>{{ _('Presupuesto') }}</strong>. {{ _('Hay tres tipos:') }}</p>
+
+            <h6 class="fw-semibold mt-3">{{ _('7.1 Presupuesto mensual general') }}</h6>
+            <p class="text-muted">{{ _('Techo total de gastos para el mes. Solo puede haber uno por mes. El Dashboard muestra una barra de progreso con su consumo.') }}</p>
+            <table class="table table-sm table-bordered small">
+                <thead class="table-dark"><tr><th>{{ _('Estado') }}</th><th>{{ _('Rango de consumo') }}</th></tr></thead>
+                <tbody>
+                    <tr><td><span class="text-success">●</span> {{ _('Normal') }}</td><td>&lt; 80%</td></tr>
+                    <tr><td><span class="text-warning">●</span> {{ _('Advertencia') }}</td><td>80–99%</td></tr>
+                    <tr><td><span class="text-danger">●</span> {{ _('Excedido') }}</td><td>≥ 100%</td></tr>
+                </tbody>
+            </table>
+
+            <h6 class="fw-semibold mt-3">{{ _('7.2 Presupuestos por categoría') }}</h6>
+            <p class="text-muted">{{ _('Límites individuales por categoría de gasto.') }} <strong>{{ _('Máximo 5 por mes.') }}</strong> {{ _('Solo aplican a categorías de tipo Gasto.') }}</p>
+
+            <h6 class="fw-semibold mt-3">{{ _('7.3 Presupuesto personalizado') }}</h6>
+            <p class="text-muted">{{ _('Presupuesto puntual con rango de fechas, pensado para eventos o proyectos específicos (ej. "Vacaciones julio").') }}</p>
+            <ul class="text-muted small">
+                <li>{{ _('Crea automáticamente una categoría de gasto con el mismo nombre.') }}</li>
+                <li>{{ _('Solo puede haber') }} <strong>{{ _('uno vigente') }}</strong> {{ _('por mes.') }}</li>
+                <li>{{ _('Las fechas deben estar dentro del mismo mes.') }}</li>
+            </ul>
+            <table class="table table-sm table-bordered small">
+                <thead class="table-dark"><tr><th>{{ _('Estado') }}</th><th>{{ _('Descripción') }}</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>{{ _('Vigente') }}</strong></td><td>{{ _('Fecha de término ≥ hoy. Puede editarse y eliminarse.') }}</td></tr>
+                    <tr><td><strong>{{ _('Finalizado') }}</strong></td><td>{{ _('Fecha de término < hoy. Solo lectura, no puede modificarse.') }}</td></tr>
+                </tbody>
+            </table>
+            <div class="alert alert-danger small py-2">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                {{ _('Al eliminar un presupuesto personalizado vigente se borran también todas las transacciones y recurrentes de su categoría.') }}
+            </div>
+        </section>
+
+        {# 8. Metas #}
+        <section id="s8" class="guia-section mb-5">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-trophy text-primary me-2"></i>8. {{ _('Metas de ahorro') }}
+            </h4>
+            <p class="text-muted">{{ _('Define objetivos financieros y registra tu avance. Se accede desde el menú') }} <strong>{{ _('Metas') }}</strong>.</p>
+
+            <h6 class="fw-semibold mt-3">{{ _('Campos de una meta') }}</h6>
+            <table class="table table-sm table-bordered small">
+                <thead class="table-dark"><tr><th>{{ _('Campo') }}</th><th>{{ _('Descripción') }}</th></tr></thead>
+                <tbody>
+                    <tr><td>{{ _('Nombre') }}</td><td>{{ _('Identificador de la meta (máx. 100 caracteres)') }}</td></tr>
+                    <tr><td>{{ _('Monto objetivo') }}</td><td>{{ _('Cuánto quieres ahorrar (mayor a 0)') }}</td></tr>
+                    <tr><td>{{ _('Monto ahorrado') }}</td><td>{{ _('Cuánto llevas acumulado (empieza en 0)') }}</td></tr>
+                    <tr><td>{{ _('Fecha objetivo') }}</td><td>{{ _('Fecha límite deseada (opcional)') }}</td></tr>
+                    <tr><td>{{ _('Descripción') }}</td><td>{{ _('Notas adicionales (opcional, máx. 200 caracteres)') }}</td></tr>
+                </tbody>
+            </table>
+
+            <h6 class="fw-semibold mt-3">{{ _('Abonar a una meta') }}</h6>
+            <p class="text-muted">{{ _('Haz clic en') }} <strong>{{ _('Abonar') }}</strong> {{ _('e ingresa el monto. Si el total ahorrado alcanza el objetivo, la meta se marca como Completada automáticamente.') }}</p>
+
+            <div class="alert alert-secondary small py-2">
+                <i class="bi bi-info-circle me-1"></i>
+                {{ _('Las metas son independientes de las transacciones. Abonar a una meta NO crea un gasto en tu historial.') }}
+            </div>
+        </section>
+
+        {# 9. Recurrentes #}
+        <section id="s9" class="guia-section mb-5">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-arrow-repeat text-primary me-2"></i>9. {{ _('Recurrentes') }}
+            </h4>
+            <p class="text-muted">{{ _('Automatizan movimientos que se repiten todos los meses (ej. arriendo el día 1, sueldo el día 30). Se accede desde el menú') }} <strong>{{ _('Recurrentes') }}</strong>.</p>
+
+            <h6 class="fw-semibold mt-3">{{ _('¿Cómo funcionan?') }}</h6>
+            <p class="text-muted">{{ _('Cada vez que abres el Dashboard o Movimientos, Monetra genera automáticamente las transacciones del mes si todavía no existen. Si una recurrente tiene el día 31 y el mes tiene 30 días, se ajusta automáticamente al último día.') }}</p>
+
+            <h6 class="fw-semibold mt-3">{{ _('Crear una recurrente') }}</h6>
+            <ul class="text-muted small">
+                <li><strong>{{ _('Tipo') }}</strong>: {{ _('Gasto o Ingreso.') }}</li>
+                <li><strong>{{ _('Día del mes') }}</strong>: {{ _('entre 1 y 28. Se recomienda máximo 28 para que funcione igual en todos los meses, incluido febrero.') }}</li>
+                <li><strong>{{ _('Fecha de término') }}</strong>: {{ _('opcional. Sin fecha, genera hasta el 31/12 del año de creación.') }}</li>
+                <li>{{ _('Si el día elegido ya pasó este mes, aparece una casilla opcional para generar también el movimiento del mes actual.') }}</li>
+            </ul>
+
+            <div class="alert alert-warning small py-2">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                <strong>{{ _('Importante') }}:</strong> {{ _('Las recurrentes') }} <strong>{{ _('no pueden eliminarse') }}</strong> {{ _('una vez creadas. Para detenerlas usa el botón') }} <strong>{{ _('Finalizar hoy') }}</strong> {{ _('o establece una fecha de término.') }}
+            </div>
+
+            <h6 class="fw-semibold mt-3">{{ _('Finalizar una recurrente') }}</h6>
+            <p class="text-muted">{{ _('El botón') }} <strong>{{ _('Finalizar hoy') }}</strong> {{ _('(ícono de stop) establece la fecha de término como hoy y desactiva la recurrente. Las transacciones ya generadas permanecen en tu historial.') }}</p>
+
+            <h6 class="fw-semibold mt-3">{{ _('Listado') }}</h6>
+            <ul class="text-muted small">
+                <li><strong>{{ _('Vigentes') }}</strong> — {{ _('activas o que no han llegado a su fecha de término.') }}</li>
+                <li><strong>{{ _('Finalizadas') }}</strong> — {{ _('historial de solo lectura, colapsado.') }}</li>
+            </ul>
+        </section>
+
+        {# 10. Exportar #}
+        <section id="s10" class="guia-section mb-5">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-file-earmark-excel text-primary me-2"></i>10. {{ _('Exportar a Excel') }}
+            </h4>
+            <p class="text-muted">{{ _('Genera un reporte Excel completo. Se puede exportar desde:') }}</p>
+            <ul class="text-muted small">
+                <li><strong>{{ _('Menú superior → Exportar → Mes actual') }}</strong>: {{ _('exporta el mes seleccionado.') }}</li>
+                <li><strong>{{ _('Dashboard Global → Exportar → Global') }}</strong>: {{ _('exporta el rango de meses seleccionado.') }}</li>
+            </ul>
+
+            <h6 class="fw-semibold mt-3">{{ _('Contenido del archivo') }}</h6>
+            <table class="table table-sm table-bordered small">
+                <thead class="table-dark">
+                    <tr><th>{{ _('Pestaña') }}</th><th>{{ _('Contenido') }}</th><th>{{ _('Alcance') }}</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>{{ _('Portada') }}</td><td>{{ _('KPIs e índice de pestañas') }}</td><td>{{ _('Período') }}</td></tr>
+                    <tr><td>Dashboard</td><td>{{ _('Gráficos e indicadores clave') }}</td><td>{{ _('Período') }}</td></tr>
+                    <tr><td>{{ _('Movimientos') }}</td><td>{{ _('Listado completo de transacciones') }}</td><td>{{ _('Período') }}</td></tr>
+                    <tr><td>{{ _('Categorías') }}</td><td>{{ _('Totales por categoría') }}</td><td>{{ _('Período') }}</td></tr>
+                    <tr><td>{{ _('Presupuestos') }}</td><td>{{ _('Comparativa presupuesto vs. real') }}</td><td>{{ _('Período') }}</td></tr>
+                    <tr><td>{{ _('Metas') }}</td><td>{{ _('Objetivos de ahorro y avance') }}</td><td>{{ _('Historial completo') }}</td></tr>
+                    <tr><td>{{ _('Recurrentes') }}</td><td>{{ _('Recurrentes con KPIs') }}</td><td>{{ _('Historial completo') }}</td></tr>
+                    <tr><td>{{ _('Base de Datos') }}</td><td>{{ _('Datos en bruto para análisis propio') }}</td><td>{{ _('Período') }}</td></tr>
+                </tbody>
+            </table>
+
+            <h6 class="fw-semibold mt-3">{{ _('Reporte semanal automático') }}</h6>
+            <p class="text-muted">{{ _('Si configuras tu SMTP, puedes activar el reporte semanal. Monetra te enviará el Excel todos los lunes.') }}</p>
+        </section>
+
+        {# 11. Configuración #}
+        <section id="s11" class="guia-section mb-5">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-gear text-primary me-2"></i>11. {{ _('Configuración de cuenta') }}
+            </h4>
+            <p class="text-muted">{{ _('Se accede desde el menú de usuario (esquina superior derecha) → Configurar.') }}</p>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold"><i class="bi bi-globe me-1 text-primary"></i>{{ _('Moneda y país') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Selecciona tu país para definir símbolo, código y formato. Puedes editar el símbolo manualmente. Si tu moneda no es USD, ingresa el valor de referencia del dólar.') }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold"><i class="bi bi-palette me-1 text-primary"></i>{{ _('Tema visual') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('9 temas disponibles: Dark, Ocean, Carbon, Dusk, Forest, Pearl, Abyss, Graphite, Enterprise. El cambio se aplica de inmediato.') }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold"><i class="bi bi-envelope me-1 text-primary"></i>SMTP</h6>
+                            <p class="small text-muted mb-0">{{ _('Configura tu servidor de correo para reportes y recuperación de contraseña. TLS y SSL son mutuamente excluyentes.') }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold"><i class="bi bi-shield-lock me-1 text-primary"></i>{{ _('Autenticación 2FA') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Activa TOTP con Google Authenticator, Authy, etc. Escanea el código QR y confirma con el código de 6 dígitos.') }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold"><i class="bi bi-bar-chart-line me-1 text-primary"></i>{{ _('Panel de Insights') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Activa o desactiva el panel de analítica (Salud financiera, Proyección, Alertas) en el Dashboard. Desactivado por defecto.') }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold"><i class="bi bi-code-slash me-1 text-primary"></i>{{ _('Token de API') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Genera un JWT válido por 365 días para usar la API REST. Guárdalo en un lugar seguro — no se mostrará nuevamente.') }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold"><i class="bi bi-send me-1 text-primary"></i>{{ _('Reporte semanal') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Con SMTP configurado, activa el envío automático del Excel Global. Se enviará a tu correo todos los lunes a las 10:00 UTC con los datos del mes y año en curso.') }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold"><i class="bi bi-question-circle me-1 text-primary"></i>{{ _('Referencias de formularios') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Activa el modo de ayuda para ver íconos de referencia junto a cada campo de los formularios. Al pasar el cursor sobre ellos aparece una descripción del campo.') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {# 12. Panel de analítica #}
+        <section id="s12" class="guia-section mb-5">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-bar-chart-line text-primary me-2"></i>12. {{ _('Panel de analítica') }}
+            </h4>
+            <p class="text-muted">{{ _('El panel de analítica aparece en el Dashboard mensual y ofrece tres indicadores inteligentes calculados en tiempo real con tus datos del mes activo. Está desactivado por defecto.') }}</p>
+
+            <div class="alert alert-info small py-2 mb-3">
+                <i class="bi bi-toggles me-1"></i>
+                {{ _('Para activarlo:') }} <strong>{{ _('Configuración de Cuenta → Panel de Insights') }}</strong> → {{ _('activa el interruptor.') }}
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold"><i class="bi bi-heart-pulse me-1" style="color:#22C55E;"></i>{{ _('Salud financiera') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Puntuación de 0 a 100 que combina tasa de ahorro, cumplimiento de presupuesto, diversificación de ingresos y tendencia de gastos. Cuanto más alto, mejor estado tienen tus finanzas ese mes.') }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold"><i class="bi bi-graph-up-arrow me-1" style="color:#38BDF8;"></i>{{ _('Proyección de cierre') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Estima el balance que tendrás al final del mes, extrapolando el ritmo de gastos e ingresos actuales. Útil para decidir si puedes gastar más o debes ajustar antes de que termine el mes.') }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold"><i class="bi bi-bell me-1" style="color:#F59E0B;"></i>{{ _('Alertas inteligentes') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Detecta automáticamente situaciones como déficit proyectado, picos de gasto en una categoría, transacciones inusuales, riesgo en metas de ahorro y tendencias negativas de flujo.') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="fw-semibold mt-3">{{ _('¿Cómo aprende el sistema?') }}</h6>
+            <p class="text-muted">{{ _('Los indicadores mejoran con el tiempo. Con más meses registrados, la proyección es más precisa y las alertas detectan anomalías con mayor exactitud al comparar con tu propio historial. Con pocos datos, el panel mostrará una nota indicando que aún está en modo de aprendizaje.') }}</p>
+
+            <h6 class="fw-semibold mt-3">{{ _('Severidad de las alertas') }}</h6>
+            <table class="table table-sm table-bordered small">
+                <thead class="table-dark"><tr><th>{{ _('Nivel') }}</th><th>{{ _('Descripción') }}</th></tr></thead>
+                <tbody>
+                    <tr><td><span class="text-danger fw-semibold">{{ _('Crítica') }}</span></td><td>{{ _('Requiere atención inmediata (ej. déficit proyectado severo, gasto muy por encima del límite)') }}</td></tr>
+                    <tr><td><span class="text-warning fw-semibold">{{ _('Advertencia') }}</span></td><td>{{ _('Situación a vigilar (ej. ritmo de gasto elevado, meta en riesgo)') }}</td></tr>
+                    <tr><td><span class="text-info fw-semibold">{{ _('Informativa') }}</span></td><td>{{ _('Dato útil sin urgencia (ej. transacción inusual, categoría sin presupuesto)') }}</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        {# 13. FAQ #}
+        <section id="s13" class="guia-section mb-5">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-question-circle text-primary me-2"></i>13. {{ _('Preguntas frecuentes') }}
+            </h4>
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-tags me-1 text-primary"></i>{{ _('¿Por qué no puedo eliminar una categoría?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Porque tiene registros asociados: transacciones, recurrentes o presupuestos. Primero elimina o reasigna esos registros, luego podrás eliminar la categoría. El sistema te indicará exactamente cuántos registros la bloquean.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-lock me-1 text-primary"></i>{{ _('¿Por qué no puedo editar un registro de Demo?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Los registros de demostración son de solo lectura. Puedes crear tus propios registros en paralelo o resetear los datos demo desde el panel de administración.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-arrow-repeat me-1 text-primary"></i>{{ _('¿Puedo eliminar una recurrente?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('No. Las recurrentes no pueden eliminarse para preservar la coherencia del historial. Para detenerla usa el botón Finalizar hoy o edita la fecha de término. Las transacciones ya generadas permanecen en tu historial.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-calendar-x me-1 text-primary"></i>{{ _('¿Qué pasa si el día de mi recurrente no existe en el mes?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Monetra ajusta automáticamente al último día del mes. Por eso se recomienda usar máximo el día 28 para que funcione igual en todos los meses, incluido febrero.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-trash me-1 text-primary"></i>{{ _('¿El presupuesto personalizado borra mis transacciones si lo elimino?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Sí. Al eliminar un presupuesto personalizado vigente se borran también todas las transacciones y recurrentes de su categoría. Se te informará cuántos registros se eliminarán antes de confirmar. Los presupuestos finalizados no pueden eliminarse.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-trophy me-1 text-primary"></i>{{ _('¿Abonar a una meta descuenta de mi saldo?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('No. Las metas son independientes de tus transacciones. Registrar un abono solo actualiza el contador de progreso. Si quieres también registrar el movimiento, debes crear una transacción por separado.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-file-earmark-excel me-1 text-primary"></i>{{ _('¿El Export incluye todos los datos o solo el período visible?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Depende de la pestaña. Movimientos, Categorías, Presupuestos, Dashboard y Base de Datos se filtran al período exportado. Metas y Recurrentes muestran el historial completo, independientemente del período seleccionado.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-send me-1 text-primary"></i>{{ _('¿Cada cuánto se envía el reporte semanal?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Todos los lunes a las 10:00 UTC. Requiere haber configurado el servidor SMTP en Configuración de Cuenta y activado la opción "Reporte semanal".') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>{# /row #}
+        </section>
+
+        <div class="text-center text-muted small py-3 border-top">
+            <i class="bi bi-code-slash me-1"></i>Monetra v2.3
+        </div>
+
+    </div>{# /col-lg-9 #}
+</div>{# /row #}
+
+{% endblock %}
+
+{% block scripts %}
+<style>
+    .sidebar-link {
+        color: var(--monetra-text-muted);
+        border-left: 2px solid transparent;
+        transition: border-color 0.15s, color 0.15s;
+    }
+    .sidebar-link:hover {
+        color: var(--monetra-text);
+        background: rgba(0,200,150,0.06);
+    }
+    .sidebar-link.active {
+        border-left-color: var(--monetra-primary, #00C896);
+        color: var(--monetra-primary, #00C896);
+        font-weight: 600;
+    }
+    .guia-section h4 {
+        color: var(--monetra-text);
+    }
+    .guia-section h6 {
+        color: var(--monetra-text);
+    }
+</style>
+<script>
+(function () {
+    var sections = document.querySelectorAll('.guia-section');
+    var links    = document.querySelectorAll('.sidebar-link');
+
+    if (!sections.length || !links.length) return;
+
+    function setActive(id) {
+        links.forEach(function (l) {
+            l.classList.toggle('active', l.getAttribute('href') === '#' + id);
+        });
+    }
+
+    var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                setActive(entry.target.id);
+            }
+        });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+
+    sections.forEach(function (s) { observer.observe(s); });
+}());
+</script>
+{% endblock %}

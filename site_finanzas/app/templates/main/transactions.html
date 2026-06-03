@@ -4,12 +4,19 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="mb-0 fw-bold">
-        <i class="bi bi-arrow-left-right text-primary"></i> {{ _('Movimientos') }}{{ hint(_('Historial completo de transacciones. Filtra por tipo, categoría o descripción y edita cualquier registro.')) }}
-        <span class="text-muted fs-5 fw-normal ms-1">{{ sel_year }}</span>
+        <i class="bi bi-arrow-left-right text-primary"></i> {{ _('Movimientos') }}{{ hint(_('Movimientos del mes seleccionado en el menú superior. Filtra por tipo, categoría o día del mes.')) }}
+        <span class="text-muted fs-5 fw-normal ms-1">{{ selected_month_name }} {{ sel_year }}</span>
     </h2>
-    <a href="{{ url_for('main.add_transaction') }}" class="btn btn-success">
-        <i class="bi bi-plus-lg"></i> {{ _('Nuevo Movimiento') }}
-    </a>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-primary" id="btnScanReceipt"
+                data-bs-toggle="modal" data-bs-target="#scannerModal"
+                title="{{ _('Escanear recibo con cámara') }}">
+            <i class="bi bi-camera"></i> <span class="d-none d-sm-inline">{{ _('Escanear recibo') }}</span>
+        </button>
+        <a href="{{ url_for('main.add_transaction') }}" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> {{ _('Nuevo Movimiento') }}
+        </a>
+    </div>
 </div>
 
 <!-- Filtros -->
@@ -36,14 +43,14 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="form-label small fw-semibold">{{ _('Mes') }}</label>
-                <select name="month" class="form-select">
-                    <option value="0" {% if month_filter == 0 %}selected{% endif %}>
-                        {{ _('Todos los meses') }}
+                <label class="form-label small fw-semibold">{{ _('Día') }}</label>
+                <select name="day" class="form-select">
+                    <option value="0" {% if day_filter == 0 %}selected{% endif %}>
+                        {{ _('Todos los días') }}
                     </option>
-                    {% for num, name in month_names.items() %}
-                    <option value="{{ num }}" {% if num == month_filter %}selected{% endif %}>
-                        {{ name }}
+                    {% for day in days_in_month %}
+                    <option value="{{ day }}" {% if day == day_filter %}selected{% endif %}>
+                        {{ day }}
                     </option>
                     {% endfor %}
                 </select>
@@ -90,7 +97,16 @@
                             <span class="badge bg-danger"><i class="bi bi-arrow-down"></i> {{ _('Gasto') }}</span>
                             {% endif %}
                         </td>
-                        <td><span class="badge bg-light text-dark border">{{ t.category.name }}</span></td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ t.category.name }}</span>
+                            {% if t.category_id in custom_budget_category_ids %}
+                            <span class="badge ms-1"
+                                  title="{{ _('Pertenece a presupuesto personalizado') }}"
+                                  style="background:rgba(242,201,76,0.15); color:#F2C94C; border:1px solid rgba(242,201,76,0.35);">
+                                <i class="bi bi-piggy-bank"></i>
+                            </span>
+                            {% endif %}
+                        </td>
                         <td class="small text-muted">{{ t.description or '—' }}</td>
                         <td class="text-center">
                             {% if t.recurring_id %}
@@ -112,6 +128,24 @@
                                class="btn btn-sm btn-outline-secondary me-1" title="{{ _('Editar') }}">
                                 <i class="bi bi-pencil"></i>
                             </a>
+                            {% if t.recurring_id and t.recurring_id in active_rec_ids %}
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalRecurringDelete"
+                                    title="{{ _('Eliminar') }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            {% elif t.recurring_id and t.recurring_id in inactive_rec_ids %}
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalInactiveRecurringDelete"
+                                    data-delete-url="{{ url_for('main.delete_transaction', tx_id=t.id) }}"
+                                    title="{{ _('Eliminar') }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            {% else %}
                             <form method="POST"
                                   action="{{ url_for('main.delete_transaction', tx_id=t.id) }}"
                                   class="d-inline"
@@ -121,6 +155,7 @@
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
+                            {% endif %}
                         </td>
                     </tr>
                     {% else %}
@@ -158,4 +193,482 @@
     </div>
 </div>
 
+<!-- Modal: eliminar transacción recurrente -->
+<div class="modal fade" id="modalRecurringDelete" tabindex="-1" aria-labelledby="modalRecurringDeleteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalRecurringDeleteLabel">
+                    <i class="bi bi-arrow-repeat text-warning me-2"></i>{{ _('Transacción recurrente') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">{{ _('Esta transacción fue generada automáticamente por una regla recurrente.') }}</p>
+                <p class="mb-0 text-warning small">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    {{ _('Si la eliminas, se volverá a generar la próxima vez que abras el dashboard, porque la regla recurrente sigue activa.') }}
+                </p>
+                <p class="mt-3 mb-0 small text-muted">
+                    {{ _('Para evitar que se regenere, desactiva o elimina la regla en') }}
+                    <a href="{{ url_for('main.recurrentes') }}" class="text-primary">{{ _('Recurrentes') }}</a>,
+                    {{ _('vuelve a esta sección y elimina la transacción.') }}
+                </p>
+            </div>
+            <div class="modal-footer gap-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cerrar') }}</button>
+                <a href="{{ url_for('main.recurrentes') }}" class="btn btn-primary">
+                    <i class="bi bi-arrow-repeat me-1"></i>{{ _('Ir a Recurrentes') }}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: eliminar transacción con regla recurrente INACTIVA -->
+<div class="modal fade" id="modalInactiveRecurringDelete" tabindex="-1" aria-labelledby="modalInactiveRecurringDeleteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalInactiveRecurringDeleteLabel">
+                    <i class="bi bi-trash text-danger me-2"></i>{{ _('Eliminar movimiento') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">{{ _('El movimiento será eliminado.') }}</p>
+                <p class="mb-0 small text-warning">
+                    <i class="bi bi-info-circle me-1"></i>
+                    {{ _('Este movimiento pertenece a una regla recurrente que actualmente está desactivada. Si en el futuro vuelves a activar esa regla, el movimiento se creará nuevamente de forma automática.') }}
+                </p>
+            </div>
+            <div class="modal-footer gap-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+                <form id="formDeleteInactiveRecurring" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>{{ _('Eliminar') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Escáner de recibo con IA -->
+<div class="modal fade" id="scannerModal" tabindex="-1" aria-labelledby="scannerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="scannerModalLabel">
+                    <i class="bi bi-camera text-primary me-2"></i>{{ _('Escanear recibo') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+            </div>
+            <div class="modal-body">
+
+                <!-- Step 1: Camera capture -->
+                <div id="scanStep1">
+                    <!-- Secure context warning -->
+                    <div id="scanSecureWarning" class="alert alert-warning d-none" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        {{ _('La cámara requiere una conexión segura (HTTPS). En una red local accede por localhost.') }}
+                    </div>
+                    <!-- Permission error -->
+                    <div id="scanPermError" class="alert alert-danger d-none" role="alert">
+                        <i class="bi bi-camera-video-off me-2"></i>
+                        {{ _('No se pudo acceder a la cámara. Verifica los permisos del navegador.') }}
+                    </div>
+
+                    <!-- Video preview -->
+                    <div style="position:relative; width:100%; background:#000; border-radius:8px; overflow:hidden;">
+                        <video id="scanVideo" autoplay playsinline muted
+                               style="width:100%; max-height:360px; display:block; object-fit:cover;"></video>
+                        <div id="scanVideoPlaceholder" class="d-flex align-items-center justify-content-center"
+                             style="height:280px; color:#78909C;">
+                            <div class="text-center">
+                                <i class="bi bi-camera" style="font-size:3rem;"></i>
+                                <p class="mt-2 small">{{ _('Iniciando cámara...') }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Canvas for capture (hidden) -->
+                    <canvas id="scanCanvas" style="display:none;"></canvas>
+
+                    <!-- Category selector -->
+                    <div class="mt-3">
+                        <label class="form-label small fw-semibold">{{ _('Categoría') }} <span class="text-muted fw-normal">({{ _('opcional — Scanner por defecto') }})</span></label>
+                        <select id="scanCategorySelect" class="form-select form-select-sm">
+                            <option value="">{{ _('— Usar categoría Scanner —') }}</option>
+                            {% for c in categories %}
+                            {% if c.type == 'expense' %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Action button -->
+                    <div class="d-flex gap-2 mt-3 justify-content-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+                        <button type="button" class="btn btn-primary" id="btnCapture">
+                            <i class="bi bi-camera-fill me-1"></i>{{ _('Capturar y Escanear') }}
+                        </button>
+                    </div>
+
+                    <!-- Loading state -->
+                    <div id="scanLoading" class="mt-3 text-center d-none">
+                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                        <span class="small text-muted">{{ _('Analizando recibo con IA...') }}</span>
+                    </div>
+                    <div id="scanError" class="mt-3 alert alert-danger d-none" role="alert"></div>
+                </div>
+
+                <!-- Step 2: Review extracted data -->
+                <div id="scanStep2" class="d-none">
+                    <p class="small text-muted mb-3">
+                        <i class="bi bi-check-circle-fill text-success me-1"></i>
+                        {{ _('Revisa los datos extraídos antes de guardar. Puedes editarlos.') }}
+                    </p>
+
+                    <!-- Preview of captured image -->
+                    <div class="text-center mb-3">
+                        <img id="scanPreviewImg" src="" alt="{{ _('Recibo capturado') }}"
+                             style="max-height:160px; border-radius:6px; border:1px solid rgba(255,255,255,0.1);">
+                    </div>
+
+                    <!-- Review form (POST to add_transaction) -->
+                    <form id="scanSaveForm" method="POST"
+                          action="{{ url_for('main.add_transaction') }}" novalidate>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold" for="scanAmount">{{ _('Monto') }}</label>
+                                <input type="number" step="0.01" min="0.01" name="amount" id="scanAmount"
+                                       class="form-control form-control-sm" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold" for="scanType">{{ _('Tipo') }}</label>
+                                <select name="type" id="scanType" class="form-select form-select-sm">
+                                    <option value="expense" selected>{{ _('Gasto') }}</option>
+                                    <option value="income">{{ _('Ingreso') }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold" for="scanDate">{{ _('Fecha') }}</label>
+                                <input type="date" name="date" id="scanDate" class="form-control form-control-sm" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold" for="scanCategory">{{ _('Categoría') }}</label>
+                                <select name="category_id" id="scanCategory" class="form-select form-select-sm" required>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold" for="scanMerchant">
+                                    {{ _('Comercio') }} <span class="text-muted fw-normal small">({{ _('informativo') }})</span>
+                                </label>
+                                <input type="text" id="scanMerchant" class="form-control form-control-sm" readonly
+                                       style="color:var(--monetra-text-muted,#B0BEC5);">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold" for="scanDescription">{{ _('Descripción / Productos') }}</label>
+                                <textarea name="description" id="scanDescription" rows="3"
+                                          class="form-control form-control-sm" maxlength="2000"></textarea>
+                                <div class="form-text" style="font-size:0.7rem;">{{ _('Generado por IA. Puedes editarlo libremente.') }}</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-4 justify-content-end">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="btnScanBack">
+                                <i class="bi bi-arrow-left me-1"></i>{{ _('Volver a cámara') }}
+                            </button>
+                            <button type="submit" class="btn btn-success btn-sm fw-semibold">
+                                <i class="bi bi-check-lg me-1"></i>{{ _('Guardar movimiento') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    var modal = document.getElementById('modalInactiveRecurringDelete');
+    if (!modal) return;
+    modal.addEventListener('show.bs.modal', function (e) {
+        document.getElementById('formDeleteInactiveRecurring').action =
+            e.relatedTarget.getAttribute('data-delete-url');
+    });
+})();
+</script>
+
+<script>
+(function () {
+    'use strict';
+
+    // ── Category data (built from server-rendered template) ───────────────────
+    var SCAN_CATEGORIES = [
+        {% for c in categories %}
+        {"id": {{ c.id }}, "name": {{ c.name|tojson }}, "type": "{{ c.type }}"},
+        {% endfor %}
+    ];
+
+    // ── Elements ───────────────────────────────────────────────────────────────
+    var scannerModal       = document.getElementById('scannerModal');
+    var video              = document.getElementById('scanVideo');
+    var canvas             = document.getElementById('scanCanvas');
+    var videoPlaceholder   = document.getElementById('scanVideoPlaceholder');
+    var btnCapture         = document.getElementById('btnCapture');
+    var scanLoading        = document.getElementById('scanLoading');
+    var scanError          = document.getElementById('scanError');
+    var scanSecureWarning  = document.getElementById('scanSecureWarning');
+    var scanPermError      = document.getElementById('scanPermError');
+    var scanStep1          = document.getElementById('scanStep1');
+    var scanStep2          = document.getElementById('scanStep2');
+    var scanPreviewImg     = document.getElementById('scanPreviewImg');
+    var btnScanBack        = document.getElementById('btnScanBack');
+    var scanCategorySelect = document.getElementById('scanCategorySelect');
+
+    // Review form fields
+    var scanAmount      = document.getElementById('scanAmount');
+    var scanType        = document.getElementById('scanType');
+    var scanDate        = document.getElementById('scanDate');
+    var scanCategory    = document.getElementById('scanCategory');
+    var scanDescription = document.getElementById('scanDescription');
+    var scanMerchant    = document.getElementById('scanMerchant');
+
+    var mediaStream = null;
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    function showError(msg) {
+        if (!scanError) return;
+        scanError.textContent = msg;
+        scanError.classList.remove('d-none');
+    }
+
+    function hideError() {
+        if (scanError) scanError.classList.add('d-none');
+    }
+
+    function setLoading(on) {
+        if (scanLoading) scanLoading.classList.toggle('d-none', !on);
+        if (btnCapture) btnCapture.disabled = on;
+    }
+
+    function stopCamera() {
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(function (t) { t.stop(); });
+            mediaStream = null;
+        }
+    }
+
+    // ── Category filtering (keeps type and category in sync) ──────────────────
+
+    function filterScanCategories(selectedType, preferredId) {
+        if (!scanCategory) return;
+        var type = selectedType || (scanType ? scanType.value : 'expense');
+        var filtered = SCAN_CATEGORIES.filter(function (c) { return c.type === type; });
+        scanCategory.innerHTML = '';
+        filtered.forEach(function (c) {
+            var opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            if (preferredId && c.id === parseInt(preferredId, 10)) opt.selected = true;
+            scanCategory.appendChild(opt);
+        });
+    }
+
+    if (scanType) {
+        scanType.addEventListener('change', function () {
+            filterScanCategories(scanType.value, null);
+        });
+    }
+
+    // ── Start camera on modal open ────────────────────────────────────────────
+
+    if (scannerModal) {
+        scannerModal.addEventListener('show.bs.modal', function () {
+            hideError();
+            setLoading(false);
+            // Reset to step 1
+            if (scanStep1) scanStep1.classList.remove('d-none');
+            if (scanStep2) scanStep2.classList.add('d-none');
+            if (scanSecureWarning) scanSecureWarning.classList.add('d-none');
+            if (scanPermError) scanPermError.classList.add('d-none');
+            // Reset type to expense and populate matching categories
+            if (scanType) scanType.value = 'expense';
+            filterScanCategories('expense', null);
+
+            // Check secure context
+            if (!window.isSecureContext) {
+                if (scanSecureWarning) scanSecureWarning.classList.remove('d-none');
+                return;
+            }
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                if (scanSecureWarning) scanSecureWarning.classList.remove('d-none');
+                return;
+            }
+
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(function (stream) {
+                    mediaStream = stream;
+                    if (video) {
+                        video.srcObject = stream;
+                        video.style.display = 'block';
+                    }
+                    if (videoPlaceholder) videoPlaceholder.style.display = 'none';
+                })
+                .catch(function () {
+                    if (scanPermError) scanPermError.classList.remove('d-none');
+                });
+        });
+
+        scannerModal.addEventListener('hidden.bs.modal', function () {
+            stopCamera();
+            if (video) { video.srcObject = null; video.style.display = 'none'; }
+            if (videoPlaceholder) videoPlaceholder.style.display = '';
+        });
+    }
+
+    // ── Capture frame & extract ────────────────────────────────────────────────
+
+    if (btnCapture) {
+        btnCapture.addEventListener('click', function () {
+            if (!video || !canvas) return;
+            hideError();
+
+            // Draw current video frame to canvas (downscale to max 1200px wide)
+            var maxW = 1200;
+            var vw = video.videoWidth || 640;
+            var vh = video.videoHeight || 480;
+            var scale = Math.min(1, maxW / vw);
+            canvas.width  = Math.round(vw * scale);
+            canvas.height = Math.round(vh * scale);
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            setLoading(true);
+
+            canvas.toBlob(function (blob) {
+                if (!blob) {
+                    setLoading(false);
+                    showError('{{ _("No se pudo capturar la imagen.") }}');
+                    return;
+                }
+
+                // Show preview
+                if (scanPreviewImg) scanPreviewImg.src = URL.createObjectURL(blob);
+
+                // Build form data
+                var formData = new FormData();
+                formData.append('image', blob, 'receipt.jpg');
+                var catVal = scanCategorySelect ? scanCategorySelect.value : '';
+                if (catVal) formData.append('category_id', catVal);
+
+                // CSRF token from meta tag
+                var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                var csrfToken = csrfMeta ? csrfMeta.content : '';
+
+                fetch('{{ url_for("scanner.extract") }}', {
+                    method: 'POST',
+                    headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {},
+                    body: formData,
+                })
+                .then(function (resp) {
+                    return resp.json().then(function (data) {
+                        if (!resp.ok) throw new Error(data.error || '{{ _("Error desconocido.") }}');
+                        return data;
+                    });
+                })
+                .then(function (data) {
+                    setLoading(false);
+                    stopCamera();
+
+                    // Pre-fill review form
+                    if (scanAmount && data.amount != null)  scanAmount.value = parseFloat(data.amount).toFixed(2);
+                    if (scanDescription)                    scanDescription.value = data.description || '';
+                    if (scanMerchant)                       scanMerchant.value = data.merchant || '';
+
+                    // Date: use AI date if valid and in current period, else today or last day of period
+                    var today     = new Date();
+                    var selYear   = {{ sel_year }};
+                    var selMonth  = {{ sel_month }};   // 1-based
+                    var dateToUse = '';
+                    if (data.date) {
+                        var d = new Date(data.date + 'T00:00:00');
+                        if (!isNaN(d) && d.getFullYear() === selYear && (d.getMonth() + 1) === selMonth) {
+                            dateToUse = data.date;
+                        }
+                    }
+                    if (!dateToUse) {
+                        // Default to today if it's within the period, else last day of period
+                        if (today.getFullYear() === selYear && (today.getMonth() + 1) === selMonth) {
+                            dateToUse = today.toISOString().slice(0, 10);
+                        } else {
+                            var lastDay = new Date(selYear, selMonth, 0).getDate();
+                            dateToUse = selYear + '-' + String(selMonth).padStart(2, '0') + '-' + String(lastDay).padStart(2, '0');
+                        }
+                    }
+                    if (scanDate) scanDate.value = dateToUse;
+
+                    // Type + Category: infer type from AI category, then filter select accordingly
+                    var aiType = 'expense';
+                    if (data.category_id) {
+                        var aiCat = SCAN_CATEGORIES.find(function (c) {
+                            return c.id === parseInt(data.category_id, 10);
+                        });
+                        if (aiCat) aiType = aiCat.type;
+                    }
+                    if (scanType) scanType.value = aiType;
+                    filterScanCategories(aiType, data.category_id);
+
+                    // Switch to step 2
+                    if (scanStep1) scanStep1.classList.add('d-none');
+                    if (scanStep2) scanStep2.classList.remove('d-none');
+                })
+                .catch(function (err) {
+                    setLoading(false);
+                    showError(err.message || '{{ _("Error al procesar el recibo.") }}');
+                });
+
+            }, 'image/jpeg', 0.85);
+        });
+    }
+
+    // ── Back to camera ────────────────────────────────────────────────────────
+
+    if (btnScanBack) {
+        btnScanBack.addEventListener('click', function () {
+            if (scanStep1) scanStep1.classList.remove('d-none');
+            if (scanStep2) scanStep2.classList.add('d-none');
+            hideError();
+            // Reset type and repopulate categories for a clean retry
+            if (scanType) scanType.value = 'expense';
+            filterScanCategories('expense', null);
+            // Restart camera
+            if (!mediaStream && navigator.mediaDevices && window.isSecureContext) {
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                    .then(function (stream) {
+                        mediaStream = stream;
+                        if (video) { video.srcObject = stream; video.style.display = 'block'; }
+                        if (videoPlaceholder) videoPlaceholder.style.display = 'none';
+                    })
+                    .catch(function () {
+                        if (scanPermError) scanPermError.classList.remove('d-none');
+                    });
+            }
+        });
+    }
+
+})();
+</script>
 {% endblock %}
