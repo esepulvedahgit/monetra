@@ -93,7 +93,7 @@ class Transaction(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
     type = db.Column(db.String(10), nullable=False)  # 'income' or 'expense'
     amount = db.Column(db.Numeric(12, 2), nullable=False)
-    description = db.Column(db.String(200), nullable=True)
+    description = db.Column(db.Text, nullable=True)
     date = db.Column(db.Date, nullable=False, default=_date.today)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     is_demo = db.Column(db.Boolean, nullable=False, default=False)
@@ -157,6 +157,28 @@ class UserEmailConfig(db.Model):
 
     def __repr__(self):
         return f'<UserEmailConfig user_id={self.user_id} enabled={self.smtp_enabled}>'
+
+
+class UserAIConfig(db.Model):
+    """Per-user AI provider configuration for receipt scanning."""
+    __tablename__ = 'user_ai_config'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
+    provider = db.Column(db.String(20), nullable=False, default='openai')
+    # openai | deepseek | openrouter | anthropic | gemini
+    model = db.Column(db.String(80), nullable=True)
+    base_url = db.Column(db.String(255), nullable=True)  # custom endpoint for OpenAI-compatible providers
+    api_token_encrypted = db.Column(db.LargeBinary, nullable=True)
+    enabled = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
+                           onupdate=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship('User', backref=db.backref('ai_config', uselist=False,
+                                                       cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<UserAIConfig user={self.user_id} provider={self.provider}>'
 
 
 class CategoryBudget(db.Model):

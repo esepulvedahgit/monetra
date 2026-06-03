@@ -113,6 +113,9 @@ def create_app(config_class=Config):
     from app.analytics import analytics_bp
     app.register_blueprint(analytics_bp)
 
+    from app.scanner import scanner_bp
+    app.register_blueprint(scanner_bp)
+
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e):
         if current_user.is_authenticated:

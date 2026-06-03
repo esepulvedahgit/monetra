@@ -1,5 +1,5 @@
 from app import create_app, db
-from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, EmailActivationToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget
+from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, EmailActivationToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget, UserAIConfig
 from sqlalchemy import inspect, text
 
 app = create_app()
@@ -290,3 +290,32 @@ with app.app_context():
             conn.execute(text("ALTER TABLE usd_budgets ADD COLUMN is_demo TINYINT(1) NOT NULL DEFAULT 0"))
             conn.commit()
             print("Columna is_demo agregada a usd_budgets.")
+
+    # ── transactions.description: migrate VARCHAR(200) → TEXT ─────────────────
+    tx_desc_col = {c['name']: c for c in inspect(db.engine).get_columns('transactions')}.get('description')
+    if tx_desc_col is not None:
+        col_type_str = str(tx_desc_col['type']).upper()
+        if 'TEXT' not in col_type_str:
+            with db.engine.connect() as conn:
+                conn.execute(text("ALTER TABLE transactions MODIFY COLUMN description TEXT NULL"))
+                conn.commit()
+            print("Columna description en transactions migrada a TEXT.")
+        else:
+            print("Columna description ya es TEXT.")
+
+    # ── user_ai_config: table created by db.create_all() via the model. ───────
+    if 'user_ai_config' in inspect(db.engine).get_table_names():
+        print("Tabla user_ai_config verificada.")
+
+    # ── Default 'Scanner' category (global, fallback for receipt scanning) ────
+    if not Category.query.filter_by(user_id=None, name='Scanner').first():
+        db.session.add(Category(name='Scanner', type='expense', user_id=None, color='#06B6D4'))
+        db.session.commit()
+        print("Categoría global 'Scanner' creada.")
+    else:
+        # Ensure color is set if missing
+        scanner_cat = Category.query.filter_by(user_id=None, name='Scanner').first()
+        if scanner_cat and not scanner_cat.color:
+            scanner_cat.color = '#06B6D4'
+            db.session.commit()
+            print("Color de categoría 'Scanner' actualizado.")

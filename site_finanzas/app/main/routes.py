@@ -11,9 +11,9 @@ from sqlalchemy import extract, func
 
 from app import db
 from app.main import main
-from app.main.forms import TransactionForm, CategoryForm, BudgetForm, CategoryBudgetForm, ConfigForm, SMTPConfigForm, RecurringTransactionForm, SavingsGoalForm, ChangePasswordForm, CustomBudgetForm
-from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal, UserSeenAnnouncement, CustomBudget
-from app.email_service import encrypt_smtp_password, send_user_email, encrypt_mfa_secret, decrypt_mfa_secret
+from app.main.forms import TransactionForm, CategoryForm, BudgetForm, CategoryBudgetForm, ConfigForm, SMTPConfigForm, RecurringTransactionForm, SavingsGoalForm, ChangePasswordForm, CustomBudgetForm, AIConfigForm
+from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal, UserSeenAnnouncement, CustomBudget, UserAIConfig
+from app.email_service import encrypt_smtp_password, send_user_email, encrypt_mfa_secret, decrypt_mfa_secret, encrypt_ai_token
 from flask_jwt_extended import create_access_token
 
 # (nombre, símbolo, nombre_moneda, código_ISO, locale_babel)
@@ -1583,6 +1583,13 @@ def ayuda():
 def configurar():
     form = ConfigForm()
     smtp_form = SMTPConfigForm()
+    ai_form = AIConfigForm()
+
+    # Get or lazy-create the AI config row
+    ai_config = current_user.ai_config
+    if not ai_config:
+        ai_config = UserAIConfig(user_id=current_user.id)
+        db.session.add(ai_config)
 
     form.country.choices = [(c[0], f"{c[0]}  —  {c[2]}") for c in COUNTRIES_CURRENCIES]
     _country_map = {c[0]: {'symbol': c[1], 'currency': c[2], 'code': c[3], 'locale': c[4]}
@@ -1613,6 +1620,18 @@ def configurar():
                     email_config.smtp_password_encrypted = encrypt_smtp_password(smtp_form.smtp_password.data)
             db.session.commit()
             flash(_('Configuración de correo (SMTP) guardada exitosamente.'), 'success')
+            return redirect(url_for('main.configurar'))
+
+    elif 'submit_ai' in request.form:
+        if ai_form.validate_on_submit():
+            ai_config.enabled = ai_form.enabled.data
+            ai_config.provider = ai_form.provider.data
+            ai_config.model = ai_form.model.data or None
+            ai_config.base_url = ai_form.base_url.data or None
+            if ai_form.api_token.data:
+                ai_config.api_token_encrypted = encrypt_ai_token(ai_form.api_token.data)
+            db.session.commit()
+            flash(_('Configuración del escáner IA guardada.'), 'success')
             return redirect(url_for('main.configurar'))
 
     elif 'submit_admin' in request.form:
@@ -1652,6 +1671,12 @@ def configurar():
         smtp_form.sender_email.data = email_config.sender_email
         smtp_form.sender_name.data = email_config.sender_name
 
+        ai_form.enabled.data = ai_config.enabled
+        ai_form.provider.data = ai_config.provider or 'openai'
+        ai_form.model.data = ai_config.model
+        ai_form.base_url.data = ai_config.base_url
+        # Never repopulate api_token (PasswordField — never shown)
+
     admin_smtp_available = False
     if not current_user.is_first_admin:
         admin = User.query.filter_by(is_first_admin=True).first()
@@ -1663,6 +1688,8 @@ def configurar():
     return render_template('main/configurar.html',
                            form=form,
                            smtp_form=smtp_form,
+                           ai_form=ai_form,
+                           ai_config=ai_config,
                            pwd_form=ChangePasswordForm(),
                            email_config=email_config,
                            admin_smtp_available=admin_smtp_available,

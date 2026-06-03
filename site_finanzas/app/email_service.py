@@ -39,6 +39,21 @@ def decrypt_mfa_secret(encrypted_secret: bytes) -> str:
     except Exception:
         return ""
 
+def encrypt_ai_token(token: str) -> bytes:
+    if not token:
+        return b''
+    f = get_fernet()
+    return f.encrypt(token.encode('utf-8'))
+
+def decrypt_ai_token(encrypted_token: bytes) -> str:
+    if not encrypted_token:
+        return ""
+    f = get_fernet()
+    try:
+        return f.decrypt(encrypted_token).decode('utf-8')
+    except Exception:
+        return ""
+
 
 def _send_with_config(config, to_email, subject, body_text, body_html=None):
     """Core SMTP send using a UserEmailConfig object."""
