@@ -1,4 +1,4 @@
-import os
+﻿import os
 import pytest
 
 os.environ.setdefault('SECRET_KEY', 'test-secret-key')
@@ -48,7 +48,7 @@ def client(app):
 def seeded_data(app):
     """Create a test user and a default category. Returns (user_id, category_id)."""
     with app.app_context():
-        u = User(username='testuser', email='test@example.com', role='user')
+        u = User(username='testuser', email='test@example.com', role='user', email_verified=True)
         u.set_password('Password123!')
         _db.session.add(u)
         cat = Category(name='Otros', type='expense', user_id=None)
