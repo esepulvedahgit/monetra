@@ -362,9 +362,6 @@
                             <div class="col-md-6">
                                 <label class="form-label small fw-semibold" for="scanCategory">{{ _('Categoría') }}</label>
                                 <select name="category_id" id="scanCategory" class="form-select form-select-sm" required>
-                                    {% for c in categories %}
-                                    <option value="{{ c.id }}">{{ c.name }} ({{ _('gasto') if c.type == 'expense' else _('ingreso') }})</option>
-                                    {% endfor %}
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -416,6 +413,13 @@
 (function () {
     'use strict';
 
+    // ── Category data (built from server-rendered template) ───────────────────
+    var SCAN_CATEGORIES = [
+        {% for c in categories %}
+        {"id": {{ c.id }}, "name": {{ c.name|tojson }}, "type": "{{ c.type }}"},
+        {% endfor %}
+    ];
+
     // ── Elements ───────────────────────────────────────────────────────────────
     var scannerModal       = document.getElementById('scannerModal');
     var video              = document.getElementById('scanVideo');
@@ -434,6 +438,7 @@
 
     // Review form fields
     var scanAmount      = document.getElementById('scanAmount');
+    var scanType        = document.getElementById('scanType');
     var scanDate        = document.getElementById('scanDate');
     var scanCategory    = document.getElementById('scanCategory');
     var scanDescription = document.getElementById('scanDescription');
@@ -465,6 +470,28 @@
         }
     }
 
+    // ── Category filtering (keeps type and category in sync) ──────────────────
+
+    function filterScanCategories(selectedType, preferredId) {
+        if (!scanCategory) return;
+        var type = selectedType || (scanType ? scanType.value : 'expense');
+        var filtered = SCAN_CATEGORIES.filter(function (c) { return c.type === type; });
+        scanCategory.innerHTML = '';
+        filtered.forEach(function (c) {
+            var opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            if (preferredId && c.id === parseInt(preferredId, 10)) opt.selected = true;
+            scanCategory.appendChild(opt);
+        });
+    }
+
+    if (scanType) {
+        scanType.addEventListener('change', function () {
+            filterScanCategories(scanType.value, null);
+        });
+    }
+
     // ── Start camera on modal open ────────────────────────────────────────────
 
     if (scannerModal) {
@@ -476,6 +503,9 @@
             if (scanStep2) scanStep2.classList.add('d-none');
             if (scanSecureWarning) scanSecureWarning.classList.add('d-none');
             if (scanPermError) scanPermError.classList.add('d-none');
+            // Reset type to expense and populate matching categories
+            if (scanType) scanType.value = 'expense';
+            filterScanCategories('expense', null);
 
             // Check secure context
             if (!window.isSecureContext) {
@@ -590,11 +620,16 @@
                     }
                     if (scanDate) scanDate.value = dateToUse;
 
-                    // Category
-                    if (scanCategory && data.category_id) {
-                        var opt = scanCategory.querySelector('option[value="' + data.category_id + '"]');
-                        if (opt) scanCategory.value = data.category_id;
+                    // Type + Category: infer type from AI category, then filter select accordingly
+                    var aiType = 'expense';
+                    if (data.category_id) {
+                        var aiCat = SCAN_CATEGORIES.find(function (c) {
+                            return c.id === parseInt(data.category_id, 10);
+                        });
+                        if (aiCat) aiType = aiCat.type;
                     }
+                    if (scanType) scanType.value = aiType;
+                    filterScanCategories(aiType, data.category_id);
 
                     // Switch to step 2
                     if (scanStep1) scanStep1.classList.add('d-none');
@@ -616,6 +651,9 @@
             if (scanStep1) scanStep1.classList.remove('d-none');
             if (scanStep2) scanStep2.classList.add('d-none');
             hideError();
+            // Reset type and repopulate categories for a clean retry
+            if (scanType) scanType.value = 'expense';
+            filterScanCategories('expense', null);
             // Restart camera
             if (!mediaStream && navigator.mediaDevices && window.isSecureContext) {
                 navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
