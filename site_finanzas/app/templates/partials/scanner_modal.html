@@ -488,7 +488,7 @@
         var csrfMeta  = document.querySelector('meta[name="csrf-token"]');
         var csrfToken = csrfMeta ? csrfMeta.content : '';
 
-        fetch('{{ url_for("scanner.scanner_extract") }}', {
+        fetch('{{ url_for("scanner.extract") }}', {
             method: 'POST',
             headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {},
             body: formData,
