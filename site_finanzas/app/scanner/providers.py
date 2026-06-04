@@ -9,7 +9,11 @@ Supported providers and their API formats:
 """
 
 import base64
+import ipaddress
 import json
+import re
+import socket
+from urllib.parse import urlparse
 
 import requests
 
@@ -24,29 +28,120 @@ DEFAULT_BASE_URLS = {
 
 _OPENAI_COMPATIBLE = {'openai', 'deepseek', 'openrouter'}
 
+_BLOCKED_HOSTNAMES = frozenset({
+    'localhost', '0.0.0.0', '::1', '[::1]', 'metadata.google.internal',
+})
+_BLOCKED_HOSTNAME_SUFFIXES = ('.local', '.internal', '.localhost')
+
+
+def _validate_base_url(base_url: str) -> None:
+    """Raise ValueError if base_url could target private/internal infrastructure (SSRF)."""
+    try:
+        parsed = urlparse(base_url)
+    except Exception:
+        raise ValueError("URL base inválida.")
+
+    if parsed.scheme not in ('http', 'https'):
+        raise ValueError("URL base debe usar http o https.")
+
+    hostname = (parsed.hostname or '').lower().rstrip('.')
+    if not hostname:
+        raise ValueError("URL base inválida: sin hostname.")
+
+    if hostname in _BLOCKED_HOSTNAMES:
+        raise ValueError("URL base no permitida.")
+
+    for suffix in _BLOCKED_HOSTNAME_SUFFIXES:
+        if hostname.endswith(suffix):
+            raise ValueError("URL base no permitida.")
+
+    # Check literal IP first
+    try:
+        addr = ipaddress.ip_address(hostname)
+        if addr.is_loopback or addr.is_private or addr.is_link_local or addr.is_reserved or addr.is_unspecified:
+            raise ValueError("URL base no permitida.")
+    except ValueError as exc:
+        if "no permitida" in str(exc):
+            raise
+        # hostname is not an IP literal — fall through to DNS check
+
+    # Resolve hostname and reject if ANY returned address is in a blocked range.
+    # DNS failures are non-blocking (the outbound request will fail naturally).
+    try:
+        for _family, _type, _proto, _canon, sockaddr in socket.getaddrinfo(hostname, None):
+            try:
+                resolved = ipaddress.ip_address(sockaddr[0])
+                if (resolved.is_loopback or resolved.is_private or resolved.is_link_local
+                        or resolved.is_reserved or resolved.is_unspecified):
+                    raise ValueError("URL base no permitida.")
+            except ValueError as exc:
+                if "no permitida" in str(exc):
+                    raise
+    except ValueError:
+        raise
+    except Exception:
+        pass  # DNS unavailable — let the outbound HTTP request fail naturally
+
 
 def _parse_json_response(text: str) -> dict:
-    """Parse JSON string, raising ValueError on failure."""
+    """Parse JSON from an LLM response, tolerating markdown fences and surrounding prose."""
+    if not text:
+        raise ValueError("No se pudo leer el recibo. Asegúrate de que la imagen sea clara y vuelve a intentarlo.")
+
+    # 1. Try direct parse
     try:
         return json.loads(text)
     except (json.JSONDecodeError, TypeError):
-        raise ValueError("La respuesta de la IA no es JSON válido.")
+        pass
+
+    # 2. Strip markdown code fences (```json ... ``` or ``` ... ```)
+    stripped = re.sub(r"```(?:json)?\s*", "", text).strip().rstrip("`").strip()
+    try:
+        return json.loads(stripped)
+    except (json.JSONDecodeError, TypeError):
+        pass
+
+    # 3. Extract the first {...} block from mixed text
+    match = re.search(r"\{.*\}", text, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group())
+        except (json.JSONDecodeError, TypeError):
+            pass
+
+    raise ValueError("No se pudo leer el recibo. Asegúrate de que la imagen sea clara y vuelve a intentarlo.")
+
+
+_VISION_UNSUPPORTED_SIGNALS = (
+    'image_url', 'unknown variant', 'does not support image',
+    'vision', 'multimodal', 'image input',
+)
+
+_VISION_ERROR_MSG = (
+    "El modelo seleccionado no admite imágenes. "
+    "Cambia a un modelo multimodal (gpt-4o, claude-3-5-sonnet, gemini-1.5-flash)."
+)
 
 
 def _check_http_error(response: requests.Response) -> None:
     """Raise ValueError if response status is not 200."""
     if response.status_code != 200:
         try:
-            body = response.text[:200]
+            body = response.text[:400]
         except Exception:
             body = str(response.status_code)
+        body_lower = body.lower()
+        if any(s in body_lower for s in _VISION_UNSUPPORTED_SIGNALS):
+            raise ValueError(_VISION_ERROR_MSG)
         raise ValueError(
-            f"Error del proveedor de IA: {response.status_code} — {body}"
+            f"Error del proveedor de IA: {response.status_code} — {body[:200]}"
         )
 
 
 def _call_openai_compatible(config, b64_image: str, mime_type: str, token: str) -> dict:
     base_url = config.base_url or DEFAULT_BASE_URLS.get(config.provider, DEFAULT_BASE_URLS['openai'])
+    if config.base_url:
+        _validate_base_url(config.base_url)
     url = f"{base_url.rstrip('/')}/chat/completions"
     headers = {
         "Authorization": f"Bearer {token}",
@@ -65,7 +160,7 @@ def _call_openai_compatible(config, b64_image: str, mime_type: str, token: str) 
         "max_tokens": 1024,
     }
     try:
-        resp = requests.post(url, headers=headers, json=body, timeout=30)
+        resp = requests.post(url, headers=headers, json=body, timeout=30, allow_redirects=False)
     except requests.Timeout:
         raise ValueError("Tiempo de espera agotado al contactar al proveedor de IA.")
 
@@ -103,7 +198,7 @@ def _call_anthropic(config, b64_image: str, mime_type: str, token: str) -> dict:
         ],
     }
     try:
-        resp = requests.post(url, headers=headers, json=body, timeout=30)
+        resp = requests.post(url, headers=headers, json=body, timeout=30, allow_redirects=False)
     except requests.Timeout:
         raise ValueError("Tiempo de espera agotado al contactar al proveedor de IA.")
 
@@ -134,7 +229,7 @@ def _call_gemini(config, b64_image: str, mime_type: str, token: str) -> dict:
         },
     }
     try:
-        resp = requests.post(url, headers=headers, json=body, timeout=30)
+        resp = requests.post(url, headers=headers, json=body, timeout=30, allow_redirects=False)
     except requests.Timeout:
         raise ValueError("Tiempo de espera agotado al contactar al proveedor de IA.")
 
@@ -144,6 +239,70 @@ def _call_gemini(config, b64_image: str, mime_type: str, token: str) -> dict:
     except (KeyError, IndexError, TypeError):
         raise ValueError("Respuesta inesperada del proveedor Gemini.")
     return _parse_json_response(content)
+
+
+def test_connection(provider: str, model: str, base_url: str, token: str) -> None:
+    """Make a lightweight text-only call to verify provider credentials and model.
+
+    Raises ValueError with a human-readable message on any failure.
+    """
+    if not token:
+        raise ValueError("Token de API no configurado o inválido.")
+
+    provider = (provider or '').lower()
+
+    if base_url:
+        _validate_base_url(base_url)
+
+    if provider in _OPENAI_COMPATIBLE:
+        _url = f"{(base_url or DEFAULT_BASE_URLS.get(provider, DEFAULT_BASE_URLS['openai'])).rstrip('/')}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
+        body = {
+            "model": model,
+            "messages": [{"role": "user", "content": "Responde OK"}],
+            "max_tokens": 5,
+        }
+        try:
+            resp = requests.post(_url, headers=headers, json=body, timeout=15, allow_redirects=False)
+        except requests.Timeout:
+            raise ValueError("Tiempo de espera agotado al contactar al proveedor de IA.")
+        _check_http_error(resp)
+
+    elif provider == 'anthropic':
+        headers = {
+            "x-api-key": token,
+            "anthropic-version": "2023-06-01",
+            "Content-Type": "application/json",
+        }
+        body = {
+            "model": model,
+            "max_tokens": 5,
+            "messages": [{"role": "user", "content": "Responde OK"}],
+        }
+        try:
+            resp = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=body, timeout=15, allow_redirects=False)
+        except requests.Timeout:
+            raise ValueError("Tiempo de espera agotado al contactar al proveedor de IA.")
+        _check_http_error(resp)
+
+    elif provider == 'gemini':
+        _model = model or "gemini-1.5-flash"
+        _url = (
+            f"https://generativelanguage.googleapis.com/v1beta/models/"
+            f"{_model}:generateContent?key={token}"
+        )
+        body = {"contents": [{"parts": [{"text": "Responde OK"}]}], "generationConfig": {"maxOutputTokens": 5}}
+        try:
+            resp = requests.post(_url, headers={"Content-Type": "application/json"}, json=body, timeout=15, allow_redirects=False)
+        except requests.Timeout:
+            raise ValueError("Tiempo de espera agotado al contactar al proveedor de IA.")
+        _check_http_error(resp)
+
+    else:
+        raise ValueError(f"Proveedor desconocido: {provider}")
 
 
 def extract_receipt(config, image_bytes: bytes, mime_type: str) -> dict:

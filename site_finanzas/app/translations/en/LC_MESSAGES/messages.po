@@ -608,3 +608,105 @@ msgstr "Delete all demo data? This action cannot be undone."
 
 msgid "Configuración de administrador guardada."
 msgstr "Administrator settings saved."
+
+# ── Scanner AI ──
+msgid "Probar conexión"
+msgstr "Test connection"
+
+msgid "Conexión válida. Token y modelo correctos."
+msgstr "Connection valid. Token and model are correct."
+
+msgid "Selecciona un proveedor."
+msgstr "Please select a provider."
+
+msgid "El modelo seleccionado no admite imágenes. Cambia a un modelo multimodal (gpt-4o, claude-3-5-sonnet, gemini-1.5-flash)."
+msgstr "The selected model does not support images. Switch to a multimodal model (gpt-4o, claude-3-5-sonnet, gemini-1.5-flash)."
+
+msgid "El modelo debe soportar imágenes (multimodal). Ej: gpt-4o, claude-3-5-sonnet, gemini-1.5-flash."
+msgstr "The model must support images (multimodal). E.g.: gpt-4o, claude-3-5-sonnet, gemini-1.5-flash."
+
+# ── Scanner upload mode ──
+msgid "¿Cómo quieres escanear?"
+msgstr "How do you want to scan?"
+
+msgid "Subir imagen"
+msgstr "Upload image"
+
+msgid "Fotografía el recibo con tu cámara"
+msgstr "Take a photo of the receipt with your camera"
+
+msgid "PNG, JPG, WEBP o HEIC desde tu galería"
+msgstr "PNG, JPG, WEBP or HEIC from your gallery"
+
+msgid "Arrastra aquí tu imagen o haz clic para seleccionar"
+msgstr "Drag your image here or click to select"
+
+msgid "Máximo 10 MB"
+msgstr "Maximum 10 MB"
+
+msgid "Cambiar archivo"
+msgstr "Change file"
+
+msgid "Escanear este archivo"
+msgstr "Scan this file"
+
+msgid "Archivo muy grande. Máximo 10 MB."
+msgstr "File too large. Maximum 10 MB."
+
+msgid "Formato no compatible. Usa PNG, JPG, WEBP o HEIC."
+msgstr "Unsupported format. Use PNG, JPG, WEBP or HEIC."
+
+msgid "Volver a opciones"
+msgstr "Back to options"
+
+msgid "No se pudo procesar el archivo HEIC. Asegúrate de que no esté dañado."
+msgstr "Could not process the HEIC file. Make sure it is not corrupted."
+
+msgid "Formato no permitido. Usa PNG, JPG, WEBP o HEIC."
+msgstr "Format not allowed. Use PNG, JPG, WEBP or HEIC."
+
+# ── WebAuthn / Biometric auth ──
+msgid "Ingresar con Face ID / Huella"
+msgstr "Sign in with Face ID / Fingerprint"
+
+msgid "Autenticación biométrica"
+msgstr "Biometric authentication"
+
+msgid "Registrar este dispositivo"
+msgstr "Register this device"
+
+msgid "Cambiar dispositivo"
+msgstr "Change device"
+
+msgid "Inicia sesión con Face ID, huella dactilar o Windows Hello desde tu dispositivo móvil. El dispositivo hace la verificación — Monetra nunca almacena datos biométricos."
+msgstr "Sign in with Face ID, fingerprint, or Windows Hello from your mobile device. The device handles verification — Monetra never stores biometric data."
+
+msgid "Dispositivo registrado"
+msgstr "Registered device"
+
+msgid "Registrado el"
+msgstr "Registered on"
+
+msgid "Tu navegador no soporta autenticación biométrica."
+msgstr "Your browser does not support biometric authentication."
+
+msgid "Dispositivo registrado correctamente. Recarga la página para ver los cambios."
+msgstr "Device registered successfully. Reload the page to see the changes."
+
+msgid "Registro cancelado."
+msgstr "Registration cancelled."
+
+msgid "Error al registrar el dispositivo."
+msgstr "Error registering the device."
+
+msgid "¿Eliminar el dispositivo biométrico registrado? Podrás seguir usando tu contraseña."
+msgstr "Delete the registered biometric device? You can still use your password."
+
+msgid "Ingresa tu correo primero."
+msgstr "Enter your email first."
+
+msgid "Autenticación cancelada."
+msgstr "Authentication cancelled."
+
+msgid "Error al verificar la biometría. Usa tu contraseña."
+msgstr "Biometric verification failed. Use your password."

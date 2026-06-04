@@ -206,6 +206,7 @@ def inject_period():
         from app.demo_data.service import get_demo_years
         demo_years = get_demo_years(current_user.id)
 
+        _ai_cfg = getattr(current_user, 'ai_config', None)
         return dict(
             sel_year=year,
             sel_month=month,
@@ -221,6 +222,8 @@ def inject_period():
             help_mode_enabled=bool(current_user.help_mode_enabled),
             demo_years=demo_years,
             is_demo_year=(year in demo_years),
+            scan_categories=_user_categories(),
+            scanner_enabled=bool(_ai_cfg and _ai_cfg.enabled),
         )
     return {}
 
@@ -1701,6 +1704,7 @@ def configurar():
                            api_token_prefix=api_tok.prefix if api_tok else None,
                            api_token_created_at=api_tok.created_at if api_tok else None,
                            api_token_last_used_at=api_tok.last_used_at if api_tok else None,
+                           webauthn_credential=current_user.webauthn_credential,
                            title=_('Configurar Cuenta'))
 
 

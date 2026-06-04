@@ -1,13 +1,121 @@
+import io
+
 from flask import request, jsonify
 from flask_login import login_required, current_user
 from flask_babel import gettext as _
 
+from app import limiter
 from app.scanner import scanner_bp
-from app.scanner.providers import extract_receipt
+from app.scanner.providers import extract_receipt, test_connection
 from app.models import Category, UserAIConfig  # noqa: F401 — UserAIConfig imported for type clarity
+from app.email_service import decrypt_ai_token
+
+# ---------------------------------------------------------------------------
+# Allowed image magic-byte signatures
+# ---------------------------------------------------------------------------
+_MAGIC = {
+    b'\xff\xd8\xff':                   'image/jpeg',
+    b'\x89PNG\r\n\x1a\n':             'image/png',
+    # WebP: 'RIFF????WEBP' — validated separately below
+    # HEIC/HEIF: ISO Base Media File Format — 'ftyp' box at offset 4
+}
+_ALLOWED_MIMES = frozenset({
+    'image/jpeg', 'image/png', 'image/webp',
+    'image/heic', 'image/heif',
+})
 
 
-@scanner_bp.route('/scanner/extract', methods=['POST'])
+def _detect_mime(header: bytes) -> str | None:
+    """Return MIME type from first 12 bytes, or None if unrecognised."""
+    if header[:3] == b'\xff\xd8\xff':
+        return 'image/jpeg'
+    if header[:8] == b'\x89PNG\r\n\x1a\n':
+        return 'image/png'
+    if header[:4] == b'RIFF' and header[8:12] == b'WEBP':
+        return 'image/webp'
+    if len(header) >= 12 and header[4:8] == b'ftyp':
+        return 'image/heic'
+    return None
+
+
+def _validate_and_normalize_image(image_file):
+    """Read, validate by magic bytes, convert HEIC→JPEG if needed.
+
+    Returns (image_bytes: bytes, mime_type: str).
+    Raises ValueError with a human-readable message on invalid input.
+    The uploaded filename is intentionally ignored.
+    """
+    raw = image_file.read()
+    if not raw:
+        raise ValueError(_('La imagen está vacía.'))
+
+    header = raw[:12]
+    detected = _detect_mime(header)
+
+    if detected is None:
+        raise ValueError(_(
+            'Formato no compatible. Usa PNG, JPG, WEBP o HEIC.'
+        ))
+
+    # Normalise all formats to JPEG before sending to AI providers.
+    # PNG screenshots can be 3-7 MB; JPEG at 88% quality is ~200-500 KB,
+    # which avoids payload-size failures and timeouts on provider APIs.
+    try:
+        from PIL import Image
+
+        if detected in ('image/heic', 'image/heif'):
+            import pillow_heif
+            heif_file = pillow_heif.open_heif(raw)
+            pil_img = Image.frombytes(heif_file.mode, heif_file.size, heif_file.data, 'raw')
+        else:
+            pil_img = Image.open(io.BytesIO(raw))
+
+        # Convert palette/transparency modes that JPEG cannot encode
+        if pil_img.mode in ('RGBA', 'LA', 'P'):
+            pil_img = pil_img.convert('RGB')
+        elif pil_img.mode != 'RGB':
+            pil_img = pil_img.convert('RGB')
+
+        buf = io.BytesIO()
+        pil_img.save(buf, format='JPEG', quality=88, optimize=True)
+        return buf.getvalue(), 'image/jpeg'
+
+    except Exception:
+        if detected in ('image/heic', 'image/heif'):
+            raise ValueError(_('No se pudo procesar el archivo HEIC. Asegúrate de que no esté dañado.'))
+        # Fallback: send raw bytes with detected MIME (JPEG already correct)
+        return raw, detected
+
+
+@scanner_bp.route('/scanner/test', methods=['POST'], endpoint='test')
+@login_required
+def scanner_test():
+    """Test AI provider connection with a lightweight text-only call."""
+    provider = (request.form.get('provider') or '').strip()
+    model = (request.form.get('model') or '').strip()
+    base_url = (request.form.get('base_url') or '').strip()
+    api_token_raw = (request.form.get('api_token') or '').strip()
+
+    if not provider:
+        return jsonify({'ok': False, 'message': _('Selecciona un proveedor.')}), 200
+
+    # Use submitted token if provided, otherwise fall back to stored encrypted token
+    if api_token_raw:
+        token = api_token_raw
+    else:
+        ai_config = getattr(current_user, 'ai_config', None)
+        token = decrypt_ai_token(ai_config.api_token_encrypted) if (ai_config and ai_config.api_token_encrypted) else ''
+
+    try:
+        test_connection(provider, model, base_url, token)
+    except ValueError as exc:
+        return jsonify({'ok': False, 'message': str(exc)}), 200
+
+    return jsonify({'ok': True, 'message': _('Conexión válida. Token y modelo correctos.')}), 200
+
+
+@scanner_bp.route('/scanner/extract', methods=['POST'], endpoint='extract')
+@limiter.limit("30 per minute", methods=['POST'])
 @login_required
 def scanner_extract():
     """Extract receipt data from an uploaded image using the user's AI config."""
@@ -16,18 +124,15 @@ def scanner_extract():
     if not ai_config or not ai_config.enabled:
         return jsonify({'error': _('Escáner no configurado. Ve a Configuración → Escáner IA.')}), 400
 
-    # --- Validate image file ---
+    # --- Validate and normalise uploaded file ---
     image_file = request.files.get('image')
-    if not image_file or not image_file.filename:
+    if not image_file:
         return jsonify({'error': _('No se proporcionó una imagen.')}), 400
 
-    mime_type = image_file.mimetype or ''
-    if not mime_type.startswith('image/'):
-        return jsonify({'error': _('El archivo debe ser una imagen.')}), 400
-
-    image_bytes = image_file.read()
-    if not image_bytes:
-        return jsonify({'error': _('La imagen está vacía.')}), 400
+    try:
+        image_bytes, mime_type = _validate_and_normalize_image(image_file)
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
 
     # --- Extract receipt data ---
     try:

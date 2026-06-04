@@ -1,0 +1,667 @@
+﻿{# Scanner receipt modal + controller JS — included globally from base.html.
+   Requires context vars: scan_categories, sel_year, sel_month (from inject_period). #}
+
+<!-- Modal: Escáner de recibo con IA -->
+<div class="modal fade" id="scannerModal" tabindex="-1" aria-labelledby="scannerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="scannerModalLabel">
+                    <i class="bi bi-camera text-primary me-2"></i>{{ _('Escanear recibo') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+            </div>
+            <div class="modal-body">
+
+                <!-- ── Paso 0: Selector de modo ─────────────────────────────── -->
+                <div id="scanStep0">
+                    <p class="small text-center mb-3" style="color:var(--monetra-text-muted,#B0BEC5);">
+                        {{ _('¿Cómo quieres escanear?') }}
+                    </p>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <button type="button" class="scan-mode-card w-100" id="btnModeCamera">
+                                <i class="bi bi-camera-fill scan-mode-icon"></i>
+                                <div class="scan-mode-title">{{ _('Cámara') }}</div>
+                                <div class="scan-mode-desc">{{ _('Fotografía el recibo con tu cámara') }}</div>
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="scan-mode-card w-100" id="btnModeUpload">
+                                <i class="bi bi-image scan-mode-icon"></i>
+                                <div class="scan-mode-title">{{ _('Subir imagen') }}</div>
+                                <div class="scan-mode-desc">{{ _('PNG, JPG, WEBP o HEIC desde tu galería') }}</div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Paso 1a: Cámara ──────────────────────────────────────── -->
+                <div id="scanStep1Camera" class="d-none">
+                    <div id="scanSecureWarning" class="alert alert-warning d-none" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        {{ _('La cámara requiere una conexión segura (HTTPS). En una red local accede por localhost.') }}
+                    </div>
+                    <div id="scanPermError" class="alert alert-danger d-none" role="alert">
+                        <i class="bi bi-camera-video-off me-2"></i>
+                        {{ _('No se pudo acceder a la cámara. Verifica los permisos del navegador.') }}
+                    </div>
+
+                    <div style="position:relative; width:100%; background:#000; border-radius:8px; overflow:hidden;">
+                        <video id="scanVideo" autoplay playsinline muted
+                               style="width:100%; max-height:240px; display:block; object-fit:cover;"></video>
+                        <div id="scanVideoPlaceholder" class="d-flex align-items-center justify-content-center"
+                             style="height:140px; color:#78909C;">
+                            <div class="text-center">
+                                <i class="bi bi-camera" style="font-size:2rem;"></i>
+                                <p class="mt-1 small mb-0">{{ _('Iniciando cámara...') }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <canvas id="scanCanvas" style="display:none;"></canvas>
+
+                    <div class="mt-2">
+                        <label class="form-label small fw-semibold mb-1">{{ _('Categoría') }} <span class="text-muted fw-normal">({{ _('opcional — Scanner por defecto') }})</span></label>
+                        <select id="scanCategorySelect" class="form-select form-select-sm">
+                            <option value="">{{ _('— Usar categoría Scanner —') }}</option>
+                            {% for c in scan_categories %}
+                            {% if c.type == 'expense' %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-2 justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnBackFromCamera">
+                            <i class="bi bi-arrow-left me-1"></i>{{ _('Volver') }}
+                        </button>
+                        <button type="button" class="btn btn-primary" id="btnCapture">
+                            <i class="bi bi-camera-fill me-1"></i>{{ _('Capturar y Escanear') }}
+                        </button>
+                    </div>
+
+                    <div id="scanLoading" class="mt-2 text-center d-none">
+                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                        <span class="small text-muted">{{ _('Analizando recibo con IA...') }}</span>
+                    </div>
+                    <div id="scanError" class="mt-2 alert alert-danger d-none" role="alert"></div>
+                </div>
+
+                <!-- ── Paso 1b: Subir imagen ────────────────────────────────── -->
+                <div id="scanStep1Upload" class="d-none">
+
+                    <!-- Drop zone -->
+                    <div id="scanDropZone" class="scan-drop-zone" tabindex="0" role="button"
+                         aria-label="{{ _('Seleccionar archivo') }}">
+                        <div id="scanDropDefault" class="text-center">
+                            <i class="bi bi-cloud-arrow-up scan-drop-icon"></i>
+                            <p class="scan-drop-text mb-1">{{ _('Arrastra aquí tu imagen o haz clic para seleccionar') }}</p>
+                            <p class="scan-drop-hint">PNG, JPG, WEBP, HEIC · {{ _('Máximo 10 MB') }}</p>
+                        </div>
+                        <div id="scanDropPreview" class="d-none">
+                            <img id="scanUploadPreviewImg" src="" alt=""
+                                 style="max-height:130px; max-width:100%; border-radius:6px; object-fit:contain;">
+                            <div id="scanUploadFileInfo" class="scan-drop-file-info d-none">
+                                <i class="bi bi-file-image me-2" style="font-size:2rem; color:var(--monetra-primary,#00C896);"></i>
+                                <span id="scanUploadFileName" class="small fw-semibold"></span>
+                            </div>
+                            <p id="scanUploadFileMeta" class="scan-drop-hint mt-1 mb-0"></p>
+                            <button type="button" class="btn btn-link btn-sm p-0 mt-1" id="btnClearUpload"
+                                    style="color:var(--monetra-text-muted,#B0BEC5); font-size:0.75rem;">
+                                <i class="bi bi-x-circle me-1"></i>{{ _('Cambiar archivo') }}
+                            </button>
+                        </div>
+                    </div>
+                    <input type="file" id="scanFileInput"
+                           accept=".png,.jpg,.jpeg,.webp,.heic,.heif,image/png,image/jpeg,image/webp,image/heic,image/heif"
+                           style="display:none;" aria-hidden="true">
+
+                    <div id="scanUploadError" class="mt-2 alert alert-danger d-none" role="alert"></div>
+
+                    <div class="mt-2">
+                        <label class="form-label small fw-semibold mb-1">{{ _('Categoría') }} <span class="text-muted fw-normal">({{ _('opcional — Scanner por defecto') }})</span></label>
+                        <select id="scanCategorySelectUpload" class="form-select form-select-sm">
+                            <option value="">{{ _('— Usar categoría Scanner —') }}</option>
+                            {% for c in scan_categories %}
+                            {% if c.type == 'expense' %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-2 justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnBackFromUpload">
+                            <i class="bi bi-arrow-left me-1"></i>{{ _('Volver') }}
+                        </button>
+                        <button type="button" class="btn btn-primary" id="btnScanUpload" disabled>
+                            <i class="bi bi-stars me-1"></i>{{ _('Escanear este archivo') }}
+                        </button>
+                    </div>
+
+                    <div id="scanUploadLoading" class="mt-2 text-center d-none">
+                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                        <span class="small text-muted">{{ _('Analizando recibo con IA...') }}</span>
+                    </div>
+                </div>
+
+                <!-- ── Paso 2: Revisión ─────────────────────────────────────── -->
+                <div id="scanStep2" class="d-none">
+                    <p class="small text-muted mb-3">
+                        <i class="bi bi-check-circle-fill text-success me-1"></i>
+                        {{ _('Revisa los datos extraídos antes de guardar. Puedes editarlos.') }}
+                    </p>
+
+                    <div class="text-center mb-3">
+                        <img id="scanPreviewImg" src="" alt="{{ _('Recibo capturado') }}"
+                             style="max-height:160px; border-radius:6px; border:1px solid rgba(255,255,255,0.1);">
+                    </div>
+
+                    <form id="scanSaveForm" method="POST"
+                          action="{{ url_for('main.add_transaction') }}" novalidate>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold" for="scanAmount">{{ _('Monto') }}</label>
+                                {% set _step = '1' if currency_decimals == 0 else ('0.1' if currency_decimals == 1 else '0.01') %}
+                                <input type="number" step="{{ _step }}" min="{{ _step }}" name="amount" id="scanAmount"
+                                       class="form-control form-control-sm" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold" for="scanType">{{ _('Tipo') }}</label>
+                                <select name="type" id="scanType" class="form-select form-select-sm">
+                                    <option value="expense" selected>{{ _('Gasto') }}</option>
+                                    <option value="income">{{ _('Ingreso') }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold" for="scanDate">{{ _('Fecha') }}</label>
+                                <input type="date" name="date" id="scanDate" class="form-control form-control-sm" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold" for="scanCategory">{{ _('Categoría') }}</label>
+                                <select name="category_id" id="scanCategory" class="form-select form-select-sm" required>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold" for="scanMerchant">
+                                    {{ _('Comercio') }} <span class="text-muted fw-normal small">({{ _('informativo') }})</span>
+                                </label>
+                                <input type="text" id="scanMerchant" class="form-control form-control-sm" readonly
+                                       style="color:var(--monetra-text-muted,#B0BEC5);">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold" for="scanDescription">{{ _('Descripción / Productos') }}</label>
+                                <textarea name="description" id="scanDescription" rows="3"
+                                          class="form-control form-control-sm" maxlength="2000"></textarea>
+                                <div class="form-text" style="font-size:0.7rem;">{{ _('Generado por IA. Puedes editarlo libremente.') }}</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-4 justify-content-end">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="btnScanBack">
+                                <i class="bi bi-arrow-left me-1"></i>{{ _('Volver a opciones') }}
+                            </button>
+                            <button type="submit" class="btn btn-success btn-sm fw-semibold">
+                                <i class="bi bi-check-lg me-1"></i>{{ _('Guardar movimiento') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* ── Scanner mode selector cards ──────────────── */
+.scan-mode-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 1.2rem 0.75rem;
+    border-radius: 10px;
+    border: 1.5px solid var(--card-border, rgba(255,255,255,0.1));
+    background: var(--card-bg, rgba(255,255,255,0.04));
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.12s;
+    color: var(--monetra-text, #E0E0E0);
+    text-align: center;
+    min-height: 120px;
+}
+.scan-mode-card:hover {
+    border-color: var(--monetra-primary, #00C896);
+    background: rgba(0, 200, 150, 0.07);
+    transform: translateY(-2px);
+}
+.scan-mode-card:active { transform: scale(0.97); }
+.scan-mode-icon { font-size: 2rem; color: var(--monetra-primary, #00C896); }
+.scan-mode-title { font-weight: 600; font-size: 0.95rem; }
+.scan-mode-desc  { font-size: 0.72rem; color: var(--monetra-text-muted, #B0BEC5); line-height: 1.3; }
+
+/* ── Drop zone ─────────────────────────────────── */
+.scan-drop-zone {
+    border: 2px dashed var(--card-border, rgba(255,255,255,0.18));
+    border-radius: 10px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    background: var(--card-bg, rgba(255,255,255,0.02));
+}
+.scan-drop-zone:hover,
+.scan-drop-zone.dragover {
+    border-color: var(--monetra-primary, #00C896);
+    background: rgba(0, 200, 150, 0.06);
+}
+.scan-drop-icon { font-size: 2.2rem; color: var(--monetra-primary, #00C896); }
+.scan-drop-text { font-size: 0.85rem; color: var(--monetra-text, #E0E0E0); margin-top: 0.4rem; }
+.scan-drop-hint { font-size: 0.72rem; color: var(--monetra-text-muted, #B0BEC5); }
+.scan-drop-file-info { display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+</style>
+
+<script>
+(function () {
+    'use strict';
+
+    // ── Category data ─────────────────────────────────────────────────────────
+    var SCAN_CATEGORIES = [
+        {% for c in scan_categories %}
+        {"id": {{ c.id }}, "name": {{ c.name|tojson }}, "type": "{{ c.type }}"},
+        {% endfor %}
+    ];
+
+    // ── Element refs ──────────────────────────────────────────────────────────
+    var scannerModal          = document.getElementById('scannerModal');
+    var scanStep0             = document.getElementById('scanStep0');
+    var scanStep1Camera       = document.getElementById('scanStep1Camera');
+    var scanStep1Upload       = document.getElementById('scanStep1Upload');
+    var scanStep2             = document.getElementById('scanStep2');
+
+    // Camera
+    var video                 = document.getElementById('scanVideo');
+    var canvas                = document.getElementById('scanCanvas');
+    var videoPlaceholder      = document.getElementById('scanVideoPlaceholder');
+    var btnCapture            = document.getElementById('btnCapture');
+    var scanLoading           = document.getElementById('scanLoading');
+    var scanError             = document.getElementById('scanError');
+    var scanSecureWarning     = document.getElementById('scanSecureWarning');
+    var scanPermError         = document.getElementById('scanPermError');
+    var btnBackFromCamera     = document.getElementById('btnBackFromCamera');
+
+    // Upload
+    var scanDropZone          = document.getElementById('scanDropZone');
+    var scanFileInput         = document.getElementById('scanFileInput');
+    var scanDropDefault       = document.getElementById('scanDropDefault');
+    var scanDropPreview       = document.getElementById('scanDropPreview');
+    var scanUploadPreviewImg  = document.getElementById('scanUploadPreviewImg');
+    var scanUploadFileInfo    = document.getElementById('scanUploadFileInfo');
+    var scanUploadFileName    = document.getElementById('scanUploadFileName');
+    var scanUploadFileMeta    = document.getElementById('scanUploadFileMeta');
+    var btnClearUpload        = document.getElementById('btnClearUpload');
+    var scanUploadError       = document.getElementById('scanUploadError');
+    var btnScanUpload         = document.getElementById('btnScanUpload');
+    var scanUploadLoading     = document.getElementById('scanUploadLoading');
+    var btnBackFromUpload     = document.getElementById('btnBackFromUpload');
+    var scanCategorySelectUpload = document.getElementById('scanCategorySelectUpload');
+
+    // Mode buttons
+    var btnModeCamera         = document.getElementById('btnModeCamera');
+    var btnModeUpload         = document.getElementById('btnModeUpload');
+
+    // Step 2 / review
+    var scanPreviewImg        = document.getElementById('scanPreviewImg');
+    var btnScanBack           = document.getElementById('btnScanBack');
+    var scanCategorySelect    = document.getElementById('scanCategorySelect');
+    var scanAmount            = document.getElementById('scanAmount');
+    var scanType              = document.getElementById('scanType');
+    var scanDate              = document.getElementById('scanDate');
+    var scanCategory          = document.getElementById('scanCategory');
+    var scanDescription       = document.getElementById('scanDescription');
+    var scanMerchant          = document.getElementById('scanMerchant');
+
+    var mediaStream   = null;
+    var selectedFile  = null;
+    var activeMode    = null;   // 'camera' | 'upload'
+
+    // ── Allowed extensions (client-side UX only — server validates magic bytes) ──
+    var ALLOWED_EXTS = /\.(png|jpe?g|webp|heic|heif)$/i;
+    var MAX_FILE_BYTES = 10 * 1024 * 1024;
+
+    // ── Step navigation ───────────────────────────────────────────────────────
+
+    function showOnly(el) {
+        [scanStep0, scanStep1Camera, scanStep1Upload, scanStep2].forEach(function (s) {
+            if (s) s.classList.add('d-none');
+        });
+        if (el) el.classList.remove('d-none');
+    }
+
+    function showModeSelector() {
+        stopCamera();
+        showOnly(scanStep0);
+        activeMode = null;
+    }
+
+    function showCameraMode() {
+        showOnly(scanStep1Camera);
+        activeMode = 'camera';
+        hideErrors();
+        startCamera();
+    }
+
+    function showUploadMode() {
+        stopCamera();
+        showOnly(scanStep1Upload);
+        activeMode = 'upload';
+        hideUploadError();
+    }
+
+    // ── Camera helpers ────────────────────────────────────────────────────────
+
+    function startCamera() {
+        if (!window.isSecureContext) {
+            if (scanSecureWarning) scanSecureWarning.classList.remove('d-none');
+            return;
+        }
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            if (scanSecureWarning) scanSecureWarning.classList.remove('d-none');
+            return;
+        }
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(function (stream) {
+                mediaStream = stream;
+                if (video) { video.srcObject = stream; video.style.display = 'block'; }
+                if (videoPlaceholder) videoPlaceholder.style.display = 'none';
+            })
+            .catch(function () {
+                if (scanPermError) scanPermError.classList.remove('d-none');
+            });
+    }
+
+    function stopCamera() {
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(function (t) { t.stop(); });
+            mediaStream = null;
+        }
+    }
+
+    function hideErrors() {
+        if (scanError)         scanError.classList.add('d-none');
+        if (scanSecureWarning) scanSecureWarning.classList.add('d-none');
+        if (scanPermError)     scanPermError.classList.add('d-none');
+    }
+
+    function setLoading(on) {
+        if (scanLoading) scanLoading.classList.toggle('d-none', !on);
+        if (btnCapture) btnCapture.disabled = on;
+    }
+
+    function showError(msg) {
+        if (!scanError) return;
+        scanError.textContent = msg;
+        scanError.classList.remove('d-none');
+    }
+
+    // ── Upload helpers ────────────────────────────────────────────────────────
+
+    function hideUploadError() {
+        if (scanUploadError) scanUploadError.classList.add('d-none');
+    }
+
+    function showUploadError(msg) {
+        if (!scanUploadError) return;
+        scanUploadError.textContent = msg;
+        scanUploadError.classList.remove('d-none');
+    }
+
+    function setUploadLoading(on) {
+        if (scanUploadLoading) scanUploadLoading.classList.toggle('d-none', !on);
+        if (btnScanUpload) btnScanUpload.disabled = on;
+    }
+
+    function clearUpload() {
+        selectedFile = null;
+        if (scanFileInput) scanFileInput.value = '';
+        if (scanDropDefault) scanDropDefault.classList.remove('d-none');
+        if (scanDropPreview) scanDropPreview.classList.add('d-none');
+        if (scanUploadPreviewImg) { scanUploadPreviewImg.src = ''; scanUploadPreviewImg.classList.add('d-none'); }
+        if (scanUploadFileInfo) scanUploadFileInfo.classList.add('d-none');
+        if (btnScanUpload) btnScanUpload.disabled = true;
+        hideUploadError();
+    }
+
+    function handleFileSelect(file) {
+        hideUploadError();
+        if (!file) return;
+
+        // Client-side UX validation
+        if (!ALLOWED_EXTS.test(file.name)) {
+            showUploadError('{{ _("Formato no compatible. Usa PNG, JPG, WEBP o HEIC.") }}');
+            clearUpload();
+            return;
+        }
+        if (file.size > MAX_FILE_BYTES) {
+            showUploadError('{{ _("Archivo muy grande. Máximo 10 MB.") }}');
+            clearUpload();
+            return;
+        }
+
+        selectedFile = file;
+        if (scanDropDefault) scanDropDefault.classList.add('d-none');
+        if (scanDropPreview) scanDropPreview.classList.remove('d-none');
+
+        var isHeic = /\.heic$/i.test(file.name) || /\.heif$/i.test(file.name);
+        if (isHeic) {
+            // Browsers can't preview HEIC — show file info instead
+            if (scanUploadPreviewImg) scanUploadPreviewImg.classList.add('d-none');
+            if (scanUploadFileInfo)  scanUploadFileInfo.classList.remove('d-none');
+            if (scanUploadFileName)  scanUploadFileName.textContent = file.name;
+        } else {
+            if (scanUploadFileInfo) scanUploadFileInfo.classList.add('d-none');
+            if (scanUploadPreviewImg) scanUploadPreviewImg.classList.remove('d-none');
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                if (scanUploadPreviewImg) scanUploadPreviewImg.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        var sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        if (scanUploadFileMeta) scanUploadFileMeta.textContent = file.name + ' · ' + sizeMB + ' MB';
+        if (btnScanUpload) btnScanUpload.disabled = false;
+    }
+
+    // ── Shared: send image to /scanner/extract and show step 2 ───────────────
+
+    function submitImageBlob(blob, mimeType, previewUrl, categorySelectEl, loadingEl) {
+        var formData = new FormData();
+        formData.append('image', blob, 'receipt.' + (mimeType.split('/')[1] || 'jpg'));
+        var catVal = categorySelectEl ? categorySelectEl.value : '';
+        if (catVal) formData.append('category_id', catVal);
+
+        var csrfMeta  = document.querySelector('meta[name="csrf-token"]');
+        var csrfToken = csrfMeta ? csrfMeta.content : '';
+
+        fetch('{{ url_for("scanner.scanner_extract") }}', {
+            method: 'POST',
+            headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {},
+            body: formData,
+        })
+        .then(function (resp) {
+            return resp.json().then(function (data) {
+                if (!resp.ok) throw new Error(data.error || '{{ _("Error desconocido.") }}');
+                return data;
+            });
+        })
+        .then(function (data) {
+            if (loadingEl) loadingEl.classList.add('d-none');
+            stopCamera();
+
+            if (scanPreviewImg && previewUrl) scanPreviewImg.src = previewUrl;
+
+            if (scanAmount && data.amount != null)
+                scanAmount.value = parseFloat(data.amount).toFixed({{ currency_decimals }});
+            if (scanDescription) scanDescription.value = data.description || '';
+            if (scanMerchant)    scanMerchant.value    = data.merchant    || '';
+
+            var today    = new Date();
+            var selYear  = {{ sel_year }};
+            var selMonth = {{ sel_month }};
+            var dateToUse = '';
+            if (data.date) {
+                var d = new Date(data.date + 'T00:00:00');
+                if (!isNaN(d) && d.getFullYear() === selYear && (d.getMonth() + 1) === selMonth) {
+                    dateToUse = data.date;
+                }
+            }
+            if (!dateToUse) {
+                if (today.getFullYear() === selYear && (today.getMonth() + 1) === selMonth) {
+                    dateToUse = today.toISOString().slice(0, 10);
+                } else {
+                    var lastDay = new Date(selYear, selMonth, 0).getDate();
+                    dateToUse = selYear + '-' + String(selMonth).padStart(2,'0') + '-' + String(lastDay).padStart(2,'0');
+                }
+            }
+            if (scanDate) scanDate.value = dateToUse;
+
+            var aiType = 'expense';
+            if (data.category_id) {
+                var aiCat = SCAN_CATEGORIES.find(function (c) { return c.id === parseInt(data.category_id, 10); });
+                if (aiCat) aiType = aiCat.type;
+            }
+            if (scanType) scanType.value = aiType;
+            filterScanCategories(aiType, data.category_id);
+
+            showOnly(scanStep2);
+        })
+        .catch(function (err) {
+            if (loadingEl) loadingEl.classList.add('d-none');
+            if (activeMode === 'camera') {
+                setLoading(false);
+                showError(err.message || '{{ _("Error al procesar el recibo.") }}');
+            } else {
+                setUploadLoading(false);
+                showUploadError(err.message || '{{ _("Error al procesar el recibo.") }}');
+            }
+        });
+    }
+
+    // ── Category filtering ────────────────────────────────────────────────────
+
+    function filterScanCategories(selectedType, preferredId) {
+        if (!scanCategory) return;
+        var type = selectedType || (scanType ? scanType.value : 'expense');
+        var filtered = SCAN_CATEGORIES.filter(function (c) { return c.type === type; });
+        scanCategory.innerHTML = '';
+        filtered.forEach(function (c) {
+            var opt = document.createElement('option');
+            opt.value = c.id; opt.textContent = c.name;
+            if (preferredId && c.id === parseInt(preferredId, 10)) opt.selected = true;
+            scanCategory.appendChild(opt);
+        });
+    }
+
+    if (scanType) {
+        scanType.addEventListener('change', function () { filterScanCategories(scanType.value, null); });
+    }
+
+    // ── Modal lifecycle ───────────────────────────────────────────────────────
+
+    if (scannerModal) {
+        scannerModal.addEventListener('show.bs.modal', function () {
+            hideErrors();
+            setLoading(false);
+            clearUpload();
+            if (scanType) scanType.value = 'expense';
+            filterScanCategories('expense', null);
+            showModeSelector();
+        });
+
+        scannerModal.addEventListener('hidden.bs.modal', function () {
+            stopCamera();
+            clearUpload();
+            if (video) { video.srcObject = null; video.style.display = 'none'; }
+            if (videoPlaceholder) videoPlaceholder.style.display = '';
+        });
+    }
+
+    // ── Mode selector buttons ─────────────────────────────────────────────────
+    if (btnModeCamera) btnModeCamera.addEventListener('click', showCameraMode);
+    if (btnModeUpload) btnModeUpload.addEventListener('click', showUploadMode);
+    if (btnBackFromCamera) btnBackFromCamera.addEventListener('click', showModeSelector);
+    if (btnBackFromUpload) btnBackFromUpload.addEventListener('click', showModeSelector);
+    if (btnScanBack) btnScanBack.addEventListener('click', showModeSelector);
+
+    // ── Camera: capture & submit ──────────────────────────────────────────────
+
+    if (btnCapture) {
+        btnCapture.addEventListener('click', function () {
+            if (!video || !canvas) return;
+            hideErrors();
+            var maxW = 1200, vw = video.videoWidth || 640, vh = video.videoHeight || 480;
+            var scale = Math.min(1, maxW / vw);
+            canvas.width  = Math.round(vw * scale);
+            canvas.height = Math.round(vh * scale);
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            setLoading(true);
+
+            canvas.toBlob(function (blob) {
+                if (!blob) { setLoading(false); showError('{{ _("No se pudo capturar la imagen.") }}'); return; }
+                var previewUrl = URL.createObjectURL(blob);
+                submitImageBlob(blob, 'image/jpeg', previewUrl, scanCategorySelect, scanLoading);
+            }, 'image/jpeg', 0.85);
+        });
+    }
+
+    // ── Upload: file input & drag-drop ────────────────────────────────────────
+
+    if (scanDropZone) {
+        scanDropZone.addEventListener('click', function () { if (scanFileInput) scanFileInput.click(); });
+        scanDropZone.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (scanFileInput) scanFileInput.click(); }
+        });
+        scanDropZone.addEventListener('dragover', function (e) {
+            e.preventDefault(); scanDropZone.classList.add('dragover');
+        });
+        scanDropZone.addEventListener('dragleave', function () { scanDropZone.classList.remove('dragover'); });
+        scanDropZone.addEventListener('drop', function (e) {
+            e.preventDefault(); scanDropZone.classList.remove('dragover');
+            var file = e.dataTransfer.files[0];
+            if (file) handleFileSelect(file);
+        });
+    }
+
+    if (scanFileInput) {
+        scanFileInput.addEventListener('change', function () {
+            if (scanFileInput.files[0]) handleFileSelect(scanFileInput.files[0]);
+        });
+    }
+
+    if (btnClearUpload) btnClearUpload.addEventListener('click', function (e) { e.stopPropagation(); clearUpload(); });
+
+    if (btnScanUpload) {
+        btnScanUpload.addEventListener('click', function () {
+            if (!selectedFile) return;
+            hideUploadError();
+            setUploadLoading(true);
+
+            var isHeic = /\.(heic|heif)$/i.test(selectedFile.name);
+            var mimeType = isHeic ? 'image/heic' : (selectedFile.type || 'image/jpeg');
+            var previewUrl = isHeic ? '' : (scanUploadPreviewImg ? scanUploadPreviewImg.src : '');
+
+            submitImageBlob(selectedFile, mimeType, previewUrl, scanCategorySelectUpload, scanUploadLoading);
+        });
+    }
+
+    // ── Back to camera (within camera mode) ──────────────────────────────────
+
+    // (btnScanBack already wired to showModeSelector above)
+
+})();
+</script>

@@ -58,6 +58,24 @@ class User(db.Model, UserMixin):
         return f'<User {self.username}>'
 
 
+class UserWebAuthnCredential(db.Model):
+    """Stores a single WebAuthn passkey per user (Face ID / fingerprint / hardware key)."""
+    __tablename__ = 'user_webauthn_credentials'
+
+    id            = db.Column(db.Integer, primary_key=True)
+    user_id       = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
+    credential_id = db.Column(db.String(512), unique=True, nullable=False)  # base64url string — MySQL can't index BLOB without prefix length
+    public_key    = db.Column(db.LargeBinary(2048), nullable=False)
+    sign_count    = db.Column(db.Integer, default=0, nullable=False)
+    device_name   = db.Column(db.String(100), nullable=True)
+    created_at    = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship('User', backref=db.backref('webauthn_credential', uselist=False))
+
+    def __repr__(self):
+        return f'<UserWebAuthnCredential user_id={self.user_id}>'
+
+
 class UserYear(db.Model):
     __tablename__ = 'user_years'
     id = db.Column(db.Integer, primary_key=True)
