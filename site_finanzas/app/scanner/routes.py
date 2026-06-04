@@ -1,6 +1,6 @@
 import io
 
-from flask import request, jsonify
+from flask import current_app, request, jsonify
 from flask_login import login_required, current_user
 from flask_babel import gettext as _
 
@@ -77,7 +77,7 @@ def _validate_and_normalize_image(image_file):
             pil_img = pil_img.convert('RGB')
 
         buf = io.BytesIO()
-        pil_img.save(buf, format='JPEG', quality=88, optimize=True)
+        pil_img.save(buf, format='JPEG', quality=92, optimize=True)
         return buf.getvalue(), 'image/jpeg'
 
     except Exception:
@@ -138,6 +138,7 @@ def scanner_extract():
     try:
         result = extract_receipt(ai_config, image_bytes, mime_type)
     except ValueError as exc:
+        current_app.logger.warning("Scanner extract error: %s", exc)
         return jsonify({'error': str(exc)}), 422
 
     # --- Build description from items ---

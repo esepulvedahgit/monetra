@@ -109,7 +109,11 @@ def _parse_json_response(text: str) -> dict:
         except (json.JSONDecodeError, TypeError):
             pass
 
-    raise ValueError("No se pudo leer el recibo. Asegúrate de que la imagen sea clara y vuelve a intentarlo.")
+    preview = text[:120] if text else "(vacía)"
+    raise ValueError(
+        f"No se pudo leer el recibo. Asegúrate de que la imagen sea clara y vuelve a intentarlo. "
+        f"[modelo devolvió: {preview!r}]"
+    )
 
 
 _VISION_UNSUPPORTED_SIGNALS = (
@@ -157,7 +161,7 @@ def _call_openai_compatible(config, b64_image: str, mime_type: str, token: str) 
             ]},
         ],
         "response_format": {"type": "json_object"},
-        "max_tokens": 1024,
+        "max_tokens": 2048,
     }
     try:
         resp = requests.post(url, headers=headers, json=body, timeout=30, allow_redirects=False)
@@ -181,7 +185,7 @@ def _call_anthropic(config, b64_image: str, mime_type: str, token: str) -> dict:
     }
     body = {
         "model": config.model,
-        "max_tokens": 1024,
+        "max_tokens": 2048,
         "system": RECEIPT_SYSTEM_PROMPT,
         "messages": [
             {"role": "user", "content": [
@@ -210,6 +214,30 @@ def _call_anthropic(config, b64_image: str, mime_type: str, token: str) -> dict:
     return _parse_json_response(content)
 
 
+_GEMINI_RESPONSE_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "total":    {"type": "NUMBER",  "nullable": True},
+        "currency": {"type": "STRING",  "nullable": True},
+        "merchant": {"type": "STRING",  "nullable": True},
+        "date":     {"type": "STRING",  "nullable": True},
+        "items": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {
+                    "name":       {"type": "STRING"},
+                    "qty":        {"type": "NUMBER", "nullable": True},
+                    "unit_price": {"type": "NUMBER", "nullable": True},
+                    "line_total":  {"type": "NUMBER", "nullable": True},
+                },
+            },
+        },
+        "error": {"type": "STRING", "nullable": True},
+    },
+}
+
+
 def _call_gemini(config, b64_image: str, mime_type: str, token: str) -> dict:
     model_name = config.model or "gemini-1.5-flash"
     url = (
@@ -225,7 +253,8 @@ def _call_gemini(config, b64_image: str, mime_type: str, token: str) -> dict:
         ]}],
         "generationConfig": {
             "response_mime_type": "application/json",
-            "maxOutputTokens": 1024,
+            "responseSchema": _GEMINI_RESPONSE_SCHEMA,
+            "maxOutputTokens": 2048,
         },
     }
     try:
@@ -234,8 +263,28 @@ def _call_gemini(config, b64_image: str, mime_type: str, token: str) -> dict:
         raise ValueError("Tiempo de espera agotado al contactar al proveedor de IA.")
 
     _check_http_error(resp)
+
+    resp_json = resp.json()
+    candidate = (resp_json.get("candidates") or [{}])[0]
+    finish_reason = candidate.get("finishReason", "STOP")
+
+    if finish_reason == "MAX_TOKENS":
+        raise ValueError(
+            "El recibo tiene demasiados ítems para procesar de una vez. "
+            "Intenta con una sección más pequeña del recibo."
+        )
+    if finish_reason == "SAFETY":
+        raise ValueError(
+            "El modelo bloqueó la imagen por filtros de seguridad. "
+            "Asegúrate de que la imagen sea un recibo o factura."
+        )
+    if finish_reason not in ("STOP", "MODEL_LENGTH", ""):
+        raise ValueError(
+            f"El modelo no completó la respuesta (finishReason: {finish_reason}). Intenta nuevamente."
+        )
+
     try:
-        content = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+        content = candidate["content"]["parts"][0]["text"]
     except (KeyError, IndexError, TypeError):
         raise ValueError("Respuesta inesperada del proveedor Gemini.")
     return _parse_json_response(content)
