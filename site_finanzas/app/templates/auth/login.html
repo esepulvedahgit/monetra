@@ -95,6 +95,9 @@
     var beginUrl        = '{{ url_for("auth.webauthn_login_begin") }}';
     var completeUrl     = '{{ url_for("auth.webauthn_login_complete") }}';
 
+    // Always show the biometric section on mobile when WebAuthn is supported
+    if (webauthnSection) webauthnSection.style.display = '';
+
     function showBiometricError(msg) {
         if (!biometricError) return;
         biometricError.textContent = msg;
@@ -105,97 +108,98 @@
         if (biometricError) biometricError.classList.add('d-none');
     }
 
-    // Check passkey on email blur
-    function checkPasskey() {
-        var email = emailField ? emailField.value.trim() : '';
-        if (!email) { webauthnSection.style.display = 'none'; return; }
-
-        fetch(checkUrl + '?email=' + encodeURIComponent(email))
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                webauthnSection.style.display = data.has_passkey ? '' : 'none';
-                hideBiometricError();
-            })
-            .catch(function () { webauthnSection.style.display = 'none'; });
-    }
-
-    if (emailField) {
-        emailField.addEventListener('blur', checkPasskey);
-        emailField.addEventListener('change', checkPasskey);
-    }
-
-    // Biometric login flow
+    // Biometric login flow — check passkey on click, not on email blur
     if (btnBiometric) {
         btnBiometric.addEventListener('click', function () {
             hideBiometricError();
             var email = emailField ? emailField.value.trim() : '';
-            if (!email) { showBiometricError('{{ _("Ingresa tu correo primero.") }}'); return; }
+
+            if (!email) {
+                showBiometricError('{{ _("Ingresa tu correo primero.") }}');
+                return;
+            }
 
             btnBiometric.disabled = true;
             btnBiometric.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>{{ _("Verificando...") }}';
 
-            // 1. Get challenge from server
-            fetch(beginUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email }),
-            })
-            .then(function (r) {
-                if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || '{{ _("Error al iniciar biometría.") }}'); });
-                return r.json();
-            })
-            .then(function (options) {
-                // Decode base64url fields expected by navigator.credentials
-                options.challenge = _b64urlToBuffer(options.challenge);
-                if (options.allowCredentials) {
-                    options.allowCredentials = options.allowCredentials.map(function (c) {
-                        return Object.assign({}, c, { id: _b64urlToBuffer(c.id) });
+            // 1. Check if this email has a registered passkey
+            fetch(checkUrl + '?email=' + encodeURIComponent(email))
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (!data.has_passkey) {
+                        throw new Error('{{ _("No hay passkey registrado para este correo. Usa tu contraseña.") }}');
+                    }
+                    // 2. Get challenge from server
+                    return fetch(beginUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email }),
                     });
-                }
-                return navigator.credentials.get({ publicKey: options });
-            })
-            .then(function (assertion) {
-                // 2. Send assertion to server
-                var body = {
-                    id:       assertion.id,
-                    rawId:    _bufferToB64url(assertion.rawId),
-                    type:     assertion.type,
-                    response: {
-                        authenticatorData: _bufferToB64url(assertion.response.authenticatorData),
-                        clientDataJSON:    _bufferToB64url(assertion.response.clientDataJSON),
-                        signature:         _bufferToB64url(assertion.response.signature),
-                        userHandle:        assertion.response.userHandle ? _bufferToB64url(assertion.response.userHandle) : null,
-                    },
-                };
-                return fetch(completeUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body),
+                })
+                .then(function (r) {
+                    if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || '{{ _("Error al iniciar biometría.") }}'); });
+                    return r.json();
+                })
+                .then(function (serverOptions) {
+                    // Build explicit publicKey options — avoids passing unknown fields to the browser API
+                    var publicKey = {
+                        challenge: _b64urlToBuffer(serverOptions.challenge),
+                        userVerification: serverOptions.userVerification || 'required',
+                    };
+                    if (serverOptions.rpId) publicKey.rpId = serverOptions.rpId;
+                    if (serverOptions.timeout) publicKey.timeout = serverOptions.timeout;
+                    if (serverOptions.allowCredentials && serverOptions.allowCredentials.length) {
+                        publicKey.allowCredentials = serverOptions.allowCredentials.map(function (c) {
+                            var entry = { id: _b64urlToBuffer(c.id), type: c.type || 'public-key' };
+                            if (c.transports && c.transports.length) entry.transports = c.transports;
+                            return entry;
+                        });
+                    }
+                    return navigator.credentials.get({ publicKey: publicKey });
+                })
+                .then(function (assertion) {
+                    // 3. Send assertion to server
+                    var body = {
+                        id:       assertion.id,
+                        rawId:    _bufferToB64url(assertion.rawId),
+                        type:     assertion.type,
+                        response: {
+                            authenticatorData: _bufferToB64url(assertion.response.authenticatorData),
+                            clientDataJSON:    _bufferToB64url(assertion.response.clientDataJSON),
+                            signature:         _bufferToB64url(assertion.response.signature),
+                            userHandle:        assertion.response.userHandle ? _bufferToB64url(assertion.response.userHandle) : null,
+                        },
+                    };
+                    return fetch(completeUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body),
+                    });
+                })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.ok) {
+                        window.location.href = data.redirect;
+                    } else {
+                        throw new Error(data.error || '{{ _("Error al verificar la biometría. Usa tu contraseña.") }}');
+                    }
+                })
+                .catch(function (err) {
+                    btnBiometric.disabled = false;
+                    btnBiometric.innerHTML = '<i class="bi bi-fingerprint me-2"></i>{{ _("Ingresar con Face ID / Huella") }}';
+                    if (err && err.name === 'NotAllowedError') {
+                        showBiometricError('{{ _("Autenticación cancelada.") }}');
+                    } else {
+                        showBiometricError((err && err.message) || '{{ _("Error al verificar la biometría. Usa tu contraseña.") }}');
+                    }
                 });
-            })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (data.ok) {
-                    window.location.href = data.redirect;
-                } else {
-                    throw new Error(data.error || '{{ _("Error al verificar la biometría. Usa tu contraseña.") }}');
-                }
-            })
-            .catch(function (err) {
-                btnBiometric.disabled = false;
-                btnBiometric.innerHTML = '<i class="bi bi-fingerprint me-2"></i>{{ _("Ingresar con Face ID / Huella") }}';
-                if (err && err.name === 'NotAllowedError') {
-                    showBiometricError('{{ _("Autenticación cancelada.") }}');
-                } else {
-                    showBiometricError((err && err.message) || '{{ _("Error al verificar la biometría. Usa tu contraseña.") }}');
-                }
-            });
         });
     }
 
     // Base64url helpers
     function _b64urlToBuffer(b64url) {
-        var s = b64url.replace(/-/g, '+').replace(/_/g, '/');
+        // Strip any existing padding before normalizing to avoid double-padding atob errors.
+        var s = b64url.replace(/-/g, '+').replace(/_/g, '/').replace(/=/g, '');
         while (s.length % 4) s += '=';
         var bin = atob(s), buf = new Uint8Array(bin.length);
         for (var i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
