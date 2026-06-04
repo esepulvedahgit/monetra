@@ -15,6 +15,9 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      WEBAUTHN_RP_ID: ${WEBAUTHN_RP_ID:-localhost}
+      WEBAUTHN_RP_NAME: ${WEBAUTHN_RP_NAME:-Monetra}
+      WEBAUTHN_ORIGIN: ${WEBAUTHN_ORIGIN:-http://localhost:5000}
     depends_on:
       mysql:
         condition: service_healthy
