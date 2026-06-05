@@ -324,14 +324,45 @@
                             <!-- API Token -->
                             <div class="col-12">
                                 {{ ai_form.api_token.label(class="form-label small mb-1") }}
-                                {{ ai_form.api_token(class="form-control form-control-sm" + (" is-invalid" if ai_form.api_token.errors else ""), id="aiApiToken", placeholder=("••••••••" if ai_config and ai_config.api_token_encrypted else "sk-...")) }}
-                                <div class="form-text" style="font-size:0.7rem;">
-                                    {% if ai_config and ai_config.api_token_encrypted %}
-                                        {{ _('Token guardado. Deja en blanco para conservar el actual.') }}
-                                    {% else %}
-                                        {{ _('Tu token de API del proveedor seleccionado. Se guarda cifrado.') }}
-                                    {% endif %}
+
+                                {% if ai_config and ai_config.api_token_encrypted %}
+                                <!-- Estado B: token guardado — indicador enmascarado -->
+                                <div id="aiTokenSavedBlock">
+                                    <div class="d-flex align-items-center gap-2 p-2 rounded"
+                                         style="background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.2);">
+                                        <i class="bi bi-key" style="color:var(--monetra-primary,#00C896);"></i>
+                                        <span class="font-monospace small" style="color:var(--monetra-text,#E0E0E0);">••••••••••••••••</span>
+                                        <button type="button" id="aiTokenChangeBtn"
+                                                class="btn btn-link btn-sm p-0 ms-auto"
+                                                style="color:var(--monetra-text-muted,#B0BEC5); font-size:0.78rem; text-decoration:none;">
+                                            <i class="bi bi-pencil me-1"></i>{{ _('Cambiar') }}
+                                        </button>
+                                    </div>
+                                    <div class="form-text mt-1" style="font-size:0.7rem;">
+                                        {{ _('Token guardado. Usa "Probar conexión" para verificarlo o "Cambiar" para reemplazarlo.') }}
+                                    </div>
                                 </div>
+                                <!-- Estado C: modo cambio — campo + cancelar -->
+                                <div id="aiTokenChangeBlock" class="d-none">
+                                    {{ ai_form.api_token(class="form-control form-control-sm", id="aiApiToken", placeholder="sk-...") }}
+                                    <div class="d-flex align-items-center gap-2 mt-1">
+                                        <div class="form-text m-0" style="font-size:0.7rem;">
+                                            {{ _('Ingresa el nuevo token y guarda. Deja vacío para conservar el actual.') }}
+                                        </div>
+                                        <button type="button" id="aiTokenCancelBtn"
+                                                class="btn btn-link btn-sm p-0 ms-auto text-nowrap"
+                                                style="color:var(--monetra-text-muted,#B0BEC5); font-size:0.78rem; text-decoration:none;">
+                                            <i class="bi bi-x me-1"></i>{{ _('Cancelar') }}
+                                        </button>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <!-- Estado A: sin token — campo normal -->
+                                {{ ai_form.api_token(class="form-control form-control-sm" + (" is-invalid" if ai_form.api_token.errors else ""), id="aiApiToken", placeholder="sk-...") }}
+                                <div class="form-text" style="font-size:0.7rem;">
+                                    {{ _('Tu token de API del proveedor seleccionado. Se guarda cifrado.') }}
+                                </div>
+                                {% endif %}
                                 {% for e in ai_form.api_token.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
                             </div>
                         </div>
@@ -1122,13 +1153,43 @@
         var OPENAI_COMPAT = ['openai', 'deepseek', 'openrouter'];
 
         var aiEnabledToggle = document.getElementById('aiEnabled');
-        var aiFields        = document.getElementById('aiFields');
-        var aiProvider      = document.getElementById('aiProvider');
-        var aiModel         = document.getElementById('aiModel');
-        var aiModelHint     = document.getElementById('aiModelHint');
-        var aiBaseUrlRow    = document.getElementById('aiBaseUrlRow');
-        var aiTestBtn       = document.getElementById('aiTestBtn');
-        var aiTestResult    = document.getElementById('aiTestResult');
+        var aiFields           = document.getElementById('aiFields');
+        var aiProvider         = document.getElementById('aiProvider');
+        var aiModel            = document.getElementById('aiModel');
+        var aiModelHint        = document.getElementById('aiModelHint');
+        var aiBaseUrlRow       = document.getElementById('aiBaseUrlRow');
+        var aiTestBtn          = document.getElementById('aiTestBtn');
+        var aiTestResult       = document.getElementById('aiTestResult');
+        var aiTokenSavedBlock  = document.getElementById('aiTokenSavedBlock');
+        var aiTokenChangeBlock = document.getElementById('aiTokenChangeBlock');
+        var aiTokenChangeBtn   = document.getElementById('aiTokenChangeBtn');
+        var aiTokenCancelBtn   = document.getElementById('aiTokenCancelBtn');
+
+        // Whether the user currently has a saved (encrypted) token in the DB.
+        var aiHasSavedToken = {{ 'true' if ai_config and ai_config.api_token_encrypted else 'false' }};
+        var aiChangingToken = false; // true while in "Cambiar" mode (State C)
+
+        // ── Token change / cancel ──────────────────────────────────────────
+        if (aiTokenChangeBtn) {
+            aiTokenChangeBtn.addEventListener('click', function () {
+                aiChangingToken = true;
+                aiTokenSavedBlock.classList.add('d-none');
+                aiTokenChangeBlock.classList.remove('d-none');
+                var inp = document.getElementById('aiApiToken');
+                if (inp) inp.focus();
+                if (aiTestResult) aiTestResult.textContent = '';
+            });
+        }
+        if (aiTokenCancelBtn) {
+            aiTokenCancelBtn.addEventListener('click', function () {
+                aiChangingToken = false;
+                aiTokenChangeBlock.classList.add('d-none');
+                aiTokenSavedBlock.classList.remove('d-none');
+                var inp = document.getElementById('aiApiToken');
+                if (inp) inp.value = '';
+                if (aiTestResult) aiTestResult.textContent = '';
+            });
+        }
 
         function updateAiFields() {
             if (!aiEnabledToggle || !aiFields) return;
@@ -1142,11 +1203,9 @@
         function updateProviderUI() {
             if (!aiProvider) return;
             var p = aiProvider.value;
-            // Show base URL row only for OpenAI-compatible providers
             if (aiBaseUrlRow) {
                 aiBaseUrlRow.style.display = OPENAI_COMPAT.includes(p) ? '' : 'none';
             }
-            // Update model hint
             if (aiModelHint) {
                 var suggestion = AI_MODEL_SUGGESTIONS[p];
                 aiModelHint.textContent = suggestion
@@ -1161,6 +1220,14 @@
         if (aiTestBtn) {
             aiTestBtn.addEventListener('click', function () {
                 if (!aiTestResult) return;
+
+                // State C: user is entering a new token but hasn't saved yet
+                if (aiHasSavedToken && aiChangingToken) {
+                    aiTestResult.innerHTML = '<i class="bi bi-info-circle me-1 text-warning"></i>'
+                        + '<span style="color:var(--monetra-text-muted,#B0BEC5);">{{ _("Guarda el nuevo token primero para probarlo.") }}</span>';
+                    return;
+                }
+
                 aiTestResult.textContent = '';
                 aiTestBtn.disabled = true;
                 aiTestResult.innerHTML = '<span class="spinner-border spinner-border-sm text-secondary" role="status"></span>';
@@ -1172,8 +1239,11 @@
                 fd.append('model', aiModel ? aiModel.value : '');
                 var baseUrlEl = document.getElementById('aiBaseUrl');
                 fd.append('base_url', baseUrlEl ? baseUrlEl.value : '');
+
+                // State B (saved token, not changing): send empty — backend uses saved token.
+                // State A (no saved token): send field value for first-time setup.
                 var tokenEl = document.getElementById('aiApiToken');
-                fd.append('api_token', tokenEl ? tokenEl.value : '');
+                fd.append('api_token', (aiHasSavedToken && !aiChangingToken) ? '' : (tokenEl ? tokenEl.value : ''));
 
                 fetch('{{ url_for("scanner.test") }}', {
                     method: 'POST',

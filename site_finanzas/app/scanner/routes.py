@@ -101,12 +101,19 @@ def scanner_test():
     if not provider:
         return jsonify({'ok': False, 'message': _('Selecciona un proveedor.')}), 200
 
-    # Use submitted token if provided, otherwise fall back to stored encrypted token
-    if api_token_raw:
+    ai_config = getattr(current_user, 'ai_config', None)
+    has_saved = bool(ai_config and ai_config.api_token_encrypted)
+
+    if has_saved:
+        # Always use the stored token — never accept a raw token from the form
+        # when one is already saved. Prevents using this endpoint as an oracle
+        # to validate third-party API keys.
+        token = decrypt_ai_token(ai_config.api_token_encrypted)
+    elif api_token_raw:
+        # First-time setup: no saved token yet, accept the field value
         token = api_token_raw
     else:
-        ai_config = getattr(current_user, 'ai_config', None)
-        token = decrypt_ai_token(ai_config.api_token_encrypted) if (ai_config and ai_config.api_token_encrypted) else ''
+        token = ''
 
     try:
         test_connection(provider, model, base_url, token)
