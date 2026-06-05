@@ -35,7 +35,7 @@ docker buildx build --platform linux/arm64 -t monetra:1.8-arm64 --load ../site_f
 
 **Environment variables:** All are defined in `docker/.env` (single source of truth for both dev and prod). Required: `SECRET_KEY`, `FIELD_ENCRYPTION_KEY`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `MYSQL_ROOT_PASSWORD`. Optional: `JWT_SECRET_KEY`, `CORS_ORIGINS`, `FLASK_DEBUG`.
 
-**Line endings:** `.gitattributes` enforces `eol=crlf` for all files except `*.sh` (`eol=lf`). Never normalize `entrypoint.sh` to CRLF — Linux containers cannot execute scripts with CRLF shebangs.
+**Line endings:** `.gitattributes` enforces `eol=lf` for all files (including `*.sh`). This ensures compatibility with the Linux/Docker deployment target. Never commit files with CRLF endings — the VPS cannot do `git pull` if the repo contains CRLF-normalized objects.
 
 ## Architecture
 
