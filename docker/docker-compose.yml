@@ -21,6 +21,8 @@
       SECRET_KEY: ${SECRET_KEY}
       FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      MAX_CONTENT_UPLOAD_MB: ${MAX_CONTENT_UPLOAD_MB:-15}
+      MAX_RESTORE_SQL_MB: ${MAX_RESTORE_SQL_MB:-500}
     depends_on:
       mysql:
         condition: service_healthy
