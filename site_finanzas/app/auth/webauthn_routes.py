@@ -151,6 +151,11 @@ def webauthn_login_complete():
 def webauthn_register_begin():
     user = current_user
 
+    data = request.get_json(silent=True) or {}
+    password = data.get('password', '')
+    if not password or not user.check_password(password):
+        return jsonify({'error': 'Contraseña incorrecta.'}), 403
+
     # Exclude existing credential if re-registering (replace flow)
     exclude = []
     if user.webauthn_credential:
@@ -256,6 +261,11 @@ def webauthn_delete():
         validate_csrf(request.headers.get('X-CSRFToken'))
     except CSRFValidationError:
         return jsonify({'error': 'Token CSRF inválido.'}), 403
+
+    data = request.get_json(silent=True) or {}
+    password = data.get('password', '')
+    if not password or not current_user.check_password(password):
+        return jsonify({'error': 'Contraseña incorrecta.'}), 403
 
     cred = current_user.webauthn_credential
     if cred:

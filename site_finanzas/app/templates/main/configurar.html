@@ -433,6 +433,27 @@
                 {% endif %}
 
                 <div id="webauthnStatusMsg" class="mt-2 small d-none"></div>
+
+                <!-- Password confirmation panel — shown before any biometric action -->
+                <div id="webauthnPasswordPanel" class="mt-3 d-none">
+                    <p class="small mb-2" style="color:var(--monetra-text-muted,#B0BEC5);">
+                        <i class="bi bi-shield-lock me-1"></i>{{ _('Confirma tu contraseña para continuar.') }}
+                    </p>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <input type="password" id="webauthnPasswordInput"
+                               class="form-control form-control-sm"
+                               placeholder="{{ _('Tu contraseña actual') }}"
+                               autocomplete="current-password"
+                               style="max-width:220px;">
+                        <button type="button" class="btn btn-sm btn-primary fw-semibold" id="btnWebAuthnConfirm">
+                            {{ _('Continuar') }}
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnWebAuthnCancelPwd">
+                            {{ _('Cancelar') }}
+                        </button>
+                    </div>
+                    <div id="webauthnPasswordError" class="mt-1 small text-danger d-none"></div>
+                </div>
             </div>
 
             <hr class="my-0" style="border-color: rgba(255,255,255,0.07);">
@@ -1190,12 +1211,19 @@
         var btnDelete      = document.getElementById('btnWebAuthnDelete');
         var statusMsg      = document.getElementById('webauthnStatusMsg');
         var browserWarning = document.getElementById('webauthnBrowserWarning');
+        var pwdPanel       = document.getElementById('webauthnPasswordPanel');
+        var pwdInput       = document.getElementById('webauthnPasswordInput');
+        var pwdError       = document.getElementById('webauthnPasswordError');
+        var btnConfirm     = document.getElementById('btnWebAuthnConfirm');
+        var btnCancelPwd   = document.getElementById('btnWebAuthnCancelPwd');
 
         var beginUrl    = '{{ url_for("auth.webauthn_register_begin") }}';
         var completeUrl = '{{ url_for("auth.webauthn_register_complete") }}';
         var deleteUrl   = '{{ url_for("auth.webauthn_delete") }}';
+        var csrfToken   = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
 
-        // Show browser warning if WebAuthn not supported
+        var pendingAction = null; // 'register' | 'delete'
+
         if (!window.PublicKeyCredential && browserWarning) {
             browserWarning.classList.remove('d-none');
             if (btnRegister) btnRegister.disabled = true;
@@ -1208,9 +1236,32 @@
             statusMsg.classList.remove('d-none');
         }
 
+        function showPwdPanel(action) {
+            pendingAction = action;
+            if (pwdInput)  { pwdInput.value = ''; pwdInput.focus(); }
+            if (pwdError)  pwdError.classList.add('d-none');
+            if (pwdPanel)  pwdPanel.classList.remove('d-none');
+            if (btnRegister) btnRegister.disabled = true;
+            if (btnDelete)   btnDelete.disabled   = true;
+        }
+
+        function hidePwdPanel() {
+            pendingAction = null;
+            if (pwdPanel)    pwdPanel.classList.add('d-none');
+            if (pwdInput)    pwdInput.value = '';
+            if (btnRegister) btnRegister.disabled = false;
+            if (btnDelete)   btnDelete.disabled   = false;
+        }
+
+        function showPwdError(msg) {
+            if (!pwdError) return;
+            pwdError.textContent = msg;
+            pwdError.classList.remove('d-none');
+            if (pwdInput) { pwdInput.value = ''; pwdInput.focus(); }
+        }
+
         // Base64url helpers
         function _b64urlToBuffer(b64url) {
-            // Strip existing padding before re-padding to avoid double-padding DOMException.
             var s = b64url.replace(/-/g, '+').replace(/_/g, '/').replace(/=/g, '');
             while (s.length % 4) s += '=';
             var bin = atob(s), buf = new Uint8Array(bin.length);
@@ -1223,92 +1274,149 @@
             return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
         }
 
+        // Step 1: any action button → show password panel
         if (btnRegister) {
             btnRegister.addEventListener('click', function () {
                 if (!window.PublicKeyCredential) {
                     showStatus('{{ _("Tu navegador no soporta autenticación biométrica.") }}', false);
                     return;
                 }
-                btnRegister.disabled = true;
-                btnRegister.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>{{ _("Verificando...") }}';
-
-                var csrf = document.querySelector('meta[name="csrf-token"]');
-                var csrfToken = csrf ? csrf.content : '';
-
-                fetch(beginUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-                    body: '{}',
-                })
-                .then(function (r) { return r.json(); })
-                .then(function (options) {
-                    options.challenge = _b64urlToBuffer(options.challenge);
-                    options.user.id   = _b64urlToBuffer(options.user.id);
-                    if (options.excludeCredentials) {
-                        options.excludeCredentials = options.excludeCredentials.map(function (c) {
-                            return Object.assign({}, c, { id: _b64urlToBuffer(c.id) });
-                        });
-                    }
-                    return navigator.credentials.create({ publicKey: options });
-                })
-                .then(function (credential) {
-                    var body = {
-                        id:       credential.id,
-                        rawId:    _bufferToB64url(credential.rawId),
-                        type:     credential.type,
-                        response: {
-                            attestationObject: _bufferToB64url(credential.response.attestationObject),
-                            clientDataJSON:    _bufferToB64url(credential.response.clientDataJSON),
-                        },
-                    };
-                    return fetch(completeUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-                        body: JSON.stringify(body),
-                    });
-                })
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                    if (data.ok) {
-                        // Mark this device as having a passkey so login page shows the biometric button
-                        localStorage.setItem('monetra_passkey', '1');
-                        showStatus('{{ _("Dispositivo registrado correctamente. Recarga la página para ver los cambios.") }}', true);
-                        setTimeout(function () { location.reload(); }, 1500);
-                    } else {
-                        throw new Error(data.error || '{{ _("Error al registrar.") }}');
-                    }
-                })
-                .catch(function (err) {
-                    btnRegister.disabled = false;
-                    btnRegister.innerHTML = '<i class="bi bi-fingerprint me-1"></i>{{ _("Registrar este dispositivo") }}';
-                    if (err && err.name === 'NotAllowedError') {
-                        showStatus('{{ _("Registro cancelado.") }}', false);
-                    } else {
-                        showStatus((err && err.message) || '{{ _("Error al registrar el dispositivo.") }}', false);
-                    }
-                });
+                showPwdPanel('register');
             });
         }
 
         if (btnDelete) {
             btnDelete.addEventListener('click', function () {
-                if (!confirm('{{ _("¿Eliminar el dispositivo biométrico registrado? Podrás seguir usando tu contraseña.") }}')) return;
-                var csrf = document.querySelector('meta[name="csrf-token"]');
-                var csrfToken = csrf ? csrf.content : '';
-                fetch(deleteUrl, {
+                showPwdPanel('delete');
+            });
+        }
+
+        if (btnCancelPwd) {
+            btnCancelPwd.addEventListener('click', hidePwdPanel);
+        }
+
+        // Allow Enter key in password field to confirm
+        if (pwdInput) {
+            pwdInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') { e.preventDefault(); doConfirm(); }
+            });
+        }
+
+        if (btnConfirm) {
+            btnConfirm.addEventListener('click', doConfirm);
+        }
+
+        // Step 2: password confirmed → run the pending action
+        function doConfirm() {
+            var pwd = pwdInput ? pwdInput.value.trim() : '';
+            if (!pwd) {
+                showPwdError('{{ _("Ingresa tu contraseña.") }}');
+                return;
+            }
+            if (btnConfirm) {
+                btnConfirm.disabled = true;
+                btnConfirm.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+            }
+            if (pendingAction === 'register') {
+                doRegister(pwd);
+            } else if (pendingAction === 'delete') {
+                doDelete(pwd);
+            }
+        }
+
+        function resetConfirmBtn() {
+            if (btnConfirm) {
+                btnConfirm.disabled = false;
+                btnConfirm.textContent = '{{ _("Continuar") }}';
+            }
+        }
+
+        function doRegister(pwd) {
+            fetch(beginUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                body: JSON.stringify({ password: pwd }),
+            })
+            .then(function (r) {
+                if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || '{{ _("Error al iniciar registro.") }}'); });
+                return r.json();
+            })
+            .then(function (options) {
+                hidePwdPanel();
+                options.challenge = _b64urlToBuffer(options.challenge);
+                options.user.id   = _b64urlToBuffer(options.user.id);
+                if (options.excludeCredentials) {
+                    options.excludeCredentials = options.excludeCredentials.map(function (c) {
+                        return Object.assign({}, c, { id: _b64urlToBuffer(c.id) });
+                    });
+                }
+                return navigator.credentials.create({ publicKey: options });
+            })
+            .then(function (credential) {
+                var body = {
+                    id:       credential.id,
+                    rawId:    _bufferToB64url(credential.rawId),
+                    type:     credential.type,
+                    response: {
+                        attestationObject: _bufferToB64url(credential.response.attestationObject),
+                        clientDataJSON:    _bufferToB64url(credential.response.clientDataJSON),
+                    },
+                };
+                return fetch(completeUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-                    body: '{}',
-                })
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                    if (data.ok) {
-                        // Remove device hint so login page hides the biometric button
-                        localStorage.removeItem('monetra_passkey');
-                        location.reload();
-                    }
-                })
-                .catch(function () { showStatus('{{ _("Error al eliminar.") }}', false); });
+                    body: JSON.stringify(body),
+                });
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.ok) {
+                    localStorage.setItem('monetra_passkey', '1');
+                    showStatus('{{ _("Dispositivo registrado correctamente. Recarga la página para ver los cambios.") }}', true);
+                    setTimeout(function () { location.reload(); }, 1500);
+                } else {
+                    throw new Error(data.error || '{{ _("Error al registrar.") }}');
+                }
+            })
+            .catch(function (err) {
+                resetConfirmBtn();
+                if (err && err.name === 'NotAllowedError') {
+                    showStatus('{{ _("Registro cancelado.") }}', false);
+                } else if (err && err.message && err.message.indexOf('{{ _("Contraseña incorrecta.") }}') !== -1) {
+                    showPwdPanel('register');
+                    showPwdError('{{ _("Contraseña incorrecta.") }}');
+                } else {
+                    showStatus((err && err.message) || '{{ _("Error al registrar el dispositivo.") }}', false);
+                }
+            });
+        }
+
+        function doDelete(pwd) {
+            fetch(deleteUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                body: JSON.stringify({ password: pwd }),
+            })
+            .then(function (r) {
+                if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || '{{ _("Error al eliminar.") }}'); });
+                return r.json();
+            })
+            .then(function (data) {
+                if (data.ok) {
+                    localStorage.removeItem('monetra_passkey');
+                    location.reload();
+                } else {
+                    throw new Error(data.error || '{{ _("Error al eliminar.") }}');
+                }
+            })
+            .catch(function (err) {
+                resetConfirmBtn();
+                if (err && err.message && err.message.indexOf('{{ _("Contraseña incorrecta.") }}') !== -1) {
+                    showPwdError('{{ _("Contraseña incorrecta.") }}');
+                } else {
+                    hidePwdPanel();
+                    showStatus((err && err.message) || '{{ _("Error al eliminar.") }}', false);
+                }
             });
         }
     })();
