@@ -1210,7 +1210,8 @@
 
         // Base64url helpers
         function _b64urlToBuffer(b64url) {
-            var s = b64url.replace(/-/g, '+').replace(/_/g, '/');
+            // Strip existing padding before re-padding to avoid double-padding DOMException.
+            var s = b64url.replace(/-/g, '+').replace(/_/g, '/').replace(/=/g, '');
             while (s.length % 4) s += '=';
             var bin = atob(s), buf = new Uint8Array(bin.length);
             for (var i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);

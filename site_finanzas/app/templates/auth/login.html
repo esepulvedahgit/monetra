@@ -87,15 +87,13 @@
     // Only activate on mobile and when WebAuthn is supported
     if (window.innerWidth >= 992 || !window.PublicKeyCredential) return;
 
-    var emailField      = document.getElementById('{{ form.email.id }}');
     var webauthnSection = document.getElementById('webauthnSection');
     var btnBiometric    = document.getElementById('btnBiometric');
     var biometricError  = document.getElementById('biometricError');
-    var checkUrl        = '{{ url_for("auth.webauthn_check") }}';
     var beginUrl        = '{{ url_for("auth.webauthn_login_begin") }}';
     var completeUrl     = '{{ url_for("auth.webauthn_login_complete") }}';
 
-    // Always show the biometric section on mobile when WebAuthn is supported
+    // Show biometric section on mobile when WebAuthn is supported
     if (webauthnSection) webauthnSection.style.display = '';
 
     function showBiometricError(msg) {
@@ -108,57 +106,40 @@
         if (biometricError) biometricError.classList.add('d-none');
     }
 
-    // Biometric login flow — check passkey on click, not on email blur
+    // Biometric login — usernameless / discoverable credentials flow.
+    // No email needed: the browser presents all passkeys for this domain and the
+    // user picks one. The server identifies the user from the returned credential_id.
     if (btnBiometric) {
         btnBiometric.addEventListener('click', function () {
             hideBiometricError();
-            var email = emailField ? emailField.value.trim() : '';
-
-            if (!email) {
-                showBiometricError('{{ _("Ingresa tu correo primero.") }}');
-                return;
-            }
 
             btnBiometric.disabled = true;
             btnBiometric.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>{{ _("Verificando...") }}';
 
-            // 1. Check if this email has a registered passkey
-            fetch(checkUrl + '?email=' + encodeURIComponent(email))
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                    if (!data.has_passkey) {
-                        throw new Error('{{ _("No hay passkey registrado para este correo. Usa tu contraseña.") }}');
-                    }
-                    // 2. Get challenge from server
-                    return fetch(beginUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: email }),
-                    });
-                })
+            // 1. Get challenge from server (no email required)
+            fetch(beginUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: '{}',
+            })
                 .then(function (r) {
                     if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || '{{ _("Error al iniciar biometría.") }}'); });
                     return r.json();
                 })
                 .then(function (serverOptions) {
-                    // Build explicit publicKey options — avoids passing unknown fields to the browser API
+                    // Build explicit publicKey options — pass only recognized fields to avoid
+                    // browser DOMException on unknown properties.
                     var publicKey = {
-                        challenge: _b64urlToBuffer(serverOptions.challenge),
+                        challenge:        _b64urlToBuffer(serverOptions.challenge),
                         userVerification: serverOptions.userVerification || 'required',
                     };
-                    if (serverOptions.rpId) publicKey.rpId = serverOptions.rpId;
+                    if (serverOptions.rpId)   publicKey.rpId   = serverOptions.rpId;
                     if (serverOptions.timeout) publicKey.timeout = serverOptions.timeout;
-                    if (serverOptions.allowCredentials && serverOptions.allowCredentials.length) {
-                        publicKey.allowCredentials = serverOptions.allowCredentials.map(function (c) {
-                            var entry = { id: _b64urlToBuffer(c.id), type: c.type || 'public-key' };
-                            if (c.transports && c.transports.length) entry.transports = c.transports;
-                            return entry;
-                        });
-                    }
+                    // No allowCredentials → browser shows all passkeys for this domain
                     return navigator.credentials.get({ publicKey: publicKey });
                 })
                 .then(function (assertion) {
-                    // 3. Send assertion to server
+                    // 2. Send assertion to server
                     var body = {
                         id:       assertion.id,
                         rawId:    _bufferToB64url(assertion.rawId),
@@ -196,9 +177,8 @@
         });
     }
 
-    // Base64url helpers
+    // Base64url helpers — strip existing padding before re-padding to avoid double-padding errors.
     function _b64urlToBuffer(b64url) {
-        // Strip any existing padding before normalizing to avoid double-padding atob errors.
         var s = b64url.replace(/-/g, '+').replace(/_/g, '/').replace(/=/g, '');
         while (s.length % 4) s += '=';
         var bin = atob(s), buf = new Uint8Array(bin.length);

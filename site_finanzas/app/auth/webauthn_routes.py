@@ -1,12 +1,11 @@
 """WebAuthn / Passkey routes for biometric authentication (Face ID, fingerprint, etc.).
 
-Endpoints:
-  GET  /auth/webauthn/check          — check if email has a registered passkey (public)
-  POST /auth/webauthn/login/begin    — generate authentication challenge (public)
-  POST /auth/webauthn/login/complete — verify and login (public)
-  POST /auth/webauthn/register/begin    — generate registration challenge (login required)
-  POST /auth/webauthn/register/complete — save passkey (login required)
-  POST /auth/webauthn/delete            — remove passkey (login required)
+Endpoints (all under /auth/webauthn/):
+  POST login/begin    — generate authentication challenge; usernameless (no email needed)
+  POST login/complete — verify assertion and log in; user identified by credential_id
+  POST register/begin    — generate registration challenge (login required)
+  POST register/complete — save discoverable passkey (login required)
+  POST delete            — remove passkey (login required)
 """
 
 import base64
@@ -14,7 +13,6 @@ import base64
 from flask import current_app, jsonify, request, session, url_for
 from flask_login import current_user, login_required, login_user
 
-import webauthn
 from webauthn import (
     generate_authentication_options,
     generate_registration_options,
@@ -56,54 +54,26 @@ def _b64url(data: bytes) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Public: check if email has a passkey (used by login page JS)
-# ---------------------------------------------------------------------------
-
-@auth.route('/webauthn/check', methods=['GET'])
-@limiter.limit("30 per minute")
-def webauthn_check():
-    """Return {has_passkey: bool} for a given email. Does not reveal user existence."""
-    email = (request.args.get('email') or '').strip().lower()
-    has_passkey = False
-    if email:
-        user = User.query.filter_by(email=email).first()
-        if user and user.webauthn_credential:
-            has_passkey = True
-    return jsonify({'has_passkey': has_passkey})
-
-
-# ---------------------------------------------------------------------------
-# Login: begin (generate challenge)
+# Login: begin (generate challenge — usernameless / discoverable credentials)
 # ---------------------------------------------------------------------------
 
 @auth.route('/webauthn/login/begin', methods=['POST'])
 @limiter.limit("10 per minute")
 def webauthn_login_begin():
-    data = request.get_json(silent=True) or {}
-    email = (data.get('email') or '').strip().lower()
+    """Generate an authentication challenge without requiring the user's email.
 
-    user = User.query.filter_by(email=email).first()
-    if not user or not user.webauthn_credential:
-        return jsonify({'error': 'Sin passkey registrado para este correo.'}), 404
-
-    credential = user.webauthn_credential
-
-    # credential_id is stored as base64url string — decode to bytes for the descriptor
-    cred_id_bytes = base64.urlsafe_b64decode(
-        credential.credential_id + '=' * (-len(credential.credential_id) % 4)
-    )
-
+    We use discoverable credentials (resident keys): the browser presents all
+    passkeys stored for this RP and the user picks one. The server identifies
+    the user from the credential_id returned in login/complete.
+    """
     options = generate_authentication_options(
         rp_id=_rp_id(),
-        allow_credentials=[
-            PublicKeyCredentialDescriptor(id=cred_id_bytes)
-        ],
         user_verification=UserVerificationRequirement.REQUIRED,
+        # No allow_credentials → browser shows all passkeys for this domain
     )
 
     # Store challenge in session (single-use)
     session['webauthn_auth_challenge'] = _b64url(options.challenge)
-    session['webauthn_auth_user_id'] = user.id
 
     return options_to_json(options), 200, {'Content-Type': 'application/json'}
 
@@ -116,23 +86,33 @@ def webauthn_login_begin():
 @limiter.limit("10 per minute")
 def webauthn_login_complete():
     challenge_b64 = session.pop('webauthn_auth_challenge', None)
-    user_id = session.pop('webauthn_auth_user_id', None)
 
-    if not challenge_b64 or not user_id:
+    if not challenge_b64:
         return jsonify({'error': 'Sesión de autenticación expirada. Intenta de nuevo.'}), 400
 
-    user = db.session.get(User, user_id)
-    if not user or not user.webauthn_credential:
-        return jsonify({'error': 'Credencial no encontrada.'}), 400
+    body = request.get_json(silent=True) or {}
 
-    credential = user.webauthn_credential
+    # Identify user from credential_id returned by the browser (discoverable flow).
+    # The browser returns id as base64url without padding — same format _b64url() produces.
+    raw_id = (body.get('id') or '').strip()
+    if not raw_id:
+        return jsonify({'error': 'Credencial no reconocida.'}), 400
+
+    credential = UserWebAuthnCredential.query.filter_by(credential_id=raw_id).first()
+    if not credential:
+        return jsonify({'error': 'Credencial no reconocida.'}), 400
+
+    user = credential.user
+    if not user:
+        return jsonify({'error': 'Credencial no reconocida.'}), 400
+
     expected_challenge = base64.urlsafe_b64decode(
         challenge_b64 + '=' * (-len(challenge_b64) % 4)
     )
 
     try:
         verification = verify_authentication_response(
-            credential=request.get_json(silent=True) or {},
+            credential=body,
             expected_challenge=expected_challenge,
             expected_rp_id=_rp_id(),
             expected_origin=_origin(),
@@ -178,7 +158,7 @@ def webauthn_register_begin():
         user_name=user.email,
         user_display_name=user.username,
         authenticator_selection=AuthenticatorSelectionCriteria(
-            resident_key=ResidentKeyRequirement.PREFERRED,
+            resident_key=ResidentKeyRequirement.REQUIRED,
             user_verification=UserVerificationRequirement.REQUIRED,
         ),
         exclude_credentials=exclude,
