@@ -17,9 +17,10 @@ Monetra es una aplicación de finanzas personales que te permite registrar ingre
 9. [Recurrentes](#9-recurrentes)
 10. [Exportar a Excel](#10-exportar-a-excel)
 11. [Configuración de cuenta](#11-configuración-de-cuenta)
-12. [Preguntas frecuentes](#12-preguntas-frecuentes)
+12. [Panel de analítica](#12-panel-de-analítica)
 13. [Escáner IA](#13-escáner-ia)
 14. [Autenticación biométrica](#14-autenticación-biométrica)
+15. [Preguntas frecuentes](#15-preguntas-frecuentes)
 
 ---
 
@@ -437,7 +438,7 @@ Activa el envío automático de tu reporte Excel cada lunes (requiere SMTP confi
 
 ---
 
-## 12. Preguntas frecuentes
+## 15. Preguntas frecuentes
 
 **¿Por qué no puedo eliminar una categoría?**
 Porque tiene registros asociados: transacciones, recurrentes o presupuestos. Primero elimina o reasigna esos registros, luego podrás eliminar la categoría. El sistema te indicará exactamente cuántos registros la bloquean.
