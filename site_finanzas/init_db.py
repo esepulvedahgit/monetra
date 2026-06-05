@@ -127,14 +127,9 @@ with app.app_context():
         else:
             print(f"Usuario {FIRST_ADMIN_EMAIL} no encontrado; el primer registro será admin.")
 
-    # Initialize AppConfig if it doesn't exist
-    if not AppConfig.query.first():
-        db.session.add(AppConfig(allow_registration=True))
-        db.session.commit()
-        print("Configuración global creada (allow_registration=True).")
-    else:
-        print("Configuración global ya existente.")
-
+    # AppConfig migrations must run BEFORE any AppConfig ORM query below, since the
+    # ORM SELECTs every mapped column (including sessions_valid_after) and would fail
+    # on an existing app_config table that predates this column.
     app_config_cols = [c['name'] for c in inspect(db.engine).get_columns('app_config')]
     with db.engine.connect() as conn:
         if 'sessions_valid_after' not in app_config_cols:
@@ -143,6 +138,14 @@ with app.app_context():
             ))
             conn.commit()
             print("Columna sessions_valid_after agregada a app_config.")
+
+    # Initialize AppConfig if it doesn't exist
+    if not AppConfig.query.first():
+        db.session.add(AppConfig(allow_registration=True))
+        db.session.commit()
+        print("Configuración global creada (allow_registration=True).")
+    else:
+        print("Configuración global ya existente.")
 
     tx_cols = [c['name'] for c in inspect(db.engine).get_columns('transactions')]
     with db.engine.connect() as conn:
