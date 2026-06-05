@@ -26,6 +26,8 @@ CONFIG_REGISTRATION  = 'config.registration'
 # Admin events
 ADMIN_DEMO_LOAD  = 'admin.demo_load'
 ADMIN_DEMO_RESET = 'admin.demo_reset'
+ADMIN_DB_EXPORT  = 'admin.db_export'
+ADMIN_DB_RESTORE = 'admin.db_restore'
 
 
 # Map prefix → display label + pastel color

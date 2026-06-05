@@ -198,6 +198,170 @@
                     <i class="bi bi-shield-check me-1"></i>{{ _('Registro de Auditoría') }}
                     <i class="bi bi-box-arrow-up-right ms-1" style="font-size:0.8rem; opacity:0.6;"></i>
                 </a>
+
+                {# ── Backup / Restore ──────────────────────────────── #}
+                <hr class="my-3" style="border-color:rgba(255,255,255,0.07);">
+
+                {# Warning: env keys must travel separately #}
+                <div class="alert alert-warning d-flex gap-2 align-items-start py-2 px-3 mb-3"
+                     style="font-size:.82rem; border-radius:8px;">
+                    <i class="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0"></i>
+                    <div>
+                        <strong>{{ _('Migración de claves') }}:</strong>
+                        {{ _('El respaldo NO incluye las claves de cifrado (FIELD_ENCRYPTION_KEY, SECRET_KEY, JWT_SECRET_KEY). Al restaurar en un servidor nuevo, copia primero esas claves de docker/.env — sin ellas los secretos MFA, SMTP y tokens quedan ilegibles.') }}
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary py-2 fw-semibold"
+                            data-bs-toggle="modal" data-bs-target="#exportDbModal">
+                        <i class="bi bi-cloud-download me-1"></i>{{ _('Exportar base de datos') }}
+                    </button>
+                    <button type="button" class="btn btn-outline-danger py-2 fw-semibold"
+                            data-bs-toggle="modal" data-bs-target="#restoreDbModal">
+                        <i class="bi bi-cloud-upload me-1"></i>{{ _('Restaurar base de datos') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {# ── Export modal ──────────────────────────────────────────── #}
+        <div class="modal fade" id="exportDbModal" tabindex="-1"
+             aria-labelledby="exportDbModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exportDbModalLabel">
+                            <i class="bi bi-cloud-download me-2 text-primary"></i>
+                            {{ _('Exportar base de datos') }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="POST" action="{{ url_for('backup.export_db') }}" id="exportDbForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="modal-body">
+                            <p class="text-muted" style="font-size:.9rem;">
+                                {{ _('Se generará un archivo cifrado (.mntrbak) con toda la base de datos. Guárdalo en un lugar seguro.') }}
+                            </p>
+                            <div class="mb-3">
+                                <label for="exportBackupPassword" class="form-label fw-semibold">
+                                    {{ _('Contraseña del respaldo') }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="password" class="form-control" id="exportBackupPassword"
+                                       name="backup_password" required autocomplete="new-password"
+                                       placeholder="{{ _('Contraseña para cifrar el archivo') }}">
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle text-primary"></i>
+                                    {{ _('Necesitarás esta contraseña para restaurar el respaldo. Si la pierdes, el archivo no se puede recuperar.') }}
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <label for="exportBackupPasswordConfirm" class="form-label fw-semibold">
+                                    {{ _('Confirmar contraseña') }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="password" class="form-control" id="exportBackupPasswordConfirm"
+                                       name="backup_password_confirm" required autocomplete="new-password"
+                                       placeholder="{{ _('Repite la contraseña') }}">
+                                <div id="exportPasswordMismatch" class="text-danger mt-1"
+                                     style="font-size:.82rem; display:none;">
+                                    <i class="bi bi-x-circle"></i> {{ _('Las contraseñas no coinciden.') }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary"
+                                    data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+                            <button type="submit" id="exportDbSubmitBtn"
+                                    class="btn btn-primary fw-semibold">
+                                <i class="bi bi-cloud-download me-1"></i>{{ _('Descargar respaldo') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {# ── Restore modal ─────────────────────────────────────────── #}
+        <div class="modal fade" id="restoreDbModal" tabindex="-1"
+             aria-labelledby="restoreDbModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-danger">
+                        <h5 class="modal-title text-danger" id="restoreDbModalLabel">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            {{ _('Restaurar base de datos') }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="POST" action="{{ url_for('backup.restore_db') }}"
+                          enctype="multipart/form-data" id="restoreDbForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="modal-body">
+                            <div class="alert alert-danger d-flex gap-2 align-items-start py-2 px-3 mb-3"
+                                 style="font-size:.82rem;">
+                                <i class="bi bi-exclamation-octagon-fill mt-1 flex-shrink-0"></i>
+                                <div>
+                                    <strong>{{ _('Operación irreversible') }}:</strong>
+                                    {{ _('Toda la base de datos actual — usuarios, transacciones, configuraciones — será reemplazada por el contenido del respaldo. La sesión se cerrará al finalizar.') }}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="restoreBackupFile" class="form-label fw-semibold">
+                                    {{ _('Archivo de respaldo (.mntrbak)') }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="file" class="form-control" id="restoreBackupFile"
+                                       name="backup_file" required accept=".mntrbak">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="restoreBackupPassword" class="form-label fw-semibold">
+                                    {{ _('Contraseña del respaldo') }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="password" class="form-control" id="restoreBackupPassword"
+                                       name="backup_password" required autocomplete="current-password"
+                                       placeholder="{{ _('Contraseña con la que se cifró el archivo') }}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="restoreAccountPassword" class="form-label fw-semibold">
+                                    {{ _('Contraseña de tu cuenta') }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="password" class="form-control" id="restoreAccountPassword"
+                                       name="account_password" required autocomplete="current-password"
+                                       placeholder="{{ _('Tu contraseña de administrador') }}">
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle text-primary"></i>
+                                    {{ _('Necesaria para confirmar tu identidad antes de sobreescribir la base de datos.') }}
+                                </div>
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="restoreConfirmWord" class="form-label fw-semibold">
+                                    {{ _('Escribe RESTAURAR para confirmar') }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control font-monospace"
+                                       id="restoreConfirmWord" name="confirm"
+                                       required autocomplete="off"
+                                       placeholder="RESTAURAR">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary"
+                                    data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+                            <button type="submit" id="restoreDbSubmitBtn"
+                                    class="btn btn-danger fw-semibold">
+                                <i class="bi bi-cloud-upload me-1"></i>{{ _('Restaurar ahora') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
         {% endif %}
@@ -865,7 +1029,7 @@
 <!-- Versión -->
 <div class="text-center mt-4 mb-2">
     <small style="color:var(--monetra-text-muted, #78909C); opacity:0.6;">
-        <i class="bi bi-code-slash"></i> Monetra v2.3
+        <i class="bi bi-code-slash"></i> Monetra v2.5
     </small>
 </div>
 
@@ -1491,4 +1655,56 @@
         }
     })();
     </script>
+
+    {% if current_user.is_admin and current_user.is_first_admin %}
+    <script>
+    (function () {
+        // ── Export modal: password match validation ──────────────────
+        const exportForm    = document.getElementById('exportDbForm');
+        const exportPwd     = document.getElementById('exportBackupPassword');
+        const exportPwdConf = document.getElementById('exportBackupPasswordConfirm');
+        const exportMismatch = document.getElementById('exportPasswordMismatch');
+        const exportSubmit  = document.getElementById('exportDbSubmitBtn');
+
+        function checkExportPasswords() {
+            const mismatch = exportPwdConf.value && exportPwd.value !== exportPwdConf.value;
+            exportMismatch.style.display = mismatch ? '' : 'none';
+            if (exportSubmit) exportSubmit.disabled = !!mismatch;
+        }
+
+        if (exportPwd)     exportPwd.addEventListener('input', checkExportPasswords);
+        if (exportPwdConf) exportPwdConf.addEventListener('input', checkExportPasswords);
+
+        if (exportForm) {
+            exportForm.addEventListener('submit', function (e) {
+                if (exportPwd.value !== exportPwdConf.value) {
+                    e.preventDefault();
+                    exportMismatch.style.display = '';
+                    return;
+                }
+                // Show loading state while the backup is being generated
+                if (exportSubmit) {
+                    exportSubmit.disabled = true;
+                    exportSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>{{ _("Generando…") }}';
+                }
+            });
+        }
+
+        // ── Restore modal: enable submit only when confirm word matches ──
+        const restoreConfirm = document.getElementById('restoreConfirmWord');
+        const restoreSubmit  = document.getElementById('restoreDbSubmitBtn');
+
+        function checkRestoreConfirm() {
+            if (restoreSubmit) {
+                restoreSubmit.disabled = restoreConfirm.value.trim().toUpperCase() !== 'RESTAURAR';
+            }
+        }
+
+        if (restoreConfirm) {
+            restoreSubmit.disabled = true;  // disabled by default
+            restoreConfirm.addEventListener('input', checkRestoreConfirm);
+        }
+    })();
+    </script>
+    {% endif %}
 {% endblock %}

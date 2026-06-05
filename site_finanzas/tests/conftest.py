@@ -5,13 +5,21 @@ os.environ.setdefault('SECRET_KEY', 'test-secret-key')
 os.environ.setdefault('JWT_SECRET_KEY', 'test-jwt-secret-key')
 os.environ.setdefault('FLASK_DEBUG', '1')
 
+from sqlalchemy.pool import StaticPool
+
 from app import create_app, db as _db
 from app.models import User, Category
 
 
 class TestConfig:
     TESTING = True
+    # StaticPool forces all connections to use the same in-memory SQLite DB so
+    # data committed in fixtures is visible inside test-client request contexts.
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'connect_args': {'check_same_thread': False},
+        'poolclass': StaticPool,
+    }
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = False
     SECRET_KEY = 'test-secret-key-32bytes-xxxxxxxxx'
@@ -32,9 +40,14 @@ class TestConfig:
 @pytest.fixture(scope='session')
 def app():
     application = create_app(TestConfig)
+    # Create tables once, then POP the context so each test request gets its
+    # own fresh app context (and therefore a fresh g._login_user).  With
+    # StaticPool the in-memory SQLite connection — and its data — persists for
+    # the lifetime of the engine even when no app context is active.
     with application.app_context():
         _db.create_all()
-        yield application
+    yield application
+    with application.app_context():
         _db.session.remove()
         _db.drop_all()
 
@@ -75,3 +88,41 @@ def reset_session(app):
     yield
     with app.app_context():
         _db.session.rollback()
+
+
+@pytest.fixture(scope='session')
+def admin_user_id(app):
+    """First-admin user: role='admin', is_first_admin=True. Created once per session."""
+    with app.app_context():
+        from app.models import AppConfig
+        if not AppConfig.query.first():
+            _db.session.add(AppConfig(allow_registration=True))
+            _db.session.commit()
+        u = User(
+            username='admin_backup_test',
+            email='admin_backup@example.com',
+            role='admin',
+            is_first_admin=True,
+            email_verified=True,
+        )
+        u.set_password('AdminPass123!')
+        _db.session.add(u)
+        _db.session.commit()
+        return u.id
+
+
+@pytest.fixture(scope='session')
+def regular_user_id(app):
+    """Non-admin user. Created once per session."""
+    with app.app_context():
+        u = User(
+            username='regular_backup_test',
+            email='regular_backup@example.com',
+            role='user',
+            is_first_admin=False,
+            email_verified=True,
+        )
+        u.set_password('RegPass123!')
+        _db.session.add(u)
+        _db.session.commit()
+        return u.id

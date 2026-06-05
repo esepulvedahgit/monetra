@@ -141,6 +141,8 @@ class AppConfig(db.Model):
     __tablename__ = 'app_config'
     id = db.Column(db.Integer, primary_key=True)
     allow_registration = db.Column(db.Boolean, nullable=False, default=True)
+    # Set to UTC now after a DB restore to invalidate all pre-restore web sessions.
+    sessions_valid_after = db.Column(db.DateTime(timezone=True), nullable=True, default=None)
 
     @staticmethod
     def get():

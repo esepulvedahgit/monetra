@@ -41,7 +41,8 @@ class Config:
     BABEL_SUPPORTED_LOCALES = ['es', 'en']
     BABEL_TRANSLATION_DIRECTORIES = 'translations'
 
-    MAX_CONTENT_LENGTH = 15 * 1024 * 1024  # 15 MB — enforced before any route code runs
+    # Default 15 MB; raise MAX_CONTENT_UPLOAD_MB in docker/.env to restore large databases.
+    MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_UPLOAD_MB', '15')) * 1024 * 1024
 
     # WebAuthn / Passkeys — MUST match deployment domain in production
     WEBAUTHN_RP_ID   = os.environ.get('WEBAUTHN_RP_ID',   'localhost')

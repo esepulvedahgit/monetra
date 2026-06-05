@@ -5073,6 +5073,150 @@ msgstr ""
 msgid "No se puede eliminar: la categoría tiene movimientos asociados."
 msgstr ""
 
+#: app/templates/main/configurar.html
+msgid "Migración de claves"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid ""
+"El respaldo NO incluye las claves de cifrado (FIELD_ENCRYPTION_KEY, "
+"SECRET_KEY, JWT_SECRET_KEY). Al restaurar en un servidor nuevo, copia "
+"primero esas claves de docker/.env — sin ellas los secretos MFA, SMTP y "
+"tokens quedan ilegibles."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Exportar base de datos"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Restaurar base de datos"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid ""
+"Se generará un archivo cifrado (.mntrbak) con toda la base de datos. "
+"Guárdalo en un lugar seguro."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Contraseña del respaldo"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Contraseña para cifrar el archivo"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid ""
+"Necesitarás esta contraseña para restaurar el respaldo. Si la pierdes, "
+"el archivo no se puede recuperar."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Confirmar contraseña"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Repite la contraseña"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Las contraseñas no coinciden."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Descargar respaldo"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Generando…"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Operación irreversible"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid ""
+"Toda la base de datos actual — usuarios, transacciones, configuraciones "
+"— será reemplazada por el contenido del respaldo. La sesión se cerrará "
+"al finalizar."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Archivo de respaldo (.mntrbak)"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Contraseña con la que se cifró el archivo"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Contraseña de tu cuenta"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Tu contraseña de administrador"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid ""
+"Necesaria para confirmar tu identidad antes de sobreescribir la base de "
+"datos."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Escribe RESTAURAR para confirmar"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Restaurar ahora"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_5.html
+msgid "¡Monetra 2.5 ya está aquí!"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_5.html
+msgid "Dos grandes novedades: registra gastos desde una foto y entra a Monetra con tu huella o Face ID."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_5.html
+msgid "Escáner IA de recibos"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_5.html
+msgid ""
+"— Toca el ícono de cámara en la barra superior, fotografía tu recibo y "
+"la IA extrae monto, categoría y fecha para crear la transacción en "
+"segundos. Configúralo en Configuración de Cuenta → Escáner IA."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_5.html
+msgid ""
+"— Inicia sesión con Face ID, huella dactilar o Windows Hello. El "
+"dispositivo realiza la verificación; Monetra nunca almacena tus datos "
+"biométricos. Actívalo en Configuración de Cuenta → Autenticación "
+"biométrica."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_5.html
+msgid ""
+"— Salud financiera, proyección de cierre del mes y alertas inteligentes, "
+"disponibles en el Dashboard Global → Analítica."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_5.html
+msgid "¿Por dónde empezar?"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_5.html
+msgid ""
+"Ve a Configuración de Cuenta para activar el Escáner IA (necesitas una "
+"clave de API de OpenAI u Ollama) y registrar tu dispositivo biométrico."
+msgstr ""
+
 #~ msgid ""
 #~ "Si el correo existe y tiene "
 #~ "recuperación configurada, recibirás instrucciones"

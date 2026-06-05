@@ -1,0 +1,59 @@
+<div class="modal-header"
+     style="background: linear-gradient(135deg, #7C3AED 0%, var(--monetra-primary, #00C896) 100%); color: #fff;">
+    <h5 class="modal-title fw-bold">
+        <i class="bi bi-stars me-2"></i>
+        {{ _('¡Monetra 2.5 ya está aquí!') }}
+    </h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+            aria-label="{{ _('Cerrar') }}"></button>
+</div>
+
+<div class="modal-body py-4">
+    <p class="mb-3 fw-semibold" style="color: var(--monetra-text);">
+        {{ _('Dos grandes novedades: registra gastos desde una foto y entra a Monetra con tu huella o Face ID.') }}
+    </p>
+
+    <ul class="list-unstyled mb-3 ps-1" style="color: var(--monetra-text-soft); line-height: 1.9;">
+        <li class="mb-2">
+            <i class="bi bi-camera-fill me-2" style="color: #F472B6;"></i>
+            <strong>{{ _('Escáner IA de recibos') }}</strong>
+            {{ _('— Toca el ícono de cámara en la barra superior, fotografía tu recibo y la IA extrae monto, categoría y fecha para crear la transacción en segundos. Configúralo en Configuración de Cuenta → Escáner IA.') }}
+        </li>
+        <li class="mb-2">
+            <i class="bi bi-fingerprint me-2" style="color: #60A5FA;"></i>
+            <strong>{{ _('Autenticación biométrica') }}</strong>
+            {{ _('— Inicia sesión con Face ID, huella dactilar o Windows Hello. El dispositivo realiza la verificación; Monetra nunca almacena tus datos biométricos. Actívalo en Configuración de Cuenta → Autenticación biométrica.') }}
+        </li>
+        <li class="mb-2">
+            <i class="bi bi-bar-chart-line-fill me-2" style="color: #A78BFA;"></i>
+            <strong>{{ _('Panel de analítica') }}</strong>
+            {{ _('— Salud financiera, proyección de cierre del mes y alertas inteligentes, disponibles en el Dashboard Global → Analítica.') }}
+        </li>
+    </ul>
+
+    <div class="p-3 rounded"
+         style="background: rgba(96,165,250,0.10); border: 1px solid rgba(96,165,250,0.25); color: var(--monetra-text-soft);">
+        <div class="fw-semibold mb-1" style="color: var(--monetra-text);">
+            <i class="bi bi-lightbulb me-1" style="color:#60A5FA;"></i>
+            {{ _('¿Por dónde empezar?') }}
+        </div>
+        <div class="small">
+            {{ _('Ve a Configuración de Cuenta para activar el Escáner IA (necesitas una clave de API de OpenAI u Ollama) y registrar tu dispositivo biométrico.') }}
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer" style="border-top: 1px solid var(--card-border);">
+    <span class="text-muted small me-auto">
+        <i class="bi bi-code-slash me-1"></i>v2.5
+    </span>
+    <button type="button" class="btn btn-outline-secondary fw-semibold px-3" data-bs-dismiss="modal">
+        {{ _('Entendido') }}
+    </button>
+    <a href="{{ url_for('main.ayuda') }}" class="btn btn-outline-primary fw-semibold px-3" data-bs-dismiss="modal">
+        <i class="bi bi-journal-text me-1"></i>{{ _('Ver guía') }}
+    </a>
+    <a href="{{ url_for('main.configurar') }}" class="btn btn-primary fw-semibold px-4" data-bs-dismiss="modal">
+        {{ _('Ir a Configuración') }}
+    </a>
+</div>

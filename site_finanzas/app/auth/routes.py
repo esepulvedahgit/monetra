@@ -162,6 +162,7 @@ def login():
                 session['mfa_pending'] = {'user_id': user.id, 'remember': form.remember.data}
                 return redirect(url_for('auth.mfa_verify'))
             login_user(user, remember=form.remember.data)
+            session['_login_at'] = datetime.now(timezone.utc).isoformat()
             _audit_commit(ev.AUTH_LOGIN_SUCCESS, description=user.email, user_id=user.id)
             flash(_('¡Bienvenido, %(username)s!', username=user.username), 'success')
             return redirect(url_for('main.dashboard'))
@@ -187,6 +188,7 @@ def mfa_verify():
             if totp.verify(form.code.data):
                 session.pop('mfa_pending', None)
                 login_user(user, remember=pending.get('remember', False))
+                session['_login_at'] = datetime.now(timezone.utc).isoformat()
                 _audit_commit(ev.AUTH_LOGIN_SUCCESS, description=f'{user.email} (MFA)', user_id=user.id)
                 flash(_('¡Bienvenido, %(username)s!', username=user.username), 'success')
                 return redirect(url_for('main.dashboard'))

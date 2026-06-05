@@ -1,6 +1,8 @@
-﻿from flask import Flask, render_template, request, session, redirect, url_for, flash
+﻿from datetime import datetime, timezone
+
+from flask import Flask, render_template, request, session, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, current_user
+from flask_login import LoginManager, current_user, logout_user
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from config import Config
 from flask_limiter import Limiter
@@ -116,6 +118,9 @@ def create_app(config_class=Config):
     from app.scanner import scanner_bp
     app.register_blueprint(scanner_bp)
 
+    from app.backup import backup_bp
+    app.register_blueprint(backup_bp)
+
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e):
         if current_user.is_authenticated:
@@ -160,5 +165,40 @@ def create_app(config_class=Config):
         if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
             from app.scheduler import init_scheduler
             init_scheduler(app)
+
+    @app.before_request
+    def _enforce_session_validity():
+        """Invalidate web sessions created before a DB restore.
+
+        After a restore, backup/routes.py sets app_config.sessions_valid_after = now().
+        Any session cookie missing _login_at or stamped before that threshold is
+        rejected so users cannot carry stale identity across a restore boundary.
+        Wrapped in a broad try/except so a missing column never breaks the app.
+        """
+        try:
+            if not current_user.is_authenticated:
+                return
+            from app.models import AppConfig
+            config = AppConfig.get()
+            valid_after = getattr(config, 'sessions_valid_after', None)
+            if valid_after is None:
+                return
+            if valid_after.tzinfo is None:
+                valid_after = valid_after.replace(tzinfo=timezone.utc)
+            login_at_str = session.get('_login_at')
+            if login_at_str is None:
+                # Pre-fix session without timestamp — invalidate after a restore
+                logout_user()
+                session.clear()
+                return redirect(url_for('auth.login'))
+            login_at = datetime.fromisoformat(login_at_str)
+            if login_at.tzinfo is None:
+                login_at = login_at.replace(tzinfo=timezone.utc)
+            if login_at < valid_after:
+                logout_user()
+                session.clear()
+                return redirect(url_for('auth.login'))
+        except Exception:
+            pass
 
     return app

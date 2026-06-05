@@ -135,6 +135,15 @@ with app.app_context():
     else:
         print("Configuración global ya existente.")
 
+    app_config_cols = [c['name'] for c in inspect(db.engine).get_columns('app_config')]
+    with db.engine.connect() as conn:
+        if 'sessions_valid_after' not in app_config_cols:
+            conn.execute(text(
+                "ALTER TABLE app_config ADD COLUMN sessions_valid_after DATETIME NULL DEFAULT NULL"
+            ))
+            conn.commit()
+            print("Columna sessions_valid_after agregada a app_config.")
+
     tx_cols = [c['name'] for c in inspect(db.engine).get_columns('transactions')]
     with db.engine.connect() as conn:
         if 'recurring_id' not in tx_cols:
