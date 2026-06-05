@@ -88,6 +88,7 @@ def _validate_and_normalize_image(image_file):
 
 
 @scanner_bp.route('/scanner/test', methods=['POST'], endpoint='test')
+@limiter.limit("10 per minute", methods=['POST'])
 @login_required
 def scanner_test():
     """Test AI provider connection with a lightweight text-only call."""

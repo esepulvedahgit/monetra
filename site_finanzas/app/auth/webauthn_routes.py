@@ -12,6 +12,7 @@ import base64
 
 from flask import current_app, jsonify, request, session, url_for
 from flask_login import current_user, login_required, login_user
+from flask_wtf.csrf import validate_csrf, ValidationError as CSRFValidationError
 
 from webauthn import (
     generate_authentication_options,
@@ -121,7 +122,15 @@ def webauthn_login_complete():
             require_user_verification=True,
         )
     except Exception as exc:
-        current_app.logger.warning('WebAuthn auth verification failed: %s', exc)
+        # py_webauthn raises if new_sign_count <= stored sign_count (both > 0),
+        # which is the FIDO2 indicator of a cloned authenticator.
+        exc_msg = str(exc).lower()
+        if 'sign_count' in exc_msg or 'sign count' in exc_msg:
+            current_app.logger.error(
+                'WebAuthn: posible autenticador clonado — user_id=%s: %s', user.id, exc
+            )
+        else:
+            current_app.logger.warning('WebAuthn auth verification failed: %s', exc)
         return jsonify({'error': 'Error al verificar la biometría. Intenta de nuevo.'}), 400
 
     # Update sign count (anti-replay)
@@ -239,7 +248,15 @@ def webauthn_register_complete():
 
 @auth.route('/webauthn/delete', methods=['POST'])
 @login_required
+@limiter.limit("5 per minute")
 def webauthn_delete():
+    # Explicit CSRF check — belt-and-suspenders in case the global CSRFProtect
+    # configuration ever changes for this blueprint.
+    try:
+        validate_csrf(request.headers.get('X-CSRFToken'))
+    except CSRFValidationError:
+        return jsonify({'error': 'Token CSRF inválido.'}), 403
+
     cred = current_user.webauthn_credential
     if cred:
         db.session.delete(cred)
