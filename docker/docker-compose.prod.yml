@@ -1,53 +1,53 @@
-  services:
-    flask:
-      image: monetra:release
-      container_name: flask_monetra
-      restart: unless-stopped
-      ports:
-        - "8085:8000"
-      environment:
-        FLASK_DEBUG: "0"
-        DB_HOST: mysql
-        DB_PORT: "3306"
-        DB_NAME: ${DB_NAME}
-        DB_USER: ${DB_USER}
-        DB_PASSWORD: ${DB_PASSWORD}
-        SECRET_KEY: ${SECRET_KEY}
-        FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY}
-        JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-        WEBAUTHN_RP_ID: ${WEBAUTHN_RP_ID:-localhost}
-        WEBAUTHN_RP_NAME: ${WEBAUTHN_RP_NAME:-Monetra}
-        WEBAUTHN_ORIGIN: ${WEBAUTHN_ORIGIN:-http://localhost:5000}
-        MAX_CONTENT_UPLOAD_MB: ${MAX_CONTENT_UPLOAD_MB:-15}
-        MAX_RESTORE_SQL_MB: ${MAX_RESTORE_SQL_MB:-500}
-      depends_on:
-        mysql:
-          condition: service_healthy
-      networks:
-        - monetra_net
+services:
+  flask:
+    image: monetra:release
+    container_name: flask_monetra
+    restart: unless-stopped
+    ports:
+      - "8085:8000"
+    environment:
+      FLASK_DEBUG: "0"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY}
+      FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      WEBAUTHN_RP_ID: ${WEBAUTHN_RP_ID:-localhost}
+      WEBAUTHN_RP_NAME: ${WEBAUTHN_RP_NAME:-Monetra}
+      WEBAUTHN_ORIGIN: ${WEBAUTHN_ORIGIN:-http://localhost:5000}
+      MAX_CONTENT_UPLOAD_MB: ${MAX_CONTENT_UPLOAD_MB:-15}
+      MAX_RESTORE_SQL_MB: ${MAX_RESTORE_SQL_MB:-500}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - monetra_net
 
-    mysql:
-      image: mysql:8.0
-      container_name: mysql_monetra
-      restart: unless-stopped
-      environment:
-        MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-        MYSQL_DATABASE: ${DB_NAME}
-        MYSQL_USER: ${DB_USER}
-        MYSQL_PASSWORD: ${DB_PASSWORD}
-      volumes:
-        - mysql_monetra_data:/var/lib/mysql
-      healthcheck:
-        test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER}", "-p${DB_PASSWORD}"]
-        interval: 10s
-        timeout: 5s
-        retries: 5
-        start_period: 30s
-      networks:
-        - monetra_net
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_monetra
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_monetra_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER}", "-p${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - monetra_net
 
-  volumes:
-    mysql_monetra_data:
+volumes:
+  mysql_monetra_data:
 
-  networks:
-    monetra_net:
+networks:
+  monetra_net:
