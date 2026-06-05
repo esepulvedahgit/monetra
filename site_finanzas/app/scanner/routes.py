@@ -80,10 +80,11 @@ def _validate_and_normalize_image(image_file):
         pil_img.save(buf, format='JPEG', quality=92, optimize=True)
         return buf.getvalue(), 'image/jpeg'
 
-    except Exception:
+    except Exception as exc:
         if detected in ('image/heic', 'image/heif'):
             raise ValueError(_('No se pudo procesar el archivo HEIC. Asegúrate de que no esté dañado.'))
-        # Fallback: send raw bytes with detected MIME (JPEG already correct)
+        # Fallback: send raw bytes with detected MIME (JPEG already correct).
+        current_app.logger.warning('PIL normalization failed for %s, sending raw: %s', detected, exc)
         return raw, detected
 
 

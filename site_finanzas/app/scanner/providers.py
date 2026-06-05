@@ -11,11 +11,14 @@ Supported providers and their API formats:
 import base64
 import ipaddress
 import json
+import logging
 import re
 import socket
 from urllib.parse import urlparse
 
 import requests
+
+_logger = logging.getLogger(__name__)
 
 from app.email_service import decrypt_ai_token
 from app.scanner.prompt import RECEIPT_SYSTEM_PROMPT
@@ -137,8 +140,10 @@ def _check_http_error(response: requests.Response) -> None:
         body_lower = body.lower()
         if any(s in body_lower for s in _VISION_UNSUPPORTED_SIGNALS):
             raise ValueError(_VISION_ERROR_MSG)
+        # Log full body server-side only — never expose provider internals to the client.
+        _logger.warning("AI provider error %s: %s", response.status_code, body)
         raise ValueError(
-            f"Error del proveedor de IA: {response.status_code} — {body[:200]}"
+            f"Error del proveedor de IA: {response.status_code}"
         )
 
 
