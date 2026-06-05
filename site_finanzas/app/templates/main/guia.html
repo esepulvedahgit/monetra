@@ -31,6 +31,8 @@
                     <a class="nav-link sidebar-link py-2 px-3 small" href="#s11">11. {{ _('Configuración') }}</a>
                     <a class="nav-link sidebar-link py-2 px-3 small" href="#s12">12. {{ _('Panel de analítica') }}</a>
                     <a class="nav-link sidebar-link py-2 px-3 small" href="#s13">13. {{ _('Preguntas frecuentes') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s14">14. {{ _('Escáner IA') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s15">15. {{ _('Autenticación biométrica') }}</a>
                 </nav>
             </div>
         </div>
@@ -367,7 +369,7 @@
                     <div class="card h-100">
                         <div class="card-body">
                             <h6 class="fw-semibold"><i class="bi bi-code-slash me-1 text-primary"></i>{{ _('Token de API') }}</h6>
-                            <p class="small text-muted mb-0">{{ _('Genera un JWT válido por 365 días para usar la API REST. Guárdalo en un lugar seguro — no se mostrará nuevamente.') }}</p>
+                            <p class="small text-muted mb-0">{{ _('Token de acceso personal (mntr_…) para consumir la API REST. Activo mientras exista — sin fecha de expiración. Muestra prefijo, fecha de creación y último uso. Opciones: Generar, Regenerar y Revocar. Guárdalo al crearlo — no se mostrará nuevamente.') }}</p>
                         </div>
                     </div>
                 </div>
@@ -384,6 +386,22 @@
                         <div class="card-body">
                             <h6 class="fw-semibold"><i class="bi bi-question-circle me-1 text-primary"></i>{{ _('Referencias de formularios') }}</h6>
                             <p class="small text-muted mb-0">{{ _('Activa el modo de ayuda para ver íconos de referencia junto a cada campo de los formularios. Al pasar el cursor sobre ellos aparece una descripción del campo.') }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold"><i class="bi bi-camera me-1 text-primary"></i>{{ _('Escáner IA') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Configura el proveedor de IA para el escáner de recibos: elige proveedor (OpenAI, Anthropic, Gemini, DeepSeek, OpenRouter), modelo multimodal, URL base opcional y token de API. Usa "Probar conexión" antes de guardar.') }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold"><i class="bi bi-fingerprint me-1 text-primary"></i>{{ _('Autenticación biométrica') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Registra tu dispositivo móvil para iniciar sesión con Face ID o huella dactilar. Solo disponible en móvil. Registrar, cambiar y eliminar requieren confirmar tu contraseña actual.') }}</p>
                         </div>
                     </div>
                 </div>
@@ -523,7 +541,111 @@
                     </div>
                 </div>
 
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-camera me-1 text-primary"></i>{{ _('¿El escáner siempre extrae bien los datos?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Depende de la calidad de la imagen y el modelo de IA configurado. Imágenes claras, bien encuadradas y con buena iluminación dan mejores resultados. Siempre puedes revisar y corregir los datos extraídos antes de guardar la transacción.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-fingerprint me-1 text-primary"></i>{{ _('¿Puedo usar Face ID si tengo 2FA activado?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Sí. El login biométrico (FIDO2) reemplaza el flujo completo de autenticación — no necesitas ingresar contraseña ni código TOTP. La verificación biométrica ya incluye la confirmación de identidad del usuario por diseño del estándar.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>{# /row #}
+        </section>
+
+        {# 14. Escáner IA #}
+        <section id="s14" class="guia-section mb-5">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-camera text-primary me-2"></i>14. {{ _('Escáner IA') }}
+            </h4>
+            <p class="text-muted">{{ _('El escáner usa inteligencia artificial para leer una foto o captura de pantalla de un recibo y extraer automáticamente el monto, la descripción y el comercio. Requiere configurar un proveedor de IA en Configuración → Escáner IA.') }}</p>
+
+            <h6 class="fw-semibold mt-3">{{ _('Cómo acceder') }}</h6>
+            <ul class="text-muted small">
+                <li><strong>{{ _('Botón "Escanear recibo"') }}</strong> — {{ _('visible en la barra de herramientas de la sección Movimientos.') }}</li>
+                <li><strong>{{ _('Botón flotante (FAB)') }}</strong> — {{ _('ícono de cámara que aparece en la esquina inferior derecha en dispositivos móviles (modo responsive) cuando el escáner está configurado y activo.') }}</li>
+            </ul>
+
+            <h6 class="fw-semibold mt-3">{{ _('Flujo de uso') }}</h6>
+            <ol class="text-muted small">
+                <li><strong>{{ _('Elegir modo') }}</strong>: {{ _('selecciona') }} <em>{{ _('Cámara') }}</em> {{ _('(acceso directo a la cámara del dispositivo) o') }} <em>{{ _('Subir imagen') }}</em> {{ _('(arrastra o selecciona un archivo).') }}</li>
+                <li><strong>{{ _('Capturar o subir') }}</strong>: {{ _('toma la foto o sube el archivo. Formatos soportados: JPEG, PNG, WebP, HEIC.') }}</li>
+                <li><strong>{{ _('Revisar') }}</strong>: {{ _('la IA extrae monto, descripción y comercio. Puedes editar cualquier dato antes de continuar.') }}</li>
+                <li><strong>{{ _('Guardar') }}</strong>: {{ _('se crea la transacción en el mes activo con los datos revisados.') }}</li>
+            </ol>
+
+            <div class="alert alert-secondary small py-2 mt-2">
+                <i class="bi bi-shield-exclamation me-1" style="color:#F2C94C;"></i>
+                <strong>{{ _('Privacidad') }}:</strong> {{ _('la imagen se envía al proveedor de IA que hayas configurado. Monetra nunca almacena la imagen — se procesa en memoria y se descarta.') }}
+            </div>
+
+            <div class="alert alert-warning small py-2">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                {{ _('Imágenes borrosas, con poca luz o con texto muy pequeño pueden producir resultados incorrectos. Revisa siempre los datos en el paso de revisión antes de guardar.') }}
+            </div>
+
+            <h6 class="fw-semibold mt-3">{{ _('Configuración del proveedor') }}</h6>
+            <p class="text-muted">{{ _('Ve a') }} <strong>{{ _('Configuración → Escáner IA') }}</strong> {{ _('y completa:') }}</p>
+            <table class="table table-sm table-bordered small">
+                <thead class="table-dark"><tr><th>{{ _('Campo') }}</th><th>{{ _('Descripción') }}</th></tr></thead>
+                <tbody>
+                    <tr><td>{{ _('Proveedor') }}</td><td>{{ _('OpenAI, Anthropic, Gemini, DeepSeek u OpenRouter') }}</td></tr>
+                    <tr><td>{{ _('Modelo') }}</td><td>{{ _('Debe soportar imágenes (multimodal). Ej: gpt-4o, claude-3-5-sonnet, gemini-1.5-flash') }}</td></tr>
+                    <tr><td>{{ _('URL base') }}</td><td>{{ _('Opcional. Solo para proveedores compatibles con OpenAI (DeepSeek, OpenRouter). Dejar vacío usa la URL oficial.') }}</td></tr>
+                    <tr><td>{{ _('Token de API') }}</td><td>{{ _('Tu clave del proveedor. Se guarda cifrada. Usa "Probar conexión" para verificarla antes de guardar.') }}</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        {# 15. Autenticación biométrica #}
+        <section id="s15" class="guia-section mb-5">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-fingerprint text-primary me-2"></i>15. {{ _('Autenticación biométrica') }}
+            </h4>
+            <p class="text-muted">{{ _('Inicia sesión en Monetra usando Face ID o huella dactilar, sin necesidad de escribir tu email ni contraseña. Disponible solo en dispositivos móviles que soporten biometría.') }}</p>
+
+            <div class="alert alert-info small py-2">
+                <i class="bi bi-shield-check me-1"></i>
+                {{ _('Tecnología estándar FIDO2 / WebAuthn. Monetra nunca almacena tus datos biométricos — la verificación la realiza exclusivamente tu dispositivo.') }}
+            </div>
+
+            <h6 class="fw-semibold mt-3">{{ _('Activar (primera vez)') }}</h6>
+            <ol class="text-muted small">
+                <li>{{ _('Inicia sesión con tu email y contraseña desde tu dispositivo móvil.') }}</li>
+                <li>{{ _('Ve a') }} <strong>{{ _('Configuración → Seguridad → Autenticación biométrica') }}</strong>.</li>
+                <li>{{ _('Pulsa') }} <strong>{{ _('Registrar este dispositivo') }}</strong>.</li>
+                <li>{{ _('Confirma tu contraseña actual cuando se solicite.') }}</li>
+                <li>{{ _('El dispositivo pedirá Face ID o huella para crear la passkey.') }}</li>
+            </ol>
+            <p class="text-muted small">{{ _('Una vez registrado, la próxima vez que entres a la página de login desde ese dispositivo verás el botón') }} <strong>{{ _('Ingresar con Face ID / Huella') }}</strong>.</p>
+
+            <h6 class="fw-semibold mt-3">{{ _('Login biométrico') }}</h6>
+            <ol class="text-muted small">
+                <li>{{ _('Abre la página de login desde tu móvil registrado.') }}</li>
+                <li>{{ _('Pulsa') }} <strong>{{ _('Ingresar con Face ID / Huella') }}</strong> {{ _('(no necesitas escribir tu email).') }}</li>
+                <li>{{ _('El dispositivo muestra la passkey guardada — confirma con Face ID o huella.') }}</li>
+                <li>{{ _('Accedes directamente al dashboard.') }}</li>
+            </ol>
+
+            <h6 class="fw-semibold mt-3">{{ _('Cambiar de dispositivo') }}</h6>
+            <p class="text-muted small">{{ _('Ve a Configuración → Seguridad → "Cambiar dispositivo". Se pedirá tu contraseña, luego registras el nuevo dispositivo con biometría. Solo puede haber un dispositivo registrado a la vez.') }}</p>
+
+            <h6 class="fw-semibold mt-3">{{ _('Eliminar') }}</h6>
+            <p class="text-muted small">{{ _('Pulsa "Eliminar" en la sección de biometría. Se pedirá tu contraseña para confirmar. El botón biométrico desaparecerá del login.') }}</p>
+
+            <div class="alert alert-warning small py-2">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                {{ _('Si cambias de dispositivo o restableces tu teléfono, deberás eliminar la passkey antigua y volver a registrar el nuevo dispositivo. Siempre podrás iniciar sesión con tu contraseña.') }}
+            </div>
         </section>
 
         <div class="text-center text-muted small py-3 border-top">

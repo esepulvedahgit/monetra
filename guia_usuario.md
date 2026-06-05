@@ -1,4 +1,4 @@
-# Guía de Usuario — Monetra v2.2
+# Guía de Usuario — Monetra v2.3
 
 Monetra es una aplicación de finanzas personales que te permite registrar ingresos y gastos, establecer presupuestos, definir metas de ahorro, automatizar movimientos recurrentes y exportar tus datos en Excel. Esta guía explica cómo funciona cada sección y cómo sacarle el máximo provecho.
 
@@ -18,6 +18,8 @@ Monetra es una aplicación de finanzas personales que te permite registrar ingre
 10. [Exportar a Excel](#10-exportar-a-excel)
 11. [Configuración de cuenta](#11-configuración-de-cuenta)
 12. [Preguntas frecuentes](#12-preguntas-frecuentes)
+13. [Escáner IA](#13-escáner-ia)
+14. [Autenticación biométrica](#14-autenticación-biométrica)
 
 ---
 
@@ -427,7 +429,7 @@ Para desactivar, ingresa el código actual de tu app cuando se solicite.
 
 ### Token de API
 
-Si usas la API REST de Monetra, puedes generar un token desde aquí. El token tiene validez de 365 días. Guárdalo en un lugar seguro — no se mostrará nuevamente.
+Token de acceso personal (`mntr_…`) para consumir la API REST desde agentes o aplicaciones externas. Activo hasta que se revoque — sin fecha de expiración. Muestra el prefijo, la fecha de creación y la fecha de último uso. Opciones: **Generar**, **Regenerar** y **Revocar**. Guárdalo al crearlo — no se mostrará nuevamente.
 
 ### Reporte semanal
 
@@ -466,3 +468,77 @@ Sí. Monetra soporta múltiples años. Puedes crear años desde el Dashboard y n
 
 **¿El Export de Excel incluye todos mis datos o solo el período visible?**
 Depende de la pestaña. Movimientos, Categorías, Presupuestos, Dashboard y Base de Datos se filtran al período exportado. Metas y Recurrentes muestran el historial completo, independientemente del período seleccionado.
+
+**¿El escáner siempre extrae bien los datos?**
+Depende de la calidad de la imagen y el modelo de IA configurado. Imágenes claras, bien encuadradas y con buena iluminación dan mejores resultados. Siempre puedes revisar y corregir los datos extraídos en el paso de revisión antes de guardar la transacción.
+
+**¿Puedo usar Face ID si tengo 2FA activado?**
+Sí. El login biométrico (FIDO2) reemplaza el flujo completo de autenticación — no necesitas ingresar contraseña ni código TOTP. La verificación biométrica incluye la confirmación de identidad del usuario por diseño del estándar.
+
+---
+
+## 13. Escáner IA
+
+El escáner usa inteligencia artificial para leer una foto o captura de pantalla de un recibo y extraer automáticamente el monto, la descripción y el comercio. Requiere configurar un proveedor de IA en **Configuración → Escáner IA**.
+
+### Cómo acceder
+
+- **Botón "Escanear recibo"** — visible en la barra de herramientas de la sección Movimientos.
+- **Botón flotante (FAB)** — ícono de cámara en la esquina inferior derecha en dispositivos móviles (modo responsive) cuando el escáner está configurado y activo.
+
+### Flujo de uso
+
+1. **Elegir modo**: selecciona *Cámara* (acceso directo a la cámara del dispositivo) o *Subir imagen* (arrastra o selecciona un archivo).
+2. **Capturar o subir**: toma la foto o sube el archivo. Formatos soportados: JPEG, PNG, WebP, HEIC.
+3. **Revisar**: la IA extrae monto, descripción y comercio. Puedes editar cualquier dato antes de continuar.
+4. **Guardar**: se crea la transacción en el mes activo con los datos revisados.
+
+> **Privacidad:** la imagen se envía al proveedor de IA que hayas configurado. Monetra nunca almacena la imagen — se procesa en memoria y se descarta.
+
+> **Nota:** imágenes borrosas, con poca luz o con texto muy pequeño pueden producir resultados incorrectos. Revisa siempre los datos antes de guardar.
+
+### Configuración del proveedor
+
+Ve a **Configuración → Escáner IA** y completa:
+
+| Campo | Descripción |
+|---|---|
+| **Proveedor** | OpenAI, Anthropic, Gemini, DeepSeek u OpenRouter |
+| **Modelo** | Debe soportar imágenes (multimodal). Ej: gpt-4o, claude-3-5-sonnet, gemini-1.5-flash |
+| **URL base** | Opcional. Solo para proveedores compatibles con OpenAI. Vacío = URL oficial |
+| **Token de API** | Tu clave del proveedor. Se guarda cifrada. Usa "Probar conexión" para verificarla |
+
+---
+
+## 14. Autenticación biométrica
+
+Inicia sesión en Monetra usando Face ID o huella dactilar, sin necesidad de escribir tu email ni contraseña. Disponible solo en dispositivos móviles que soporten biometría.
+
+> **Seguridad:** tecnología estándar FIDO2 / WebAuthn. Monetra nunca almacena tus datos biométricos — la verificación la realiza exclusivamente tu dispositivo.
+
+### Activar (primera vez)
+
+1. Inicia sesión con tu email y contraseña desde tu dispositivo móvil.
+2. Ve a **Configuración → Seguridad → Autenticación biométrica**.
+3. Pulsa **Registrar este dispositivo**.
+4. Confirma tu contraseña actual cuando se solicite.
+5. El dispositivo pedirá Face ID o huella para crear la passkey.
+
+Una vez registrado, la próxima vez que entres a la página de login desde ese dispositivo verás el botón **Ingresar con Face ID / Huella**.
+
+### Login biométrico
+
+1. Abre la página de login desde tu móvil registrado.
+2. Pulsa **Ingresar con Face ID / Huella** (no necesitas escribir tu email).
+3. El dispositivo muestra la passkey guardada — confirma con Face ID o huella.
+4. Accedes directamente al dashboard.
+
+### Cambiar de dispositivo
+
+Ve a Configuración → Seguridad → "Cambiar dispositivo". Se pedirá tu contraseña, luego registras el nuevo dispositivo con biometría. Solo puede haber un dispositivo registrado a la vez.
+
+### Eliminar
+
+Pulsa "Eliminar" en la sección de biometría. Se pedirá tu contraseña para confirmar. El botón biométrico desaparecerá del login.
+
+> **Importante:** si cambias de dispositivo o restableces tu teléfono, deberás eliminar la passkey antigua y volver a registrar el nuevo dispositivo. Siempre podrás iniciar sesión con tu contraseña.

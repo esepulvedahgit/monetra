@@ -3,710 +3,5443 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Monetra 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-01 00:00+0000\n"
+"POT-Creation-Date: 2026-06-04 23:20-0400\n"
 "PO-Revision-Date: 2025-01-01 00:00+0000\n"
 "Last-Translator: \n"
-"Language-Team: English\n"
 "Language: en\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Language-Team: English\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
 
 # ── Login message ──
+#: app/__init__.py:48
 msgid "Por favor inicia sesión para acceder."
 msgstr "Please log in to access this page."
 
-# ── Auth routes ──
-msgid "Cuenta creada exitosamente. Ya puedes iniciar sesión."
-msgstr "Account created successfully. You can now log in."
+#: app/__init__.py:122
+msgid "La solicitud expiró. Por favor intenta de nuevo."
+msgstr ""
 
-msgid "¡Bienvenido, %(username)s!"
-msgstr "Welcome, %(username)s!"
+# ── Login message ──
+#: app/__init__.py:124
+#, fuzzy
+msgid "La sesión expiró. Por favor inicia sesión nuevamente."
+msgstr "Please log in to access this page."
 
-msgid "Email o contraseña incorrectos."
-msgstr "Incorrect email or password."
+#: app/analytics/routes.py:26
+msgid "Configura el valor del dólar en Configuración antes de ver el consolidado."
+msgstr ""
 
-msgid "Si el correo existe y tiene recuperación configurada, recibirás instrucciones enviadas mediante tu propio SMTP."
-msgstr "If the email exists and has recovery configured, you will receive instructions sent via your own SMTP."
+#: app/analytics/routes.py:36 app/main/routes.py:276
+#: app/templates/analytics/consolidated.html:9
+msgid "Consolidado"
+msgstr ""
 
-msgid "El enlace de recuperación es inválido o ha expirado."
-msgstr "The recovery link is invalid or has expired."
+#: app/analytics/routes.py:60 app/templates/analytics/dashboard.html:23
+#: app/templates/base.html:376
+#, fuzzy
+msgid "Analítica"
+msgstr "Apply"
 
-msgid "Tu contraseña ha sido actualizada exitosamente."
-msgstr "Your password has been updated successfully."
-
-msgid "Registro"
-msgstr "Register"
-
-msgid "Iniciar Sesión"
-msgstr "Sign In"
-
-msgid "Recuperar Contraseña"
-msgstr "Recover Password"
-
-msgid "Restablecer Contraseña"
-msgstr "Reset Password"
-
-# ── Auth forms ──
-msgid "Usuario"
-msgstr "Username"
-
-msgid "Email"
-msgstr "Email"
-
-msgid "Contraseña"
-msgstr "Password"
-
-msgid "Confirmar Contraseña"
-msgstr "Confirm Password"
-
-msgid "Las contraseñas no coinciden."
-msgstr "Passwords do not match."
-
-msgid "Recordarme"
-msgstr "Remember Me"
-
-msgid "Registrarse"
-msgstr "Register"
-
-msgid "Enviar Enlace de Recuperación"
-msgstr "Send Recovery Link"
-
-msgid "Nueva Contraseña"
-msgstr "New Password"
-
+#: app/auth/forms.py:12
 msgid "La contraseña debe tener al menos 10 caracteres."
 msgstr "Password must be at least 10 characters."
 
+#: app/auth/forms.py:14
 msgid "La contraseña debe incluir al menos una letra mayúscula."
 msgstr "Password must include at least one uppercase letter."
 
+#: app/auth/forms.py:16
 msgid "La contraseña debe incluir al menos una letra minúscula."
 msgstr "Password must include at least one lowercase letter."
 
+#: app/auth/forms.py:18
 msgid "La contraseña debe incluir al menos un número."
 msgstr "Password must include at least one number."
 
+#: app/auth/forms.py:20
 msgid "La contraseña debe incluir al menos un carácter especial."
 msgstr "Password must include at least one special character."
 
+# ── Auth forms ──
+#: app/auth/forms.py:24
+msgid "Usuario"
+msgstr "Username"
+
+#: app/auth/forms.py:25 app/auth/forms.py:43 app/auth/forms.py:55
+msgid "Email"
+msgstr "Email"
+
+#: app/auth/forms.py:26 app/auth/forms.py:44
+msgid "Contraseña"
+msgstr "Password"
+
+#: app/auth/forms.py:28 app/auth/forms.py:62
+msgid "Confirmar Contraseña"
+msgstr "Confirm Password"
+
+#: app/auth/forms.py:29 app/auth/forms.py:63 app/main/forms.py:124
+msgid "Las contraseñas no coinciden."
+msgstr "Passwords do not match."
+
+#: app/auth/forms.py:31
+msgid "Registrarse"
+msgstr "Register"
+
+#: app/auth/forms.py:35
 msgid "Ese nombre de usuario ya está en uso."
 msgstr "That username is already taken."
 
+#: app/auth/forms.py:39
 msgid "Ese email ya está registrado."
 msgstr "That email is already registered."
 
-# ── Main routes flash ──
-msgid "Año %(year)s creado."
-msgstr "Year %(year)s created."
+#: app/auth/forms.py:45
+msgid "Recordarme"
+msgstr "Remember Me"
 
-msgid "Año %(year)s eliminado junto con todos sus movimientos y presupuestos."
-msgstr "Year %(year)s deleted along with all its transactions and budgets."
+#: app/auth/forms.py:46 app/auth/routes.py:170
+msgid "Iniciar Sesión"
+msgstr "Sign In"
 
-msgid "La categoría no corresponde al tipo de movimiento seleccionado."
-msgstr "The category does not match the selected transaction type."
+#: app/auth/forms.py:50 app/templates/main/configurar.html:542
+msgid "Código de verificación"
+msgstr ""
 
-msgid "Movimiento creado exitosamente."
-msgstr "Transaction created successfully."
+#: app/auth/forms.py:51
+msgid "Verificar"
+msgstr ""
 
-msgid "Movimiento actualizado."
-msgstr "Transaction updated."
+#: app/auth/forms.py:56
+msgid "Enviar Enlace de Recuperación"
+msgstr "Send Recovery Link"
 
-msgid "Movimiento eliminado."
-msgstr "Transaction deleted."
+#: app/auth/forms.py:60
+msgid "Nueva Contraseña"
+msgstr "New Password"
 
-msgid "La categoría no corresponde al tipo de movimiento."
-msgstr "The category does not match the transaction type."
+#: app/auth/forms.py:65 app/auth/routes.py:287
+msgid "Restablecer Contraseña"
+msgstr "Reset Password"
 
-msgid "Ya existe una categoría con ese nombre y tipo."
-msgstr "A category with that name and type already exists."
+#: app/auth/routes.py:50 app/auth/routes.py:85
+msgid "Registro"
+msgstr "Register"
 
-msgid "Categoría creada."
-msgstr "Category created."
+# ── Auth routes ──
+#: app/auth/routes.py:70
+msgid "Cuenta creada exitosamente. Ya puedes iniciar sesión."
+msgstr "Account created successfully. You can now log in."
 
-msgid "Presupuesto actualizado."
-msgstr "Budget updated."
+#: app/auth/routes.py:79
+msgid ""
+"Cuenta creada, pero no pudimos enviar el correo de activación. Contacta "
+"al administrador para activar tu cuenta."
+msgstr ""
 
-msgid "Presupuesto creado."
-msgstr "Budget created."
-
-msgid "Configuración de correo (SMTP) guardada exitosamente."
-msgstr "Email (SMTP) settings saved successfully."
-
-msgid "Configuración regional guardada exitosamente."
-msgstr "Regional settings saved successfully."
-
-msgid "Correo de prueba enviado correctamente. Revisa tu bandeja de entrada."
-msgstr "Test email sent successfully. Check your inbox."
-
-msgid "Error al enviar correo de prueba: %(msg)s"
-msgstr "Error sending test email: %(msg)s"
-
-msgid "Nuevo Movimiento"
-msgstr "New Transaction"
-
-msgid "Editar Movimiento"
-msgstr "Edit Transaction"
-
-msgid "Configurar Cuenta"
+#: app/auth/routes.py:95
+#, fuzzy
+msgid "Activa tu cuenta"
 msgstr "Account Settings"
 
+#: app/auth/routes.py:107
+#, fuzzy
+msgid "El enlace de activación es inválido o ya fue utilizado."
+msgstr "The recovery link is invalid or has expired."
+
+#: app/auth/routes.py:112
+msgid "El enlace de activación ha expirado. Solicita uno nuevo."
+msgstr ""
+
+# ── Auth routes ──
+#: app/auth/routes.py:123
+#, fuzzy
+msgid "¡Cuenta activada exitosamente! Ya puedes iniciar sesión."
+msgstr "Account created successfully. You can now log in."
+
+#: app/auth/routes.py:142
+msgid ""
+"Si la cuenta existe y no está activada, recibirás un nuevo enlace en tu "
+"correo."
+msgstr ""
+
+#: app/auth/routes.py:157
+msgid ""
+"Tu cuenta aún no está activada. Revisa tu correo o solicita un nuevo "
+"enlace de activación."
+msgstr ""
+
+#: app/auth/routes.py:166 app/auth/routes.py:191
+#, python-format
+msgid "¡Bienvenido, %(username)s!"
+msgstr "Welcome, %(username)s!"
+
+#: app/auth/routes.py:169
+msgid "Email o contraseña incorrectos."
+msgstr "Incorrect email or password."
+
+#: app/auth/routes.py:194
+msgid "Código incorrecto. Inténtalo de nuevo."
+msgstr ""
+
+#: app/auth/routes.py:195 app/templates/auth/mfa_verify.html:10
+msgid "Verificación en dos pasos"
+msgstr ""
+
+#: app/auth/routes.py:251
+#, fuzzy
+msgid ""
+"Si el correo existe y hay un SMTP disponible, recibirás las instrucciones"
+" en tu correo."
+msgstr ""
+"If the email exists and has recovery configured, you will receive "
+"instructions sent via your own SMTP."
+
+#: app/auth/routes.py:254 app/templates/auth/forgot_password.html:19
+msgid "Recuperar Contraseña"
+msgstr "Recover Password"
+
+#: app/auth/routes.py:267
+msgid "El enlace de recuperación es inválido o ha expirado."
+msgstr "The recovery link is invalid or has expired."
+
+#: app/auth/routes.py:284
+msgid "Tu contraseña ha sido actualizada exitosamente."
+msgstr "Your password has been updated successfully."
+
+#: app/insights/messages.py:29
+#, fuzzy
+msgid "Presupuesto en observación"
+msgstr "Budgets"
+
+#: app/insights/messages.py:30
+msgid ""
+"Monetra aún está aprendiendo de tus primeros meses. Por ahora toma este "
+"ritmo de gasto como una referencia inicial."
+msgstr ""
+
+#: app/insights/messages.py:31
+msgid ""
+"Con poco historial, una proyección puede cambiar bastante a medida que "
+"registres más movimientos."
+msgstr ""
+
+#: app/insights/messages.py:32
+msgid ""
+"Sigue registrando tus gastos y revisa si este ritmo se repite durante los"
+" próximos meses."
+msgstr ""
+
+#: app/insights/messages.py:35
+msgid "Ritmo de gasto alto"
+msgstr ""
+
+#: app/insights/messages.py:36
+#, python-brace-format, python-format
+msgid ""
+"Has usado el {budget_used_pct:.0f}% del presupuesto y solo ha "
+"transcurrido el {month_elapsed_pct:.0f}% del mes."
+msgstr ""
+
+#: app/insights/messages.py:37
+msgid ""
+"Tu ritmo actual de gasto indica que podrías superar el presupuesto antes "
+"del cierre mensual."
+msgstr ""
+
+#: app/insights/messages.py:38
+msgid ""
+"Revisa gastos variables o ajusta el presupuesto si este patrón es "
+"recurrente."
+msgstr ""
+
+#: app/insights/messages.py:41
+#, fuzzy
+msgid "Vas a superar tu presupuesto"
+msgstr "Save Budget"
+
+#: app/insights/messages.py:42
+#, python-brace-format, python-format
+msgid ""
+"Con el ritmo actual cerrarás el mes en {projected_pct:.0f}% del "
+"presupuesto."
+msgstr ""
+
+#: app/insights/messages.py:43
+msgid ""
+"La diferencia entre el avance del mes y el consumo del presupuesto es "
+"significativa."
+msgstr ""
+
+#: app/insights/messages.py:44
+msgid "Reduce gastos no esenciales o reasigna presupuesto entre categorías."
+msgstr ""
+
+#: app/insights/messages.py:50
+msgid "Posible déficit este mes"
+msgstr ""
+
+#: app/insights/messages.py:51
+msgid "Con los datos actuales podrías cerrar el mes con balance negativo."
+msgstr ""
+
+#: app/insights/messages.py:52
+msgid ""
+"Monetra todavía está aprendiendo de tu comportamiento. Esta proyección es"
+" una orientación inicial, no una conclusión definitiva."
+msgstr ""
+
+#: app/insights/messages.py:53
+msgid ""
+"Revisa tus próximos gastos e ingresos esperados antes de hacer ajustes "
+"fuertes."
+msgstr ""
+
+#: app/insights/messages.py:56
+#, fuzzy
+msgid "Riesgo de déficit mensual"
+msgstr "Monthly Trend"
+
+#: app/insights/messages.py:57
+msgid "Con el ritmo actual podrías cerrar el mes con balance negativo."
+msgstr ""
+
+#: app/insights/messages.py:58
+msgid "Los gastos proyectados superan a los ingresos proyectados del periodo."
+msgstr ""
+
+#: app/insights/messages.py:59
+msgid "Revisa gastos no esenciales, pagos recurrentes y compromisos pendientes."
+msgstr ""
+
+#: app/insights/messages.py:65
+#, python-brace-format
+msgid "Aumento en {category_name}"
+msgstr ""
+
+#: app/insights/messages.py:66
+#, python-brace-format
+msgid ""
+"Este mes llevas {current:.0f}, frente a un promedio histórico de "
+"{baseline:.0f}."
+msgstr ""
+
+#: app/insights/messages.py:67
+msgid "El gasto en esta categoría está al menos un 50% por encima del promedio."
+msgstr ""
+
+#: app/insights/messages.py:68
+msgid ""
+"Revisa los movimientos de la categoría para confirmar si el aumento es "
+"esperado."
+msgstr ""
+
+#: app/insights/messages.py:71
+#, python-brace-format
+msgid "Aumento fuerte en {category_name}"
+msgstr ""
+
+#: app/insights/messages.py:72
+#, python-brace-format
+msgid "Este mes llevas {current:.0f}, el doble o más del promedio histórico."
+msgstr ""
+
+#: app/insights/messages.py:73
+msgid "La desviación es muy superior al patrón habitual de esta categoría."
+msgstr ""
+
+#: app/insights/messages.py:74
+msgid "Verifica si hay cargos duplicados, suscripciones nuevas o gastos atípicos."
+msgstr ""
+
+#: app/insights/messages.py:80
+#, fuzzy
+msgid "Movimiento para revisar"
+msgstr "Transaction updated."
+
+#: app/insights/messages.py:81
+#, python-brace-format
+msgid ""
+"Una transacción de {value:.0f} en {category_name} destaca frente a los "
+"datos disponibles."
+msgstr ""
+
+#: app/insights/messages.py:82
+msgid ""
+"Como aún hay poco historial, Monetra lo muestra como una revisión "
+"sugerida y no como una alerta fuerte."
+msgstr ""
+
+#: app/insights/messages.py:83
+msgid "Confirma que el monto y la categoría sean correctos."
+msgstr ""
+
+#: app/insights/messages.py:86
+msgid "Transacción inusual detectada"
+msgstr ""
+
+#: app/insights/messages.py:87
+#, python-brace-format
+msgid ""
+"Una transacción de {value:.0f} en {category_name} se aleja del patrón "
+"habitual."
+msgstr ""
+
+#: app/insights/messages.py:88
+msgid ""
+"El monto está significativamente por encima del rango típico de la "
+"categoría."
+msgstr ""
+
+#: app/insights/messages.py:89
+msgid "Confirma que la transacción es correcta y que la categoría es la adecuada."
+msgstr ""
+
+#: app/insights/messages.py:95
+msgid "Ahorro en observación"
+msgstr ""
+
+#: app/insights/messages.py:96
+#, python-brace-format
+msgid ""
+"Tu tasa de ahorro este mes es de {savings_rate_pct:.1f}%. Monetra "
+"necesita más meses para saber si esto es habitual."
+msgstr ""
+
+#: app/insights/messages.py:97
+msgid ""
+"Durante los primeros meses, el ahorro puede variar mucho por gastos de "
+"inicio, compras puntuales o ingresos aún no registrados."
+msgstr ""
+
+#: app/insights/messages.py:98
+msgid ""
+"Sigue registrando movimientos. Si este patrón se repite, Monetra te "
+"avisará con mayor seguridad."
+msgstr ""
+
+#: app/insights/messages.py:101
+msgid "Tasa de ahorro baja"
+msgstr ""
+
+#: app/insights/messages.py:102
+#, python-brace-format
+msgid "Tu tasa de ahorro este mes es de {savings_rate_pct:.1f}%."
+msgstr ""
+
+#: app/insights/messages.py:103
+msgid "Una tasa de ahorro saludable suele estar por encima del 10%."
+msgstr ""
+
+#: app/insights/messages.py:104
+msgid "Considera revisar gastos variables o establecer una meta de ahorro fija."
+msgstr ""
+
+#: app/insights/messages.py:107
+msgid "Sin capacidad de ahorro"
+msgstr ""
+
+#: app/insights/messages.py:108
+#, python-brace-format
+msgid "Este mes tu balance no permite ahorro (tasa: {savings_rate_pct:.1f}%)."
+msgstr ""
+
+#: app/insights/messages.py:109
+msgid "Los ingresos no superan a los gastos en margen suficiente."
+msgstr ""
+
+#: app/insights/messages.py:110
+msgid "Prioriza reducir gastos recurrentes o revisa fuentes de ingreso."
+msgstr ""
+
+#: app/insights/messages.py:116
+msgid "Meta de ahorro en riesgo"
+msgstr ""
+
+#: app/insights/messages.py:117
+#, python-brace-format
+msgid "La meta \"{goal_name}\" requiere ahorrar {monthly_required:.0f} al mes."
+msgstr ""
+
+#: app/insights/messages.py:118
+msgid ""
+"Tu capacidad de ahorro proyectada no alcanza el ritmo necesario para "
+"cumplirla a tiempo."
+msgstr ""
+
+#: app/insights/messages.py:119
+msgid ""
+"Ajusta el plazo, reduce el objetivo o define un aporte recurrente para "
+"esta meta."
+msgstr ""
+
+#: app/insights/messages.py:122
+msgid "Meta de ahorro vencida"
+msgstr ""
+
+#: app/insights/messages.py:123
+#, python-brace-format
+msgid "La meta \"{goal_name}\" tiene {remaining:.0f} pendiente y ya venció."
+msgstr ""
+
+#: app/insights/messages.py:124
+msgid "El objetivo no se alcanzó antes de la fecha definida."
+msgstr ""
+
+#: app/insights/messages.py:125
+msgid "Actualiza la fecha objetivo o cierra la meta si ya no aplica."
+msgstr ""
+
+#: app/insights/messages.py:131
+#, fuzzy
+msgid "Tendencia de gasto al alza"
+msgstr "Expense Trend by Year"
+
+#: app/insights/messages.py:132
+msgid ""
+"Tus gastos mensuales muestran una tendencia creciente en los últimos "
+"meses."
+msgstr ""
+
+#: app/insights/messages.py:133
+msgid "La pendiente positiva sostenida indica un cambio de patrón."
+msgstr ""
+
+#: app/insights/messages.py:134
+msgid "Revisa qué categorías están creciendo más rápido que el resto."
+msgstr ""
+
+#: app/insights/messages.py:140
+#, fuzzy
+msgid "Posible movimiento duplicado"
+msgstr "Transaction updated."
+
+#: app/insights/messages.py:141
+#, python-brace-format
+msgid "Se detectó una transacción muy similar a otra reciente en {category_name}."
+msgstr ""
+
+#: app/insights/messages.py:142
+msgid ""
+"Mismo monto, misma categoría y fecha cercana sugieren un posible "
+"duplicado."
+msgstr ""
+
+#: app/insights/messages.py:143
+msgid "Verifica el detalle y elimínalo si corresponde."
+msgstr ""
+
+#: app/insights/messages.py:149
+#, fuzzy
+msgid "Configuración inicial pendiente"
+msgstr "Regional settings saved successfully."
+
+#: app/insights/messages.py:150
+msgid ""
+"Hay elementos básicos sin configurar que mejoran la precisión del "
+"análisis."
+msgstr ""
+
+#: app/insights/messages.py:151
+msgid ""
+"Monetra usa el presupuesto y los gastos recurrentes como base de las "
+"proyecciones. Sin ellos, las estimaciones son menos precisas."
+msgstr ""
+
+#: app/insights/messages.py:152
+msgid ""
+"Define un presupuesto mensual y registra tus gastos fijos recurrentes "
+"(arriendo, servicios, suscripciones)."
+msgstr ""
+
 # ── Main forms ──
+#: app/main/forms.py:28
 msgid "País"
 msgstr "Country"
 
+#: app/main/forms.py:29
 msgid "Símbolo de Moneda"
 msgstr "Currency Symbol"
 
+#: app/main/forms.py:31
+msgid "Valor del dólar (1 USD = ?)"
+msgstr ""
+
+#: app/main/forms.py:33
 msgid "Guardar Configuración"
 msgstr "Save Settings"
 
+#: app/main/forms.py:37 app/main/forms.py:50 app/main/forms.py:83
+#: app/templates/main/guia.html:150 app/templates/main/guia.html:267
+#: app/templates/main/recurrentes.html:64
+#: app/templates/main/recurrentes.html:154
+#: app/templates/main/transactions.html:27
+#: app/templates/main/transactions.html:81
+#: app/templates/partials/scanner_modal.html:173
 msgid "Tipo"
 msgstr "Type"
 
+#: app/main/forms.py:38 app/main/forms.py:51 app/main/forms.py:84
+#: app/main/routes.py:591 app/main/routes.py:644 app/main/routes.py:723
+#: app/templates/main/guia.html:54 app/templates/main/recurrentes.html:81
+#: app/templates/main/recurrentes.html:169
+#: app/templates/main/transactions.html:97
+#: app/templates/partials/scanner_modal.html:175
 msgid "Gasto"
 msgstr "Expense"
 
+#: app/main/forms.py:38 app/main/forms.py:51 app/main/forms.py:84
+#: app/main/routes.py:591 app/main/routes.py:644 app/main/routes.py:723
+#: app/templates/main/guia.html:53 app/templates/main/recurrentes.html:79
+#: app/templates/main/recurrentes.html:167
+#: app/templates/main/transactions.html:95
+#: app/templates/partials/scanner_modal.html:176
 msgid "Ingreso"
 msgstr "Income"
 
+#: app/main/forms.py:40 app/main/forms.py:86 app/main/forms.py:104
+#: app/templates/analytics/consolidated.html:118
+#: app/templates/main/dashboard.html:182 app/templates/main/guia.html:150
+#: app/templates/main/recurrentes.html:67
+#: app/templates/main/recurrentes.html:157
+#: app/templates/main/transactions.html:85
+#: app/templates/partials/scanner_modal.html:167
+#: app/templates/usd/dashboard.html:217 app/templates/usd/dashboard.html:325
 msgid "Monto"
 msgstr "Amount"
 
+#: app/main/forms.py:42 app/main/forms.py:65 app/main/forms.py:88
+#: app/templates/analytics/consolidated.html:116
+#: app/templates/main/dashboard.html:181 app/templates/main/guia.html:150
+#: app/templates/main/recurrentes.html:65
+#: app/templates/main/recurrentes.html:155
+#: app/templates/main/transactions.html:35
+#: app/templates/main/transactions.html:82
+#: app/templates/partials/scanner_modal.html:65
+#: app/templates/partials/scanner_modal.html:124
+#: app/templates/partials/scanner_modal.html:184
+#: app/templates/usd/dashboard.html:215 app/templates/usd/dashboard.html:317
+#: app/usd/forms.py:13
 msgid "Categoría"
 msgstr "Category"
 
+#: app/main/forms.py:43 app/main/forms.py:78 app/main/forms.py:89
+#: app/templates/main/dashboard.html:180 app/templates/main/guia.html:100
+#: app/templates/main/guia.html:150 app/templates/main/guia.html:215
+#: app/templates/main/guia.html:236 app/templates/main/guia.html:242
+#: app/templates/main/guia.html:455 app/templates/main/guia.html:599
+#: app/templates/main/recurrentes.html:63
+#: app/templates/main/recurrentes.html:153
+#: app/templates/main/transactions.html:83 app/templates/usd/dashboard.html:216
+#: app/templates/usd/dashboard.html:332 app/usd/forms.py:17
 msgid "Descripción"
 msgstr "Description"
 
+#: app/main/forms.py:44 app/templates/analytics/consolidated.html:115
+#: app/templates/main/dashboard.html:179 app/templates/main/guia.html:150
+#: app/templates/main/transactions.html:80
+#: app/templates/partials/scanner_modal.html:180
+#: app/templates/usd/dashboard.html:214 app/templates/usd/dashboard.html:313
+#: app/usd/forms.py:12
 msgid "Fecha"
 msgstr "Date"
 
+#: app/main/forms.py:45 app/main/forms.py:68 app/main/forms.py:79
+#: app/main/forms.py:95 app/main/forms.py:108
+#: app/templates/main/configurar.html:192
+#: app/templates/main/configurar.html:726 app/templates/main/guia.html:151
+#: app/templates/main/guia.html:583 app/templates/usd/dashboard.html:293
+#: app/templates/usd/dashboard.html:339
 msgid "Guardar"
 msgstr "Save"
 
+#: app/main/forms.py:49 app/templates/main/guia.html:238 app/usd/forms.py:8
 msgid "Nombre"
 msgstr "Name"
 
+#: app/main/forms.py:53
 msgid "Crear Categoría"
 msgstr "Create Category"
 
+#: app/main/forms.py:58 app/templates/main/guia.html:75
 msgid "Mes"
 msgstr "Month"
 
+#: app/main/forms.py:59
 msgid "Monto Presupuesto"
 msgstr "Budget Amount"
 
+#: app/main/forms.py:61
 msgid "Guardar Presupuesto"
 msgstr "Save Budget"
 
-msgid "Habilitar recuperación por correo (SMTP)"
-msgstr "Enable email recovery (SMTP)"
+#: app/main/forms.py:66
+#, fuzzy
+msgid "Límite mensual"
+msgstr "Monthly Balance"
 
+#: app/main/forms.py:72
+#, fuzzy
+msgid "Nombre de la meta"
+msgstr "Sender Name"
+
+#: app/main/forms.py:73 app/templates/main/guia.html:239
+msgid "Monto objetivo"
+msgstr ""
+
+#: app/main/forms.py:75
+msgid "Monto inicial ahorrado"
+msgstr ""
+
+#: app/main/forms.py:77 app/templates/main/guia.html:241
+msgid "Fecha objetivo"
+msgstr ""
+
+#: app/main/forms.py:90 app/templates/main/guia.html:268
+#, fuzzy
+msgid "Día del mes"
+msgstr "Monthly Expenses"
+
+#: app/main/forms.py:93 app/templates/main/guia.html:269
+msgid "Fecha de término"
+msgstr ""
+
+#: app/main/forms.py:94 app/templates/main/recurrentes.html:96
+msgid "Activa"
+msgstr ""
+
+#: app/main/forms.py:99
+msgid "La fecha de término no puede ser anterior al día de hoy."
+msgstr ""
+
+#: app/main/forms.py:103
+#, fuzzy
+msgid "Nombre del presupuesto"
+msgstr "Budget Usage"
+
+#: app/main/forms.py:106
+msgid "Fecha inicio"
+msgstr ""
+
+#: app/main/forms.py:107
+msgid "Fecha término"
+msgstr ""
+
+#: app/main/forms.py:113
+msgid "La fecha de término debe ser posterior al inicio."
+msgstr ""
+
+#: app/main/forms.py:115 app/main/routes.py:1105
+msgid "El presupuesto personalizado debe estar dentro del mismo mes."
+msgstr ""
+
+#: app/main/forms.py:119
+#, fuzzy
+msgid "Contraseña actual"
+msgstr "SMTP Password"
+
+#: app/main/forms.py:120
+#, fuzzy
+msgid "Nueva contraseña"
+msgstr "New Password"
+
+#: app/main/forms.py:122
+#, fuzzy
+msgid "Confirmar nueva contraseña"
+msgstr "Confirm Password"
+
+#: app/main/forms.py:125 app/templates/main/configurar.html:494
+#, fuzzy
+msgid "Cambiar Contraseña"
+msgstr "Confirm Password"
+
+#: app/main/forms.py:129
+#, fuzzy
+msgid "Usar mi propio SMTP"
+msgstr "SMTP Username"
+
+#: app/main/forms.py:130
 msgid "Servidor SMTP"
 msgstr "SMTP Server"
 
+#: app/main/forms.py:131
 msgid "Puerto SMTP"
 msgstr "SMTP Port"
 
+#: app/main/forms.py:132
 msgid "Usuario SMTP"
 msgstr "SMTP Username"
 
+#: app/main/forms.py:133
 msgid "Contraseña SMTP"
 msgstr "SMTP Password"
 
+#: app/main/forms.py:134
 msgid "Usar TLS"
 msgstr "Use TLS"
 
+#: app/main/forms.py:135
 msgid "Usar SSL"
 msgstr "Use SSL"
 
+#: app/main/forms.py:136
 msgid "Email Remitente"
 msgstr "Sender Email"
 
+#: app/main/forms.py:137
 msgid "Nombre Remitente"
 msgstr "Sender Name"
 
+#: app/main/forms.py:138
 msgid "Guardar Configuración SMTP"
 msgstr "Save SMTP Settings"
 
+#: app/main/forms.py:146 app/main/forms.py:147
 msgid "No puedes usar TLS y SSL al mismo tiempo."
 msgstr "You cannot use TLS and SSL at the same time."
 
+#: app/main/forms.py:152 app/main/forms.py:161 app/main/forms.py:164
 msgid "Requerido si SMTP está activado."
 msgstr "Required when SMTP is enabled."
 
+#: app/main/forms.py:155
 msgid "La contraseña es requerida para activar SMTP."
 msgstr "Password is required to enable SMTP."
 
+#: app/main/forms.py:158
 msgid "La contraseña es obligatoria porque no hay una guardada."
 msgstr "Password is required because none is currently saved."
 
-# ── Templates: base.html ──
-msgid "Movimientos"
-msgstr "Transactions"
+#: app/main/forms.py:171
+msgid "Activar escáner IA"
+msgstr ""
 
-msgid "Categorías"
-msgstr "Categories"
+#: app/main/forms.py:172 app/templates/main/guia.html:601
+msgid "Proveedor"
+msgstr ""
 
-msgid "Presupuesto"
-msgstr "Budget"
+#: app/main/forms.py:179
+msgid "Modelo (ej. gpt-4o, claude-3-5-sonnet-20241022)"
+msgstr ""
 
-msgid "Global"
-msgstr "Global"
+#: app/main/forms.py:181
+msgid "URL base (solo OpenAI-compatible personalizado)"
+msgstr ""
 
-msgid "Configurar"
-msgstr "Settings"
+#: app/main/forms.py:183 app/templates/main/configurar.html:210
+msgid "Token API"
+msgstr ""
 
-msgid "Cerrar Sesión"
-msgstr "Log Out"
+#: app/main/forms.py:184
+#, fuzzy
+msgid "Guardar configuración de escáner"
+msgstr "Save SMTP Settings"
 
-msgid "Crear Nuevo Año"
-msgstr "Create New Year"
+#: app/main/routes.py:245
+msgid "Este registro es de demostración y no puede modificarse."
+msgstr ""
 
-msgid "Año a crear"
-msgstr "Year to create"
+#: app/main/routes.py:260
+msgid "Cuenta principal"
+msgstr ""
 
-msgid "Al crear el año la vista cambiará a Enero de ese año."
-msgstr "When creating the year, the view will change to January of that year."
+#: app/main/routes.py:261
+#, fuzzy
+msgid "Movimientos en moneda local"
+msgstr "Transaction updated."
 
-msgid "Cancelar"
-msgstr "Cancel"
+#: app/main/routes.py:268 app/templates/usd/dashboard.html:18
+msgid "Cuenta USD"
+msgstr ""
 
-msgid "Crear"
-msgstr "Create"
-
-msgid "Eliminar Año %(year)s"
-msgstr "Delete Year %(year)s"
-
-msgid "Se eliminarán <strong>permanentemente</strong> todos los movimientos y presupuestos del año <strong>%(year)s</strong>."
-msgstr "All transactions and budgets for year <strong>%(year)s</strong> will be <strong>permanently</strong> deleted."
-
-msgid "Esta acción no se puede deshacer."
-msgstr "This action cannot be undone."
-
-msgid "Eliminar"
-msgstr "Delete"
-
-# ── Templates: login.html ──
-msgid "Tu dinero. Tu control. Tu futuro."
-msgstr "Your money. Your control. Your future."
-
-msgid "Inicia sesión en tu cuenta"
-msgstr "Sign in to your account"
-
-msgid "¿Olvidaste tu contraseña?"
-msgstr "Forgot your password?"
-
-msgid "¿No tienes cuenta?"
-msgstr "Don't have an account?"
-
-msgid "Regístrate aquí"
-msgstr "Register here"
-
-# ── Templates: register.html ──
-msgid "Empieza a ordenar tus finanzas personales"
-msgstr "Start organizing your personal finances"
-
-msgid "Crea tu cuenta en Monetra"
-msgstr "Create your account in Monetra"
-
-msgid "Registro deshabilitado"
-msgstr "Registration disabled"
-
-msgid "El registro de nuevos usuarios está deshabilitado por el administrador."
-msgstr "New user registration has been disabled by the administrator."
-
-msgid "Ir al inicio de sesión"
-msgstr "Go to login"
-
-msgid "¿Ya tienes cuenta?"
-msgstr "Already have an account?"
-
-msgid "Inicia sesión"
-msgstr "Sign in"
-
-# ── Templates: forgot_password.html ──
-msgid "Ingresa tu email y, si lo configuraste, te enviaremos instrucciones."
-msgstr "Enter your email and, if configured, we will send you instructions."
-
-msgid "Volver al inicio de sesión"
-msgstr "Back to login"
-
-# ── Templates: reset_password.html ──
-msgid "Elige una nueva contraseña"
-msgstr "Choose a new password"
-
-msgid "Tu cuenta será asegurada con esta nueva clave."
-msgstr "Your account will be secured with this new password."
-
-# ── dashboard.html ──
-msgid "Ingresos del Mes"
-msgstr "Monthly Income"
-
-msgid "Gastos del Mes"
+#: app/main/routes.py:269
+#, fuzzy
+msgid "Gastos en dólares"
 msgstr "Monthly Expenses"
 
-msgid "Balance Mensual"
-msgstr "Monthly Balance"
+#: app/main/routes.py:277
+msgid "Vista unificada en moneda principal"
+msgstr ""
 
-msgid "No definido"
-msgstr "Not set"
+# ── Main routes flash ──
+#: app/main/routes.py:371
+#, python-format
+msgid "Año %(year)s creado."
+msgstr "Year %(year)s created."
 
-msgid "Uso del Presupuesto"
-msgstr "Budget Usage"
+#: app/main/routes.py:395
+#, python-format
+msgid "Año %(year)s eliminado junto con todos sus movimientos y presupuestos."
+msgstr "Year %(year)s deleted along with all its transactions and budgets."
 
-msgid "gastado de"
-msgstr "spent of"
-
-msgid "No tienes presupuesto definido para este mes."
-msgstr "You have no budget defined for this month."
-
-msgid "Definir presupuesto →"
-msgstr "Define budget →"
-
-msgid "Gastos por Categoría"
-msgstr "Expenses by Category"
-
-msgid "Sin gastos registrados este mes."
-msgstr "No expenses recorded this month."
-
-msgid "Últimos Movimientos"
-msgstr "Recent Transactions"
-
-msgid "Nuevo"
-msgstr "New"
-
-msgid "Sin movimientos registrados."
-msgstr "No transactions recorded."
-
-msgid "Ver todos los movimientos →"
-msgstr "View all transactions →"
-
-# ── transactions.html ──
-msgid "Nuevo Movimiento"
-msgstr "New Transaction"
-
-msgid "Todos"
-msgstr "All"
-
-msgid "Ingresos"
-msgstr "Income"
-
-msgid "Gastos"
-msgstr "Expenses"
-
-msgid "Todas"
-msgstr "All"
-
-msgid "Todos los meses"
-msgstr "All months"
-
-msgid "Filtrar"
-msgstr "Filter"
-
-msgid "Limpiar filtros"
-msgstr "Clear filters"
-
-msgid "Acciones"
-msgstr "Actions"
-
-msgid "Editar"
-msgstr "Edit"
-
-msgid "No hay movimientos con los filtros seleccionados."
-msgstr "No transactions match the selected filters."
-
-msgid "Resultado filtrado:"
-msgstr "Filtered result:"
-
-msgid "¿Eliminar este movimiento?"
-msgstr "Delete this transaction?"
-
-# ── categories.html ──
-msgid "Nueva Categoría"
-msgstr "New Category"
-
-msgid "Ej: Gimnasio, Mascotas..."
-msgstr "E.g.: Gym, Pets..."
-
-msgid "Las categorías marcadas como \"global\" son compartidas para todos los usuarios."
-msgstr "Categories marked as \"global\" are shared for all users."
-
-msgid "Categorías de Gastos"
-msgstr "Expense Categories"
-
-msgid "tuya"
-msgstr "yours"
-
-msgid "Sin categorías de gastos."
-msgstr "No expense categories."
-
-msgid "Categorías de Ingresos"
-msgstr "Income Categories"
-
-msgid "Sin categorías de ingresos."
-msgstr "No income categories."
-
-# ── budget.html ──
-msgid "Definir Presupuesto"
-msgstr "Define Budget"
-
-msgid "Si ya existe un presupuesto para el mes seleccionado, será reemplazado."
-msgstr "If a budget already exists for the selected month, it will be replaced."
-
-msgid "Presupuestos"
-msgstr "Budgets"
-
-msgid "meses"
-msgstr "months"
-
-msgid "Sin presupuestos definidos para %(year)s."
-msgstr "No budgets defined for %(year)s."
-
-msgid "Total año:"
-msgstr "Year total:"
-
-# ── transaction_form.html ──
-msgid "Descripción opcional..."
-msgstr "Optional description..."
-
-msgid "Sin categorías disponibles"
-msgstr "No categories available"
-
+#: app/main/routes.py:602 app/main/routes.py:651
+#, python-format
 msgid "La fecha debe estar dentro de %(month)s %(year)s."
 msgstr "The date must be within %(month)s %(year)s."
 
-msgid "Solo fechas de %(month)s %(year)s."
-msgstr "%(month)s %(year)s dates only."
+#: app/main/routes.py:610 app/main/routes.py:659
+msgid "La categoría seleccionada no es válida."
+msgstr ""
 
-# ── global_dashboard.html ──
-msgid "Dashboard Global"
-msgstr "Global Dashboard"
+#: app/main/routes.py:612
+msgid "La categoría no corresponde al tipo de movimiento seleccionado."
+msgstr "The category does not match the selected transaction type."
 
-msgid "Desde"
-msgstr "From"
+#: app/main/routes.py:623
+msgid "Movimiento creado exitosamente."
+msgstr "Transaction created successfully."
 
-msgid "Hasta"
-msgstr "To"
+# ── transactions.html ──
+#: app/main/routes.py:627 app/templates/main/transactions.html:17
+msgid "Nuevo Movimiento"
+msgstr "New Transaction"
 
-msgid "Aplicar"
-msgstr "Apply"
+#: app/main/routes.py:661
+msgid "La categoría no corresponde al tipo de movimiento."
+msgstr "The category does not match the transaction type."
 
-msgid "Sin gastos para el período seleccionado."
-msgstr "No expenses for the selected period."
+#: app/main/routes.py:669 app/usd/routes.py:169
+msgid "Movimiento actualizado."
+msgstr "Transaction updated."
 
-msgid "Tendencia Mensual"
-msgstr "Monthly Trend"
+#: app/main/routes.py:673
+msgid "Editar Movimiento"
+msgstr "Edit Transaction"
 
-msgid "Ingresos vs Gastos"
-msgstr "Income vs Expenses"
+#: app/main/routes.py:687 app/usd/routes.py:182
+msgid "Movimiento eliminado."
+msgstr "Transaction deleted."
 
-msgid "Tendencia de gastos por año"
-msgstr "Expense Trend by Year"
+#: app/main/routes.py:731
+msgid "Ya existe una categoría con ese nombre y tipo."
+msgstr "A category with that name and type already exists."
 
-msgid "Comparación mensual agrupada por año"
-msgstr "Monthly comparison grouped by year"
+#: app/main/routes.py:740 app/usd/routes.py:207
+msgid "Categoría creada."
+msgstr "Category created."
 
-msgid "Sin datos de gastos para comparar tendencias."
-msgstr "No expense data to compare trends."
+#: app/main/routes.py:764
+msgid ""
+"Esta categoría pertenece a un presupuesto personalizado. Elimínalo desde "
+"la sección Presupuesto."
+msgstr ""
 
-msgid "Resumen Anual"
-msgstr "Annual Summary"
+#: app/main/routes.py:782 app/usd/routes.py:220
+#, fuzzy
+msgid "Categoría eliminada."
+msgstr "Category created."
 
-msgid "Totales acumulados por año"
-msgstr "Cumulative totals by year"
+#: app/main/routes.py:854 app/main/routes.py:859 app/usd/routes.py:246
+msgid "Presupuesto actualizado."
+msgstr "Budget updated."
 
-msgid "Sin datos disponibles."
-msgstr "No data available."
+#: app/main/routes.py:869
+msgid "Presupuesto creado."
+msgstr "Budget created."
 
-# ── configurar.html ──
-msgid "Administrador"
-msgstr "Administrator"
+#: app/main/routes.py:996
+#, fuzzy
+msgid "Presupuesto eliminado."
+msgstr "Budget created."
 
-msgid "Se usará en todos los montos de la app (meses, años, presupuestos)."
-msgstr "Will be used for all amounts in the app (months, years, budgets)."
+#: app/main/routes.py:1034
+#, fuzzy
+msgid "Presupuesto de categoría actualizado."
+msgstr "Budget updated."
 
-msgid "Configuración actual:"
-msgstr "Current settings:"
+#: app/main/routes.py:1036
+msgid "Ya tienes el máximo de 5 presupuestos de categoría."
+msgstr ""
 
-msgid "Símbolo:"
-msgstr "Symbol:"
+#: app/main/routes.py:1045
+#, fuzzy
+msgid "Presupuesto de categoría creado."
+msgstr "Budget created."
 
-msgid "Opciones de Administrador"
-msgstr "Administrator Options"
+#: app/main/routes.py:1063
+#, fuzzy
+msgid "Presupuesto de categoría eliminado."
+msgstr "Budget updated."
 
-msgid "Permitir registro de nuevos usuarios"
-msgstr "Allow new user registration"
+#: app/main/routes.py:1083
+msgid "No se puede editar un presupuesto finalizado. Queda como historial."
+msgstr ""
 
-msgid "Si está desactivado, nadie podrá crear cuentas nuevas."
-msgstr "If disabled, no one will be able to create new accounts."
+#: app/main/routes.py:1097
+msgid "El presupuesto personalizado debe pertenecer al mes seleccionado."
+msgstr ""
 
-msgid "Configuración de correo (SMTP)"
-msgstr "Email configuration (SMTP)"
+#: app/main/routes.py:1101
+msgid "La fecha de inicio no puede ser anterior a hoy."
+msgstr ""
 
-msgid "Permite enviar correos desde tu propia cuenta, como recordatorios o recuperación de contraseña."
-msgstr "Allows sending emails from your own account, such as reminders or password recovery."
+#: app/main/routes.py:1120 app/templates/main/budget.html:362
+#, fuzzy
+msgid "Ya tienes un presupuesto personalizado vigente para este mes."
+msgstr "You have no budget defined for this month."
 
-msgid "ej. smtp.gmail.com"
-msgstr "e.g. smtp.gmail.com"
+#: app/main/routes.py:1132
+#, python-format
+msgid ""
+"La fecha de inicio debe ser posterior al %(d)s (último presupuesto "
+"finalizado)."
+msgstr ""
 
-msgid "Deja en blanco para conservar la actual."
-msgstr "Leave blank to keep the current one."
+#: app/main/routes.py:1144
+#, fuzzy
+msgid "Ya existe una categoría con ese nombre. Elige otro."
+msgstr "A category with that name and type already exists."
 
-msgid "Usa contraseñas de aplicación si es Gmail."
-msgstr "Use app passwords if using Gmail."
+#: app/main/routes.py:1155
+#, fuzzy
+msgid "Presupuesto personalizado actualizado."
+msgstr "Budget updated."
 
-msgid "Enviar correo de prueba a %(email)s"
-msgstr "Send test email to %(email)s"
+#: app/main/routes.py:1174
+#, python-format
+msgid ""
+"Presupuesto personalizado creado. La categoría \"%(name)s\" fue creada "
+"automáticamente."
+msgstr ""
 
-msgid "Utilizará los ajustes guardados."
-msgstr "Will use the saved settings."
+#: app/main/routes.py:1187
+msgid "No se puede eliminar un presupuesto finalizado. Queda como historial."
+msgstr ""
 
-msgid "Recuperación por correo: configurada"
-msgstr "Email recovery: configured"
+#: app/main/routes.py:1211
+#, fuzzy, python-format
+msgid ""
+"Presupuesto \"%(n)s\" eliminado junto con %(tx)s movimientos y %(rec)s "
+"recurrentes asociados."
+msgstr "Year %(year)s deleted along with all its transactions and budgets."
 
-msgid "Recuperación por correo: no configurada"
-msgstr "Email recovery: not configured"
+#: app/main/routes.py:1214
+#, fuzzy, python-format
+msgid "Presupuesto y categoría \"%(n)s\" eliminados."
+msgstr "Budget updated."
 
-msgid "Datos Demo"
-msgstr "Demo Data"
+#: app/main/routes.py:1318 app/templates/main/dashboard.html:225
+#: app/templates/main/metas.html:6
+msgid "Metas de Ahorro"
+msgstr ""
 
-msgid "Carga transacciones de ejemplo para explorar los dashboards sin ingresar datos reales. Puedes eliminarlos en cualquier momento sin afectar tus datos."
-msgstr "Load sample transactions to explore the dashboards without entering real data. You can delete them at any time without affecting your data."
+#: app/main/routes.py:1342
+#, fuzzy
+msgid "Meta guardada exitosamente."
+msgstr "Transaction created successfully."
 
-msgid "Transacciones"
-msgstr "Transactions"
+#: app/main/routes.py:1346 app/templates/main/meta_form.html:8
+#, fuzzy
+msgid "Editar Meta"
+msgstr "Edit Transaction"
 
-msgid "Total gastos"
-msgstr "Total expenses"
+# ── transactions.html ──
+#: app/main/routes.py:1346 app/templates/main/metas.html:8
+#, fuzzy
+msgid "Nueva Meta"
+msgstr "New Transaction"
 
-msgid "Período"
-msgstr "Period"
+#: app/main/routes.py:1357
+#, fuzzy
+msgid "Meta eliminada."
+msgstr "Transaction deleted."
 
-msgid "Cargar demo"
-msgstr "Load demo"
+#: app/main/routes.py:1366
+msgid "Esta meta es de demostración y no puede modificarse."
+msgstr ""
 
-msgid "Resetear demo"
-msgstr "Reset demo"
+#: app/main/routes.py:1371
+msgid "El monto debe ser mayor a cero."
+msgstr ""
 
-msgid "Cargado"
-msgstr "Loaded"
+#: app/main/routes.py:1373 app/usd/routes.py:232
+#, fuzzy
+msgid "Monto inválido."
+msgstr "Not set"
 
-msgid "No cargado"
-msgstr "Not loaded"
+#: app/main/routes.py:1441 app/templates/base.html:76
+#: app/templates/main/guia.html:29 app/templates/main/guia.html:258
+#: app/templates/main/guia.html:260 app/templates/main/guia.html:311
+#: app/templates/main/recurrentes.html:6
+#: app/templates/main/transactions.html:214
+msgid "Recurrentes"
+msgstr ""
 
-msgid "Cargando…"
-msgstr "Loading…"
+#: app/main/routes.py:1474
+#, fuzzy
+msgid "La categoría no corresponde al tipo seleccionado."
+msgstr "The category does not match the selected transaction type."
 
-msgid "Error de conexión."
-msgstr "Connection error."
+#: app/main/routes.py:1476
+#, fuzzy, python-format
+msgid "La fecha de término debe estar dentro del año de la recurrente."
+msgstr "The date must be within %(month)s %(year)s."
 
-msgid "¿Eliminar todos los datos demo? Esta acción no se puede deshacer."
-msgstr "Delete all demo data? This action cannot be undone."
+#: app/main/routes.py:1478
+msgid "La fecha de término no puede ser anterior a hoy."
+msgstr ""
 
+#: app/main/routes.py:1530
+#, python-format
+msgid ""
+"Recurrente creada. Se registró el mes actual (%(date)s) y %(n)s entradas "
+"futuras generadas."
+msgstr ""
+
+#: app/main/routes.py:1533
+#, python-format
+msgid "Recurrente creada. Se registró el mes actual (%(date)s)."
+msgstr ""
+
+#: app/main/routes.py:1536
+#, python-format
+msgid "Recurrente creada. %(n)s entradas generadas hasta fin de año."
+msgstr ""
+
+#: app/main/routes.py:1538
+#, python-format
+msgid "Recurrente activada. %(n)s transacciones generadas retroactivamente."
+msgstr ""
+
+#: app/main/routes.py:1540
+msgid "Transacción recurrente guardada."
+msgstr ""
+
+#: app/main/routes.py:1559 app/templates/main/recurrente_form.html:8
+msgid "Editar Recurrente"
+msgstr ""
+
+#: app/main/routes.py:1559 app/templates/main/recurrente_form.html:8
+#: app/templates/main/recurrentes.html:8
+#, fuzzy
+msgid "Nueva Recurrente"
+msgstr "New Password"
+
+#: app/main/routes.py:1571
+msgid "Recurrente finalizada. Ya no generará nuevos movimientos."
+msgstr ""
+
+#: app/main/routes.py:1626
+msgid "Configuración de correo (SMTP) guardada exitosamente."
+msgstr "Email (SMTP) settings saved successfully."
+
+#: app/main/routes.py:1638
+#, fuzzy
+msgid "Configuración del escáner IA guardada."
+msgstr "Administrator settings saved."
+
+#: app/main/routes.py:1646
 msgid "Configuración de administrador guardada."
 msgstr "Administrator settings saved."
 
-# ── Scanner AI ──
-msgid "Probar conexión"
-msgstr "Test connection"
+#: app/main/routes.py:1661
+msgid "Configuración regional guardada exitosamente."
+msgstr "Regional settings saved successfully."
 
-msgid "Conexión válida. Token y modelo correctos."
-msgstr "Connection valid. Token and model are correct."
+#: app/main/routes.py:1708 app/templates/main/configurar.html:8
+msgid "Configurar Cuenta"
+msgstr "Account Settings"
 
-msgid "Selecciona un proveedor."
-msgstr "Please select a provider."
+#: app/main/routes.py:1728
+#, fuzzy
+msgid "Configuración de reporte semanal guardada."
+msgstr "Administrator settings saved."
 
-msgid "El modelo seleccionado no admite imágenes. Cambia a un modelo multimodal (gpt-4o, claude-3-5-sonnet, gemini-1.5-flash)."
-msgstr "The selected model does not support images. Switch to a multimodal model (gpt-4o, claude-3-5-sonnet, gemini-1.5-flash)."
+#: app/main/routes.py:1744
+#, fuzzy, python-format
+msgid "Reporte enviado correctamente a %(email)s."
+msgstr "Send test email to %(email)s"
 
-msgid "El modelo debe soportar imágenes (multimodal). Ej: gpt-4o, claude-3-5-sonnet, gemini-1.5-flash."
-msgstr "The model must support images (multimodal). E.g.: gpt-4o, claude-3-5-sonnet, gemini-1.5-flash."
+#: app/main/routes.py:1746
+#, fuzzy, python-format
+msgid "Error al enviar el reporte: %(msg)s"
+msgstr "Error sending test email: %(msg)s"
 
-# ── Scanner upload mode ──
-msgid "¿Cómo quieres escanear?"
-msgstr "How do you want to scan?"
+#: app/main/routes.py:1748
+#, python-format
+msgid "Error generando el reporte: %(e)s"
+msgstr ""
 
-msgid "Subir imagen"
-msgstr "Upload image"
+#: app/main/routes.py:1814
+#, fuzzy
+msgid "La contraseña actual es incorrecta."
+msgstr "Incorrect email or password."
 
-msgid "Fotografía el recibo con tu cámara"
-msgstr "Take a photo of the receipt with your camera"
+#: app/main/routes.py:1819
+msgid ""
+"Contraseña actualizada correctamente. Inicia sesión con tu nueva "
+"contraseña."
+msgstr ""
 
-msgid "PNG, JPG, WEBP o HEIC desde tu galería"
-msgstr "PNG, JPG, WEBP or HEIC from your gallery"
+#: app/main/routes.py:1850
+msgid "Sesión expirada. Inicia el proceso nuevamente."
+msgstr ""
 
-msgid "Arrastra aquí tu imagen o haz clic para seleccionar"
-msgstr "Drag your image here or click to select"
+#: app/main/routes.py:1854 app/main/routes.py:1872
+msgid "Código incorrecto."
+msgstr ""
 
-msgid "Máximo 10 MB"
-msgstr "Maximum 10 MB"
+#: app/main/routes.py:1889
+msgid "Correo de prueba enviado correctamente. Revisa tu bandeja de entrada."
+msgstr "Test email sent successfully. Check your inbox."
 
-msgid "Cambiar archivo"
-msgstr "Change file"
+#: app/main/routes.py:1891
+#, python-format
+msgid "Error al enviar correo de prueba: %(msg)s"
+msgstr "Error sending test email: %(msg)s"
 
-msgid "Escanear este archivo"
-msgstr "Scan this file"
+#: app/scanner/routes.py:50
+msgid "La imagen está vacía."
+msgstr ""
 
-msgid "Archivo muy grande. Máximo 10 MB."
-msgstr "File too large. Maximum 10 MB."
-
+#: app/scanner/routes.py:57 app/templates/partials/scanner_modal.html:445
 msgid "Formato no compatible. Usa PNG, JPG, WEBP o HEIC."
 msgstr "Unsupported format. Use PNG, JPG, WEBP or HEIC."
 
-msgid "Volver a opciones"
-msgstr "Back to options"
-
+#: app/scanner/routes.py:85
 msgid "No se pudo procesar el archivo HEIC. Asegúrate de que no esté dañado."
 msgstr "Could not process the HEIC file. Make sure it is not corrupted."
 
-msgid "Formato no permitido. Usa PNG, JPG, WEBP o HEIC."
-msgstr "Format not allowed. Use PNG, JPG, WEBP or HEIC."
+#: app/scanner/routes.py:102
+msgid "Selecciona un proveedor."
+msgstr "Please select a provider."
+
+#: app/scanner/routes.py:123
+msgid "Conexión válida. Token y modelo correctos."
+msgstr "Connection valid. Token and model are correct."
+
+#: app/scanner/routes.py:134
+msgid "Escáner no configurado. Ve a Configuración → Escáner IA."
+msgstr ""
+
+#: app/scanner/routes.py:139
+msgid "No se proporcionó una imagen."
+msgstr ""
+
+#: app/scanner/routes.py:203
+msgid "No se encontró la categoría Scanner. Contacte al administrador."
+msgstr ""
+
+# ── Templates: base.html ──
+#: app/templates/base.html:58 app/templates/main/guia.html:145
+#: app/templates/main/guia.html:307 app/templates/main/transactions.html:7
+#: app/templates/usd/dashboard.html:203
+msgid "Movimientos"
+msgstr "Transactions"
+
+#: app/templates/base.html:64 app/templates/main/categories.html:7
+#: app/templates/main/guia.html:26 app/templates/main/guia.html:166
+#: app/templates/main/guia.html:168 app/templates/main/guia.html:308
+msgid "Categorías"
+msgstr "Categories"
+
+#: app/templates/analytics/dashboard.html:225 app/templates/base.html:70
+#: app/templates/main/budget.html:7 app/templates/main/dashboard.html:49
+#: app/templates/main/guia.html:106 app/templates/main/guia.html:191
+#: app/templates/usd/dashboard.html:34
+msgid "Presupuesto"
+msgstr "Budget"
+
+#: app/templates/base.html:82 app/templates/main/guia.html:232
+#: app/templates/main/guia.html:310
+#, fuzzy
+msgid "Metas"
+msgstr "Month"
+
+#: app/templates/base.html:88 app/templates/base.html:351
+#: app/templates/main/global_dashboard.html:50
+msgid "Global"
+msgstr "Global"
+
+#: app/templates/base.html:113
+msgid "Para cambiar el año sal de Movimientos"
+msgstr ""
+
+#: app/templates/base.html:132
+#, fuzzy
+msgid "Crear nuevo año"
+msgstr "Create New Year"
+
+#: app/templates/base.html:133 app/templates/main/guia.html:74
+msgid "Año"
+msgstr ""
+
+#: app/templates/base.html:136
+#, fuzzy, python-format
+msgid "Eliminar año %(year)s"
+msgstr "Delete Year %(year)s"
+
+#: app/templates/base.html:158
+msgid "Configurar"
+msgstr "Settings"
+
+#: app/templates/base.html:164 app/templates/main/guia.html:6
+msgid "Guía de uso"
+msgstr ""
+
+#: app/templates/base.html:185
+msgid "Cerrar Sesión"
+msgstr "Log Out"
+
+#: app/templates/base.html:203
+msgid "Crear Nuevo Año"
+msgstr "Create New Year"
+
+#: app/templates/base.html:210
+msgid "Año a crear"
+msgstr "Year to create"
+
+#: app/templates/base.html:215
+msgid "Al crear el año la vista cambiará a Enero de ese año."
+msgstr "When creating the year, the view will change to January of that year."
+
+#: app/templates/base.html:219 app/templates/base.html:253
+#: app/templates/main/budget.html:81 app/templates/main/budget.html:337
+#: app/templates/main/budget.html:407 app/templates/main/configurar.html:355
+#: app/templates/main/configurar.html:483
+#: app/templates/main/configurar.html:549
+#: app/templates/main/configurar.html:575 app/templates/main/meta_form.html:66
+#: app/templates/main/metas.html:195
+#: app/templates/main/recurrente_form.html:140
+#: app/templates/main/recurrentes.html:220
+#: app/templates/main/transaction_form.html:82
+#: app/templates/main/transactions.html:246
+#: app/templates/usd/dashboard.html:292 app/templates/usd/dashboard.html:338
+msgid "Cancelar"
+msgstr "Cancel"
+
+#: app/templates/base.html:222
+msgid "Crear"
+msgstr "Create"
+
+#: app/templates/base.html:237
+#, python-format
+msgid "Eliminar Año %(year)s"
+msgstr "Delete Year %(year)s"
+
+#: app/templates/base.html:247
+#, fuzzy, python-format
+msgid ""
+"Se eliminarán <strong>permanentemente</strong> todos los movimientos y "
+"presupuestos\n"
+"                            del año <strong>%(year)s</strong>."
+msgstr ""
+"All transactions and budgets for year <strong>%(year)s</strong> will be "
+"<strong>permanently</strong> deleted."
+
+#: app/templates/base.html:250
+msgid "Esta acción no se puede deshacer."
+msgstr "This action cannot be undone."
+
+#: app/templates/base.html:256 app/templates/main/budget.html:52
+#: app/templates/main/budget.html:197 app/templates/main/budget.html:307
+#: app/templates/main/budget.html:341 app/templates/main/categories.html:96
+#: app/templates/main/configurar.html:453 app/templates/main/guia.html:642
+#: app/templates/main/metas.html:111 app/templates/main/transactions.html:136
+#: app/templates/main/transactions.html:145
+#: app/templates/main/transactions.html:154
+#: app/templates/main/transactions.html:250
+msgid "Eliminar"
+msgstr "Delete"
+
+#: app/templates/base.html:273
+#, fuzzy, python-format
+msgid "¡Bienvenido a Monetra!"
+msgstr "Welcome, %(username)s!"
+
+#: app/templates/base.html:277
+msgid ""
+"Monetra te ayuda a registrar movimientos, presupuestar por mes y hacer\n"
+"                        seguimiento de metas de ahorro."
+msgstr ""
+
+#: app/templates/base.html:280
+msgid "Ve a <strong>Configurar</strong> y elige tu país y moneda."
+msgstr ""
+
+#: app/templates/base.html:281
+msgid "Agrega tus primeras transacciones desde <strong>Movimientos</strong>."
+msgstr ""
+
+#: app/templates/base.html:282
+msgid ""
+"Los íconos <i class=\"bi bi-question-circle-fill\"\n"
+"                                style=\"color:var(--monetra-"
+"primary,#00C896);\"></i> en los formularios explican cada\n"
+"                            campo."
+msgstr ""
+
+#: app/templates/base.html:289
+msgid "¡Entendido!"
+msgstr ""
+
+#: app/templates/base.html:304
+#, fuzzy
+msgid "Selecciona cuenta"
+msgstr "Account Settings"
+
+#: app/templates/base.html:306 app/templates/base.html:353
+#: app/templates/base.html:429 app/templates/main/categories.html:138
+#: app/templates/main/transactions.html:204
+#: app/templates/main/transactions.html:219
+#: app/templates/main/transactions.html:236
+#: app/templates/partials/announcements/v1_7.html:8
+#: app/templates/partials/announcements/v1_8.html:8
+#: app/templates/partials/announcements/v2_0.html:8
+#: app/templates/partials/announcements/v2_1.html:8
+#: app/templates/partials/announcements/v2_2.html:8
+#: app/templates/partials/announcements/v2_3.html:8
+#: app/templates/partials/scanner_modal.html:12
+#: app/templates/usd/dashboard.html:282 app/templates/usd/dashboard.html:308
+#, fuzzy
+msgid "Cerrar"
+msgstr "Create"
+
+#: app/templates/base.html:364
+#, fuzzy
+msgid "Datos"
+msgstr "Expenses"
+
+#: app/templates/base.html:365
+msgid "Resumen global de movimientos"
+msgstr ""
+
+#: app/templates/base.html:377
+msgid "Tendencias, predicciones y anomalías"
+msgstr ""
+
+#: app/templates/base.html:418
+msgid "Año de demostración — Solo lectura. Los datos demo no pueden editarse."
+msgstr ""
+
+#: app/templates/base.html:445 app/templates/main/transactions.html:14
+#: app/templates/partials/scanner_modal.html:10
+#, fuzzy
+msgid "Escanear recibo"
+msgstr "Scan this file"
+
+#: app/templates/base.html:502
+msgid "Sesión inactiva"
+msgstr ""
+
+#: app/templates/base.html:506
+msgid "Tu sesión se cerrará en"
+msgstr ""
+
+#: app/templates/base.html:508
+msgid "segundos por inactividad"
+msgstr ""
+
+#: app/templates/base.html:512
+#, fuzzy
+msgid "Seguir conectado"
+msgstr "Registration cancelled."
+
+#: app/templates/analytics/consolidated.html:4
+#, fuzzy
+msgid "Local"
+msgstr "Global"
+
+#: app/templates/analytics/consolidated.html:16
+msgid "Tipo de cambio:"
+msgstr ""
+
+#: app/templates/analytics/consolidated.html:26
+#: app/templates/main/categories.html:112
+#: app/templates/main/global_dashboard.html:157
+#: app/templates/main/guia.html:103 app/templates/main/guia.html:174
+#: app/templates/main/transactions.html:30
+#: app/templates/partials/insights_panel.html:173
+msgid "Ingresos"
+msgstr "Income"
+
+#: app/templates/analytics/consolidated.html:34
+#: app/templates/main/categories.html:111
+#: app/templates/main/global_dashboard.html:158
+#: app/templates/main/guia.html:104 app/templates/main/guia.html:173
+#: app/templates/main/transactions.html:31
+#: app/templates/partials/insights_panel.html:177
+msgid "Gastos"
+msgstr "Expenses"
+
+#: app/templates/analytics/consolidated.html:37
+msgid "Peso"
+msgstr ""
+
+#: app/templates/analytics/consolidated.html:50
+#: app/templates/main/guia.html:105
+#, fuzzy
+msgid "Balance"
+msgstr "Monthly Balance"
+
+#: app/templates/analytics/consolidated.html:65
+#: app/templates/usd/dashboard.html:73
+#, fuzzy
+msgid "Gasto por categoría"
+msgstr "Expenses by Category"
+
+#: app/templates/analytics/consolidated.html:94
+#, fuzzy
+msgid "Sin gastos en este mes."
+msgstr "No expenses recorded this month."
+
+# ── Templates: base.html ──
+#: app/templates/analytics/consolidated.html:104
+#, fuzzy
+msgid "Movimientos del mes"
+msgstr "Transactions"
+
+#: app/templates/analytics/consolidated.html:117
+#: app/templates/main/transactions.html:84
+msgid "Origen"
+msgstr ""
+
+#: app/templates/analytics/consolidated.html:161
+#: app/templates/usd/dashboard.html:95 app/templates/usd/dashboard.html:266
+#, fuzzy
+msgid "Sin movimientos en este mes."
+msgstr "No transactions recorded."
+
+#: app/templates/analytics/dashboard.html:5
+msgid "Crítico"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:6 app/templates/main/guia.html:199
+#: app/templates/main/guia.html:458
+msgid "Advertencia"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:7
+msgid "Informativo"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:9
+#: app/templates/partials/insights_panel.html:14
+#, fuzzy
+msgid "Alta"
+msgstr "To"
+
+#: app/templates/analytics/dashboard.html:9
+#: app/templates/partials/insights_panel.html:14
+#, fuzzy
+msgid "Media"
+msgstr "Edit"
+
+#: app/templates/analytics/dashboard.html:9
+#: app/templates/partials/insights_panel.html:14
+msgid "Baja"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:11
+msgid "Extrapolación del ritmo actual"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:12
+#, fuzzy
+msgid "Sin datos suficientes"
+msgstr "No data available."
+
+#: app/templates/analytics/dashboard.html:13
+msgid "Promedio móvil ponderado"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:14
+#, fuzzy
+msgid "Tendencia lineal"
+msgstr "Monthly Trend"
+
+#: app/templates/analytics/dashboard.html:15
+msgid "Solo recurrentes conocidos"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:16
+msgid "Recurrentes + ritmo variable actual"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:17
+msgid "Recurrentes + promedio variable"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:18
+msgid "Recurrentes + tendencia variable"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:27
+msgid "Ver consolidado"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:35
+#: app/templates/partials/insights_panel.html:20
+#, fuzzy
+msgid "Configurando"
+msgstr "Settings"
+
+#: app/templates/analytics/dashboard.html:35
+#: app/templates/partials/insights_panel.html:20
+msgid "Aprendiendo"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:35
+#: app/templates/partials/insights_panel.html:20
+msgid "Desarrollando"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:35
+#: app/templates/partials/insights_panel.html:20
+msgid "Completo"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:42
+msgid "Madurez del análisis"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:49
+#: app/templates/analytics/dashboard.html:103
+#: app/templates/analytics/dashboard.html:106
+#: app/templates/main/budget.html:182
+#: app/templates/partials/insights_panel.html:41
+#: app/templates/partials/insights_panel.html:91
+#: app/templates/partials/insights_panel.html:94
+#, fuzzy
+msgid "mes"
+msgstr "Month"
+
+#: app/templates/analytics/dashboard.html:49
+#: app/templates/analytics/dashboard.html:103
+#: app/templates/analytics/dashboard.html:106
+#: app/templates/partials/insights_panel.html:41
+#: app/templates/partials/insights_panel.html:91
+#: app/templates/partials/insights_panel.html:94
+msgid "meses"
+msgstr "months"
+
+#: app/templates/analytics/dashboard.html:49
+msgid "con datos"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:86
+msgid "Alertas básicas"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:86
+#, fuzzy
+msgid "Predicciones"
+msgstr "Actions"
+
+#: app/templates/analytics/dashboard.html:86
+#, fuzzy
+msgid "Tendencias"
+msgstr "Monthly Trend"
+
+#: app/templates/analytics/dashboard.html:86
+msgid "Análisis completo"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:100
+msgid ""
+"Registra transacciones durante este mes para activar las primeras "
+"predicciones"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:103
+#: app/templates/analytics/dashboard.html:106
+#: app/templates/partials/insights_panel.html:91
+#: app/templates/partials/insights_panel.html:94
+#, fuzzy
+msgid "Faltan"
+msgstr "Filter"
+
+#: app/templates/analytics/dashboard.html:103
+msgid "para predicciones más precisas basadas en tendencias históricas"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:106
+msgid "para que el modelo opere con máxima precisión"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:121
+msgid "Primeros pasos"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:125
+#, fuzzy
+msgid "Configuración inicial"
+msgstr "Current settings:"
+
+#: app/templates/analytics/dashboard.html:129
+msgid ""
+"Completa estos pasos para que Monetra pueda generar proyecciones y "
+"alertas precisas desde el primer mes."
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:137
+#, fuzzy
+msgid "Registra ingresos"
+msgstr "Register"
+
+#: app/templates/analytics/dashboard.html:138
+msgid "Agrega tus fuentes de ingreso del mes actual."
+msgstr ""
+
+# ── budget.html ──
+#: app/templates/analytics/dashboard.html:147
+#, fuzzy
+msgid "Define un presupuesto"
+msgstr "Define Budget"
+
+#: app/templates/analytics/dashboard.html:148
+msgid "Establece cuánto puedes gastar este mes."
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:157
+msgid "Agrega gastos fijos"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:158
+msgid "Arriendo, servicios y suscripciones que se repiten cada mes."
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:167
+#, fuzzy
+msgid "Crea una meta de ahorro"
+msgstr "Create your account in Monetra"
+
+#: app/templates/analytics/dashboard.html:168
+msgid "Define un objetivo con fecha para que el modelo lo siga."
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:177
+msgid "Ir al dashboard"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:181
+#, fuzzy
+msgid "Configurar recurrentes"
+msgstr "Account Settings"
+
+#: app/templates/analytics/dashboard.html:194
+msgid "Necesita atención"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:194
+msgid "Aceptable"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:194
+msgid "Saludable"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:199 app/templates/main/guia.html:427
+#: app/templates/partials/insights_panel.html:126
+msgid "Salud financiera"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:204
+#: app/templates/partials/insights_panel.html:131
+msgid "estimado"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:216
+msgid "Score mejorará con más datos"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:221
+msgid "Componentes del score"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:224
+msgid "Flujo de caja"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:226
+#: app/templates/partials/insights_panel.html:146
+msgid "Ahorro"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:227
+msgid "Anomalías"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:246
+#, python-format
+msgid "Pesos: cashflow 35%% · presupuesto 25%% · ahorro 25%% · anomalías 15%%"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:251
+msgid "Score no disponible para este periodo."
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:262
+msgid "Proyección de cierre del mes"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:267
+#, fuzzy
+msgid "confianza"
+msgstr "Settings"
+
+#: app/templates/analytics/dashboard.html:277
+#, fuzzy
+msgid "Ingresos esperados"
+msgstr "Income vs Expenses"
+
+#: app/templates/analytics/dashboard.html:283
+#, fuzzy
+msgid "Gastos esperados"
+msgstr "Monthly Expenses"
+
+#: app/templates/analytics/dashboard.html:289
+#: app/templates/partials/insights_panel.html:181
+#, fuzzy
+msgid "Balance proyectado"
+msgstr "Monthly Balance"
+
+#: app/templates/analytics/dashboard.html:295
+#, fuzzy
+msgid "Uso proyectado del presupuesto"
+msgstr "Budget Usage"
+
+#: app/templates/analytics/dashboard.html:300
+#, fuzzy
+msgid "Sin presupuesto"
+msgstr "Budget"
+
+#: app/templates/analytics/dashboard.html:311
+msgid "Ver datos que sustentan la proyección"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:325
+#, fuzzy
+msgid "Proyección no disponible."
+msgstr "No data available."
+
+#: app/templates/analytics/dashboard.html:336
+msgid "Alertas e insights"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:339
+msgid "alertas"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:359
+#, fuzzy
+msgid "Confianza:"
+msgstr "Settings"
+
+#: app/templates/analytics/dashboard.html:377
+msgid "Datos que la sustentan"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:399
+msgid "Todo en orden"
+msgstr ""
+
+#: app/templates/analytics/dashboard.html:400
+msgid "No se detectaron alertas para este mes."
+msgstr ""
+
+# ── Templates: login.html ──
+#: app/templates/auth/forgot_password.html:13 app/templates/auth/login.html:13
+#: app/templates/auth/reset_password.html:11
+#: app/templates/auth/verify_pending.html:13
+msgid "Tu dinero. Tu control. Tu futuro."
+msgstr "Your money. Your control. Your future."
+
+# ── Templates: forgot_password.html ──
+#: app/templates/auth/forgot_password.html:21
+msgid "Ingresa tu email y, si lo configuraste, te enviaremos instrucciones."
+msgstr "Enter your email and, if configured, we will send you instructions."
+
+#: app/templates/auth/forgot_password.html:41
+#: app/templates/auth/mfa_verify.html:42
+#: app/templates/auth/reset_password.html:48
+#: app/templates/auth/verify_pending.html:62
+msgid "Volver al inicio de sesión"
+msgstr "Back to login"
+
+#: app/templates/auth/login.html:19
+msgid "Inicia sesión en tu cuenta"
+msgstr "Sign in to your account"
+
+#: app/templates/auth/login.html:52
+msgid "¿Olvidaste tu contraseña?"
+msgstr "Forgot your password?"
+
+#: app/templates/auth/login.html:59
+msgid "o"
+msgstr ""
 
 # ── WebAuthn / Biometric auth ──
+#: app/templates/auth/login.html:65 app/templates/auth/login.html:173
+#: app/templates/main/guia.html:629 app/templates/main/guia.html:634
 msgid "Ingresar con Face ID / Huella"
 msgstr "Sign in with Face ID / Fingerprint"
 
-msgid "Autenticación biométrica"
-msgstr "Biometric authentication"
+#: app/templates/auth/login.html:73
+msgid "¿No tienes cuenta?"
+msgstr "Don't have an account?"
 
-msgid "Registrar este dispositivo"
-msgstr "Register this device"
+#: app/templates/auth/login.html:74
+msgid "Regístrate aquí"
+msgstr "Register here"
 
-msgid "Cambiar dispositivo"
-msgstr "Change device"
+#: app/templates/auth/login.html:120
+msgid "Verificando..."
+msgstr ""
 
-msgid "Inicia sesión con Face ID, huella dactilar o Windows Hello desde tu dispositivo móvil. El dispositivo hace la verificación — Monetra nunca almacena datos biométricos."
-msgstr "Sign in with Face ID, fingerprint, or Windows Hello from your mobile device. The device handles verification — Monetra never stores biometric data."
+#: app/templates/auth/login.html:129
+#, fuzzy
+msgid "Error al iniciar biometría."
+msgstr "Biometric verification failed. Use your password."
 
-msgid "Dispositivo registrado"
-msgstr "Registered device"
+#: app/templates/auth/login.html:168 app/templates/auth/login.html:177
+msgid "Error al verificar la biometría. Usa tu contraseña."
+msgstr "Biometric verification failed. Use your password."
 
-msgid "Registrado el"
-msgstr "Registered on"
-
-msgid "Tu navegador no soporta autenticación biométrica."
-msgstr "Your browser does not support biometric authentication."
-
-msgid "Dispositivo registrado correctamente. Recarga la página para ver los cambios."
-msgstr "Device registered successfully. Reload the page to see the changes."
-
-msgid "Registro cancelado."
-msgstr "Registration cancelled."
-
-msgid "Error al registrar el dispositivo."
-msgstr "Error registering the device."
-
-msgid "¿Eliminar el dispositivo biométrico registrado? Podrás seguir usando tu contraseña."
-msgstr "Delete the registered biometric device? You can still use your password."
-
-msgid "Ingresa tu correo primero."
-msgstr "Enter your email first."
-
+#: app/templates/auth/login.html:175
 msgid "Autenticación cancelada."
 msgstr "Authentication cancelled."
 
-msgid "Error al verificar la biometría. Usa tu contraseña."
-msgstr "Biometric verification failed. Use your password."
+#: app/templates/auth/mfa_verify.html:17
+msgid "Ingresa el código de tu aplicación autenticadora"
+msgstr ""
+
+# ── Templates: register.html ──
+#: app/templates/auth/register.html:14
+msgid "Empieza a ordenar tus finanzas personales"
+msgstr "Start organizing your personal finances"
+
+#: app/templates/auth/register.html:24
+msgid "Registro deshabilitado"
+msgstr "Registration disabled"
+
+#: app/templates/auth/register.html:26
+msgid "El registro de nuevos usuarios está deshabilitado por el administrador."
+msgstr "New user registration has been disabled by the administrator."
+
+#: app/templates/auth/register.html:30
+msgid "Ir al inicio de sesión"
+msgstr "Go to login"
+
+#: app/templates/auth/register.html:38
+msgid "Crea tu cuenta en Monetra"
+msgstr "Create your account in Monetra"
+
+#: app/templates/auth/register.html:47
+#, fuzzy
+msgid "Tu nombre de usuario"
+msgstr "That username is already taken."
+
+#: app/templates/auth/register.html:65
+msgid "Mínimo 10 caracteres"
+msgstr ""
+
+#: app/templates/auth/register.html:82
+msgid "10 caracteres"
+msgstr ""
+
+#: app/templates/auth/register.html:83
+msgid "Mayúscula"
+msgstr ""
+
+#: app/templates/auth/register.html:84
+msgid "Minúscula"
+msgstr ""
+
+#: app/templates/auth/register.html:85
+msgid "Número"
+msgstr ""
+
+#: app/templates/auth/register.html:86
+msgid "Carácter especial"
+msgstr ""
+
+#: app/templates/auth/register.html:93
+#, fuzzy
+msgid "Repite la contraseña"
+msgstr "Recover Password"
+
+#: app/templates/auth/register.html:105
+msgid "¿Ya tienes cuenta?"
+msgstr "Already have an account?"
+
+#: app/templates/auth/register.html:106
+msgid "Inicia sesión"
+msgstr "Sign in"
+
+# ── Templates: reset_password.html ──
+#: app/templates/auth/reset_password.html:17
+msgid "Elige una nueva contraseña"
+msgstr "Choose a new password"
+
+#: app/templates/auth/reset_password.html:19
+msgid "Tu cuenta será asegurada con esta nueva clave."
+msgstr "Your account will be secured with this new password."
+
+#: app/templates/auth/verify_pending.html:24
+#, fuzzy
+msgid "Revisa tu correo electrónico"
+msgstr "Enter your email first."
+
+#: app/templates/auth/verify_pending.html:29
+#, fuzzy
+msgid "Enviamos un enlace de activación a"
+msgstr "Send Recovery Link"
+
+#: app/templates/auth/verify_pending.html:36
+msgid "Enviamos un enlace de activación a tu correo."
+msgstr ""
+
+#: app/templates/auth/verify_pending.html:41
+msgid ""
+"Haz clic en el enlace del correo para activar tu cuenta. El enlace expira"
+" en 24 horas."
+msgstr ""
+
+#: app/templates/auth/verify_pending.html:54
+#, fuzzy, python-format
+msgid "Reenviar correo de activación"
+msgstr "Send test email to %(email)s"
+
+#: app/templates/main/budget.html:7
+#, python-format
+msgid ""
+"Define el límite de gasto mensual. El dashboard te avisa en amarillo al "
+"80%% y en rojo al 100%%."
+msgstr ""
+
+#: app/templates/main/budget.html:18
+#, fuzzy
+msgid "Editar Presupuesto Mensual"
+msgstr "Define budget →"
+
+#: app/templates/main/budget.html:20
+#, fuzzy
+msgid "Presupuesto Mensual Generado"
+msgstr "Budget updated."
+
+#: app/templates/main/budget.html:22
+#, fuzzy
+msgid "Crear Presupuesto Mensual"
+msgstr "Save Budget"
+
+#: app/templates/main/budget.html:26
+msgid "Generado"
+msgstr ""
+
+#: app/templates/main/budget.html:36
+#, fuzzy
+msgid "Este presupuesto ya está generado para el mes seleccionado."
+msgstr "If a budget already exists for the selected month, it will be replaced."
+
+#: app/templates/main/budget.html:41 app/templates/main/recurrentes.html:256
+#, fuzzy
+msgid "Monto mensual"
+msgstr "Monthly Balance"
+
+#: app/templates/main/budget.html:45 app/templates/main/budget.html:188
+#: app/templates/main/budget.html:302 app/templates/main/budget.html:303
+#: app/templates/main/metas.html:104 app/templates/main/recurrentes.html:109
+#: app/templates/main/transactions.html:128
+msgid "Editar"
+msgstr "Edit"
+
+#: app/templates/main/budget.html:49
+#, fuzzy, python-format
+msgid "¿Eliminar el presupuesto de %(month)s?"
+msgstr "Delete this transaction?"
+
+#: app/templates/main/budget.html:67
+#, python-format
+msgid ""
+"Verde <80%%, Amarillo ≥80%%, Rojo ≥100%% del presupuesto gastado en el "
+"mes."
+msgstr ""
+
+#: app/templates/main/budget.html:84
+#, fuzzy
+msgid "Guardar cambios"
+msgstr "Save"
+
+#: app/templates/main/budget.html:84
+#, fuzzy
+msgid "Crear presupuesto"
+msgstr "Save Budget"
+
+#: app/templates/main/budget.html:94
+#, fuzzy, python-format
+msgid "No hay presupuesto definido para %(month)s %(year)s."
+msgstr "No budgets defined for %(year)s."
+
+#: app/templates/main/budget.html:95
+msgid ""
+"Define un monto límite y el dashboard te avisará cuando te acerques al "
+"tope."
+msgstr ""
+
+#: app/templates/main/budget.html:99
+#, fuzzy
+msgid "Presupuesto actual"
+msgstr "Budget updated."
+
+#: app/templates/main/budget.html:101
+#, fuzzy
+msgid "Editando"
+msgstr "Edit"
+
+#: app/templates/main/budget.html:115
+#, fuzzy
+msgid "Presupuestos por Categoría"
+msgstr "Expenses by Category"
+
+#: app/templates/main/budget.html:121
+msgid "Límite mensual recurrente por categoría de gasto"
+msgstr ""
+
+#: app/templates/main/budget.html:133
+#, fuzzy
+msgid "Agregar presupuesto de categoría"
+msgstr "Save Budget"
+
+#: app/templates/main/budget.html:159
+msgid "Este monto se reinicia cada mes automáticamente."
+msgstr ""
+
+#: app/templates/main/budget.html:173
+#, fuzzy
+msgid "Activos"
+msgstr "Actions"
+
+#: app/templates/main/budget.html:194
+#, python-format
+msgid "¿Eliminar el presupuesto de %(cat)s?"
+msgstr ""
+
+#: app/templates/main/budget.html:213
+#, fuzzy
+msgid "No tienes presupuestos de categoría definidos."
+msgstr "You have no budget defined for this month."
+
+#: app/templates/main/budget.html:221
+msgid ""
+"Has alcanzado el máximo de 5 presupuestos de categoría. Elimina uno para "
+"agregar otro."
+msgstr ""
+
+#: app/templates/main/budget.html:232
+#, fuzzy
+msgid "Presupuesto Personalizado"
+msgstr "Budget updated."
+
+#: app/templates/main/budget.html:234
+msgid "Libre"
+msgstr ""
+
+#: app/templates/main/budget.html:237
+msgid "Rango dentro del mes seleccionado · desde hoy · uno por mes"
+msgstr ""
+
+#: app/templates/main/budget.html:246
+msgid "Historial de presupuestos personalizados finalizados"
+msgstr ""
+
+#: app/templates/main/budget.html:256 app/templates/main/guia.html:218
+msgid "Finalizado"
+msgstr ""
+
+#: app/templates/main/budget.html:259
+msgid "Creado para:"
+msgstr ""
+
+#: app/templates/main/budget.html:265
+msgid "Consumido:"
+msgstr ""
+
+#: app/templates/main/budget.html:274
+#, fuzzy
+msgid "Presupuesto original"
+msgstr "Budget created."
+
+#: app/templates/main/budget.html:293
+#, fuzzy, python-format
+msgid "Categoría: %(name)s"
+msgstr "Categories"
+
+#: app/templates/main/budget.html:298
+#, fuzzy
+msgid "Presupuesto total"
+msgstr "Budget"
+
+#: app/templates/main/budget.html:310 app/templates/main/guia.html:217
+msgid "Vigente"
+msgstr ""
+
+#: app/templates/main/budget.html:316
+msgid "El seguimiento en tiempo real se visualiza en el Dashboard mensual."
+msgstr ""
+
+# ── global_dashboard.html ──
+#: app/templates/main/budget.html:317
+#, fuzzy
+msgid "Ver Dashboard →"
+msgstr "Global Dashboard"
+
+#: app/templates/main/budget.html:325
+#, fuzzy
+msgid "Eliminar presupuesto personalizado"
+msgstr "Budget updated."
+
+#: app/templates/main/budget.html:330
+#, python-format
+msgid "¿Eliminar el presupuesto <strong>%(name)s</strong>?"
+msgstr ""
+
+#: app/templates/main/budget.html:333
+#, python-format
+msgid ""
+"Se eliminarán también <strong>todos los movimientos y "
+"recurrentes</strong> asociados a la categoría \"%(n)s\", junto con la "
+"categoría misma. Esta acción no se puede deshacer."
+msgstr ""
+
+#: app/templates/main/budget.html:354
+msgid "Editando presupuesto personalizado — modifica los campos y guarda."
+msgstr ""
+
+#: app/templates/main/budget.html:368
+msgid "No se puede crear un presupuesto personalizado para un mes anterior."
+msgstr ""
+
+#: app/templates/main/budget.html:378
+msgid ""
+"Crea una categoría con este nombre para registrar gastos asociados al "
+"presupuesto."
+msgstr ""
+
+#: app/templates/main/budget.html:380
+msgid "Ej: Remodelación, Proyecto X"
+msgstr ""
+
+#: app/templates/main/categories.html:8
+msgid ""
+"Las categorías por defecto son globales y no se pueden eliminar. Las "
+"tuyas son personales y puedes borrarlas si no tienen datos asociados."
+msgstr ""
+
+# ── categories.html ──
+#: app/templates/main/categories.html:16
+msgid "Nueva Categoría"
+msgstr "New Category"
+
+#: app/templates/main/categories.html:24
+msgid "Ej: Gimnasio, Mascotas..."
+msgstr "E.g.: Gym, Pets..."
+
+#: app/templates/main/categories.html:59
+#: app/templates/main/recurrente_form.html:154
+msgid "Por defecto"
+msgstr ""
+
+#: app/templates/main/categories.html:71
+#, fuzzy
+msgid "Sin categorías por defecto."
+msgstr "No expense categories."
+
+#: app/templates/main/categories.html:78
+#, fuzzy
+msgid "Tuyas"
+msgstr "yours"
+
+#: app/templates/main/categories.html:91
+#, fuzzy, python-format
+msgid "¿Eliminar la categoría %(name)s?"
+msgstr "Delete Year %(year)s"
+
+#: app/templates/main/categories.html:102
+msgid "Aún no creaste ninguna."
+msgstr ""
+
+#: app/templates/main/categories.html:134
+msgid "No se puede eliminar"
+msgstr ""
+
+#: app/templates/main/categories.html:143
+#, fuzzy
+msgid "La categoría"
+msgstr "Category"
+
+#: app/templates/main/categories.html:145
+msgid "no puede eliminarse porque tiene datos asociados:"
+msgstr ""
+
+# ── Templates: base.html ──
+#: app/templates/main/categories.html:151
+#, fuzzy
+msgid "movimiento(s)"
+msgstr "Transactions"
+
+#: app/templates/main/categories.html:157
+msgid "transacción(es) recurrente(s)"
+msgstr ""
+
+#: app/templates/main/categories.html:163
+#, fuzzy
+msgid "presupuesto(s) de categoría"
+msgstr "Budget created."
+
+#: app/templates/main/categories.html:169
+msgid "Reasigna o elimina esos datos primero para poder borrar esta categoría."
+msgstr ""
+
+#: app/templates/main/categories.html:176
+#: app/templates/partials/announcements/v2_1.html:71
+#: app/templates/partials/announcements/v2_2.html:56
+#: app/templates/partials/announcements/v2_3.html:56
+msgid "Entendido"
+msgstr ""
+
+# ── configurar.html ──
+#: app/templates/main/configurar.html:12
+msgid "Administrador"
+msgstr "Administrator"
+
+#: app/templates/main/configurar.html:46
+msgid "Se usará en todos los montos de la app (meses, años, presupuestos)."
+msgstr "Will be used for all amounts in the app (months, years, budgets)."
+
+#: app/templates/main/configurar.html:71
+msgid ""
+"Se usará para convertir los movimientos USD al consolidado en tu moneda "
+"principal."
+msgstr ""
+
+#: app/templates/main/configurar.html:87
+msgid "Configuración actual:"
+msgstr "Current settings:"
+
+#: app/templates/main/configurar.html:89
+msgid "Símbolo:"
+msgstr "Symbol:"
+
+#: app/templates/main/configurar.html:100
+msgid "Apariencia"
+msgstr ""
+
+#: app/templates/main/configurar.html:105
+msgid "Elige el tema visual de tu cuenta. El cambio se aplica de inmediato."
+msgstr ""
+
+#: app/templates/main/configurar.html:110
+#, fuzzy
+msgid "Dark"
+msgstr "Edit"
+
+#: app/templates/main/configurar.html:111
+#, fuzzy
+msgid "Ocean"
+msgstr "Create"
+
+#: app/templates/main/configurar.html:112
+#, fuzzy
+msgid "Carbon"
+msgstr "Loaded"
+
+#: app/templates/main/configurar.html:113
+msgid "Dusk"
+msgstr ""
+
+#: app/templates/main/configurar.html:114
+msgid "Forest"
+msgstr ""
+
+#: app/templates/main/configurar.html:115
+#, fuzzy
+msgid "Pearl"
+msgstr "Email"
+
+#: app/templates/main/configurar.html:116
+msgid "Enterprise"
+msgstr ""
+
+#: app/templates/main/configurar.html:117
+msgid "Abyss"
+msgstr ""
+
+#: app/templates/main/configurar.html:118
+msgid "Graphite"
+msgstr ""
+
+#: app/templates/main/configurar.html:173
+msgid "Opciones de Administrador"
+msgstr "Administrator Options"
+
+#: app/templates/main/configurar.html:184
+msgid "Permitir registro de nuevos usuarios"
+msgstr "Allow new user registration"
+
+#: app/templates/main/configurar.html:189
+msgid "Si está desactivado, nadie podrá crear cuentas nuevas."
+msgstr "If disabled, no one will be able to create new accounts."
+
+#: app/templates/main/configurar.html:198
+#, fuzzy
+msgid "Registro de Auditoría"
+msgstr "Registration disabled"
+
+#: app/templates/main/configurar.html:213
+#: app/templates/main/configurar.html:397
+#: app/templates/main/configurar.html:426
+#, fuzzy
+msgid "Activo"
+msgstr "Type"
+
+#: app/templates/main/configurar.html:217
+msgid ""
+"Token de acceso personal para consumir la API desde agentes o "
+"aplicaciones externas. Activo mientras exista; solo puede haber uno por "
+"usuario."
+msgstr ""
+
+#: app/templates/main/configurar.html:227
+#: app/templates/main/configurar.html:1046
+#: app/templates/main/recurrentes.html:69
+#: app/templates/main/recurrentes.html:158
+#, fuzzy
+msgid "Creado"
+msgstr "Loaded"
+
+#: app/templates/main/configurar.html:229
+#: app/templates/main/configurar.html:1046
+msgid "Último uso"
+msgstr ""
+
+#: app/templates/main/configurar.html:229
+#: app/templates/main/configurar.html:1046
+msgid "Nunca"
+msgstr ""
+
+#: app/templates/main/configurar.html:236
+#, fuzzy
+msgid "Regenerar"
+msgstr "Register"
+
+#: app/templates/main/configurar.html:239
+#, fuzzy
+msgid "Revocar"
+msgstr "Create"
+
+#: app/templates/main/configurar.html:246
+msgid "Generar Token"
+msgstr ""
+
+#: app/templates/main/configurar.html:254
+msgid "Copia este token ahora. No se volverá a mostrar."
+msgstr ""
+
+#: app/templates/main/configurar.html:260
+#, fuzzy
+msgid "Copiar"
+msgstr "Settings"
+
+#: app/templates/main/configurar.html:273 app/templates/main/guia.html:34
+#: app/templates/main/guia.html:395 app/templates/main/guia.html:568
+msgid "Escáner IA"
+msgstr ""
+
+#: app/templates/main/configurar.html:278
+msgid ""
+"Usa la cámara de tu dispositivo para fotografiar un recibo. La IA extrae "
+"el monto y los productos automáticamente."
+msgstr ""
+
+#: app/templates/main/configurar.html:286
+msgid ""
+"La imagen del recibo se envía al proveedor de IA que configures. No se "
+"almacena en Monetra."
+msgstr ""
+
+#: app/templates/main/configurar.html:310
+msgid "ej. gpt-4o"
+msgstr ""
+
+#: app/templates/main/configurar.html:313
+msgid ""
+"El modelo debe soportar imágenes (multimodal). Ej: gpt-4o, "
+"claude-3-5-sonnet, gemini-1.5-flash."
+msgstr ""
+"The model must support images (multimodal). E.g.: gpt-4o, "
+"claude-3-5-sonnet, gemini-1.5-flash."
+
+#: app/templates/main/configurar.html:320
+msgid "https://api.openai.com/v1  (dejar vacío para usar el default)"
+msgstr ""
+
+#: app/templates/main/configurar.html:321
+msgid ""
+"Solo para proveedores compatibles con OpenAI (OpenAI, DeepSeek, "
+"OpenRouter). Dejar vacío usa la URL oficial."
+msgstr ""
+
+#: app/templates/main/configurar.html:338
+#, fuzzy
+msgid "Cambiar"
+msgstr "Change file"
+
+#: app/templates/main/configurar.html:342
+msgid ""
+"Token guardado. Usa \"Probar conexión\" para verificarlo o \"Cambiar\" "
+"para reemplazarlo."
+msgstr ""
+
+#: app/templates/main/configurar.html:350
+#, fuzzy
+msgid "Ingresa el nuevo token y guarda. Deja vacío para conservar el actual."
+msgstr "Leave blank to keep the current one."
+
+#: app/templates/main/configurar.html:363
+msgid "Tu token de API del proveedor seleccionado. Se guarda cifrado."
+msgstr ""
+
+# ── Scanner AI ──
+#: app/templates/main/configurar.html:374
+msgid "Probar conexión"
+msgstr "Test connection"
+
+#: app/templates/main/configurar.html:388
+#, fuzzy
+msgid "Seguridad"
+msgstr "Save"
+
+#: app/templates/main/configurar.html:395
+#, fuzzy
+msgid "Autenticación en dos pasos (MFA)"
+msgstr "Biometric authentication"
+
+#: app/templates/main/configurar.html:400
+#: app/templates/main/configurar.html:428
+msgid "Inactivo"
+msgstr ""
+
+#: app/templates/main/configurar.html:404
+msgid ""
+"Protege tu cuenta con un código adicional generado por Google "
+"Authenticator, Authy u otra\n"
+"                    aplicación TOTP."
+msgstr ""
+
+#: app/templates/main/configurar.html:410
+#: app/templates/main/configurar.html:564
+msgid "Desactivar MFA"
+msgstr ""
+
+#: app/templates/main/configurar.html:414
+msgid "Activar MFA"
+msgstr ""
+
+#: app/templates/main/configurar.html:424 app/templates/main/guia.html:35
+#: app/templates/main/guia.html:403 app/templates/main/guia.html:612
+msgid "Autenticación biométrica"
+msgstr "Biometric authentication"
+
+#: app/templates/main/configurar.html:432
+msgid ""
+"Inicia sesión con Face ID, huella dactilar o Windows Hello desde tu "
+"dispositivo móvil. El dispositivo hace la verificación — Monetra nunca "
+"almacena datos biométricos."
+msgstr ""
+"Sign in with Face ID, fingerprint, or Windows Hello from your mobile "
+"device. The device handles verification — Monetra never stores biometric "
+"data."
+
+#: app/templates/main/configurar.html:441
+msgid "Dispositivo registrado"
+msgstr "Registered device"
+
+#: app/templates/main/configurar.html:444
+msgid "Registrado el"
+msgstr "Registered on"
+
+#: app/templates/main/configurar.html:450
+msgid "Cambiar dispositivo"
+msgstr "Change device"
+
+#: app/templates/main/configurar.html:459
+#: app/templates/main/configurar.html:1351
+msgid "Tu navegador no soporta autenticación biométrica."
+msgstr "Your browser does not support biometric authentication."
+
+#: app/templates/main/configurar.html:462 app/templates/main/guia.html:625
+msgid "Registrar este dispositivo"
+msgstr "Register this device"
+
+#: app/templates/main/configurar.html:471
+#, fuzzy
+msgid "Confirma tu contraseña para continuar."
+msgstr "Confirm Password"
+
+#: app/templates/main/configurar.html:476
+#, fuzzy
+msgid "Tu contraseña actual"
+msgstr "SMTP Password"
+
+#: app/templates/main/configurar.html:480
+#: app/templates/main/configurar.html:1400
+#, fuzzy
+msgid "Continuar"
+msgstr "Settings"
+
+#: app/templates/main/configurar.html:496
+msgid "Al guardar se cerrará la sesión automáticamente."
+msgstr ""
+
+#: app/templates/main/configurar.html:509
+msgid "Mín. 10 caracteres, mayúscula, minúscula, número y carácter especial."
+msgstr ""
+
+#: app/templates/main/configurar.html:527
+msgid ""
+"Activar\n"
+"                            autenticación en dos pasos"
+msgstr ""
+
+#: app/templates/main/configurar.html:532
+msgid ""
+"Escanea este código QR con tu aplicación autenticadora y\n"
+"                            luego ingresa el código de 6 dígitos para "
+"confirmar."
+msgstr ""
+
+#: app/templates/main/configurar.html:537
+msgid "¿No puedes escanear? Ingresa esta clave manualmente:"
+msgstr ""
+
+#: app/templates/main/configurar.html:552
+#, fuzzy
+msgid "Confirmar y activar"
+msgstr "Confirm Password"
+
+#: app/templates/main/configurar.html:568
+msgid ""
+"Ingresa el código actual de tu aplicación autenticadora\n"
+"                            para desactivar la protección."
+msgstr ""
+
+#: app/templates/main/configurar.html:578
+msgid "Desactivar"
+msgstr ""
+
+#: app/templates/main/configurar.html:588
+#, fuzzy
+msgid ""
+"Configuración de correo\n"
+"                    (SMTP)"
+msgstr "Email configuration (SMTP)"
+
+#: app/templates/main/configurar.html:590
+#, fuzzy
+msgid ""
+"Permite enviar correos desde tu propia cuenta, como recordatorios\n"
+"                    o recuperación de contraseña."
+msgstr ""
+"Allows sending emails from your own account, such as reminders or "
+"password recovery."
+
+#: app/templates/main/configurar.html:597
+msgid "¿Cómo funciona la recuperación de contraseña?"
+msgstr ""
+
+#: app/templates/main/configurar.html:601
+msgid ""
+"Si activas tu propio SMTP, tus correos de recuperación se enviarán desde "
+"tu cuenta."
+msgstr ""
+
+#: app/templates/main/configurar.html:603
+msgid ""
+"Si no lo activas, el sistema usará automáticamente el\n"
+"                            SMTP del administrador para enviarte el "
+"correo (sin necesidad de que configures nada)."
+msgstr ""
+
+#: app/templates/main/configurar.html:605
+msgid ""
+"Si no lo activas y el administrador no tiene SMTP configurado, la\n"
+"                            recuperación por correo no estará disponible."
+msgstr ""
+
+#: app/templates/main/configurar.html:626
+msgid "ej. smtp.gmail.com"
+msgstr "e.g. smtp.gmail.com"
+
+#: app/templates/main/configurar.html:650
+#, fuzzy
+msgid ""
+"Deja en blanco para conservar la\n"
+"                                    actual."
+msgstr "Leave blank to keep the current one."
+
+#: app/templates/main/configurar.html:651
+msgid "Usa contraseñas de aplicación si es Gmail."
+msgstr "Use app passwords if using Gmail."
+
+#: app/templates/main/configurar.html:695
+#, python-format
+msgid "Enviar correo de prueba a %(email)s"
+msgstr "Send test email to %(email)s"
+
+#: app/templates/main/configurar.html:699
+msgid "Utilizará los ajustes guardados."
+msgstr "Will use the saved settings."
+
+#: app/templates/main/configurar.html:708
+msgid "Reporte semanal por email"
+msgstr ""
+
+#: app/templates/main/configurar.html:711
+msgid ""
+"Recibe tu resumen Excel todos los lunes a las 10:00 AM (UTC). Incluye el "
+"año en curso desde\n"
+"                    enero hasta el mes actual."
+msgstr ""
+
+#: app/templates/main/configurar.html:722
+msgid "Activar reporte semanal"
+msgstr ""
+
+#: app/templates/main/configurar.html:736
+msgid "Enviar ahora"
+msgstr ""
+
+#: app/templates/main/configurar.html:739
+msgid "Genera y envía el Excel del año en curso a"
+msgstr ""
+
+#: app/templates/main/configurar.html:747
+msgid ""
+"Para enviar reportes necesitas configurar un SMTP (propio o del "
+"administrador)."
+msgstr ""
+
+#: app/templates/main/configurar.html:754
+msgid "Recuperación activa — SMTP propio"
+msgstr ""
+
+#: app/templates/main/configurar.html:758
+msgid "Recuperación activa — vía administrador"
+msgstr ""
+
+#: app/templates/main/configurar.html:762
+#, fuzzy
+msgid "Recuperación por correo: no disponible"
+msgstr "Email recovery: not configured"
+
+#: app/templates/main/configurar.html:774
+msgid "Ayuda Progresiva"
+msgstr ""
+
+#: app/templates/main/configurar.html:779
+msgid ""
+"Cuando está activa, los formularios muestran íconos de ayuda con "
+"explicaciones contextuales\n"
+"                    sobre cada campo."
+msgstr ""
+
+#: app/templates/main/configurar.html:788
+msgid "Mostrar íconos de ayuda en formularios"
+msgstr ""
+
+#: app/templates/main/configurar.html:800 app/templates/main/guia.html:363
+msgid "Panel de Insights"
+msgstr ""
+
+#: app/templates/main/configurar.html:805
+msgid ""
+"Muestra Salud financiera, Proyección de cierre y Alertas en el dashboard "
+"mensual."
+msgstr ""
+
+#: app/templates/main/configurar.html:814
+msgid "Activar panel de insights"
+msgstr ""
+
+#: app/templates/main/configurar.html:824
+msgid "Datos Demo"
+msgstr "Demo Data"
+
+#: app/templates/main/configurar.html:829
+#, fuzzy
+msgid ""
+"Carga transacciones de ejemplo para explorar los dashboards sin ingresar "
+"datos reales. Puedes\n"
+"                    eliminarlos en cualquier momento sin afectar tus "
+"datos."
+msgstr ""
+"Load sample transactions to explore the dashboards without entering real "
+"data. You can delete them at any time without affecting your data."
+
+#: app/templates/main/configurar.html:837 app/templates/main/guia.html:25
+#: app/templates/main/guia.html:143
+msgid "Transacciones"
+msgstr "Transactions"
+
+#: app/templates/main/configurar.html:841
+msgid "Total gastos"
+msgstr "Total expenses"
+
+#: app/templates/main/configurar.html:845 app/templates/main/guia.html:305
+#: app/templates/main/guia.html:306 app/templates/main/guia.html:307
+#: app/templates/main/guia.html:308 app/templates/main/guia.html:309
+#: app/templates/main/guia.html:312
+msgid "Período"
+msgstr "Period"
+
+#: app/templates/main/configurar.html:852
+#: app/templates/main/configurar.html:932
+msgid "Cargar demo"
+msgstr "Load demo"
+
+#: app/templates/main/configurar.html:855
+msgid "Resetear demo"
+msgstr "Reset demo"
+
+#: app/templates/main/configurar.html:929
+msgid "Cargado"
+msgstr "Loaded"
+
+#: app/templates/main/configurar.html:930
+msgid "No cargado"
+msgstr "Not loaded"
+
+#: app/templates/main/configurar.html:931
+msgid "Cargando…"
+msgstr "Loading…"
+
+#: app/templates/main/configurar.html:933
+#: app/templates/main/configurar.html:1264
+msgid "Error de conexión."
+msgstr "Connection error."
+
+#: app/templates/main/configurar.html:934
+msgid "¿Eliminar todos los datos demo? Esta acción no se puede deshacer."
+msgstr "Delete all demo data? This action cannot be undone."
+
+#: app/templates/main/configurar.html:1053
+#, fuzzy
+msgid "Error al generar el token."
+msgstr "Error registering the device."
+
+#: app/templates/main/configurar.html:1061
+msgid ""
+"¿Seguro que quieres revocar el token? Los agentes que lo usen perderán "
+"acceso."
+msgstr ""
+
+#: app/templates/main/configurar.html:1069
+#, fuzzy
+msgid "Error al revocar el token."
+msgstr "Error registering the device."
+
+#: app/templates/main/configurar.html:1110
+#, fuzzy
+msgid "Error al generar el QR."
+msgstr "Error registering the device."
+
+#: app/templates/main/configurar.html:1122
+#: app/templates/main/configurar.html:1135 app/templates/main/metas.html:296
+msgid "Error."
+msgstr ""
+
+#: app/templates/main/configurar.html:1212
+msgid "Modelo recomendado: "
+msgstr ""
+
+#: app/templates/main/configurar.html:1227
+msgid "Guarda el nuevo token primero para probarlo."
+msgstr ""
+
+#: app/templates/main/configurar.html:1383
+#, fuzzy
+msgid "Ingresa tu contraseña."
+msgstr "New Password"
+
+#: app/templates/main/configurar.html:1411
+#, fuzzy
+msgid "Error al iniciar registro."
+msgstr "Error registering the device."
+
+#: app/templates/main/configurar.html:1445
+msgid ""
+"Dispositivo registrado correctamente. Recarga la página para ver los "
+"cambios."
+msgstr "Device registered successfully. Reload the page to see the changes."
+
+#: app/templates/main/configurar.html:1448
+#, fuzzy
+msgid "Error al registrar."
+msgstr "Error registering the device."
+
+#: app/templates/main/configurar.html:1454
+msgid "Registro cancelado."
+msgstr "Registration cancelled."
+
+#: app/templates/main/configurar.html:1455
+#: app/templates/main/configurar.html:1457
+#: app/templates/main/configurar.html:1484
+#: app/templates/main/configurar.html:1485
+#, fuzzy
+msgid "Contraseña incorrecta."
+msgstr "Incorrect email or password."
+
+#: app/templates/main/configurar.html:1459
+msgid "Error al registrar el dispositivo."
+msgstr "Error registering the device."
+
+#: app/templates/main/configurar.html:1471
+#: app/templates/main/configurar.html:1479
+#: app/templates/main/configurar.html:1488
+#, fuzzy
+msgid "Error al eliminar."
+msgstr "Delete"
+
+#: app/templates/main/dashboard.html:6
+msgid "Resumen del mes: ingresos, gastos, balance y comparativa vs. presupuesto."
+msgstr ""
+
+# ── dashboard.html ──
+#: app/templates/main/dashboard.html:16
+msgid "Ingresos del Mes"
+msgstr "Monthly Income"
+
+#: app/templates/main/dashboard.html:27
+msgid "Gastos del Mes"
+msgstr "Monthly Expenses"
+
+#: app/templates/main/dashboard.html:38
+msgid "Balance Mensual"
+msgstr "Monthly Balance"
+
+#: app/templates/main/dashboard.html:51
+msgid "No definido"
+msgstr "Not set"
+
+#: app/templates/main/dashboard.html:68
+msgid "Uso del Presupuesto"
+msgstr "Budget Usage"
+
+#: app/templates/main/dashboard.html:70 app/templates/main/dashboard.html:120
+msgid "gastado de"
+msgstr "spent of"
+
+#: app/templates/main/dashboard.html:89
+msgid "No tienes presupuesto definido para este mes."
+msgstr "You have no budget defined for this month."
+
+#: app/templates/main/dashboard.html:90
+msgid "Definir presupuesto →"
+msgstr "Define budget →"
+
+#: app/templates/main/dashboard.html:102
+#, fuzzy
+msgid "Personalizado"
+msgstr "Period"
+
+#: app/templates/main/dashboard.html:138
+#, fuzzy
+msgid "Restante:"
+msgstr "Register"
+
+#: app/templates/main/dashboard.html:139
+msgid "Acumulado en todo el período · no se reinicia por mes"
+msgstr ""
+
+#: app/templates/main/dashboard.html:150
+#: app/templates/main/global_dashboard.html:66
+msgid "Gastos por Categoría"
+msgstr "Expenses by Category"
+
+#: app/templates/main/dashboard.html:160
+msgid "Sin gastos registrados este mes."
+msgstr "No expenses recorded this month."
+
+#: app/templates/main/dashboard.html:169
+msgid "Últimos Movimientos"
+msgstr "Recent Transactions"
+
+#: app/templates/main/dashboard.html:171
+msgid "Nuevo"
+msgstr "New"
+
+#: app/templates/main/dashboard.html:202
+msgid "Sin movimientos registrados."
+msgstr "No transactions recorded."
+
+#: app/templates/main/dashboard.html:212
+msgid "Ver todos los movimientos →"
+msgstr "View all transactions →"
+
+#: app/templates/main/dashboard.html:226
+#, fuzzy
+msgid "Ver todas →"
+msgstr "All"
+
+#: app/templates/main/dashboard.html:239 app/templates/main/metas.html:77
+msgid "Vencida"
+msgstr ""
+
+#: app/templates/main/dashboard.html:239
+msgid "Hoy"
+msgstr ""
+
+#: app/templates/main/dashboard.html:266
+msgid "Seguimiento de este mes"
+msgstr ""
+
+# ── global_dashboard.html ──
+#: app/templates/main/global_dashboard.html:8
+msgid "Dashboard Global"
+msgstr "Global Dashboard"
+
+#: app/templates/main/global_dashboard.html:8
+msgid ""
+"Vista anual: compara meses, analiza gastos por categoría y evolución del "
+"balance a lo largo del año."
+msgstr ""
+
+#: app/templates/main/global_dashboard.html:24
+msgid "Desde"
+msgstr "From"
+
+#: app/templates/main/global_dashboard.html:32
+msgid "Hasta"
+msgstr "To"
+
+#: app/templates/main/global_dashboard.html:40
+msgid "Aplicar"
+msgstr "Apply"
+
+#: app/templates/main/global_dashboard.html:44
+msgid "Exportar Excel"
+msgstr ""
+
+#: app/templates/main/global_dashboard.html:55
+#, fuzzy
+msgid "Mensual"
+msgstr "Monthly Balance"
+
+#: app/templates/main/global_dashboard.html:81
+msgid "Sin gastos para el período seleccionado."
+msgstr "No expenses for the selected period."
+
+#: app/templates/main/global_dashboard.html:91
+msgid "Tendencia Mensual"
+msgstr "Monthly Trend"
+
+#: app/templates/main/global_dashboard.html:92
+msgid "Ingresos vs Gastos"
+msgstr "Income vs Expenses"
+
+#: app/templates/main/global_dashboard.html:104
+msgid "Tendencia de gastos por año"
+msgstr "Expense Trend by Year"
+
+#: app/templates/main/global_dashboard.html:105
+msgid "Comparación mensual agrupada por año"
+msgstr "Monthly comparison grouped by year"
+
+#: app/templates/main/global_dashboard.html:116
+msgid "Sin datos de gastos para comparar tendencias."
+msgstr "No expense data to compare trends."
+
+#: app/templates/main/global_dashboard.html:126
+msgid "Resumen Anual"
+msgstr "Annual Summary"
+
+#: app/templates/main/global_dashboard.html:127
+msgid "Totales acumulados por año"
+msgstr "Cumulative totals by year"
+
+#: app/templates/main/global_dashboard.html:138
+msgid "Sin datos disponibles."
+msgstr "No data available."
+
+#: app/templates/main/guia.html:17 app/templates/main/guia.html:302
+#, fuzzy
+msgid "Contenido"
+msgstr "Not set"
+
+#: app/templates/main/guia.html:21 app/templates/main/guia.html:47
+msgid "Conceptos básicos"
+msgstr ""
+
+#: app/templates/main/guia.html:22 app/templates/main/guia.html:70
+#, fuzzy
+msgid "Selección de período"
+msgstr "Please select a provider."
+
+# ── global_dashboard.html ──
+#: app/templates/main/guia.html:23 app/templates/main/guia.html:95
+#, fuzzy
+msgid "Dashboard mensual"
+msgstr "Global Dashboard"
+
+# ── global_dashboard.html ──
+#: app/templates/main/guia.html:24 app/templates/main/guia.html:128
+#, fuzzy
+msgid "Dashboard global"
+msgstr "Global Dashboard"
+
+#: app/templates/main/guia.html:27 app/templates/main/guia.html:189
+#: app/templates/main/guia.html:309
+msgid "Presupuestos"
+msgstr "Budgets"
+
+#: app/templates/main/guia.html:28 app/templates/main/guia.html:109
+#: app/templates/main/guia.html:230
+msgid "Metas de ahorro"
+msgstr ""
+
+#: app/templates/main/guia.html:30 app/templates/main/guia.html:291
+msgid "Exportar a Excel"
+msgstr ""
+
+#: app/templates/main/guia.html:31
+#, fuzzy
+msgid "Configuración"
+msgstr "Settings"
+
+#: app/templates/main/guia.html:32 app/templates/main/guia.html:110
+#: app/templates/main/guia.html:414
+msgid "Panel de analítica"
+msgstr ""
+
+#: app/templates/main/guia.html:33 app/templates/main/guia.html:467
+msgid "Preguntas frecuentes"
+msgstr ""
+
+#: app/templates/main/guia.html:50
+#, fuzzy
+msgid "Tipos de movimiento"
+msgstr "Recent Transactions"
+
+#: app/templates/main/guia.html:51
+msgid "Todo movimiento en Monetra es de uno de dos tipos:"
+msgstr ""
+
+#: app/templates/main/guia.html:53
+msgid "dinero que entra (sueldo, freelance, venta, etc.)"
+msgstr ""
+
+#: app/templates/main/guia.html:54
+msgid "dinero que sale (arriendo, supermercado, servicios, etc.)"
+msgstr ""
+
+#: app/templates/main/guia.html:57
+#, fuzzy
+msgid "Años y meses"
+msgstr "All months"
+
+#: app/templates/main/guia.html:58
+msgid ""
+"Monetra organiza tus datos por año. Puedes tener datos de múltiples años "
+"y navegar entre ellos con el selector de período en la barra superior."
+msgstr ""
+
+#: app/templates/main/guia.html:60
+#: app/templates/partials/announcements/v2_0.html:33
+#, fuzzy
+msgid "Datos de demostración"
+msgstr "Demo Data"
+
+#: app/templates/main/guia.html:63
+msgid "Al crear tu cuenta verás datos de ejemplo precargados. Están marcados como"
+msgstr ""
+
+#: app/templates/main/guia.html:63
+msgid "y no pueden editarse — sirven solo como referencia."
+msgstr ""
+
+#: app/templates/main/guia.html:72
+msgid ""
+"El selector de período en la barra superior controla qué datos ves en "
+"toda la aplicación."
+msgstr ""
+
+#: app/templates/main/guia.html:74
+msgid "selecciona el año de trabajo (ej. 2026)."
+msgstr ""
+
+#: app/templates/main/guia.html:75
+msgid "selecciona el mes dentro de ese año (ej. Mayo)."
+msgstr ""
+
+#: app/templates/main/guia.html:79
+msgid ""
+"Las transacciones nuevas deben crearse dentro del mes seleccionado. Si "
+"intentas guardar una con fecha fuera del mes activo, el formulario "
+"mostrará un error."
+msgstr ""
+
+#: app/templates/main/guia.html:82
+#, fuzzy
+msgid "Crear un nuevo año"
+msgstr "Create New Year"
+
+#: app/templates/main/guia.html:83
+msgid "Si necesitas registrar datos de un año que no aparece en el selector, ve a"
+msgstr ""
+
+#: app/templates/main/guia.html:83
+#, fuzzy
+msgid "Nuevo año"
+msgstr "Create New Year"
+
+#: app/templates/main/guia.html:83
+msgid "e ingresa el año deseado."
+msgstr ""
+
+#: app/templates/main/guia.html:85
+#, fuzzy
+msgid "Eliminar un año"
+msgstr "Delete"
+
+#: app/templates/main/guia.html:88
+msgid ""
+"Eliminar un año borra permanentemente todas las transacciones, "
+"presupuestos y recurrentes de ese año. Es irreversible."
+msgstr ""
+
+#: app/templates/main/guia.html:97
+msgid "Vista principal. Muestra un resumen completo del mes seleccionado."
+msgstr ""
+
+#: app/templates/main/guia.html:100
+#, fuzzy
+msgid "Sección"
+msgstr "Description"
+
+# ── dashboard.html ──
+#: app/templates/main/guia.html:103
+#, fuzzy
+msgid "Suma de todos los ingresos del mes"
+msgstr "Monthly Income"
+
+#: app/templates/main/guia.html:104
+#, fuzzy
+msgid "Suma de todos los gastos del mes"
+msgstr "Monthly Expenses"
+
+#: app/templates/main/guia.html:105
+#, fuzzy
+msgid "Ingresos − Gastos"
+msgstr "Income vs Expenses"
+
+#: app/templates/main/guia.html:106
+msgid "Barra de progreso: gastos vs. límite mensual"
+msgstr ""
+
+#: app/templates/main/guia.html:107 app/templates/main/guia.html:133
+#, fuzzy
+msgid "Gastos por categoría"
+msgstr "Expenses by Category"
+
+#: app/templates/main/guia.html:107
+msgid "Gráfico de torta con la distribución"
+msgstr ""
+
+#: app/templates/main/guia.html:108
+#, fuzzy
+msgid "Últimas transacciones"
+msgstr "Transactions"
+
+#: app/templates/main/guia.html:108
+msgid "Los 5 movimientos más recientes del mes"
+msgstr ""
+
+#: app/templates/main/guia.html:109
+msgid "Hasta 4 metas activas con su progreso"
+msgstr ""
+
+#: app/templates/main/guia.html:110
+msgid "Salud financiera, proyección y alertas (opcional)"
+msgstr ""
+
+#: app/templates/main/guia.html:114
+msgid "Panel de analítica (opcional)"
+msgstr ""
+
+#: app/templates/main/guia.html:115
+msgid ""
+"Incluye salud financiera, proyección de cierre del mes y alertas "
+"inteligentes. Está desactivado por defecto."
+msgstr ""
+
+#: app/templates/main/guia.html:118 app/templates/main/guia.html:420
+msgid "Para activarlo:"
+msgstr ""
+
+#: app/templates/main/guia.html:118 app/templates/main/guia.html:420
+#, fuzzy
+msgid "Configuración de Cuenta → Panel de Insights"
+msgstr "Email configuration (SMTP)"
+
+#: app/templates/main/guia.html:118 app/templates/main/guia.html:420
+msgid "activa el interruptor."
+msgstr ""
+
+#: app/templates/main/guia.html:121
+msgid "Generación automática de recurrentes"
+msgstr ""
+
+#: app/templates/main/guia.html:122
+msgid ""
+"Cada vez que abres el Dashboard, Monetra verifica si hay transacciones "
+"recurrentes pendientes para el mes y las crea automáticamente."
+msgstr ""
+
+#: app/templates/main/guia.html:130
+msgid "Analiza tus finanzas en un rango de meses. Se accede desde el menú"
+msgstr ""
+
+#: app/templates/main/guia.html:132
+#, fuzzy
+msgid "Tendencia mensual"
+msgstr "Monthly Trend"
+
+#: app/templates/main/guia.html:132
+msgid "gráfico de líneas con ingresos y gastos mes a mes."
+msgstr ""
+
+#: app/templates/main/guia.html:133
+msgid "acumulado de todo el período."
+msgstr ""
+
+#: app/templates/main/guia.html:134
+msgid "Comparativa anual"
+msgstr ""
+
+#: app/templates/main/guia.html:134
+#, fuzzy
+msgid "evolución de cada año disponible."
+msgstr "No data available."
+
+# ── global_dashboard.html ──
+#: app/templates/main/guia.html:136
+#, fuzzy
+msgid "Exportar desde el Dashboard global"
+msgstr "Global Dashboard"
+
+#: app/templates/main/guia.html:137 app/templates/main/guia.html:279
+msgid "El botón"
+msgstr ""
+
+#: app/templates/main/guia.html:137
+msgid "Exportar Excel → Global"
+msgstr ""
+
+#: app/templates/main/guia.html:137
+msgid ""
+"genera un archivo con los datos exactos del rango seleccionado. El enlace"
+" se actualiza en tiempo real al cambiar los selectores."
+msgstr ""
+
+#: app/templates/main/guia.html:145
+msgid "Movimientos individuales de dinero. Se accede desde el menú"
+msgstr ""
+
+#: app/templates/main/guia.html:147
+msgid "Crear una transacción"
+msgstr ""
+
+#: app/templates/main/guia.html:149 app/templates/main/guia.html:151
+#: app/templates/main/guia.html:247
+msgid "Haz clic en"
+msgstr ""
+
+#: app/templates/main/guia.html:149
+#, fuzzy
+msgid "Nueva transacción"
+msgstr "Transactions"
+
+#: app/templates/main/guia.html:150
+msgid "Selecciona"
+msgstr ""
+
+#: app/templates/main/guia.html:150
+#, fuzzy
+msgid "Gasto o Ingreso"
+msgstr "Income Categories"
+
+#: app/templates/main/guia.html:150
+msgid "opcional, máx. 200 caracteres"
+msgstr ""
+
+#: app/templates/main/guia.html:150
+#, fuzzy, python-format
+msgid "debe estar dentro del mes activo"
+msgstr "The date must be within %(month)s %(year)s."
+
+#: app/templates/main/guia.html:154
+#, fuzzy
+msgid "Filtros del listado"
+msgstr "Registration disabled"
+
+#: app/templates/main/guia.html:155
+msgid ""
+"Puedes filtrar por tipo (Todos / Ingresos / Gastos), por categoría "
+"específica y por día del mes."
+msgstr ""
+
+#: app/templates/main/guia.html:159
+msgid ""
+"Las transacciones generadas por una recurrente muestran un ícono "
+"especial. Se pueden editar o eliminar individualmente sin afectar la "
+"recurrente."
+msgstr ""
+
+#: app/templates/main/guia.html:168
+msgid "Organizan tus transacciones y recurrentes. Se accede desde el menú"
+msgstr ""
+
+#: app/templates/main/guia.html:170
+#, fuzzy
+msgid "Tipos de categorías"
+msgstr "Expenses by Category"
+
+#: app/templates/main/guia.html:172
+msgid "Predeterminadas"
+msgstr ""
+
+#: app/templates/main/guia.html:172
+msgid "vienen incluidas en Monetra. No pueden modificarse ni eliminarse."
+msgstr ""
+
+#: app/templates/main/guia.html:173
+msgid ""
+"Alimentación, Transporte, Vivienda, Servicios, Salud, Educación, Ocio, "
+"Otros."
+msgstr ""
+
+#: app/templates/main/guia.html:174
+msgid "Sueldo, Freelance, Inversiones, Otros Ingresos."
+msgstr ""
+
+#: app/templates/main/guia.html:176
+msgid "Personalizadas"
+msgstr ""
+
+#: app/templates/main/guia.html:176
+msgid ""
+"las que tú creas. Se asigna un color automáticamente de una paleta de 21 "
+"colores."
+msgstr ""
+
+# ── categories.html ──
+#: app/templates/main/guia.html:179
+#, fuzzy
+msgid "Eliminar una categoría"
+msgstr "New Category"
+
+#: app/templates/main/guia.html:182
+msgid ""
+"Una categoría NO puede eliminarse si tiene transacciones, recurrentes, "
+"presupuestos de categoría o un presupuesto personalizado vinculados. El "
+"sistema te indicará cuántos registros la bloquean."
+msgstr ""
+
+#: app/templates/main/guia.html:191
+msgid "Controla cuánto gastas. Se accede desde el menú"
+msgstr ""
+
+#: app/templates/main/guia.html:191
+msgid "Hay tres tipos:"
+msgstr ""
+
+#: app/templates/main/guia.html:193
+msgid "7.1 Presupuesto mensual general"
+msgstr ""
+
+#: app/templates/main/guia.html:194
+msgid ""
+"Techo total de gastos para el mes. Solo puede haber uno por mes. El "
+"Dashboard muestra una barra de progreso con su consumo."
+msgstr ""
+
+#: app/templates/main/guia.html:196 app/templates/main/guia.html:215
+#: app/templates/main/recurrentes.html:68
+#, fuzzy
+msgid "Estado"
+msgstr "Reset demo"
+
+#: app/templates/main/guia.html:196
+msgid "Rango de consumo"
+msgstr ""
+
+#: app/templates/main/guia.html:198
+msgid "Normal"
+msgstr ""
+
+#: app/templates/main/guia.html:200
+msgid "Excedido"
+msgstr ""
+
+#: app/templates/main/guia.html:204
+#, fuzzy
+msgid "7.2 Presupuestos por categoría"
+msgstr "Expenses by Category"
+
+#: app/templates/main/guia.html:205
+#, fuzzy
+msgid "Límites individuales por categoría de gasto."
+msgstr "No expense categories."
+
+#: app/templates/main/guia.html:205
+#, fuzzy
+msgid "Máximo 5 por mes."
+msgstr "Maximum 10 MB"
+
+#: app/templates/main/guia.html:205
+#, fuzzy
+msgid "Solo aplican a categorías de tipo Gasto."
+msgstr "No expense categories."
+
+#: app/templates/main/guia.html:207
+#, fuzzy
+msgid "7.3 Presupuesto personalizado"
+msgstr "Budget updated."
+
+#: app/templates/main/guia.html:208
+msgid ""
+"Presupuesto puntual con rango de fechas, pensado para eventos o proyectos"
+" específicos (ej. \"Vacaciones julio\")."
+msgstr ""
+
+#: app/templates/main/guia.html:210
+#, fuzzy
+msgid "Crea automáticamente una categoría de gasto con el mismo nombre."
+msgstr "A category with that name and type already exists."
+
+#: app/templates/main/guia.html:211
+msgid "Solo puede haber"
+msgstr ""
+
+#: app/templates/main/guia.html:211
+msgid "uno vigente"
+msgstr ""
+
+#: app/templates/main/guia.html:211
+msgid "por mes."
+msgstr ""
+
+#: app/templates/main/guia.html:212
+#, fuzzy, python-format
+msgid "Las fechas deben estar dentro del mismo mes."
+msgstr "The date must be within %(month)s %(year)s."
+
+#: app/templates/main/guia.html:217
+msgid "Fecha de término ≥ hoy. Puede editarse y eliminarse."
+msgstr ""
+
+#: app/templates/main/guia.html:218
+msgid "Fecha de término < hoy. Solo lectura, no puede modificarse."
+msgstr ""
+
+#: app/templates/main/guia.html:223
+msgid ""
+"Al eliminar un presupuesto personalizado vigente se borran también todas "
+"las transacciones y recurrentes de su categoría."
+msgstr ""
+
+#: app/templates/main/guia.html:232
+msgid "Define objetivos financieros y registra tu avance. Se accede desde el menú"
+msgstr ""
+
+#: app/templates/main/guia.html:234
+msgid "Campos de una meta"
+msgstr ""
+
+#: app/templates/main/guia.html:236 app/templates/main/guia.html:599
+msgid "Campo"
+msgstr ""
+
+#: app/templates/main/guia.html:238
+msgid "Identificador de la meta (máx. 100 caracteres)"
+msgstr ""
+
+#: app/templates/main/guia.html:239
+msgid "Cuánto quieres ahorrar (mayor a 0)"
+msgstr ""
+
+#: app/templates/main/guia.html:240
+#, fuzzy
+msgid "Monto ahorrado"
+msgstr "Not loaded"
+
+#: app/templates/main/guia.html:240
+msgid "Cuánto llevas acumulado (empieza en 0)"
+msgstr ""
+
+#: app/templates/main/guia.html:241
+msgid "Fecha límite deseada (opcional)"
+msgstr ""
+
+#: app/templates/main/guia.html:242
+msgid "Notas adicionales (opcional, máx. 200 caracteres)"
+msgstr ""
+
+#: app/templates/main/guia.html:246
+msgid "Abonar a una meta"
+msgstr ""
+
+#: app/templates/main/guia.html:247 app/templates/main/metas.html:101
+#: app/templates/main/metas.html:197
+msgid "Abonar"
+msgstr ""
+
+#: app/templates/main/guia.html:247
+msgid ""
+"e ingresa el monto. Si el total ahorrado alcanza el objetivo, la meta se "
+"marca como Completada automáticamente."
+msgstr ""
+
+#: app/templates/main/guia.html:251
+msgid ""
+"Las metas son independientes de las transacciones. Abonar a una meta NO "
+"crea un gasto en tu historial."
+msgstr ""
+
+#: app/templates/main/guia.html:260
+msgid ""
+"Automatizan movimientos que se repiten todos los meses (ej. arriendo el "
+"día 1, sueldo el día 30). Se accede desde el menú"
+msgstr ""
+
+#: app/templates/main/guia.html:262
+msgid "¿Cómo funcionan?"
+msgstr ""
+
+#: app/templates/main/guia.html:263
+msgid ""
+"Cada vez que abres el Dashboard o Movimientos, Monetra genera "
+"automáticamente las transacciones del mes si todavía no existen. Si una "
+"recurrente tiene el día 31 y el mes tiene 30 días, se ajusta "
+"automáticamente al último día."
+msgstr ""
+
+#: app/templates/main/guia.html:265
+msgid "Crear una recurrente"
+msgstr ""
+
+#: app/templates/main/guia.html:267
+#, fuzzy
+msgid "Gasto o Ingreso."
+msgstr "Income Categories"
+
+#: app/templates/main/guia.html:268
+msgid ""
+"entre 1 y 28. Se recomienda máximo 28 para que funcione igual en todos "
+"los meses, incluido febrero."
+msgstr ""
+
+#: app/templates/main/guia.html:269
+msgid "opcional. Sin fecha, genera hasta el 31/12 del año de creación."
+msgstr ""
+
+#: app/templates/main/guia.html:270
+msgid ""
+"Si el día elegido ya pasó este mes, aparece una casilla opcional para "
+"generar también el movimiento del mes actual."
+msgstr ""
+
+#: app/templates/main/guia.html:275
+msgid "Importante"
+msgstr ""
+
+#: app/templates/main/guia.html:275
+msgid "Las recurrentes"
+msgstr ""
+
+#: app/templates/main/guia.html:275
+msgid "no pueden eliminarse"
+msgstr ""
+
+#: app/templates/main/guia.html:275
+msgid "una vez creadas. Para detenerlas usa el botón"
+msgstr ""
+
+#: app/templates/main/guia.html:275 app/templates/main/guia.html:279
+#: app/templates/main/recurrente_form.html:35
+#: app/templates/main/recurrentes.html:114
+msgid "Finalizar hoy"
+msgstr ""
+
+#: app/templates/main/guia.html:275 app/templates/main/recurrente_form.html:35
+msgid "o establece una fecha de término."
+msgstr ""
+
+#: app/templates/main/guia.html:278
+msgid "Finalizar una recurrente"
+msgstr ""
+
+#: app/templates/main/guia.html:279
+msgid ""
+"(ícono de stop) establece la fecha de término como hoy y desactiva la "
+"recurrente. Las transacciones ya generadas permanecen en tu historial."
+msgstr ""
+
+#: app/templates/main/guia.html:281
+#, fuzzy
+msgid "Listado"
+msgstr "Registered on"
+
+# ── Templates: base.html ──
+#: app/templates/main/guia.html:283
+#, fuzzy
+msgid "Vigentes"
+msgstr "Transactions"
+
+#: app/templates/main/guia.html:283
+msgid "activas o que no han llegado a su fecha de término."
+msgstr ""
+
+#: app/templates/main/guia.html:284
+msgid "Finalizadas"
+msgstr ""
+
+#: app/templates/main/guia.html:284
+msgid "historial de solo lectura, colapsado."
+msgstr ""
+
+#: app/templates/main/guia.html:293
+msgid "Genera un reporte Excel completo. Se puede exportar desde:"
+msgstr ""
+
+#: app/templates/main/guia.html:295
+msgid "Menú superior → Exportar → Mes actual"
+msgstr ""
+
+#: app/templates/main/guia.html:295
+#, fuzzy
+msgid "exporta el mes seleccionado."
+msgstr "No expenses for the selected period."
+
+# ── global_dashboard.html ──
+#: app/templates/main/guia.html:296
+#, fuzzy
+msgid "Dashboard Global → Exportar → Global"
+msgstr "Global Dashboard"
+
+#: app/templates/main/guia.html:296
+msgid "exporta el rango de meses seleccionado."
+msgstr ""
+
+#: app/templates/main/guia.html:299
+msgid "Contenido del archivo"
+msgstr ""
+
+#: app/templates/main/guia.html:302
+msgid "Pestaña"
+msgstr ""
+
+#: app/templates/main/guia.html:302
+#, fuzzy
+msgid "Alcance"
+msgstr "Cancel"
+
+#: app/templates/main/guia.html:305
+msgid "Portada"
+msgstr ""
+
+#: app/templates/main/guia.html:305
+msgid "KPIs e índice de pestañas"
+msgstr ""
+
+#: app/templates/main/guia.html:306
+msgid "Gráficos e indicadores clave"
+msgstr ""
+
+#: app/templates/main/guia.html:307
+msgid "Listado completo de transacciones"
+msgstr ""
+
+#: app/templates/main/guia.html:308
+#, fuzzy
+msgid "Totales por categoría"
+msgstr "Expenses by Category"
+
+#: app/templates/main/guia.html:309
+msgid "Comparativa presupuesto vs. real"
+msgstr ""
+
+#: app/templates/main/guia.html:310
+msgid "Objetivos de ahorro y avance"
+msgstr ""
+
+#: app/templates/main/guia.html:310 app/templates/main/guia.html:311
+msgid "Historial completo"
+msgstr ""
+
+#: app/templates/main/guia.html:311
+msgid "Recurrentes con KPIs"
+msgstr ""
+
+#: app/templates/main/guia.html:312
+#, fuzzy
+msgid "Base de Datos"
+msgstr "Expense Categories"
+
+#: app/templates/main/guia.html:312
+msgid "Datos en bruto para análisis propio"
+msgstr ""
+
+#: app/templates/main/guia.html:316
+msgid "Reporte semanal automático"
+msgstr ""
+
+#: app/templates/main/guia.html:317
+msgid ""
+"Si configuras tu SMTP, puedes activar el reporte semanal. Monetra te "
+"enviará el Excel todos los lunes."
+msgstr ""
+
+#: app/templates/main/guia.html:323
+#, fuzzy
+msgid "Configuración de cuenta"
+msgstr "Account Settings"
+
+#: app/templates/main/guia.html:325
+msgid ""
+"Se accede desde el menú de usuario (esquina superior derecha) → "
+"Configurar."
+msgstr ""
+
+#: app/templates/main/guia.html:331
+msgid "Moneda y país"
+msgstr ""
+
+#: app/templates/main/guia.html:332
+msgid ""
+"Selecciona tu país para definir símbolo, código y formato. Puedes editar "
+"el símbolo manualmente. Si tu moneda no es USD, ingresa el valor de "
+"referencia del dólar."
+msgstr ""
+
+#: app/templates/main/guia.html:339
+#, fuzzy
+msgid "Tema visual"
+msgstr "Email"
+
+#: app/templates/main/guia.html:340
+msgid ""
+"9 temas disponibles: Dark, Ocean, Carbon, Dusk, Forest, Pearl, Abyss, "
+"Graphite, Enterprise. El cambio se aplica de inmediato."
+msgstr ""
+
+#: app/templates/main/guia.html:348
+msgid ""
+"Configura tu servidor de correo para reportes y recuperación de "
+"contraseña. TLS y SSL son mutuamente excluyentes."
+msgstr ""
+
+#: app/templates/main/guia.html:355
+#, fuzzy
+msgid "Autenticación 2FA"
+msgstr "Authentication cancelled."
+
+#: app/templates/main/guia.html:356
+msgid ""
+"Activa TOTP con Google Authenticator, Authy, etc. Escanea el código QR y "
+"confirma con el código de 6 dígitos."
+msgstr ""
+
+#: app/templates/main/guia.html:364
+msgid ""
+"Activa o desactiva el panel de analítica (Salud financiera, Proyección, "
+"Alertas) en el Dashboard. Desactivado por defecto."
+msgstr ""
+
+#: app/templates/main/guia.html:371 app/templates/main/guia.html:604
+msgid "Token de API"
+msgstr ""
+
+#: app/templates/main/guia.html:372
+msgid ""
+"Token de acceso personal (mntr_…) para consumir la API REST. Activo "
+"mientras exista — sin fecha de expiración. Muestra prefijo, fecha de "
+"creación y último uso. Opciones: Generar, Regenerar y Revocar. Guárdalo "
+"al crearlo — no se mostrará nuevamente."
+msgstr ""
+"Personal access token (mntr_…) to consume the REST API. Active until "
+"revoked — no expiration date. Shows prefix, creation date and last used "
+"date. Options: Generate, Regenerate and Revoke. Save it when you create "
+"it — it will not be shown again."
+
+#: app/templates/main/guia.html:379
+msgid "Reporte semanal"
+msgstr ""
+
+#: app/templates/main/guia.html:380
+msgid ""
+"Con SMTP configurado, activa el envío automático del Excel Global. Se "
+"enviará a tu correo todos los lunes a las 10:00 UTC con los datos del mes"
+" y año en curso."
+msgstr ""
+
+#: app/templates/main/guia.html:387
+msgid "Referencias de formularios"
+msgstr ""
+
+#: app/templates/main/guia.html:388
+msgid ""
+"Activa el modo de ayuda para ver íconos de referencia junto a cada campo "
+"de los formularios. Al pasar el cursor sobre ellos aparece una "
+"descripción del campo."
+msgstr ""
+
+#: app/templates/main/guia.html:396
+msgid ""
+"Configura el proveedor de IA para el escáner de recibos: elige proveedor "
+"(OpenAI, Anthropic, Gemini, DeepSeek, OpenRouter), modelo multimodal, URL"
+" base opcional y token de API. Usa \"Probar conexión\" antes de guardar."
+msgstr ""
+"Configure the AI provider for the receipt scanner: choose provider "
+"(OpenAI, Anthropic, Gemini, DeepSeek, OpenRouter), multimodal model, "
+"optional base URL and API token. Use \"Test connection\" before saving."
+
+#: app/templates/main/guia.html:404
+msgid ""
+"Registra tu dispositivo móvil para iniciar sesión con Face ID o huella "
+"dactilar. Solo disponible en móvil. Registrar, cambiar y eliminar "
+"requieren confirmar tu contraseña actual."
+msgstr ""
+"Register your mobile device to sign in with Face ID or fingerprint. Only "
+"available on mobile. Registering, changing and deleting require "
+"confirming your current password."
+
+#: app/templates/main/guia.html:416
+msgid ""
+"El panel de analítica aparece en el Dashboard mensual y ofrece tres "
+"indicadores inteligentes calculados en tiempo real con tus datos del mes "
+"activo. Está desactivado por defecto."
+msgstr ""
+
+#: app/templates/main/guia.html:428
+msgid ""
+"Puntuación de 0 a 100 que combina tasa de ahorro, cumplimiento de "
+"presupuesto, diversificación de ingresos y tendencia de gastos. Cuanto "
+"más alto, mejor estado tienen tus finanzas ese mes."
+msgstr ""
+
+#: app/templates/main/guia.html:435
+#: app/templates/partials/announcements/v2_1.html:34
+#: app/templates/partials/insights_panel.html:164
+msgid "Proyección de cierre"
+msgstr ""
+
+#: app/templates/main/guia.html:436
+msgid ""
+"Estima el balance que tendrás al final del mes, extrapolando el ritmo de "
+"gastos e ingresos actuales. Útil para decidir si puedes gastar más o "
+"debes ajustar antes de que termine el mes."
+msgstr ""
+
+#: app/templates/main/guia.html:443
+msgid "Alertas inteligentes"
+msgstr ""
+
+#: app/templates/main/guia.html:444
+msgid ""
+"Detecta automáticamente situaciones como déficit proyectado, picos de "
+"gasto en una categoría, transacciones inusuales, riesgo en metas de "
+"ahorro y tendencias negativas de flujo."
+msgstr ""
+
+#: app/templates/main/guia.html:450
+msgid "¿Cómo aprende el sistema?"
+msgstr ""
+
+#: app/templates/main/guia.html:451
+msgid ""
+"Los indicadores mejoran con el tiempo. Con más meses registrados, la "
+"proyección es más precisa y las alertas detectan anomalías con mayor "
+"exactitud al comparar con tu propio historial. Con pocos datos, el panel "
+"mostrará una nota indicando que aún está en modo de aprendizaje."
+msgstr ""
+
+#: app/templates/main/guia.html:453
+msgid "Severidad de las alertas"
+msgstr ""
+
+#: app/templates/main/guia.html:455
+msgid "Nivel"
+msgstr ""
+
+#: app/templates/main/guia.html:457
+msgid "Crítica"
+msgstr ""
+
+#: app/templates/main/guia.html:457
+msgid ""
+"Requiere atención inmediata (ej. déficit proyectado severo, gasto muy por"
+" encima del límite)"
+msgstr ""
+
+#: app/templates/main/guia.html:458
+msgid "Situación a vigilar (ej. ritmo de gasto elevado, meta en riesgo)"
+msgstr ""
+
+#: app/templates/main/guia.html:459
+msgid "Informativa"
+msgstr ""
+
+#: app/templates/main/guia.html:459
+msgid ""
+"Dato útil sin urgencia (ej. transacción inusual, categoría sin "
+"presupuesto)"
+msgstr ""
+
+#: app/templates/main/guia.html:475
+msgid "¿Por qué no puedo eliminar una categoría?"
+msgstr ""
+
+#: app/templates/main/guia.html:476
+msgid ""
+"Porque tiene registros asociados: transacciones, recurrentes o "
+"presupuestos. Primero elimina o reasigna esos registros, luego podrás "
+"eliminar la categoría. El sistema te indicará exactamente cuántos "
+"registros la bloquean."
+msgstr ""
+
+#: app/templates/main/guia.html:484
+msgid "¿Por qué no puedo editar un registro de Demo?"
+msgstr ""
+
+#: app/templates/main/guia.html:485
+msgid ""
+"Los registros de demostración son de solo lectura. Puedes crear tus "
+"propios registros en paralelo o resetear los datos demo desde el panel de"
+" administración."
+msgstr ""
+
+#: app/templates/main/guia.html:493
+msgid "¿Puedo eliminar una recurrente?"
+msgstr ""
+
+#: app/templates/main/guia.html:494
+msgid ""
+"No. Las recurrentes no pueden eliminarse para preservar la coherencia del"
+" historial. Para detenerla usa el botón Finalizar hoy o edita la fecha de"
+" término. Las transacciones ya generadas permanecen en tu historial."
+msgstr ""
+
+#: app/templates/main/guia.html:502
+msgid "¿Qué pasa si el día de mi recurrente no existe en el mes?"
+msgstr ""
+
+#: app/templates/main/guia.html:503
+msgid ""
+"Monetra ajusta automáticamente al último día del mes. Por eso se "
+"recomienda usar máximo el día 28 para que funcione igual en todos los "
+"meses, incluido febrero."
+msgstr ""
+
+#: app/templates/main/guia.html:511
+msgid "¿El presupuesto personalizado borra mis transacciones si lo elimino?"
+msgstr ""
+
+#: app/templates/main/guia.html:512
+msgid ""
+"Sí. Al eliminar un presupuesto personalizado vigente se borran también "
+"todas las transacciones y recurrentes de su categoría. Se te informará "
+"cuántos registros se eliminarán antes de confirmar. Los presupuestos "
+"finalizados no pueden eliminarse."
+msgstr ""
+
+#: app/templates/main/guia.html:520
+msgid "¿Abonar a una meta descuenta de mi saldo?"
+msgstr ""
+
+#: app/templates/main/guia.html:521
+msgid ""
+"No. Las metas son independientes de tus transacciones. Registrar un abono"
+" solo actualiza el contador de progreso. Si quieres también registrar el "
+"movimiento, debes crear una transacción por separado."
+msgstr ""
+
+#: app/templates/main/guia.html:529
+msgid "¿El Export incluye todos los datos o solo el período visible?"
+msgstr ""
+
+#: app/templates/main/guia.html:530
+msgid ""
+"Depende de la pestaña. Movimientos, Categorías, Presupuestos, Dashboard y"
+" Base de Datos se filtran al período exportado. Metas y Recurrentes "
+"muestran el historial completo, independientemente del período "
+"seleccionado."
+msgstr ""
+
+#: app/templates/main/guia.html:538
+msgid "¿Cada cuánto se envía el reporte semanal?"
+msgstr ""
+
+#: app/templates/main/guia.html:539
+msgid ""
+"Todos los lunes a las 10:00 UTC. Requiere haber configurado el servidor "
+"SMTP en Configuración de Cuenta y activado la opción \"Reporte semanal\"."
+msgstr ""
+
+#: app/templates/main/guia.html:547
+msgid "¿El escáner siempre extrae bien los datos?"
+msgstr "Does the scanner always extract data correctly?"
+
+#: app/templates/main/guia.html:548
+msgid ""
+"Depende de la calidad de la imagen y el modelo de IA configurado. "
+"Imágenes claras, bien encuadradas y con buena iluminación dan mejores "
+"resultados. Siempre puedes revisar y corregir los datos extraídos antes "
+"de guardar la transacción."
+msgstr ""
+"It depends on image quality and the configured AI model. Clear, "
+"well-framed images with good lighting give better results. You can always "
+"review and correct the extracted data before saving the transaction."
+
+#: app/templates/main/guia.html:556
+msgid "¿Puedo usar Face ID si tengo 2FA activado?"
+msgstr "Can I use Face ID if I have 2FA enabled?"
+
+#: app/templates/main/guia.html:557
+msgid ""
+"Sí. El login biométrico (FIDO2) reemplaza el flujo completo de "
+"autenticación — no necesitas ingresar contraseña ni código TOTP. La "
+"verificación biométrica ya incluye la confirmación de identidad del "
+"usuario por diseño del estándar."
+msgstr ""
+"Yes. Biometric login (FIDO2) replaces the entire authentication flow — "
+"you don't need to enter your password or TOTP code. Biometric "
+"verification already includes user identity confirmation by design of "
+"the standard."
+
+#: app/templates/main/guia.html:570
+msgid ""
+"El escáner usa inteligencia artificial para leer una foto o captura de "
+"pantalla de un recibo y extraer automáticamente el monto, la descripción "
+"y el comercio. Requiere configurar un proveedor de IA en Configuración → "
+"Escáner IA."
+msgstr ""
+"The scanner uses artificial intelligence to read a photo or screenshot of "
+"a receipt and automatically extract the amount, description and merchant. "
+"Requires configuring an AI provider in Settings → AI Scanner."
+
+#: app/templates/main/guia.html:572
+msgid "Cómo acceder"
+msgstr "How to access"
+
+#: app/templates/main/guia.html:574
+msgid "Botón \"Escanear recibo\""
+msgstr "\"Scan receipt\" button"
+
+#: app/templates/main/guia.html:574
+msgid "visible en la barra de herramientas de la sección Movimientos."
+msgstr "visible in the Transactions section toolbar."
+
+#: app/templates/main/guia.html:575
+msgid "Botón flotante (FAB)"
+msgstr "Floating button (FAB)"
+
+#: app/templates/main/guia.html:575
+msgid ""
+"ícono de cámara que aparece en la esquina inferior derecha en "
+"dispositivos móviles (modo responsive) cuando el escáner está configurado"
+" y activo."
+msgstr ""
+"camera icon that appears in the bottom-right corner on mobile devices "
+"(responsive mode) when the scanner is configured and active."
+
+#: app/templates/main/guia.html:578
+msgid "Flujo de uso"
+msgstr "Usage flow"
+
+#: app/templates/main/guia.html:580
+msgid "Elegir modo"
+msgstr "Choose mode"
+
+#: app/templates/main/guia.html:580
+msgid "selecciona"
+msgstr "select"
+
+#: app/templates/main/guia.html:580
+#: app/templates/partials/scanner_modal.html:25
+#, fuzzy
+msgid "Cámara"
+msgstr "Loaded"
+
+#: app/templates/main/guia.html:580
+#, fuzzy
+msgid "(acceso directo a la cámara del dispositivo) o"
+msgstr "Error registering the device."
+
+#: app/templates/main/guia.html:580
+#: app/templates/partials/scanner_modal.html:32
+msgid "Subir imagen"
+msgstr "Upload image"
+
+#: app/templates/main/guia.html:580
+msgid "(arrastra o selecciona un archivo)."
+msgstr "(drag or select a file)."
+
+#: app/templates/main/guia.html:581
+msgid "Capturar o subir"
+msgstr "Capture or upload"
+
+#: app/templates/main/guia.html:581
+msgid ""
+"toma la foto o sube el archivo. Formatos soportados: JPEG, PNG, WebP, "
+"HEIC."
+msgstr "take the photo or upload the file. Supported formats: JPEG, PNG, WebP, HEIC."
+
+#: app/templates/main/guia.html:582
+#, fuzzy
+msgid "Revisar"
+msgstr "Register"
+
+#: app/templates/main/guia.html:582
+msgid ""
+"la IA extrae monto, descripción y comercio. Puedes editar cualquier dato "
+"antes de continuar."
+msgstr "the AI extracts amount, description and merchant. You can edit any data before continuing."
+
+#: app/templates/main/guia.html:583
+msgid "se crea la transacción en el mes activo con los datos revisados."
+msgstr "the transaction is created in the active month with the reviewed data."
+
+#: app/templates/main/guia.html:588
+msgid "Privacidad"
+msgstr "Privacy"
+
+#: app/templates/main/guia.html:588
+msgid ""
+"la imagen se envía al proveedor de IA que hayas configurado. Monetra "
+"nunca almacena la imagen — se procesa en memoria y se descarta."
+msgstr ""
+"the image is sent to the AI provider you have configured. Monetra never "
+"stores the image — it is processed in memory and discarded."
+
+#: app/templates/main/guia.html:593
+msgid ""
+"Imágenes borrosas, con poca luz o con texto muy pequeño pueden producir "
+"resultados incorrectos. Revisa siempre los datos en el paso de revisión "
+"antes de guardar."
+msgstr ""
+"Blurry, poorly lit or small-text images may produce incorrect results. "
+"Always review the data in the review step before saving."
+
+#: app/templates/main/guia.html:596
+#, fuzzy
+msgid "Configuración del proveedor"
+msgstr "Email configuration (SMTP)"
+
+#: app/templates/main/guia.html:597 app/templates/main/guia.html:624
+msgid "Ve a"
+msgstr ""
+
+#: app/templates/main/guia.html:597
+#, fuzzy
+msgid "Configuración → Escáner IA"
+msgstr "Current settings:"
+
+#: app/templates/main/guia.html:597
+msgid "y completa:"
+msgstr "and complete:"
+
+#: app/templates/main/guia.html:601
+msgid "OpenAI, Anthropic, Gemini, DeepSeek u OpenRouter"
+msgstr "OpenAI, Anthropic, Gemini, DeepSeek or OpenRouter"
+
+#: app/templates/main/guia.html:602
+msgid "Modelo"
+msgstr ""
+
+#: app/templates/main/guia.html:602
+#, fuzzy
+msgid ""
+"Debe soportar imágenes (multimodal). Ej: gpt-4o, claude-3-5-sonnet, "
+"gemini-1.5-flash"
+msgstr ""
+"The model must support images (multimodal). E.g.: gpt-4o, "
+"claude-3-5-sonnet, gemini-1.5-flash."
+
+#: app/templates/main/guia.html:603
+msgid "URL base"
+msgstr "Base URL"
+
+#: app/templates/main/guia.html:603
+msgid ""
+"Opcional. Solo para proveedores compatibles con OpenAI (DeepSeek, "
+"OpenRouter). Dejar vacío usa la URL oficial."
+msgstr "Optional. Only for OpenAI-compatible providers (DeepSeek, OpenRouter). Leave empty to use the official URL."
+
+#: app/templates/main/guia.html:604
+msgid ""
+"Tu clave del proveedor. Se guarda cifrada. Usa \"Probar conexión\" para "
+"verificarla antes de guardar."
+msgstr "Your provider key. Stored encrypted. Use \"Test connection\" to verify it before saving."
+
+#: app/templates/main/guia.html:614
+msgid ""
+"Inicia sesión en Monetra usando Face ID o huella dactilar, sin necesidad "
+"de escribir tu email ni contraseña. Disponible solo en dispositivos "
+"móviles que soporten biometría."
+msgstr ""
+"Sign in to Monetra using Face ID or fingerprint, without typing your "
+"email or password. Available only on mobile devices that support biometrics."
+
+#: app/templates/main/guia.html:618
+msgid ""
+"Tecnología estándar FIDO2 / WebAuthn. Monetra nunca almacena tus datos "
+"biométricos — la verificación la realiza exclusivamente tu dispositivo."
+msgstr ""
+"Standard FIDO2 / WebAuthn technology. Monetra never stores your biometric "
+"data — verification is performed exclusively by your device."
+
+#: app/templates/main/guia.html:621
+msgid "Activar (primera vez)"
+msgstr "Enable (first time)"
+
+#: app/templates/main/guia.html:623
+msgid "Inicia sesión con tu email y contraseña desde tu dispositivo móvil."
+msgstr "Sign in with your email and password from your mobile device."
+
+#: app/templates/main/guia.html:624
+#, fuzzy
+msgid "Configuración → Seguridad → Autenticación biométrica"
+msgstr "Your browser does not support biometric authentication."
+
+#: app/templates/main/guia.html:625 app/templates/main/guia.html:634
+msgid "Pulsa"
+msgstr "Tap"
+
+#: app/templates/main/guia.html:626
+msgid "Confirma tu contraseña actual cuando se solicite."
+msgstr "Confirm your current password when prompted."
+
+#: app/templates/main/guia.html:627
+msgid "El dispositivo pedirá Face ID o huella para crear la passkey."
+msgstr "The device will prompt for Face ID or fingerprint to create the passkey."
+
+#: app/templates/main/guia.html:629
+msgid ""
+"Una vez registrado, la próxima vez que entres a la página de login desde "
+"ese dispositivo verás el botón"
+msgstr "Once registered, the next time you open the login page from that device you will see the button"
+
+#: app/templates/main/guia.html:631
+#, fuzzy
+msgid "Login biométrico"
+msgstr "Biometric authentication"
+
+#: app/templates/main/guia.html:633
+msgid "Abre la página de login desde tu móvil registrado."
+msgstr "Open the login page from your registered mobile device."
+
+#: app/templates/main/guia.html:634
+msgid "(no necesitas escribir tu email)."
+msgstr "(you don't need to type your email)."
+
+#: app/templates/main/guia.html:635
+msgid ""
+"El dispositivo muestra la passkey guardada — confirma con Face ID o "
+"huella."
+msgstr "The device shows the saved passkey — confirm with Face ID or fingerprint."
+
+#: app/templates/main/guia.html:636
+msgid "Accedes directamente al dashboard."
+msgstr "You access the dashboard directly."
+
+#: app/templates/main/guia.html:639
+#, fuzzy
+msgid "Cambiar de dispositivo"
+msgstr "Change device"
+
+#: app/templates/main/guia.html:640
+msgid ""
+"Ve a Configuración → Seguridad → \"Cambiar dispositivo\". Se pedirá tu "
+"contraseña, luego registras el nuevo dispositivo con biometría. Solo "
+"puede haber un dispositivo registrado a la vez."
+msgstr ""
+"Go to Settings → Security → \"Change device\". Your password will be "
+"requested, then register the new device with biometrics. Only one device "
+"can be registered at a time."
+
+#: app/templates/main/guia.html:643
+msgid ""
+"Pulsa \"Eliminar\" en la sección de biometría. Se pedirá tu contraseña "
+"para confirmar. El botón biométrico desaparecerá del login."
+msgstr ""
+"Tap \"Delete\" in the biometrics section. Your password will be requested "
+"to confirm. The biometric button will disappear from the login page."
+
+#: app/templates/main/guia.html:647
+msgid ""
+"Si cambias de dispositivo o restableces tu teléfono, deberás eliminar la "
+"passkey antigua y volver a registrar el nuevo dispositivo. Siempre podrás"
+" iniciar sesión con tu contraseña."
+msgstr ""
+"If you change devices or reset your phone, you must delete the old "
+"passkey and register the new device. You can always sign in with your "
+"password."
+
+#: app/templates/main/meta_form.html:8
+msgid "Nueva Meta de Ahorro"
+msgstr ""
+
+#: app/templates/main/meta_form.html:11
+#: app/templates/main/recurrente_form.html:11
+#: app/templates/partials/scanner_modal.html:78
+#: app/templates/partials/scanner_modal.html:137
+msgid "Volver"
+msgstr ""
+
+#: app/templates/main/meta_form.html:24
+msgid "Ej: Vacaciones, Auto nuevo, Fondo de emergencia…"
+msgstr ""
+
+#: app/templates/main/meta_form.html:39
+msgid ""
+"Ingresa lo que ya tienes ahorrado. No se calcula automáticamente desde "
+"tus transacciones."
+msgstr ""
+
+#: app/templates/main/meta_form.html:46
+msgid "¿Ya tienes algo ahorrado para esta meta?"
+msgstr ""
+
+#: app/templates/main/meta_form.html:50
+msgid "Sin fecha límite no habrá alerta de urgencia en el dashboard."
+msgstr ""
+
+#: app/templates/main/meta_form.html:52
+msgid "Opcional — fecha límite para alcanzar la meta."
+msgstr ""
+
+# ── transaction_form.html ──
+#: app/templates/main/meta_form.html:59
+#, fuzzy
+msgid "Descripción opcional…"
+msgstr "Optional description..."
+
+#: app/templates/main/metas.html:6
+msgid ""
+"Define objetivos de ahorro con monto y fecha límite. El progreso se "
+"actualiza manualmente."
+msgstr ""
+
+#: app/templates/main/metas.html:18
+msgid "Metas activas"
+msgstr ""
+
+#: app/templates/main/metas.html:29
+#, fuzzy
+msgid "Total ahorrado"
+msgstr "Year total:"
+
+#: app/templates/main/metas.html:40
+#, fuzzy
+msgid "Total objetivo"
+msgstr "Total expenses"
+
+#: app/templates/main/metas.html:53
+msgid "Progreso por meta"
+msgstr ""
+
+#: app/templates/main/metas.html:66
+#, fuzzy
+msgid "En progreso"
+msgstr "Income"
+
+#: app/templates/main/metas.html:77
+msgid "Vence hoy"
+msgstr ""
+
+#: app/templates/main/metas.html:77
+#, fuzzy
+msgid "días"
+msgstr "All"
+
+#: app/templates/main/metas.html:90
+msgid "de"
+msgstr ""
+
+#: app/templates/main/metas.html:95 app/templates/main/metas.html:149
+#: app/templates/main/recurrentes.html:104
+msgid "Registro de demo — solo lectura"
+msgstr ""
+
+#: app/templates/main/metas.html:109 app/templates/main/metas.html:161
+#, fuzzy
+msgid "¿Eliminar esta meta?"
+msgstr "Delete this transaction?"
+
+#: app/templates/main/metas.html:126
+msgid "No tienes metas de ahorro activas."
+msgstr ""
+
+#: app/templates/main/metas.html:128
+msgid "Crear primera meta"
+msgstr ""
+
+#: app/templates/main/metas.html:138
+msgid "Completadas"
+msgstr ""
+
+#: app/templates/main/metas.html:155
+msgid "Reactivar"
+msgstr ""
+
+#: app/templates/main/metas.html:180
+msgid "Abonar a meta"
+msgstr ""
+
+#: app/templates/main/metas.html:186
+msgid "Monto a abonar"
+msgstr ""
+
+#: app/templates/main/metas.html:229
+#, fuzzy
+msgid "Ahorrado"
+msgstr "Loaded"
+
+#: app/templates/main/metas.html:237 app/templates/usd/dashboard.html:59
+#, fuzzy
+msgid "Restante"
+msgstr "Register"
+
+#: app/templates/main/metas.html:285
+msgid "Ingresa un monto válido."
+msgstr ""
+
+#: app/templates/main/recurrente_form.html:20
+#, fuzzy
+msgid "Inicio de generación:"
+msgstr "Go to login"
+
+#: app/templates/main/recurrente_form.html:23
+msgid ""
+"Las recurrentes son anuales: se generan desde su fecha de creación hasta "
+"el 31/12 del mismo año, o hasta la fecha de término indicada dentro de "
+"ese año."
+msgstr ""
+
+#: app/templates/main/recurrente_form.html:31
+msgid "Importante antes de crear"
+msgstr ""
+
+#: app/templates/main/recurrente_form.html:34
+msgid "Las recurrentes no se pueden eliminar una vez creadas."
+msgstr ""
+
+#: app/templates/main/recurrente_form.html:35
+msgid "Para detenerla, usa el botón"
+msgstr ""
+
+#: app/templates/main/recurrente_form.html:36
+msgid "Los movimientos ya generados siempre quedan en tu historial."
+msgstr ""
+
+#: app/templates/main/recurrente_form.html:80
+msgid "Usa máx. 28 para que funcione en todos los meses, incluido febrero."
+msgstr ""
+
+#: app/templates/main/recurrente_form.html:82
+msgid "Se generará el día indicado de cada mes (máx. 28 para meses cortos)."
+msgstr ""
+
+#: app/templates/main/recurrente_form.html:95
+msgid "El día indicado ya pasó este mes"
+msgstr ""
+
+#: app/templates/main/recurrente_form.html:113
+msgid ""
+"Opcional. Sin fecha, la recurrente continúa hasta el 31/12 de su año de "
+"creación."
+msgstr ""
+
+#: app/templates/main/recurrente_form.html:123
+msgid "Ej: Arriendo, Netflix, Sueldo…"
+msgstr ""
+
+#: app/templates/main/recurrente_form.html:133
+msgid "Activa = se genera una transacción automática cada mes en el día indicado."
+msgstr ""
+
+#: app/templates/main/recurrente_form.html:135
+msgid "Las recurrentes inactivas no generan transacciones automáticas."
+msgstr ""
+
+#: app/templates/main/recurrente_form.html:155
+#, fuzzy
+msgid "Tus categorías"
+msgstr "Categories"
+
+#: app/templates/main/recurrente_form.html:156
+#: app/templates/main/transaction_form.html:100
+msgid "Sin categorías disponibles"
+msgstr "No categories available"
+
+#: app/templates/main/recurrentes.html:6
+msgid ""
+"Gastos e ingresos que se repiten cada mes. Se generan automáticamente el "
+"día que indiques."
+msgstr ""
+
+#: app/templates/main/recurrentes.html:18
+#, fuzzy
+msgid "Gasto fijo mensual"
+msgstr "Monthly Expenses"
+
+# ── dashboard.html ──
+#: app/templates/main/recurrentes.html:29
+#, fuzzy
+msgid "Ingreso fijo mensual"
+msgstr "Monthly Income"
+
+#: app/templates/main/recurrentes.html:42
+msgid "Distribución por categoría (activas)"
+msgstr ""
+
+#: app/templates/main/recurrentes.html:55
+msgid "Recurrentes vigentes"
+msgstr ""
+
+#: app/templates/main/recurrentes.html:66
+#: app/templates/main/recurrentes.html:86
+#: app/templates/main/transactions.html:46
+msgid "Día"
+msgstr ""
+
+#: app/templates/main/recurrentes.html:70
+#: app/templates/main/transactions.html:86 app/templates/usd/dashboard.html:218
+msgid "Acciones"
+msgstr "Actions"
+
+#: app/templates/main/recurrentes.html:88
+#, fuzzy
+msgid "Hasta:"
+msgstr "To"
+
+#: app/templates/main/recurrentes.html:98
+msgid "Inactiva"
+msgstr ""
+
+#: app/templates/main/recurrentes.html:118
+#, fuzzy
+msgid "Sin descripción"
+msgstr "Description"
+
+#: app/templates/main/recurrentes.html:131
+msgid "No tienes transacciones recurrentes aún."
+msgstr ""
+
+#: app/templates/main/recurrentes.html:133
+#, fuzzy
+msgid "Crear la primera"
+msgstr "Create Category"
+
+#: app/templates/main/recurrentes.html:144
+#, fuzzy
+msgid "Finalizadas antes del mes seleccionado"
+msgstr "No expenses for the selected period."
+
+#: app/templates/main/recurrentes.html:156
+msgid "Finalizó"
+msgstr ""
+
+#: app/templates/main/recurrentes.html:177
+msgid "Finalizada"
+msgstr ""
+
+#: app/templates/main/recurrentes.html:198
+msgid "Finalizar recurrente"
+msgstr ""
+
+#: app/templates/main/recurrentes.html:206
+msgid "¿Finalizar"
+msgstr ""
+
+#: app/templates/main/recurrentes.html:209
+msgid ""
+"Se marcará como finalizada con fecha de hoy. Ya no generará nuevos "
+"movimientos."
+msgstr ""
+
+#: app/templates/main/recurrentes.html:210
+msgid "Los movimientos ya registrados se conservan en tu historial."
+msgstr ""
+
+#: app/templates/main/recurrentes.html:215
+msgid "Si necesitas otra fecha de término, usa el botón Editar."
+msgstr ""
+
+#: app/templates/main/recurrentes.html:225
+msgid "Sí, finalizar hoy"
+msgstr ""
+
+#: app/templates/main/transaction_form.html:16
+msgid ""
+"¿Es dinero que entra o sale? Cambia las categorías disponibles y afecta "
+"el dashboard."
+msgstr ""
+
+#: app/templates/main/transaction_form.html:40
+#: app/templates/main/transactions.html:104
+#, fuzzy
+msgid "Pertenece a presupuesto personalizado"
+msgstr "Budget updated."
+
+#: app/templates/main/transaction_form.html:42
+#, fuzzy
+msgid "Presupuesto personalizado"
+msgstr "Budget updated."
+
+# ── categories.html ──
+#: app/templates/main/transaction_form.html:58
+#, fuzzy
+msgid "Crear nueva categoría"
+msgstr "New Category"
+
+#: app/templates/main/transaction_form.html:63
+msgid ""
+"Solo el mes activo. Para ajustes de meses pasados, usa edición desde el "
+"listado."
+msgstr ""
+
+#: app/templates/main/transaction_form.html:69
+#, python-format
+msgid "Solo fechas de %(month)s %(year)s."
+msgstr "%(month)s %(year)s dates only."
+
+# ── transaction_form.html ──
+#: app/templates/main/transaction_form.html:74
+msgid "Descripción opcional..."
+msgstr "Optional description..."
+
+#: app/templates/main/transaction_form.html:115
+msgid "Este movimiento se contabilizará en el presupuesto personalizado"
+msgstr ""
+
+#: app/templates/main/transactions.html:7
+msgid ""
+"Movimientos del mes seleccionado en el menú superior. Filtra por tipo, "
+"categoría o día del mes."
+msgstr ""
+
+#: app/templates/main/transactions.html:13
+#, fuzzy
+msgid "Escanear recibo con cámara"
+msgstr "Take a photo of the receipt with your camera"
+
+#: app/templates/main/transactions.html:29
+msgid "Todos"
+msgstr "All"
+
+#: app/templates/main/transactions.html:37
+msgid "Todas"
+msgstr "All"
+
+#: app/templates/main/transactions.html:49
+#, fuzzy
+msgid "Todos los días"
+msgstr "All months"
+
+#: app/templates/main/transactions.html:61
+msgid "Filtrar"
+msgstr "Filter"
+
+#: app/templates/main/transactions.html:64
+msgid "Limpiar filtros"
+msgstr "Clear filters"
+
+#: app/templates/main/transactions.html:114
+#, fuzzy
+msgid "Recurrente"
+msgstr "Remember Me"
+
+#: app/templates/main/transactions.html:118
+#, fuzzy
+msgid "Manual"
+msgstr "Annual Summary"
+
+#: app/templates/main/transactions.html:152
+#: app/templates/usd/dashboard.html:244
+msgid "¿Eliminar este movimiento?"
+msgstr "Delete this transaction?"
+
+#: app/templates/main/transactions.html:165
+msgid "No hay movimientos con los filtros seleccionados."
+msgstr "No transactions match the selected filters."
+
+#: app/templates/main/transactions.html:173
+msgid "Resultado filtrado:"
+msgstr "Filtered result:"
+
+#: app/templates/main/transactions.html:202
+#, fuzzy
+msgid "Transacción recurrente"
+msgstr "Transactions"
+
+#: app/templates/main/transactions.html:207
+msgid "Esta transacción fue generada automáticamente por una regla recurrente."
+msgstr ""
+
+#: app/templates/main/transactions.html:210
+msgid ""
+"Si la eliminas, se volverá a generar la próxima vez que abras el "
+"dashboard, porque la regla recurrente sigue activa."
+msgstr ""
+
+#: app/templates/main/transactions.html:213
+msgid "Para evitar que se regenere, desactiva o elimina la regla en"
+msgstr ""
+
+#: app/templates/main/transactions.html:215
+msgid "vuelve a esta sección y elimina la transacción."
+msgstr ""
+
+#: app/templates/main/transactions.html:221
+msgid "Ir a Recurrentes"
+msgstr ""
+
+#: app/templates/main/transactions.html:234
+#, fuzzy
+msgid "Eliminar movimiento"
+msgstr "Delete this transaction?"
+
+#: app/templates/main/transactions.html:239
+#, fuzzy
+msgid "El movimiento será eliminado."
+msgstr "Transaction deleted."
+
+#: app/templates/main/transactions.html:242
+msgid ""
+"Este movimiento pertenece a una regla recurrente que actualmente está "
+"desactivada. Si en el futuro vuelves a activar esa regla, el movimiento "
+"se creará nuevamente de forma automática."
+msgstr ""
+
+# ── dashboard.html ──
+#: app/templates/partials/insights_panel.html:31
+#, fuzzy
+msgid "Insights del mes"
+msgstr "Monthly Income"
+
+#: app/templates/partials/insights_panel.html:88
+msgid "El análisis opera con máxima precisión"
+msgstr ""
+
+#: app/templates/partials/insights_panel.html:91
+msgid "para activar análisis completo"
+msgstr ""
+
+#: app/templates/partials/insights_panel.html:94
+msgid "para activar predicciones precisas"
+msgstr ""
+
+#: app/templates/partials/insights_panel.html:96
+msgid "Registra transacciones este mes para comenzar el análisis"
+msgstr ""
+
+#: app/templates/partials/insights_panel.html:105
+msgid "Activar Salud financiera, Proyección y Alertas"
+msgstr ""
+
+#: app/templates/partials/insights_panel.html:146
+msgid "Cashflow"
+msgstr ""
+
+#: app/templates/partials/insights_panel.html:146
+msgid "Pres."
+msgstr ""
+
+#: app/templates/partials/insights_panel.html:152
+#, fuzzy
+msgid "Score no disponible"
+msgstr "No data available."
+
+#: app/templates/partials/insights_panel.html:189
+#, fuzzy
+msgid "Uso proyectado del presupuesto:"
+msgstr "Budget Usage"
+
+#: app/templates/partials/insights_panel.html:199
+#, fuzzy
+msgid "Proyección no disponible"
+msgstr "No data available."
+
+#: app/templates/partials/insights_panel.html:209
+msgid "Alertas"
+msgstr ""
+
+#: app/templates/partials/insights_panel.html:231
+msgid "alertas más"
+msgstr ""
+
+#: app/templates/partials/insights_panel.html:238
+#, fuzzy
+msgid "Sin alertas este mes"
+msgstr "No expenses recorded this month."
+
+#: app/templates/partials/insights_panel.html:256
+msgid "Ver análisis completo"
+msgstr ""
+
+# ── Scanner upload mode ──
+#: app/templates/partials/scanner_modal.html:19
+msgid "¿Cómo quieres escanear?"
+msgstr "How do you want to scan?"
+
+#: app/templates/partials/scanner_modal.html:26
+msgid "Fotografía el recibo con tu cámara"
+msgstr "Take a photo of the receipt with your camera"
+
+#: app/templates/partials/scanner_modal.html:33
+msgid "PNG, JPG, WEBP o HEIC desde tu galería"
+msgstr "PNG, JPG, WEBP or HEIC from your gallery"
+
+#: app/templates/partials/scanner_modal.html:43
+msgid ""
+"La cámara requiere una conexión segura (HTTPS). En una red local accede "
+"por localhost."
+msgstr ""
+
+#: app/templates/partials/scanner_modal.html:47
+msgid "No se pudo acceder a la cámara. Verifica los permisos del navegador."
+msgstr ""
+
+#: app/templates/partials/scanner_modal.html:57
+msgid "Iniciando cámara..."
+msgstr ""
+
+#: app/templates/partials/scanner_modal.html:65
+#: app/templates/partials/scanner_modal.html:124
+msgid "opcional — Scanner por defecto"
+msgstr ""
+
+#: app/templates/partials/scanner_modal.html:67
+#: app/templates/partials/scanner_modal.html:126
+msgid "— Usar categoría Scanner —"
+msgstr ""
+
+#: app/templates/partials/scanner_modal.html:81
+msgid "Capturar y Escanear"
+msgstr ""
+
+#: app/templates/partials/scanner_modal.html:87
+#: app/templates/partials/scanner_modal.html:146
+msgid "Analizando recibo con IA..."
+msgstr ""
+
+#: app/templates/partials/scanner_modal.html:97
+#, fuzzy
+msgid "Seleccionar archivo"
+msgstr "Change file"
+
+#: app/templates/partials/scanner_modal.html:100
+msgid "Arrastra aquí tu imagen o haz clic para seleccionar"
+msgstr "Drag your image here or click to select"
+
+#: app/templates/partials/scanner_modal.html:101
+msgid "Máximo 10 MB"
+msgstr "Maximum 10 MB"
+
+#: app/templates/partials/scanner_modal.html:113
+msgid "Cambiar archivo"
+msgstr "Change file"
+
+#: app/templates/partials/scanner_modal.html:140
+msgid "Escanear este archivo"
+msgstr "Scan this file"
+
+#: app/templates/partials/scanner_modal.html:154
+msgid "Revisa los datos extraídos antes de guardar. Puedes editarlos."
+msgstr ""
+
+#: app/templates/partials/scanner_modal.html:158
+#, fuzzy
+msgid "Recibo capturado"
+msgstr "Not loaded"
+
+#: app/templates/partials/scanner_modal.html:190
+msgid "Comercio"
+msgstr ""
+
+#: app/templates/partials/scanner_modal.html:190
+msgid "informativo"
+msgstr ""
+
+# ── transaction_form.html ──
+#: app/templates/partials/scanner_modal.html:196
+#, fuzzy
+msgid "Descripción / Productos"
+msgstr "Optional description..."
+
+#: app/templates/partials/scanner_modal.html:199
+msgid "Generado por IA. Puedes editarlo libremente."
+msgstr ""
+
+#: app/templates/partials/scanner_modal.html:205
+msgid "Volver a opciones"
+msgstr "Back to options"
+
+#: app/templates/partials/scanner_modal.html:208
+#, fuzzy
+msgid "Guardar movimiento"
+msgstr "Edit Transaction"
+
+#: app/templates/partials/scanner_modal.html:450
+msgid "Archivo muy grande. Máximo 10 MB."
+msgstr "File too large. Maximum 10 MB."
+
+#: app/templates/partials/scanner_modal.html:498
+#, fuzzy
+msgid "Error desconocido."
+msgstr "Connection error."
+
+#: app/templates/partials/scanner_modal.html:547
+#: app/templates/partials/scanner_modal.html:550
+#, fuzzy
+msgid "Error al procesar el recibo."
+msgstr "Error registering the device."
+
+#: app/templates/partials/scanner_modal.html:615
+msgid "No se pudo capturar la imagen."
+msgstr ""
+
+#: app/templates/partials/announcements/v1_7.html:5
+msgid "¡Novedades en Monetra v1.7!"
+msgstr ""
+
+#: app/templates/partials/announcements/v1_7.html:13
+msgid "Esta versión trae mejoras visuales y nuevas funcionalidades:"
+msgstr ""
+
+#: app/templates/partials/announcements/v1_7.html:18
+#: app/templates/partials/announcements/v1_8.html:22
+msgid "Colores únicos por categoría en badges y gráficos"
+msgstr ""
+
+#: app/templates/partials/announcements/v1_7.html:22
+#: app/templates/partials/announcements/v1_8.html:26
+msgid "Separación visual entre categorías por defecto y las tuyas"
+msgstr ""
+
+#: app/templates/partials/announcements/v1_7.html:26
+#: app/templates/partials/announcements/v1_8.html:30
+msgid "Eliminación de categorías personalizadas sin datos asociados"
+msgstr ""
+
+#: app/templates/partials/announcements/v1_7.html:30
+msgid "Páginas de error 404 y 500 con tema consistente"
+msgstr ""
+
+#: app/templates/partials/announcements/v1_7.html:34
+msgid "DEBUG y TESTING configurables por variable de entorno"
+msgstr ""
+
+#: app/templates/partials/announcements/v1_7.html:41
+#: app/templates/partials/announcements/v1_8.html:37
+msgid "¡Genial!"
+msgstr ""
+
+#: app/templates/partials/announcements/v1_8.html:5
+msgid "¡Novedades en Monetra v1.8!"
+msgstr ""
+
+#: app/templates/partials/announcements/v1_8.html:13
+msgid "Esta versión v1.8 trae mejoras visuales y nuevas funcionalidades:"
+msgstr ""
+
+#: app/templates/partials/announcements/v1_8.html:18
+msgid ""
+"Descarga Excel movida a Configurar → Reporte semanal, junto a \"Enviar "
+"ahora\""
+msgstr ""
+
+#: app/templates/partials/announcements/v2_0.html:5
+msgid "¡Monetra 2.0 Release!"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_0.html:13
+msgid ""
+"Una actualización mayor con nuevas herramientas para gestionar mejor tus "
+"finanzas:"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_0.html:18
+#, fuzzy
+msgid "Presupuestos por categoría"
+msgstr "Expenses by Category"
+
+#: app/templates/partials/announcements/v2_0.html:19
+msgid ""
+"— Define límites mensuales para categorías específicas y visualiza tu "
+"progreso."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_0.html:23
+#, fuzzy
+msgid "Presupuestos personalizados"
+msgstr "Budget updated."
+
+#: app/templates/partials/announcements/v2_0.html:24
+msgid "— Crea presupuestos para rangos de fechas libres dentro del mes."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_0.html:28
+msgid "Exportar Excel — versión mensual y anual"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_0.html:29
+msgid ""
+"— Descarga el reporte del mes actual o el resumen completo del año, con "
+"hojas detalladas por sección."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_0.html:34
+msgid "— Explora todos los paneles con datos de ejemplo de 3 años precargados."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_0.html:44
+msgid "¡Explorar ahora!"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:5
+msgid "¡Monetra 2.1 ya está aquí!"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:13
+msgid ""
+"Una versión más inteligente para entender tu dinero, anticiparte a "
+"problemas y tomar mejores decisiones financieras."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:19
+msgid "Cuenta en dólares"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:20
+msgid ""
+"— Registra y administra gastos en USD de forma separada, sin mezclar "
+"manualmente tus movimientos."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:24
+msgid "Vista consolidada"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:25
+msgid ""
+"— Consulta tus movimientos locales y en dólares convertidos a una sola "
+"moneda para ver tu gasto total real."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:29
+msgid "Análisis financiero inteligente"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:30
+msgid ""
+"— Monetra revisa ingresos, gastos, presupuesto, recurrentes y metas para "
+"entregarte una lectura clara del mes."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:35
+msgid ""
+"— Anticipa cómo podrías terminar el mes si mantienes un ritmo parecido al"
+" actual."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:39
+msgid "Alertas financieras claras"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:40
+msgid ""
+"— Recibe avisos sobre presupuesto, déficit, ahorro, metas y movimientos "
+"fuera de lo habitual."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:44
+msgid "Aprendizaje automático"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:45
+msgid ""
+"— Monetra aprende de tu comportamiento financiero y ajusta sus alertas "
+"según tu historial disponible."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:49
+msgid "Modo aprendizaje"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:50
+msgid ""
+"— Si eres nuevo, las alertas serán más suaves y orientativas mientras "
+"Monetra conoce tus hábitos."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:58
+msgid "Importante para la vista consolidada"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:61
+msgid ""
+"Desde Configuración de Cuenta, define el valor de referencia actual del "
+"dólar según tu moneda. Así Monetra puede convertir correctamente tus "
+"gastos USD y mostrar un consolidado más preciso."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_1.html:74
+#, fuzzy
+msgid "Configurar mi cuenta"
+msgstr "Account Settings"
+
+#: app/templates/partials/announcements/v2_2.html:5
+#: app/templates/partials/announcements/v2_3.html:5
+msgid "¡Monetra 2.3 ya está aquí!"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_2.html:13
+#: app/templates/partials/announcements/v2_3.html:13
+msgid ""
+"Más control sobre tu experiencia: activa lo que necesitas, gestiona tus "
+"recurrentes con claridad y exporta exactamente el período que quieres."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_2.html:19
+#: app/templates/partials/announcements/v2_3.html:19
+msgid "Dashboard de analítica opcional"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_2.html:20
+#: app/templates/partials/announcements/v2_3.html:20
+msgid ""
+"— Activa desde Configuración de Cuenta el panel de Salud financiera, "
+"Proyección de cierre y Alertas. Por defecto permanece oculto para no "
+"saturar la vista principal."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_2.html:24
+#: app/templates/partials/announcements/v2_3.html:24
+msgid "Mejoras en cargos recurrentes"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_2.html:25
+#: app/templates/partials/announcements/v2_3.html:25
+msgid ""
+"— Los recurrentes ya no se pueden eliminar: pasan a \"Finalizada\" "
+"conservando todo el historial. Usa el botón Finalizar hoy o edita la "
+"fecha de término desde el formulario."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_2.html:29
+#: app/templates/partials/announcements/v2_3.html:29
+msgid "Export global por rango de meses"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_2.html:30
+#: app/templates/partials/announcements/v2_3.html:30
+msgid ""
+"— El export de Excel en el Dashboard Global ahora respeta el período "
+"seleccionado (ej. Mayo–Agosto) en tiempo real, sin necesidad de hacer "
+"clic en Aplicar primero."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_2.html:34
+#: app/templates/partials/announcements/v2_3.html:34
+msgid "Guía de uso integrada"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_2.html:35
+#: app/templates/partials/announcements/v2_3.html:35
+msgid ""
+"— Consulta cómo funciona cada sección de Monetra desde el menú de tu "
+"nombre (esquina superior derecha) → Guía de uso."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_2.html:43
+#: app/templates/partials/announcements/v2_3.html:43
+msgid "Para activar el panel de analítica"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_2.html:46
+#: app/templates/partials/announcements/v2_3.html:46
+msgid ""
+"Ve a Configuración de Cuenta → Panel de Insights y activa el interruptor."
+" Puedes desactivarlo cuando quieras."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_2.html:59
+#: app/templates/partials/announcements/v2_3.html:59
+msgid "Ver guía"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_2.html:62
+#: app/templates/partials/announcements/v2_3.html:62
+#, fuzzy
+msgid "Ir a Configuración"
+msgstr "Save Settings"
+
+#: app/templates/usd/dashboard.html:24
+#, fuzzy
+msgid "Editar presupuesto"
+msgstr "Save Budget"
+
+#: app/templates/usd/dashboard.html:42
+#, fuzzy
+msgid "Gastado"
+msgstr "Expense"
+
+#: app/templates/usd/dashboard.html:50
+#, fuzzy
+msgid "del presupuesto"
+msgstr "Budget Usage"
+
+# ── transactions.html ──
+#: app/templates/usd/dashboard.html:105
+#, fuzzy
+msgid "Nuevo movimiento"
+msgstr "New Transaction"
+
+#: app/templates/usd/dashboard.html:129
+msgid "Opcional"
+msgstr ""
+
+#: app/templates/usd/dashboard.html:134
+#, fuzzy
+msgid "Agregar"
+msgstr "Create"
+
+#: app/templates/usd/dashboard.html:145
+#, fuzzy
+msgid "Categorías USD"
+msgstr "Categories"
+
+# ── categories.html ──
+#: app/templates/usd/dashboard.html:156
+#, fuzzy
+msgid "Nueva categoría"
+msgstr "New Category"
+
+#: app/templates/usd/dashboard.html:157
+#, fuzzy
+msgid "Agregar categoría"
+msgstr "Create Category"
+
+# ── transactions.html ──
+#: app/templates/usd/dashboard.html:174
+#, fuzzy, python-format
+msgid "En uso (%(n)s movimientos)"
+msgstr "New Transaction"
+
+#: app/templates/usd/dashboard.html:178
+#, fuzzy, python-format
+msgid "¿Eliminar la categoría %(n)s?"
+msgstr "Delete Year %(year)s"
+
+#: app/templates/usd/dashboard.html:181
+#, fuzzy
+msgid "Eliminar categoría"
+msgstr "Create Category"
+
+#: app/templates/usd/dashboard.html:192
+msgid "Crea tu primera categoría arriba para empezar a registrar movimientos."
+msgstr ""
+
+#: app/templates/usd/dashboard.html:256
+#, fuzzy
+msgid "Total"
+msgstr "Year total:"
+
+#: app/templates/usd/dashboard.html:280
+#, fuzzy
+msgid "Presupuesto USD"
+msgstr "Budgets"
+
+#: app/templates/usd/dashboard.html:285
+#, fuzzy
+msgid "Monto presupuesto mensual"
+msgstr "Budget Amount"
+
+#: app/templates/usd/dashboard.html:306
+#, fuzzy
+msgid "Editar movimiento"
+msgstr "Edit Transaction"
+
+#: app/usd/forms.py:14
+#, fuzzy
+msgid "Monto USD"
+msgstr "Amount"
+
+#: app/usd/forms.py:21
+#, fuzzy
+msgid "Presupuesto mensual USD"
+msgstr "Budget created."
+
+#: app/usd/routes.py:151
+#, fuzzy
+msgid "Movimiento agregado."
+msgstr "Transaction deleted."
+
+#: app/usd/routes.py:153 app/usd/routes.py:171
+msgid "Datos inválidos. Revisa los campos."
+msgstr ""
+
+#: app/usd/routes.py:193
+msgid "Nombre inválido."
+msgstr ""
+
+#: app/usd/routes.py:198
+#, fuzzy
+msgid "Ya existe una categoría con ese nombre."
+msgstr "A category with that name and type already exists."
+
+#: app/usd/routes.py:216
+msgid "No se puede eliminar: la categoría tiene movimientos asociados."
+msgstr ""
+
+#~ msgid "Habilitar recuperación por correo (SMTP)"
+#~ msgstr "Enable email recovery (SMTP)"
+
+#~ msgid ""
+#~ "Las categorías marcadas como \"global\" "
+#~ "son compartidas para todos los usuarios."
+#~ msgstr "Categories marked as \"global\" are shared for all users."
+
+#~ msgid "Sin categorías de ingresos."
+#~ msgstr "No income categories."
+
+#~ msgid "Recuperación por correo: configurada"
+#~ msgstr "Email recovery: configured"
+
+#~ msgid ""
+#~ "El modelo seleccionado no admite "
+#~ "imágenes. Cambia a un modelo multimodal"
+#~ " (gpt-4o, claude-3-5-sonnet, gemini-1.5-flash)."
+#~ msgstr ""
+#~ "The selected model does not support "
+#~ "images. Switch to a multimodal model "
+#~ "(gpt-4o, claude-3-5-sonnet, gemini-1.5-flash)."
+
+#~ msgid "Formato no permitido. Usa PNG, JPG, WEBP o HEIC."
+#~ msgstr "Format not allowed. Use PNG, JPG, WEBP or HEIC."
+
+#~ msgid ""
+#~ "¿Eliminar el dispositivo biométrico "
+#~ "registrado? Podrás seguir usando tu "
+#~ "contraseña."
+#~ msgstr ""
+#~ "Delete the registered biometric device? "
+#~ "You can still use your password."
+
