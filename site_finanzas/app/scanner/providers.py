@@ -58,9 +58,12 @@ def _validate_base_url(base_url: str) -> None:
         if hostname.endswith(suffix):
             raise ValueError("URL base no permitida.")
 
-    # Check literal IP first
+    # Check literal IP first.
+    # Strip IPv6 zone ID (e.g. "fe80::1%25eth0" → "fe80::1") before parsing —
+    # ipaddress.ip_address() raises ValueError on zone IDs, which would silently
+    # fall through to the DNS block and bypass the private-range check.
     try:
-        addr = ipaddress.ip_address(hostname)
+        addr = ipaddress.ip_address(hostname.split('%')[0])
         if addr.is_loopback or addr.is_private or addr.is_link_local or addr.is_reserved or addr.is_unspecified:
             raise ValueError("URL base no permitida.")
     except ValueError as exc:
