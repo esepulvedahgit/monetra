@@ -84,16 +84,19 @@
 (function () {
     'use strict';
 
-    // Only activate on mobile and when WebAuthn is supported
+    // Only activate on mobile, when WebAuthn is supported, and when this device
+    // has a registered passkey (hint stored by configurar.html on registration).
     if (window.innerWidth >= 992 || !window.PublicKeyCredential) return;
+    if (localStorage.getItem('monetra_passkey') !== '1') return;
 
     var webauthnSection = document.getElementById('webauthnSection');
     var btnBiometric    = document.getElementById('btnBiometric');
     var biometricError  = document.getElementById('biometricError');
+    var csrfToken       = '{{ csrf_token() }}';
     var beginUrl        = '{{ url_for("auth.webauthn_login_begin") }}';
     var completeUrl     = '{{ url_for("auth.webauthn_login_complete") }}';
 
-    // Show biometric section on mobile when WebAuthn is supported
+    // Show biometric section — passkey hint confirmed for this device
     if (webauthnSection) webauthnSection.style.display = '';
 
     function showBiometricError(msg) {
@@ -119,7 +122,7 @@
             // 1. Get challenge from server (no email required)
             fetch(beginUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                 body: '{}',
             })
                 .then(function (r) {
@@ -153,7 +156,7 @@
                     };
                     return fetch(completeUrl, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                         body: JSON.stringify(body),
                     });
                 })

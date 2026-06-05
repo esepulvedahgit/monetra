@@ -1270,6 +1270,8 @@
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
                     if (data.ok) {
+                        // Mark this device as having a passkey so login page shows the biometric button
+                        localStorage.setItem('monetra_passkey', '1');
                         showStatus('{{ _("Dispositivo registrado correctamente. Recarga la página para ver los cambios.") }}', true);
                         setTimeout(function () { location.reload(); }, 1500);
                     } else {
@@ -1300,7 +1302,11 @@
                 })
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
-                    if (data.ok) { location.reload(); }
+                    if (data.ok) {
+                        // Remove device hint so login page hides the biometric button
+                        localStorage.removeItem('monetra_passkey');
+                        location.reload();
+                    }
                 })
                 .catch(function () { showStatus('{{ _("Error al eliminar.") }}', false); });
             });
