@@ -19,6 +19,11 @@ __pycache__/
 # Claude Code
 .claude/
 
+# Graphify (knowledge graph tool — regenerable, no commitear)
+.graphify/
+.graphify_*/
+graphify-out/
+
 # OS
 .DS_Store
 Thumbs.db
