@@ -1098,13 +1098,17 @@
         const sym = '{{ current_user.currency_symbol or "$" }}';
 
         const T = {
-            loaded:       {{ _('Cargado') | tojson }},
-            notLoaded:    {{ _('No cargado') | tojson }},
-            loading:      {{ _('Cargando…') | tojson }},
-            loadBtn:      {{ _('Cargar demo') | tojson }},
-            connError:    {{ _('Error de conexión.') | tojson }},
-            confirmReset: {{ _('¿Eliminar todos los datos demo? Esta acción no se puede deshacer.') | tojson }},
+            loaded:         {{ _('Cargado') | tojson }},
+            notLoaded:      {{ _('No cargado') | tojson }},
+            loading:        {{ _('Cargando…') | tojson }},
+            loadBtn:        {{ _('Cargar demo') | tojson }},
+            connError:      {{ _('Error de conexión.') | tojson }},
+            confirmLoad:    {{ _('Se cargarán datos demo y se cerrará tu sesión. ¿Continuar?') | tojson }},
+            confirmReset:   {{ _('¿Eliminar todos los datos demo? Se cerrará tu sesión. Esta acción no se puede deshacer.') | tojson }},
+            closingSession: {{ _('Cerrando sesión…') | tojson }},
         };
+        const LOGOUT_LOADED = '{{ url_for("auth.logout") }}?notice=demo_loaded';
+        const LOGOUT_RESET  = '{{ url_for("auth.logout") }}?notice=demo_reset';
 
     function fmtNum(n) {
         return sym + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1153,14 +1157,19 @@
     }
 
     window.demoLoad = async function () {
+        if (!confirm(T.confirmLoad)) return;
         const btn = document.getElementById('btnLoadDemo');
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> ' + T.loading;
         setMsg('', true);
         try {
             const data = await demoFetch('{{ url_for("demo_data.load") }}');
-            setMsg(data.message, data.ok);
-            if (data.ok) applyStatus({ ...data, has_demo: true });
+            if (data.ok) {
+                setMsg(T.closingSession, true);
+                window.location.href = LOGOUT_LOADED;
+                return;
+            }
+            setMsg(data.message, false);
         } catch {
             setMsg(T.connError, false);
         } finally {
@@ -1176,8 +1185,12 @@
         setMsg('', true);
         try {
             const data = await demoFetch('{{ url_for("demo_data.reset") }}');
-            setMsg(data.message, data.ok);
-            if (data.ok) applyStatus({ has_demo: false });
+            if (data.ok) {
+                setMsg(T.closingSession, true);
+                window.location.href = LOGOUT_RESET;
+                return;
+            }
+            setMsg(data.message, false);
         } catch {
             setMsg(T.connError, false);
         } finally {

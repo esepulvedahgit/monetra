@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Monetra 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-05 20:58-0400\n"
+"POT-Creation-Date: 2026-06-06 15:00-0400\n"
 "PO-Revision-Date: 2025-01-01 00:00+0000\n"
 "Last-Translator: \n"
 "Language: en\n"
@@ -32,7 +32,7 @@ msgstr "The session has expired. Please log in again."
 msgid "Configura el valor del dólar en Configuración antes de ver el consolidado."
 msgstr "Set the dollar value in Settings before viewing the consolidated."
 
-#: app/analytics/routes.py:36 app/main/routes.py:276
+#: app/analytics/routes.py:36 app/main/routes.py:278
 #: app/templates/analytics/consolidated.html:9
 msgid "Consolidado"
 msgstr "Consolidated"
@@ -120,7 +120,7 @@ msgstr "Send Recovery Link"
 msgid "Nueva Contraseña"
 msgstr "New Password"
 
-#: app/auth/forms.py:65 app/auth/routes.py:289
+#: app/auth/forms.py:65 app/auth/routes.py:297
 msgid "Restablecer Contraseña"
 msgstr "Reset Password"
 
@@ -191,7 +191,15 @@ msgstr "Wrong code. Try again."
 msgid "Verificación en dos pasos"
 msgstr "Two-step verification"
 
-#: app/auth/routes.py:253
+#: app/auth/routes.py:208
+msgid "Datos demo activados. Inicia sesión de nuevo para verlos."
+msgstr "Demo data activated. Please sign in again to see them."
+
+#: app/auth/routes.py:209
+msgid "Datos demo desactivados. Inicia sesión de nuevo."
+msgstr "Demo data deactivated. Please sign in again."
+
+#: app/auth/routes.py:261
 msgid ""
 "Si el correo existe y hay un SMTP disponible, recibirás las instrucciones"
 " en tu correo."
@@ -199,15 +207,15 @@ msgstr ""
 "If the email exists and there is an SMTP available, you will receive the "
 "instructions in your email."
 
-#: app/auth/routes.py:256 app/templates/auth/forgot_password.html:19
+#: app/auth/routes.py:264 app/templates/auth/forgot_password.html:19
 msgid "Recuperar Contraseña"
 msgstr "Recover Password"
 
-#: app/auth/routes.py:269
+#: app/auth/routes.py:277
 msgid "El enlace de recuperación es inválido o ha expirado."
 msgstr "The recovery link is invalid or has expired."
 
-#: app/auth/routes.py:286
+#: app/auth/routes.py:294
 msgid "Tu contraseña ha sido actualizada exitosamente."
 msgstr "Your password has been updated successfully."
 
@@ -629,7 +637,7 @@ msgid "Tipo"
 msgstr "Type"
 
 #: app/main/forms.py:38 app/main/forms.py:51 app/main/forms.py:84
-#: app/main/routes.py:591 app/main/routes.py:644 app/main/routes.py:723
+#: app/main/routes.py:593 app/main/routes.py:646 app/main/routes.py:725
 #: app/templates/main/guia.html:54 app/templates/main/recurrentes.html:81
 #: app/templates/main/recurrentes.html:169
 #: app/templates/main/transactions.html:97
@@ -638,7 +646,7 @@ msgid "Gasto"
 msgstr "Expense"
 
 #: app/main/forms.py:38 app/main/forms.py:51 app/main/forms.py:84
-#: app/main/routes.py:591 app/main/routes.py:644 app/main/routes.py:723
+#: app/main/routes.py:593 app/main/routes.py:646 app/main/routes.py:725
 #: app/templates/main/guia.html:53 app/templates/main/recurrentes.html:79
 #: app/templates/main/recurrentes.html:167
 #: app/templates/main/transactions.html:95
@@ -774,7 +782,7 @@ msgstr "End date"
 msgid "La fecha de término debe ser posterior al inicio."
 msgstr "The end date must be after the start."
 
-#: app/main/forms.py:115 app/main/routes.py:1105
+#: app/main/forms.py:115 app/main/routes.py:1107
 msgid "El presupuesto personalizado debe estar dentro del mismo mes."
 msgstr "The personalized quote must be within the same month."
 
@@ -874,88 +882,88 @@ msgstr "API Token"
 msgid "Guardar configuración de escáner"
 msgstr "Save scanner settings"
 
-#: app/main/routes.py:245
+#: app/main/routes.py:247
 msgid "Este registro es de demostración y no puede modificarse."
 msgstr "This registry is for demonstration purposes and cannot be modified."
 
-#: app/main/routes.py:260
+#: app/main/routes.py:262
 msgid "Cuenta principal"
 msgstr "Main account"
 
-#: app/main/routes.py:261
+#: app/main/routes.py:263
 msgid "Movimientos en moneda local"
 msgstr "Movements in local currency"
 
-#: app/main/routes.py:268 app/templates/usd/dashboard.html:18
+#: app/main/routes.py:270 app/templates/usd/dashboard.html:18
 msgid "Cuenta USD"
 msgstr "USD account"
 
-#: app/main/routes.py:269
+#: app/main/routes.py:271
 msgid "Gastos en dólares"
 msgstr "Expenses in dollars"
 
-#: app/main/routes.py:277
+#: app/main/routes.py:279
 msgid "Vista unificada en moneda principal"
 msgstr "Unified view in primary currency"
 
 # ── Main routes flash ──
-#: app/main/routes.py:371
+#: app/main/routes.py:373
 #, python-format
 msgid "Año %(year)s creado."
 msgstr "Year %(year)s created."
 
-#: app/main/routes.py:395
+#: app/main/routes.py:397
 #, python-format
 msgid "Año %(year)s eliminado junto con todos sus movimientos y presupuestos."
 msgstr "Year %(year)s deleted along with all its transactions and budgets."
 
-#: app/main/routes.py:602 app/main/routes.py:651
+#: app/main/routes.py:604 app/main/routes.py:653
 #, python-format
 msgid "La fecha debe estar dentro de %(month)s %(year)s."
 msgstr "The date must be within %(month)s %(year)s."
 
-#: app/main/routes.py:610 app/main/routes.py:659
+#: app/main/routes.py:612 app/main/routes.py:661
 msgid "La categoría seleccionada no es válida."
 msgstr "The selected category is not valid."
 
-#: app/main/routes.py:612
+#: app/main/routes.py:614
 msgid "La categoría no corresponde al tipo de movimiento seleccionado."
 msgstr "The category does not match the selected transaction type."
 
-#: app/main/routes.py:623
+#: app/main/routes.py:625
 msgid "Movimiento creado exitosamente."
 msgstr "Transaction created successfully."
 
 # ── transactions.html ──
-#: app/main/routes.py:627 app/templates/main/transactions.html:17
+#: app/main/routes.py:629 app/templates/main/transactions.html:17
 msgid "Nuevo Movimiento"
 msgstr "New Transaction"
 
-#: app/main/routes.py:661
+#: app/main/routes.py:663
 msgid "La categoría no corresponde al tipo de movimiento."
 msgstr "The category does not match the transaction type."
 
-#: app/main/routes.py:669 app/usd/routes.py:169
+#: app/main/routes.py:671 app/usd/routes.py:169
 msgid "Movimiento actualizado."
 msgstr "Transaction updated."
 
-#: app/main/routes.py:673
+#: app/main/routes.py:675
 msgid "Editar Movimiento"
 msgstr "Edit Transaction"
 
-#: app/main/routes.py:687 app/usd/routes.py:182
+#: app/main/routes.py:689 app/usd/routes.py:182
 msgid "Movimiento eliminado."
 msgstr "Transaction deleted."
 
-#: app/main/routes.py:731
+#: app/main/routes.py:733
 msgid "Ya existe una categoría con ese nombre y tipo."
 msgstr "A category with that name and type already exists."
 
-#: app/main/routes.py:740 app/usd/routes.py:207
+#: app/main/routes.py:742 app/usd/routes.py:207
 msgid "Categoría creada."
 msgstr "Category created."
 
-#: app/main/routes.py:764
+#: app/main/routes.py:766
 msgid ""
 "Esta categoría pertenece a un presupuesto personalizado. Elimínalo desde "
 "la sección Presupuesto."
@@ -963,81 +971,81 @@ msgstr ""
 "This category belongs to a personalized quote. Delete it from the Budget "
 "section."
 
-#: app/main/routes.py:782 app/usd/routes.py:220
+#: app/main/routes.py:784 app/usd/routes.py:220
 msgid "Categoría eliminada."
 msgstr "Category removed."
 
-#: app/main/routes.py:854 app/main/routes.py:859 app/usd/routes.py:246
+#: app/main/routes.py:856 app/main/routes.py:861 app/usd/routes.py:246
 msgid "Presupuesto actualizado."
 msgstr "Budget updated."
 
-#: app/main/routes.py:869
+#: app/main/routes.py:871
 msgid "Presupuesto creado."
 msgstr "Budget created."
 
-#: app/main/routes.py:996
+#: app/main/routes.py:998
 msgid "Presupuesto eliminado."
 msgstr "Budget eliminated."
 
-#: app/main/routes.py:1034
+#: app/main/routes.py:1036
 msgid "Presupuesto de categoría actualizado."
 msgstr "Updated category budget."
 
-#: app/main/routes.py:1036
+#: app/main/routes.py:1038
 msgid "Ya tienes el máximo de 5 presupuestos de categoría."
 msgstr "You already have the maximum of 5 category budgets."
 
-#: app/main/routes.py:1045
+#: app/main/routes.py:1047
 msgid "Presupuesto de categoría creado."
 msgstr "Category budget created."
 
-#: app/main/routes.py:1063
+#: app/main/routes.py:1065
 msgid "Presupuesto de categoría eliminado."
 msgstr "Category budget removed."
 
-#: app/main/routes.py:1083
+#: app/main/routes.py:1085
 msgid "No se puede editar un presupuesto finalizado. Queda como historial."
 msgstr "You cannot edit a finalized quote. It remains as history."
 
-#: app/main/routes.py:1097
+#: app/main/routes.py:1099
 msgid "El presupuesto personalizado debe pertenecer al mes seleccionado."
 msgstr "The personalized budget must belong to the selected month."
 
-#: app/main/routes.py:1101
+#: app/main/routes.py:1103
 msgid "La fecha de inicio no puede ser anterior a hoy."
 msgstr "The start date cannot be earlier than today."
 
-#: app/main/routes.py:1120 app/templates/main/budget.html:362
+#: app/main/routes.py:1122 app/templates/main/budget.html:362
 msgid "Ya tienes un presupuesto personalizado vigente para este mes."
 msgstr "You already have a personalized budget in effect for this month."
 
-#: app/main/routes.py:1132
+#: app/main/routes.py:1134
 #, python-format
 msgid ""
 "La fecha de inicio debe ser posterior al %(d)s (último presupuesto "
 "finalizado)."
 msgstr "The start date must be after %(d)s (last completed quote)."
 
-#: app/main/routes.py:1144
+#: app/main/routes.py:1146
 msgid "Ya existe una categoría con ese nombre. Elige otro."
 msgstr "There is already a category with that name. Choose another."
 
-#: app/main/routes.py:1155
+#: app/main/routes.py:1157
 msgid "Presupuesto personalizado actualizado."
 msgstr "Updated personalized quote."
 
-#: app/main/routes.py:1174
+#: app/main/routes.py:1176
 #, python-format
 msgid ""
 "Presupuesto personalizado creado. La categoría \"%(name)s\" fue creada "
 "automáticamente."
 msgstr "Custom quote created. The category \"%(name)s\" was created automatically."
 
-#: app/main/routes.py:1187
+#: app/main/routes.py:1189
 msgid "No se puede eliminar un presupuesto finalizado. Queda como historial."
 msgstr "You cannot delete a finalized quote. It remains as history."
 
-#: app/main/routes.py:1211
+#: app/main/routes.py:1213
 #, python-format
 msgid ""
 "Presupuesto \"%(n)s\" eliminado junto con %(tx)s movimientos y %(rec)s "
@@ -1046,46 +1054,46 @@ msgstr ""
 "Budget \"%(n)s\" deleted along with %(tx)s transactions and %(rec)s "
 "associated recurring entries."
 
-#: app/main/routes.py:1214
+#: app/main/routes.py:1216
 #, python-format
 msgid "Presupuesto y categoría \"%(n)s\" eliminados."
 msgstr "Quote and category \"%(n)s\" removed."
 
-#: app/main/routes.py:1318 app/templates/main/dashboard.html:225
+#: app/main/routes.py:1320 app/templates/main/dashboard.html:225
 #: app/templates/main/metas.html:6
 msgid "Metas de Ahorro"
 msgstr "Savings Goals"
 
-#: app/main/routes.py:1342
+#: app/main/routes.py:1344
 msgid "Meta guardada exitosamente."
 msgstr "Goal saved successfully."
 
-#: app/main/routes.py:1346 app/templates/main/meta_form.html:8
+#: app/main/routes.py:1348 app/templates/main/meta_form.html:8
 msgid "Editar Meta"
 msgstr "Edit Meta"
 
 # ── transactions.html ──
-#: app/main/routes.py:1346 app/templates/main/metas.html:8
+#: app/main/routes.py:1348 app/templates/main/metas.html:8
 msgid "Nueva Meta"
 msgstr "New Goal"
 
-#: app/main/routes.py:1357
+#: app/main/routes.py:1359
 msgid "Meta eliminada."
 msgstr "Deleted goal."
 
-#: app/main/routes.py:1366
+#: app/main/routes.py:1368
 msgid "Esta meta es de demostración y no puede modificarse."
 msgstr "This goal is for demonstration purposes and cannot be modified."
 
-#: app/main/routes.py:1371
+#: app/main/routes.py:1373
 msgid "El monto debe ser mayor a cero."
 msgstr "The amount must be greater than zero."
 
-#: app/main/routes.py:1373 app/usd/routes.py:232
+#: app/main/routes.py:1375 app/usd/routes.py:232
 msgid "Monto inválido."
 msgstr "Invalid amount."
 
-#: app/main/routes.py:1441 app/templates/base.html:76
+#: app/main/routes.py:1443 app/templates/base.html:76
 #: app/templates/main/guia.html:29 app/templates/main/guia.html:258
 #: app/templates/main/guia.html:260 app/templates/main/guia.html:311
 #: app/templates/main/recurrentes.html:6
@@ -1093,19 +1101,19 @@ msgstr "Invalid amount."
 msgid "Recurrentes"
 msgstr "Recurring"
 
-#: app/main/routes.py:1474
+#: app/main/routes.py:1476
 msgid "La categoría no corresponde al tipo seleccionado."
 msgstr "The category does not correspond to the selected type."
 
-#: app/main/routes.py:1476
+#: app/main/routes.py:1478
 msgid "La fecha de término debe estar dentro del año de la recurrente."
 msgstr "The end date must be within the year of the recurring entry."
 
-#: app/main/routes.py:1478
+#: app/main/routes.py:1480
 msgid "La fecha de término no puede ser anterior a hoy."
 msgstr "The end date cannot be earlier than today."
 
-#: app/main/routes.py:1530
+#: app/main/routes.py:1532
 #, python-format
 msgid ""
 "Recurrente creada. Se registró el mes actual (%(date)s) y %(n)s entradas "
@@ -1114,100 +1122,90 @@ msgstr ""
 "Recurring created. Current month (%(date)s) and future %(n)s entries "
 "generated were recorded."
 
-#: app/main/routes.py:1533
+#: app/main/routes.py:1535
 #, python-format
 msgid "Recurrente creada. Se registró el mes actual (%(date)s)."
 msgstr "Recurring created. The current month (%(date)s) was registered."
 
-#: app/main/routes.py:1536
+#: app/main/routes.py:1538
 #, python-format
 msgid "Recurrente creada. %(n)s entradas generadas hasta fin de año."
 msgstr "Recurring created. %(n)s entries generated until the end of the year."
 
-#: app/main/routes.py:1538
+#: app/main/routes.py:1540
 #, python-format
 msgid "Recurrente activada. %(n)s transacciones generadas retroactivamente."
 msgstr "Recurring activated. %(n)s retroactively generated transactions."
 
-#: app/main/routes.py:1540
+#: app/main/routes.py:1542
 msgid "Transacción recurrente guardada."
 msgstr "Saved recurring transaction."
 
-#: app/main/routes.py:1559 app/templates/main/recurrente_form.html:8
+#: app/main/routes.py:1561 app/templates/main/recurrente_form.html:8
 msgid "Editar Recurrente"
 msgstr "Edit Recurring"
 
-#: app/main/routes.py:1559 app/templates/main/recurrente_form.html:8
+#: app/main/routes.py:1561 app/templates/main/recurrente_form.html:8
 #: app/templates/main/recurrentes.html:8
 msgid "Nueva Recurrente"
 msgstr "New Recurring"
 
-#: app/main/routes.py:1571
+#: app/main/routes.py:1573
 msgid "Recurrente finalizada. Ya no generará nuevos movimientos."
 msgstr "Recurring terminated. It will no longer generate new movements."
 
-#: app/main/routes.py:1626
+#: app/main/routes.py:1628
 msgid "Configuración de correo (SMTP) guardada exitosamente."
 msgstr "Email (SMTP) settings saved successfully."
 
-#: app/main/routes.py:1638
+#: app/main/routes.py:1640
 msgid "Configuración del escáner IA guardada."
 msgstr "AI scanner settings saved."
 
-#: app/main/routes.py:1646
+#: app/main/routes.py:1648
 msgid "Configuración de administrador guardada."
 msgstr "Administrator settings saved."
 
-#: app/main/routes.py:1661
+#: app/main/routes.py:1663
 msgid "Configuración regional guardada exitosamente."
 msgstr "Regional settings saved successfully."
 
-#: app/main/routes.py:1708 app/templates/main/configurar.html:8
+#: app/main/routes.py:1710 app/templates/main/configurar.html:8
 msgid "Configurar Cuenta"
 msgstr "Account Settings"
 
-#: app/main/routes.py:1728
+#: app/main/routes.py:1730
 msgid "Configuración de reporte semanal guardada."
 msgstr "Weekly report settings saved."
 
-#: app/main/routes.py:1744
+#: app/main/routes.py:1765
 #, python-format
-msgid "Reporte enviado correctamente a %(email)s."
-msgstr "Report successfully sent to %(email)s."
+msgid "Tu reporte se está generando y se enviará a %(email)s en unos momentos."
+msgstr ""
 
-#: app/main/routes.py:1746
-#, python-format
-msgid "Error al enviar el reporte: %(msg)s"
-msgstr "Error sending report: %(msg)s"
-
-#: app/main/routes.py:1748
-#, python-format
-msgid "Error generando el reporte: %(e)s"
-msgstr "Error generating the report: %(e)s"
-
-#: app/main/routes.py:1814
+#: app/main/routes.py:1831
 msgid "La contraseña actual es incorrecta."
 msgstr "The current password is incorrect."
 
-#: app/main/routes.py:1819
+#: app/main/routes.py:1836
 msgid ""
 "Contraseña actualizada correctamente. Inicia sesión con tu nueva "
 "contraseña."
 msgstr "Password updated successfully. Sign in with your new password."
 
-#: app/main/routes.py:1850
+#: app/main/routes.py:1867
 msgid "Sesión expirada. Inicia el proceso nuevamente."
 msgstr "Session expired. Start the process again."
 
-#: app/main/routes.py:1854 app/main/routes.py:1872
+#: app/main/routes.py:1871 app/main/routes.py:1889
 msgid "Código incorrecto."
 msgstr "Wrong code."
 
-#: app/main/routes.py:1889
+#: app/main/routes.py:1906
 msgid "Correo de prueba enviado correctamente. Revisa tu bandeja de entrada."
 msgstr "Test email sent successfully. Check your inbox."
 
-#: app/main/routes.py:1891
+#: app/main/routes.py:1908
 #, python-format
 msgid "Error al enviar correo de prueba: %(msg)s"
 msgstr "Error sending test email: %(msg)s"
@@ -2437,7 +2435,7 @@ msgid "Confirmar contraseña"
 msgstr "Confirm password"
 
 #: app/templates/main/configurar.html:287
-#: app/templates/main/configurar.html:1705
+#: app/templates/main/configurar.html:1718
 msgid "Descargar respaldo"
 msgstr "Download backup"
 
@@ -2493,19 +2491,19 @@ msgstr ""
 "user."
 
 #: app/templates/main/configurar.html:400
-#: app/templates/main/configurar.html:1218
+#: app/templates/main/configurar.html:1231
 #: app/templates/main/recurrentes.html:69
 #: app/templates/main/recurrentes.html:158
 msgid "Creado"
 msgstr "Created"
 
 #: app/templates/main/configurar.html:402
-#: app/templates/main/configurar.html:1218
+#: app/templates/main/configurar.html:1231
 msgid "Último uso"
 msgstr "Last use"
 
 #: app/templates/main/configurar.html:402
-#: app/templates/main/configurar.html:1218
+#: app/templates/main/configurar.html:1231
 msgid "Nunca"
 msgstr "Never"
 
@@ -2660,7 +2658,7 @@ msgid "Cambiar dispositivo"
 msgstr "Change device"
 
 #: app/templates/main/configurar.html:632
-#: app/templates/main/configurar.html:1523
+#: app/templates/main/configurar.html:1536
 msgid "Tu navegador no soporta autenticación biométrica."
 msgstr "Your browser does not support biometric authentication."
 
@@ -2677,7 +2675,7 @@ msgid "Tu contraseña actual"
 msgstr "Your current password"
 
 #: app/templates/main/configurar.html:653
-#: app/templates/main/configurar.html:1572
+#: app/templates/main/configurar.html:1585
 msgid "Continuar"
 msgstr "Continue"
 
@@ -2806,7 +2804,9 @@ msgstr "Weekly email report"
 msgid ""
 "Recibe tu resumen Excel todos los lunes a las 10:00 AM (UTC). Incluye "
 "únicamente el mes en curso."
-msgstr "Get your Excel summary every Monday at 10:00 AM (UTC). Includes the current month only."
+msgstr ""
+"Get your Excel summary every Monday at 10:00 AM (UTC). Includes the "
+"current month only."
 
 #: app/templates/main/configurar.html:894
 msgid "Activar reporte semanal"
@@ -2926,19 +2926,29 @@ msgid "Cargando…"
 msgstr "Loading…"
 
 #: app/templates/main/configurar.html:1105
-#: app/templates/main/configurar.html:1436
+#: app/templates/main/configurar.html:1449
 msgid "Error de conexión."
 msgstr "Connection error."
 
 #: app/templates/main/configurar.html:1106
-msgid "¿Eliminar todos los datos demo? Esta acción no se puede deshacer."
-msgstr "Delete all demo data? This action cannot be undone."
+msgid "Se cargarán datos demo y se cerrará tu sesión. ¿Continuar?"
+msgstr "Demo data will be loaded and your session will be closed. Continue?"
 
-#: app/templates/main/configurar.html:1225
+#: app/templates/main/configurar.html:1107
+msgid ""
+"¿Eliminar todos los datos demo? Se cerrará tu sesión. Esta acción no se "
+"puede deshacer."
+msgstr "Delete all demo data? Your session will be closed. This action cannot be undone."
+
+#: app/templates/main/configurar.html:1108
+msgid "Cerrando sesión…"
+msgstr "Signing out…"
+
+#: app/templates/main/configurar.html:1238
 msgid "Error al generar el token."
 msgstr "Error generating token."
 
-#: app/templates/main/configurar.html:1233
+#: app/templates/main/configurar.html:1246
 msgid ""
 "¿Seguro que quieres revocar el token? Los agentes que lo usen perderán "
 "acceso."
@@ -2946,67 +2956,67 @@ msgstr ""
 "Are you sure you want to revoke the token? Agents using it will lose "
 "access."
 
-#: app/templates/main/configurar.html:1241
+#: app/templates/main/configurar.html:1254
 msgid "Error al revocar el token."
 msgstr "Error revoking token."
 
-#: app/templates/main/configurar.html:1282
+#: app/templates/main/configurar.html:1295
 msgid "Error al generar el QR."
 msgstr "Error generating the QR."
 
-#: app/templates/main/configurar.html:1294
-#: app/templates/main/configurar.html:1307 app/templates/main/metas.html:296
+#: app/templates/main/configurar.html:1307
+#: app/templates/main/configurar.html:1320 app/templates/main/metas.html:296
 msgid "Error."
 msgstr "Mistake."
 
-#: app/templates/main/configurar.html:1384
+#: app/templates/main/configurar.html:1397
 msgid "Modelo recomendado: "
 msgstr "Recommended model:"
 
-#: app/templates/main/configurar.html:1399
+#: app/templates/main/configurar.html:1412
 msgid "Guarda el nuevo token primero para probarlo."
 msgstr "Save the new token first to test it."
 
-#: app/templates/main/configurar.html:1555
+#: app/templates/main/configurar.html:1568
 msgid "Ingresa tu contraseña."
 msgstr "Enter your password."
 
-#: app/templates/main/configurar.html:1583
+#: app/templates/main/configurar.html:1596
 msgid "Error al iniciar registro."
 msgstr "Error starting registration."
 
-#: app/templates/main/configurar.html:1617
+#: app/templates/main/configurar.html:1630
 msgid ""
 "Dispositivo registrado correctamente. Recarga la página para ver los "
 "cambios."
 msgstr "Device registered successfully. Reload the page to see the changes."
 
-#: app/templates/main/configurar.html:1620
+#: app/templates/main/configurar.html:1633
 msgid "Error al registrar."
 msgstr "Error registering."
 
-#: app/templates/main/configurar.html:1626
+#: app/templates/main/configurar.html:1639
 msgid "Registro cancelado."
 msgstr "Registration cancelled."
 
-#: app/templates/main/configurar.html:1627
-#: app/templates/main/configurar.html:1629
-#: app/templates/main/configurar.html:1656
-#: app/templates/main/configurar.html:1657
+#: app/templates/main/configurar.html:1640
+#: app/templates/main/configurar.html:1642
+#: app/templates/main/configurar.html:1669
+#: app/templates/main/configurar.html:1670
 msgid "Contraseña incorrecta."
 msgstr "Incorrect password."
 
-#: app/templates/main/configurar.html:1631
+#: app/templates/main/configurar.html:1644
 msgid "Error al registrar el dispositivo."
 msgstr "Error registering the device."
 
-#: app/templates/main/configurar.html:1643
-#: app/templates/main/configurar.html:1651
-#: app/templates/main/configurar.html:1660
+#: app/templates/main/configurar.html:1656
+#: app/templates/main/configurar.html:1664
+#: app/templates/main/configurar.html:1673
 msgid "Error al eliminar."
 msgstr "Delete error."
 
-#: app/templates/main/configurar.html:1701
+#: app/templates/main/configurar.html:1714
 msgid "Generando…"
 msgstr "Generating…"
 
@@ -5682,4 +5692,13 @@ msgstr "Cannot be deleted: the category has associated movements."
 #~ msgstr ""
 #~ "Delete the registered biometric device? "
 #~ "You can still use your password."
+
+#~ msgid "Reporte enviado correctamente a %(email)s."
+#~ msgstr "Report successfully sent to %(email)s."
+
+#~ msgid "Error al enviar el reporte: %(msg)s"
+#~ msgstr "Error sending report: %(msg)s"
+
+#~ msgid "Error generando el reporte: %(e)s"
+#~ msgstr "Error generating the report: %(e)s"
 

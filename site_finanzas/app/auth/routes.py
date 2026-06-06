@@ -202,6 +202,14 @@ def logout():
     uid = current_user.id if current_user.is_authenticated else None
     _audit_commit(ev.AUTH_LOGOUT, user_id=uid)
     logout_user()
+    session.clear()  # limpia selected_year/month, _login_at, etc. — login reconstruye todo
+    notice = request.args.get('notice')
+    _notices = {
+        'demo_loaded': _('Datos demo activados. Inicia sesión de nuevo para verlos.'),
+        'demo_reset':  _('Datos demo desactivados. Inicia sesión de nuevo.'),
+    }
+    if notice in _notices:
+        flash(_notices[notice], 'success')
     return redirect(url_for('auth.login'))
 
 
