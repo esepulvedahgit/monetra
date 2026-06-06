@@ -19,6 +19,9 @@ __pycache__/
 # Claude Code
 .claude/
 
+# Flutter app (desarrollo separado, no forma parte del repo Flask)
+Flutter/
+
 # Graphify (knowledge graph tool — regenerable, no commitear)
 .graphify/
 .graphify_*/
