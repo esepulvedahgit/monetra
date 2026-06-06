@@ -113,7 +113,7 @@ Construye la imagen desde el código fuente y monta el directorio para hot-reloa
 ```bash
 # Desde la carpeta docker/
 cp .env.example .env                          # Credenciales y config
-cp ../site_finanzas/.env.example ../site_finanzas/.env  # Config de Flask
+cp .env ../site_finanzas/.env  # Config de Flask
 
 # Edita ambos archivos con tus valores, luego:
 docker compose up -d --build
