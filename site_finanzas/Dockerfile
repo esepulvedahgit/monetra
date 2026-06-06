@@ -22,4 +22,4 @@ USER appuser
 
 EXPOSE 8000
 
-CMD ["./entrypoint.sh"]
+CMD ["sh", "entrypoint.sh"]
