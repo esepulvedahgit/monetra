@@ -244,6 +244,15 @@
                                 {{ _('Se generará un archivo cifrado (.mntrbak) con toda la base de datos. Guárdalo en un lugar seguro.') }}
                             </p>
                             <div class="mb-3">
+                                <label for="exportAccountPassword" class="form-label fw-semibold">
+                                    {{ _('Contraseña de tu cuenta') }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="password" class="form-control" id="exportAccountPassword"
+                                       name="account_password" required autocomplete="current-password"
+                                       placeholder="{{ _('Tu contraseña de administrador') }}">
+                            </div>
+                            <div class="mb-3">
                                 <label for="exportBackupPassword" class="form-label fw-semibold">
                                     {{ _('Contraseña del respaldo') }}
                                     <span class="text-danger">*</span>
@@ -323,7 +332,7 @@
                                     <span class="text-danger">*</span>
                                 </label>
                                 <input type="password" class="form-control" id="restoreBackupPassword"
-                                       name="backup_password" required autocomplete="current-password"
+                                       name="backup_password" required autocomplete="off"
                                        placeholder="{{ _('Contraseña con la que se cifró el archivo') }}">
                             </div>
 
@@ -1659,19 +1668,22 @@
     {% if current_user.is_admin and current_user.is_first_admin %}
     <script>
     (function () {
-        // ── Export modal: password match validation ──────────────────
-        const exportForm    = document.getElementById('exportDbForm');
-        const exportPwd     = document.getElementById('exportBackupPassword');
-        const exportPwdConf = document.getElementById('exportBackupPasswordConfirm');
+        // ── Export modal: password match + account-password validation ───────
+        const exportForm     = document.getElementById('exportDbForm');
+        const exportAcctPwd  = document.getElementById('exportAccountPassword');
+        const exportPwd      = document.getElementById('exportBackupPassword');
+        const exportPwdConf  = document.getElementById('exportBackupPasswordConfirm');
         const exportMismatch = document.getElementById('exportPasswordMismatch');
-        const exportSubmit  = document.getElementById('exportDbSubmitBtn');
+        const exportSubmit   = document.getElementById('exportDbSubmitBtn');
 
         function checkExportPasswords() {
-            const mismatch = exportPwdConf.value && exportPwd.value !== exportPwdConf.value;
+            const mismatch    = exportPwdConf.value && exportPwd.value !== exportPwdConf.value;
+            const acctMissing = !exportAcctPwd || !exportAcctPwd.value;
             exportMismatch.style.display = mismatch ? '' : 'none';
-            if (exportSubmit) exportSubmit.disabled = !!mismatch;
+            if (exportSubmit) exportSubmit.disabled = !!mismatch || acctMissing;
         }
 
+        if (exportAcctPwd) exportAcctPwd.addEventListener('input', checkExportPasswords);
         if (exportPwd)     exportPwd.addEventListener('input', checkExportPasswords);
         if (exportPwdConf) exportPwdConf.addEventListener('input', checkExportPasswords);
 
@@ -1682,10 +1694,16 @@
                     exportMismatch.style.display = '';
                     return;
                 }
-                // Show loading state while the backup is being generated
+                // Show loading state while the backup is being generated.
+                // File downloads do NOT navigate the page, so the spinner would
+                // stay forever. Reset the button after 4 s (purely cosmetic).
                 if (exportSubmit) {
                     exportSubmit.disabled = true;
                     exportSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>{{ _("Generando…") }}';
+                    setTimeout(function () {
+                        exportSubmit.disabled = false;
+                        exportSubmit.innerHTML = '<i class="bi bi-cloud-download me-1"></i>{{ _("Descargar respaldo") }}';
+                    }, 4000);
                 }
             });
         }

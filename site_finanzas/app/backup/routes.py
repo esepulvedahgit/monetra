@@ -27,6 +27,13 @@ def _admin_required():
 def export_db():
     _admin_required()
 
+    # Re-authentication: verify admin account password before exporting (H2 — mitigates
+    # stolen-session attacks; a valid session alone must not be enough to export the DB).
+    account_password = request.form.get('account_password', '')
+    if not current_user.check_password(account_password):
+        flash('Contraseña de la cuenta incorrecta. La exportación fue cancelada.', 'danger')
+        return redirect(url_for('main.configurar'))
+
     backup_password = request.form.get('backup_password', '').strip()
     backup_password_confirm = request.form.get('backup_password_confirm', '').strip()
 

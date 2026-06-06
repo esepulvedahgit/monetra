@@ -77,16 +77,38 @@ class TestAccessControl:
 # ── Export ────────────────────────────────────────────────────────────────────
 
 class TestExport:
+    def test_wrong_account_password_rejected(self, app, admin_user_id):
+        """Export must be blocked when the admin account password is wrong."""
+        c = _admin_client(app, admin_user_id)
+        with patch('app.backup.routes.make_backup') as mock_make:
+            r = c.post(EXPORT_URL, data={
+                'account_password': 'wrong-password',
+                'backup_password': 'strong-pass-123',
+                'backup_password_confirm': 'strong-pass-123',
+            })
+        mock_make.assert_not_called()
+        assert r.status_code == 302
+        msgs = _flashes(c)
+        assert any('incorrecta' in m for m in msgs)
+
     def test_empty_password_rejected(self, app, admin_user_id):
         c = _admin_client(app, admin_user_id)
-        r = c.post(EXPORT_URL, data={'backup_password': '', 'backup_password_confirm': ''})
+        r = c.post(EXPORT_URL, data={
+            'account_password': ADMIN_PASSWORD,
+            'backup_password': '',
+            'backup_password_confirm': '',
+        })
         assert r.status_code == 302
         msgs = _flashes(c)
         assert any('vacía' in m for m in msgs)
 
     def test_password_mismatch_rejected(self, app, admin_user_id):
         c = _admin_client(app, admin_user_id)
-        r = c.post(EXPORT_URL, data={'backup_password': 'abc', 'backup_password_confirm': 'xyz'})
+        r = c.post(EXPORT_URL, data={
+            'account_password': ADMIN_PASSWORD,
+            'backup_password': 'abc',
+            'backup_password_confirm': 'xyz',
+        })
         assert r.status_code == 302
         msgs = _flashes(c)
         assert any('no coinciden' in m for m in msgs)
@@ -96,6 +118,7 @@ class TestExport:
         c = _admin_client(app, admin_user_id)
         with patch('app.backup.routes.make_backup', return_value=fake_blob):
             r = c.post(EXPORT_URL, data={
+                'account_password': ADMIN_PASSWORD,
                 'backup_password': 'strong-pass-123',
                 'backup_password_confirm': 'strong-pass-123',
             })
@@ -108,6 +131,7 @@ class TestExport:
         with patch('app.backup.routes.make_backup',
                    side_effect=RuntimeError('mysqldump: Access denied for root@172.0.0.1')):
             r = c.post(EXPORT_URL, data={
+                'account_password': ADMIN_PASSWORD,
                 'backup_password': 'strong-pass-123',
                 'backup_password_confirm': 'strong-pass-123',
             })
