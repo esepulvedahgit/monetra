@@ -32,3 +32,4 @@ graphify-out/
 Thumbs.db
 *.sql
 CLAUDE.md
+export/
