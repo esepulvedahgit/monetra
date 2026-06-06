@@ -1,6 +1,6 @@
 # Monetra — Documentación de Funcionamiento
 
-> Versión actual: **2.0 Release**
+> Versión actual: **2.5**
 
 ## 1. Visión General
 
@@ -42,6 +42,13 @@
 | `UserSeenAnnouncement` | Control de anuncios de versión vistos por usuario |
 | `DemoState` | Registra qué años creó el demo para restaurar estado al resetear |
 | `AuditLog` | Registro de eventos de seguridad y actividad de la app (admin) |
+| `UserWebAuthnCredential` | Credenciales biométricas WebAuthn por usuario y dispositivo |
+| `UserAIConfig` | Configuración del proveedor IA para el escáner (clave de API cifrada con Fernet) |
+| `EmailActivationToken` | Tokens de activación de cuenta por email (expiran en 24 h) |
+| `UsdCategory` | Categorías propias de la cuenta en dólares (separadas de las principales) |
+| `UsdTransaction` | Transacciones de la cuenta USD (monto en dólares, fecha, categoría USD) |
+| `UsdBudget` | Presupuesto mensual para la cuenta USD |
+| `ApiToken` | Tokens persistentes de 365 días para la API REST (formato `mntr_*`) |
 
 ---
 
@@ -285,9 +292,12 @@
 | Toggle reporte semanal | `/configurar/weekly-report` | POST | Activa/desactiva envío automático los lunes |
 | Enviar reporte ahora | `/configurar/send-report-now` | POST | Genera y envía Excel por email inmediatamente |
 | Toggle modo ayuda | `/configurar/help-toggle` | POST | Activa/desactiva tooltips de ayuda |
-| Generar token API | `/configurar/generate-api-token` | POST | Token JWT válido por 365 días |
+| Generar token API | `/configurar/generate-api-token` | POST | Token persistente válido 365 días (formato `mntr_*`) |
 | Descartar onboarding | `/onboarding/dismiss` | POST | Marca como visto |
 | Cambiar idioma | `/set-language/<lang>` | GET | 'es' o 'en' |
+| Configurar Escáner IA | `/configurar` (submit_ai) | POST | Proveedor, modelo, URL base y API key cifrada |
+| Registrar biometría | `/auth/webauthn/register/*` | GET/POST | Registra dispositivo biométrico (Face ID / huella / Windows Hello) |
+| Toggle panel de analítica | `/configurar` (insights toggle) | POST | Activa/desactiva el panel de salud financiera y alertas |
 | Config. admin (registro) | `/configurar` (submit_admin) | POST | Solo para `is_first_admin` |
 | Datos Demo | `/admin/demo/*` | GET/POST | Solo para usuarios con `role = admin` |
 | Registro de Auditoría | `/admin/audit/` | GET | Solo para usuarios con `role = admin` (abre en nueva pestaña) |
@@ -300,6 +310,8 @@
 - **Config. admin**: Solo accesible por `is_admin AND is_first_admin`. Si otro usuario intenta → 403.
 - **Tema inválido**: Se resetea a 'dark'.
 - **Desactivar MFA**: Requiere código TOTP válido.
+- **Escáner IA**: Sin `UserAIConfig` configurado, el botón de cámara no aparece en la UI.
+- **Biometría**: Solo se puede registrar desde un dispositivo compatible con WebAuthn. Requiere `WEBAUTHN_RP_ID` correcto en producción.
 - **Sección Demo**: Solo visible y operable por usuarios con `role = admin`.
 - **Sección Auditoría**: Solo visible y operable por usuarios con `role = admin`.
 
@@ -525,7 +537,141 @@ El cliente guarda el `created_at` del último evento y lo usa como `since` en el
 
 ---
 
-### 3.16 Scheduler (Reporte Semanal)
+### 3.16 Cuenta en dólares (USD) (`/usd`)
+
+Permite registrar ingresos y gastos en USD de forma separada y consultar una vista consolidada que convierte los montos USD a la moneda local del usuario usando el valor de referencia configurado.
+
+#### ✅ Acciones Permitidas
+
+| Acción | Ruta | Método | Detalles |
+|---|---|---|---|
+| Ver dashboard USD | `/usd/` | GET | Resumen mensual en dólares, gráfico y listado de movimientos |
+| Crear transacción USD | `/usd/transaction/new` | POST | Tipo, monto USD, categoría USD, fecha, descripción |
+| Editar transacción USD | `/usd/transaction/<id>/edit` | POST | Modifica todos los campos |
+| Eliminar transacción USD | `/usd/transaction/<id>/delete` | POST | Eliminación directa |
+| Crear categoría USD | `/usd/category/new` | POST | Nombre + tipo. Separadas de las categorías principales |
+| Eliminar categoría USD | `/usd/category/<id>/delete` | POST | Solo propias, sin datos asociados |
+| Definir presupuesto USD | `/usd/budget/set` | POST | Un presupuesto mensual en USD por período |
+| Ver vista consolidada | `/analytics/consolidated` | GET | Movimientos locales + USD convertidos a moneda local |
+
+#### 🚫 Restricciones
+
+- **Valor de referencia**: Si no se define el tipo de cambio en Configuración, la vista consolidada no puede calcular el equivalente en moneda local.
+- **Categorías separadas**: Las categorías USD (`UsdCategory`) son independientes de las categorías principales; no se comparten.
+- **Un presupuesto USD por mes**: No se puede crear más de uno por período.
+
+---
+
+### 3.17 Escáner IA de Recibos (`/scanner`)
+
+Permite fotografiar un ticket o recibo y extraer automáticamente el monto, la categoría sugerida y la fecha para crear una transacción sin ingresar datos manualmente.
+
+#### ✅ Acciones Permitidas
+
+| Acción | Ruta | Método | Detalles |
+|---|---|---|---|
+| Probar conexión con proveedor IA | `/scanner/test` | POST | Verifica que la API key y modelo están configurados correctamente |
+| Extraer datos del recibo | `/scanner/extract` | POST | Recibe imagen (JPEG/PNG/HEIC/WEBP), devuelve JSON con monto, categoría y fecha |
+
+**Proveedores IA soportados** (`scanner/providers.py`):
+
+| Proveedor | Compatibilidad |
+|---|---|
+| OpenAI | GPT-4o y modelos con visión |
+| DeepSeek | API compatible con OpenAI |
+| OpenRouter | Proxy multi-modelo compatible con OpenAI |
+| Anthropic | Claude 3+ con visión |
+| Gemini | Gemini 1.5+ |
+| Ollama | Modelos locales con soporte de visión |
+
+#### 🚫 Restricciones
+
+- **Requiere `UserAIConfig`**: Sin proveedor + modelo + API key configurados en Configuración, el endpoint devuelve error.
+- **Formatos de imagen**: JPEG, PNG, WEBP y HEIC (pillow-heif). Se valida y normaliza antes de enviar al proveedor.
+- **Datos biométricos**: La imagen se procesa en memoria y se descarta; no se almacena en la BD.
+- **API key cifrada**: La clave del proveedor se almacena cifrada con Fernet en `UserAIConfig`; nunca en texto plano.
+
+---
+
+### 3.18 Autenticación Biométrica (WebAuthn)
+
+Permite iniciar sesión con Face ID, huella dactilar o Windows Hello. El dispositivo realiza la verificación criptográfica; Monetra nunca almacena ni procesa datos biométricos directamente.
+
+#### ✅ Acciones Permitidas
+
+| Acción | Ruta | Detalles |
+|---|---|---|
+| Registrar dispositivo biométrico | `/auth/webauthn/register/...` | Genera challenge, el navegador firma con el dispositivo, se guarda `UserWebAuthnCredential` |
+| Iniciar sesión biométrica | `/auth/webauthn/login/...` | Challenge + respuesta firmada del dispositivo → sesión Flask |
+| Eliminar credencial | Desde Configuración | Elimina la `UserWebAuthnCredential` del dispositivo |
+
+#### 🚫 Restricciones
+
+- **Compatibilidad**: Requiere navegador con soporte WebAuthn y dispositivo con autenticador biométrico o de seguridad.
+- **`WEBAUTHN_RP_ID`**: Debe coincidir exactamente con el dominio de la aplicación en producción. En localhost usa `localhost`.
+- **`WEBAUTHN_ORIGIN`**: Debe coincidir con el origen (`https://dominio`) desde el que el usuario accede.
+- **Sin almacenamiento biométrico**: Solo se guarda la clave pública del autenticador en `UserWebAuthnCredential`. La biometría permanece en el dispositivo.
+
+---
+
+### 3.19 Panel de Analítica (`/analytics`)
+
+Dashboard de análisis financiero inteligente con salud financiera, proyección del mes y alertas. Es opcional y se activa desde Configuración de Cuenta.
+
+#### ✅ Acciones Permitidas
+
+| Acción | Ruta | Método | Detalles |
+|---|---|---|---|
+| Ver panel de analítica | `/analytics/dashboard` | GET | Salud financiera, proyección de cierre, alertas del mes actual |
+| Ver consolidado USD + local | `/analytics/consolidated` | GET | Movimientos de ambas cuentas convertidos a moneda local |
+
+**Componentes del motor de análisis** (`insights/` + `analytics/`):
+
+| Componente | Descripción |
+|---|---|
+| Scoring (`scoring.py`) | Puntuación de salud financiera (0–100) |
+| Forecasting (`forecasting.py`) | Proyección de ingresos y gastos al cierre del mes |
+| Rules/Signals (`rules.py`, `signals.py`) | Detección de anomalías, alertas de presupuesto, déficit, metas |
+| Anomalies (`anomalies.py`) | Movimientos inusuales respecto al historial |
+| Capacity (`capacity.py`) | Capacidad de ahorro estimada |
+| Savings Goals (`savings_goals.py`) | Estado y proyección de metas de ahorro |
+
+#### 🚫 Restricciones
+
+- **Modo aprendizaje**: Para usuarios nuevos con poco historial, las alertas son más suaves y orientativas mientras el motor aprende los hábitos.
+- **Panel opcional**: Si el usuario no lo activa en Configuración, no aparece en la UI principal (evita saturar la vista).
+- **Solo lectura**: No se pueden crear ni modificar datos desde este panel.
+
+---
+
+### 3.20 Backup y Restauración de Base de Datos (Admin) (`/admin/backup`)
+
+Permite al administrador exportar un backup cifrado de la base de datos y restaurarla desde un archivo. Diseñado para migraciones y recuperación ante desastres.
+
+#### ✅ Acciones Permitidas
+
+| Acción | Ruta | Método | Detalles |
+|---|---|---|---|
+| Exportar BD | `/admin/backup/export` | POST | Genera `.sql.gz` con `mysqldump` cifrado. Requiere contraseña de cuenta |
+| Restaurar BD | `/admin/backup/restore` | POST | Sube `.sql` y ejecuta restauración. Requiere contraseña de cuenta |
+
+**Variables que controlan los límites** (en `docker/.env`):
+
+| Variable | Default | Descripción |
+|---|---|---|
+| `MAX_CONTENT_UPLOAD_MB` | 15 | Tamaño máximo del archivo `.sql` subido para restaurar |
+| `MAX_RESTORE_SQL_MB` | 500 | Tamaño máximo permitido del SQL tras descomprimir |
+
+#### 🚫 Restricciones
+
+- **Solo admin**: No admin → HTTP 403.
+- **Re-autenticación obligatoria**: Tanto el export como el restore requieren introducir la contraseña de la cuenta activa antes de ejecutarse.
+- **Archivo demasiado grande**: Si el `.sql` supera `MAX_RESTORE_SQL_MB`, la restauración es rechazada.
+- **mysqldump disponible**: La imagen Docker incluye `default-mysql-client`. En ejecución local sin Docker, `mysqldump` y `mysql` deben estar en el `PATH`.
+
+---
+
+### 3.21 Scheduler (Reporte Semanal)
 
 - **Ejecución**: Cada lunes a las 10:00 UTC.
 - **Destinatarios**: Usuarios con `weekly_report_enabled = True`.
@@ -542,12 +688,15 @@ El cliente guarda el `created_at` del último evento y lo usa como `since` en el
 | CSRF | Flask-WTF en todas las rutas web (exento en API) |
 | Rate Limiting | Flask-Limiter por IP (en memoria, 1 worker Gunicorn) |
 | Hashing contraseñas | Werkzeug (pbkdf2) |
-| Encriptación SMTP/MFA | Fernet (clave en `FIELD_ENCRYPTION_KEY`) |
+| Encriptación SMTP/MFA/AI | Fernet (clave en `FIELD_ENCRYPTION_KEY`) — cifra contraseñas SMTP, secrets TOTP y API keys del scanner |
 | MFA | TOTP (pyotp), QR code con qrcode |
+| Biometría WebAuthn | Solo se almacena la clave pública (`UserWebAuthnCredential`). La biometría permanece en el dispositivo |
 | Aislamiento de datos | Todas las queries filtran por `user_id` |
 | Tokens de reset | SHA-256 hash, expiración 30 min, single-use |
 | CORS | Configurable via `CORS_ORIGINS` (solo `/api/*`) |
 | JWT | Access token 15 min, Refresh token 30 días |
+| Token API persistente | `ApiToken` — 365 días, formato `mntr_*`, revocable desde Configuración |
+| Backup re-autenticación | Export y restore requieren contraseña de cuenta activa antes de ejecutarse |
 | Auditoría | `AuditLog` registra todos los eventos críticos de seguridad |
 | Datos demo | `is_demo=True` en registros — protección de solo lectura a nivel de ruta y UI |
 
@@ -633,3 +782,9 @@ graph TB
 | Categoría que no coincide con el tipo de movimiento | Transacciones y recurrentes |
 | Usar `since`/`until` con formato inválido en API de auditoría | API /audit/logs |
 | Consumir API de auditoría sin rol admin | API /audit/logs |
+| Usar escáner IA sin `UserAIConfig` configurado | Scanner IA |
+| Registrar biometría con `WEBAUTHN_RP_ID` incorrecto | WebAuthn |
+| Exportar/restaurar BD sin contraseña de cuenta | Backup/Restore |
+| Acceder a backup/restore sin ser admin | Backup/Restore |
+| Subir archivo SQL mayor a `MAX_CONTENT_UPLOAD_MB` | Restore BD |
+| Usar categorías principales en la cuenta USD | Cuenta USD |

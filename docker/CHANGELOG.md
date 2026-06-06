@@ -1,5 +1,117 @@
 # Monetra - Changelog
 
+## v2.5
+
+### Escáner IA de recibos
+- Nuevo blueprint `scanner` en `/scanner/extract` y `/scanner/test`
+- Fotografía un recibo y la IA extrae monto, categoría y fecha para crear la transacción
+- Proveedores soportados: OpenAI, DeepSeek, OpenRouter (compatibles OpenAI), Anthropic, Gemini y Ollama (local)
+- Soporte de imágenes JPEG, PNG, WEBP y HEIC (pillow-heif)
+- API key del proveedor cifrada con Fernet en `UserAIConfig`
+- Nuevo modelo `UserAIConfig` con proveedor, modelo, URL base y token cifrado
+
+### Autenticación biométrica (WebAuthn)
+- Registro e inicio de sesión con Face ID, huella dactilar o Windows Hello
+- Implementado con python-webauthn 2.1.0
+- Solo se almacena la clave pública (`UserWebAuthnCredential`); la biometría permanece en el dispositivo
+- Nuevas variables de entorno: `WEBAUTHN_RP_ID`, `WEBAUTHN_RP_NAME`, `WEBAUTHN_ORIGIN`
+
+### Panel de analítica en Dashboard Global
+- Accesible en `/analytics/dashboard` — salud financiera, proyección de cierre y alertas
+- Motor compuesto por módulos `insights/` (reglas, scoring, señales) y `analytics/` (forecasting, anomalías, capacidad de ahorro)
+- Panel opcional: se activa desde Configuración de Cuenta; por defecto permanece oculto
+- Modo aprendizaje para usuarios con poco historial — alertas más suaves y orientativas
+
+### Mejoras de calidad (publicadas como parches en el período)
+- Refactor SMTP: separación de configuración y envío; botón "Enviar reporte ahora" no bloqueante
+- Demo mode: cierre automático de sesión al activar o desactivar datos demo
+- Backup: re-autenticación obligatoria en export, reset del botón al completar, fix autocomplete en modal de restauración
+- Anuncios de versión: corregidos botones de navegación (Bootstrap 5 `data-bs-dismiss` en `<a>` bloqueaba `href`)
+- Reporte semanal por email acotado al mes actual en lugar del año completo
+
+---
+
+## v2.3
+
+### Dashboard de analítica opcional
+- Panel de Salud financiera, Proyección de cierre y Alertas inteligentes disponible desde Dashboard Global
+- Se activa desde Configuración de Cuenta → Panel de Insights (por defecto oculto)
+
+### Mejoras en transacciones recurrentes
+- Los recurrentes ya no se pueden eliminar: pasan al estado "Finalizada" conservando todo el historial
+- Nuevo botón "Finalizar hoy" para terminar un recurrente en la fecha actual sin eliminarlo
+- La fecha de término se puede editar desde el formulario
+
+### Export global por rango de meses en tiempo real
+- El botón de descarga Excel en Dashboard Global respeta el período seleccionado (ej. Mayo–Agosto) sin necesidad de hacer clic en "Aplicar" primero
+
+### Guía de uso integrada
+- Nueva sección accesible desde el menú de usuario (esquina superior derecha) → Guía de uso
+- Explica cómo funciona cada módulo de Monetra
+
+---
+
+## v2.2
+
+### Correcciones y mejoras intermedias
+- Estabilización del panel de analítica introducido en v2.1
+- Mejoras visuales en la sección de recurrentes
+- Fixes de navegación en modales de anuncios de versión
+
+---
+
+## v2.1
+
+### Cuenta en dólares (USD)
+- Nuevo blueprint `usd` en `/usd/` para registrar ingresos y gastos en dólares de forma separada
+- Categorías USD propias (`UsdCategory`), transacciones USD (`UsdTransaction`) y presupuesto mensual USD (`UsdBudget`)
+- Vista consolidada en `/analytics/consolidated` — mueve los gastos USD a moneda local usando el valor de referencia configurado
+
+### Análisis financiero inteligente
+- Primer motor de análisis financiero: salud, proyección de cierre, alertas, anomalías
+- Aprendizaje automático adaptativo: ajusta umbrales según el historial disponible del usuario
+- Modo aprendizaje para usuarios nuevos con datos limitados
+
+### Token API persistente
+- Nuevo modelo `ApiToken` — tokens de 365 días con prefijo `mntr_*`
+- Generados desde Configuración de Cuenta → Token API
+- Autenticación dual en la API REST: JWT de sesión (15 min) o token persistente
+
+---
+
+## v2.0 Release
+
+### Presupuestos por categoría
+- Límites mensuales por categoría específica (hasta 5 por período)
+- Visualización de progreso con estado ok / warning / over en Dashboard y Presupuestos
+
+### Presupuestos personalizados
+- Rango libre de fechas dentro del mes con nombre propio
+- Crea automáticamente una categoría de gasto vinculada
+- Un presupuesto personalizado por período
+
+### Exportación Excel mensual, anual y por rango
+- Descarga desde Configuración → Reporte Excel
+- Un mes, año completo, o rango personalizado de meses
+- Hojas: Dashboard, Movimientos, Categorías, Presupuestos, Metas, Recurrentes, Base de Datos
+
+### Datos de demostración (Admin)
+- Carga 3 años completos de transacciones ficticias con un clic (`/admin/demo/load`)
+- Datos marcados como `is_demo=True` — protegidos de edición
+- Reset completo que restaura el estado previo (`/admin/demo/reset`)
+
+### Registro de auditoría (Admin)
+- Panel `/admin/audit/` con KPIs, gráfico y tabla paginada de eventos
+- Eventos registrados: auth, app, config, admin
+- API de auditoría: `GET /api/v1/audit/logs` con filtros por categoría, IP, usuario y rango de fechas
+
+### Backup y restauración de base de datos (Admin)
+- Export cifrado `.sql.gz` con `mysqldump` desde `/admin/backup/export`
+- Restauración desde archivo `.sql` en `/admin/backup/restore`
+- Re-autenticación obligatoria con contraseña de cuenta antes de cualquier operación
+
+---
+
 ## v1.4
 ### Mejoras de visualización en gráficos
 - Barras más delgadas y con espaciado proporcional en Recurrentes y Metas
