@@ -34,8 +34,6 @@ DEFAULT_CATEGORY_COLORS = {
     'Otros Ingresos': '#A78BFA',
 }
 
-FIRST_ADMIN_EMAIL = 'e.esepulvedah@gmail.com'
-
 with app.app_context():
     db.create_all()
 
@@ -112,20 +110,7 @@ with app.app_context():
             conn.commit()
             print("Columna email_verified_at agregada a users.")
 
-        # Assign first admin to the designated user if it exists
-        result = conn.execute(
-            text("SELECT id FROM users WHERE email = :email"),
-            {'email': FIRST_ADMIN_EMAIL}
-        ).fetchone()
-        if result:
-            conn.execute(
-                text("UPDATE users SET role='admin', is_first_admin=TRUE WHERE email=:email"),
-                {'email': FIRST_ADMIN_EMAIL}
-            )
-            conn.commit()
-            print(f"Usuario {FIRST_ADMIN_EMAIL} configurado como administrador principal.")
-        else:
-            print(f"Usuario {FIRST_ADMIN_EMAIL} no encontrado; el primer registro será admin.")
+        # El primer usuario que se registre en /register queda como admin automáticamente.
 
     # AppConfig migrations must run BEFORE any AppConfig ORM query below, since the
     # ORM SELECTs every mapped column (including sessions_valid_after) and would fail
