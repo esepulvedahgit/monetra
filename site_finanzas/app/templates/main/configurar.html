@@ -881,8 +881,7 @@
                     {{ _('Reporte semanal por email') }}
                 </h6>
                 <p class="small mb-3" style="color:var(--monetra-text-muted,#78909C);">
-                    {{ _('Recibe tu resumen Excel todos los lunes a las 10:00 AM (UTC). Incluye el año en curso desde
-                    enero hasta el mes actual.') }}
+                    {{ _('Recibe tu resumen Excel todos los lunes a las 10:00 AM (UTC). Incluye únicamente el mes en curso.') }}
                 </p>
                 <form method="POST" action="{{ url_for('main.save_weekly_report') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -909,7 +908,7 @@
                             <i class="bi bi-send"></i> {{ _('Enviar ahora') }}
                         </button>
                         <span class="small" style="color:var(--monetra-text-muted,#78909C);">
-                            {{ _('Genera y envía el Excel del año en curso a') }}
+                            {{ _('Genera y envía el Excel del mes en curso a') }}
                             <strong>{{ current_user.email }}</strong>
                         </span>
                     </div>
@@ -1701,8 +1700,15 @@
                     exportSubmit.disabled = true;
                     exportSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>{{ _("Generando…") }}';
                     setTimeout(function () {
-                        exportSubmit.disabled = false;
+                        // Restaurar botón
+                        exportSubmit.disabled = true;
                         exportSubmit.innerHTML = '<i class="bi bi-cloud-download me-1"></i>{{ _("Descargar respaldo") }}';
+                        // Cerrar modal y limpiar formulario (la descarga ya arrancó)
+                        const exportModalEl = document.getElementById('exportDbModal');
+                        const modalInstance = bootstrap.Modal.getInstance(exportModalEl);
+                        if (modalInstance) modalInstance.hide();
+                        exportForm.reset();
+                        exportMismatch.style.display = 'none';
                     }, 4000);
                 }
             });

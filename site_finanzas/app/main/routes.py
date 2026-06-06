@@ -1737,8 +1737,8 @@ def send_report_now():
     from datetime import date as _date_cls
     today = _date_cls.today()
     try:
-        buf = build_excel(current_user, today.year, 1, today.month)
-        filename = f"monetra_{current_user.username}_{today.year}.xlsx"
+        buf = build_excel(current_user, today.year, today.month, today.month)
+        filename = f"monetra_{current_user.username}_{today.year}_{today.month:02d}.xlsx"
         ok, msg = send_weekly_report(current_user, buf.read(), filename)
         if ok:
             flash(_('Reporte enviado correctamente a %(email)s.', email=current_user.email), 'success')

@@ -46,8 +46,8 @@ def _weekly_report_job(app):
 
         def process(user):
             try:
-                buf = build_excel(user, today.year, 1, today.month)
-                filename = f"monetra_{user.username}_{today.year}.xlsx"
+                buf = build_excel(user, today.year, today.month, today.month)
+                filename = f"monetra_{user.username}_{today.year}_{today.month:02d}.xlsx"
                 ok, msg = send_weekly_report(user, buf.read(), filename)
                 if ok:
                     logger.info(f"Weekly report sent to {user.email}.")

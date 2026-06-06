@@ -227,7 +227,7 @@ def send_weekly_report(user, excel_bytes: bytes, filename: str):
         body_text = (
             f"Hola {user.username},\n\n"
             f"Adjunto encontrarás tu reporte financiero semanal de Monetra.\n"
-            f"Período: enero — {today.strftime('%B %Y')}.\n\n"
+            f"Período: {today.strftime('%B %Y')}.\n\n"
             f"Saludos,\nEquipo Monetra"
         )
 

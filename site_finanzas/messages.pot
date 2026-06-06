@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-06-04 23:20-0400\n"
+"POT-Creation-Date: 2026-06-05 20:58-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,15 +17,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: app/__init__.py:48
+#: app/__init__.py:50
 msgid "Por favor inicia sesión para acceder."
 msgstr ""
 
-#: app/__init__.py:122
+#: app/__init__.py:127
 msgid "La solicitud expiró. Por favor intenta de nuevo."
 msgstr ""
 
-#: app/__init__.py:124
+#: app/__init__.py:129
 msgid "La sesión expiró. Por favor inicia sesión nuevamente."
 msgstr ""
 
@@ -39,7 +39,7 @@ msgid "Consolidado"
 msgstr ""
 
 #: app/analytics/routes.py:60 app/templates/analytics/dashboard.html:23
-#: app/templates/base.html:376
+#: app/templates/base.html:379
 msgid "Analítica"
 msgstr ""
 
@@ -80,6 +80,7 @@ msgid "Confirmar Contraseña"
 msgstr ""
 
 #: app/auth/forms.py:29 app/auth/forms.py:63 app/main/forms.py:124
+#: app/templates/main/configurar.html:278
 msgid "Las contraseñas no coinciden."
 msgstr ""
 
@@ -99,11 +100,11 @@ msgstr ""
 msgid "Recordarme"
 msgstr ""
 
-#: app/auth/forms.py:46 app/auth/routes.py:170
+#: app/auth/forms.py:46 app/auth/routes.py:171
 msgid "Iniciar Sesión"
 msgstr ""
 
-#: app/auth/forms.py:50 app/templates/main/configurar.html:542
+#: app/auth/forms.py:50 app/templates/main/configurar.html:715
 msgid "Código de verificación"
 msgstr ""
 
@@ -119,7 +120,7 @@ msgstr ""
 msgid "Nueva Contraseña"
 msgstr ""
 
-#: app/auth/forms.py:65 app/auth/routes.py:287
+#: app/auth/forms.py:65 app/auth/routes.py:289
 msgid "Restablecer Contraseña"
 msgstr ""
 
@@ -165,38 +166,38 @@ msgid ""
 "enlace de activación."
 msgstr ""
 
-#: app/auth/routes.py:166 app/auth/routes.py:191
+#: app/auth/routes.py:167 app/auth/routes.py:193
 #, python-format
 msgid "¡Bienvenido, %(username)s!"
 msgstr ""
 
-#: app/auth/routes.py:169
+#: app/auth/routes.py:170
 msgid "Email o contraseña incorrectos."
 msgstr ""
 
-#: app/auth/routes.py:194
+#: app/auth/routes.py:196
 msgid "Código incorrecto. Inténtalo de nuevo."
 msgstr ""
 
-#: app/auth/routes.py:195 app/templates/auth/mfa_verify.html:10
+#: app/auth/routes.py:197 app/templates/auth/mfa_verify.html:10
 msgid "Verificación en dos pasos"
 msgstr ""
 
-#: app/auth/routes.py:251
+#: app/auth/routes.py:253
 msgid ""
 "Si el correo existe y hay un SMTP disponible, recibirás las instrucciones"
 " en tu correo."
 msgstr ""
 
-#: app/auth/routes.py:254 app/templates/auth/forgot_password.html:19
+#: app/auth/routes.py:256 app/templates/auth/forgot_password.html:19
 msgid "Recuperar Contraseña"
 msgstr ""
 
-#: app/auth/routes.py:267
+#: app/auth/routes.py:269
 msgid "El enlace de recuperación es inválido o ha expirado."
 msgstr ""
 
-#: app/auth/routes.py:284
+#: app/auth/routes.py:286
 msgid "Tu contraseña ha sido actualizada exitosamente."
 msgstr ""
 
@@ -612,7 +613,7 @@ msgstr ""
 #: app/templates/main/dashboard.html:180 app/templates/main/guia.html:100
 #: app/templates/main/guia.html:150 app/templates/main/guia.html:215
 #: app/templates/main/guia.html:236 app/templates/main/guia.html:242
-#: app/templates/main/guia.html:455 app/templates/main/guia.html:599
+#: app/templates/main/guia.html:455 app/templates/main/guia.html:498
 #: app/templates/main/recurrentes.html:63
 #: app/templates/main/recurrentes.html:153
 #: app/templates/main/transactions.html:83 app/templates/usd/dashboard.html:216
@@ -632,8 +633,8 @@ msgstr ""
 #: app/main/forms.py:45 app/main/forms.py:68 app/main/forms.py:79
 #: app/main/forms.py:95 app/main/forms.py:108
 #: app/templates/main/configurar.html:192
-#: app/templates/main/configurar.html:726 app/templates/main/guia.html:151
-#: app/templates/main/guia.html:583 app/templates/usd/dashboard.html:293
+#: app/templates/main/configurar.html:898 app/templates/main/guia.html:151
+#: app/templates/main/guia.html:482 app/templates/usd/dashboard.html:293
 #: app/templates/usd/dashboard.html:339
 msgid "Guardar"
 msgstr ""
@@ -726,7 +727,7 @@ msgstr ""
 msgid "Confirmar nueva contraseña"
 msgstr ""
 
-#: app/main/forms.py:125 app/templates/main/configurar.html:494
+#: app/main/forms.py:125 app/templates/main/configurar.html:667
 msgid "Cambiar Contraseña"
 msgstr ""
 
@@ -790,7 +791,7 @@ msgstr ""
 msgid "Activar escáner IA"
 msgstr ""
 
-#: app/main/forms.py:172 app/templates/main/guia.html:601
+#: app/main/forms.py:172 app/templates/main/guia.html:500
 msgid "Proveedor"
 msgstr ""
 
@@ -802,7 +803,7 @@ msgstr ""
 msgid "URL base (solo OpenAI-compatible personalizado)"
 msgstr ""
 
-#: app/main/forms.py:183 app/templates/main/configurar.html:210
+#: app/main/forms.py:183 app/templates/main/configurar.html:383
 msgid "Token API"
 msgstr ""
 
@@ -1195,7 +1196,7 @@ msgstr ""
 msgid "Metas"
 msgstr ""
 
-#: app/templates/base.html:88 app/templates/base.html:351
+#: app/templates/base.html:88 app/templates/base.html:354
 #: app/templates/main/global_dashboard.html:50
 msgid "Global"
 msgstr ""
@@ -1243,10 +1244,12 @@ msgstr ""
 
 #: app/templates/base.html:219 app/templates/base.html:253
 #: app/templates/main/budget.html:81 app/templates/main/budget.html:337
-#: app/templates/main/budget.html:407 app/templates/main/configurar.html:355
-#: app/templates/main/configurar.html:483
-#: app/templates/main/configurar.html:549
-#: app/templates/main/configurar.html:575 app/templates/main/meta_form.html:66
+#: app/templates/main/budget.html:407 app/templates/main/configurar.html:284
+#: app/templates/main/configurar.html:366
+#: app/templates/main/configurar.html:528
+#: app/templates/main/configurar.html:656
+#: app/templates/main/configurar.html:722
+#: app/templates/main/configurar.html:748 app/templates/main/meta_form.html:66
 #: app/templates/main/metas.html:195
 #: app/templates/main/recurrente_form.html:140
 #: app/templates/main/recurrentes.html:220
@@ -1280,7 +1283,7 @@ msgstr ""
 #: app/templates/base.html:256 app/templates/main/budget.html:52
 #: app/templates/main/budget.html:197 app/templates/main/budget.html:307
 #: app/templates/main/budget.html:341 app/templates/main/categories.html:96
-#: app/templates/main/configurar.html:453 app/templates/main/guia.html:642
+#: app/templates/main/configurar.html:626 app/templates/main/guia.html:541
 #: app/templates/main/metas.html:111 app/templates/main/transactions.html:136
 #: app/templates/main/transactions.html:145
 #: app/templates/main/transactions.html:154
@@ -1314,16 +1317,16 @@ msgid ""
 "                            campo."
 msgstr ""
 
-#: app/templates/base.html:289
+#: app/templates/base.html:292
 msgid "¡Entendido!"
 msgstr ""
 
-#: app/templates/base.html:304
+#: app/templates/base.html:307
 msgid "Selecciona cuenta"
 msgstr ""
 
-#: app/templates/base.html:306 app/templates/base.html:353
-#: app/templates/base.html:429 app/templates/main/categories.html:138
+#: app/templates/base.html:309 app/templates/base.html:356
+#: app/templates/base.html:432 app/templates/main/categories.html:138
 #: app/templates/main/transactions.html:204
 #: app/templates/main/transactions.html:219
 #: app/templates/main/transactions.html:236
@@ -1333,45 +1336,46 @@ msgstr ""
 #: app/templates/partials/announcements/v2_1.html:8
 #: app/templates/partials/announcements/v2_2.html:8
 #: app/templates/partials/announcements/v2_3.html:8
+#: app/templates/partials/announcements/v2_5.html:8
 #: app/templates/partials/scanner_modal.html:12
 #: app/templates/usd/dashboard.html:282 app/templates/usd/dashboard.html:308
 msgid "Cerrar"
 msgstr ""
 
-#: app/templates/base.html:364
+#: app/templates/base.html:367
 msgid "Datos"
 msgstr ""
 
-#: app/templates/base.html:365
+#: app/templates/base.html:368
 msgid "Resumen global de movimientos"
 msgstr ""
 
-#: app/templates/base.html:377
+#: app/templates/base.html:380
 msgid "Tendencias, predicciones y anomalías"
 msgstr ""
 
-#: app/templates/base.html:418
+#: app/templates/base.html:421
 msgid "Año de demostración — Solo lectura. Los datos demo no pueden editarse."
 msgstr ""
 
-#: app/templates/base.html:445 app/templates/main/transactions.html:14
+#: app/templates/base.html:448 app/templates/main/transactions.html:14
 #: app/templates/partials/scanner_modal.html:10
 msgid "Escanear recibo"
 msgstr ""
 
-#: app/templates/base.html:502
+#: app/templates/base.html:505
 msgid "Sesión inactiva"
 msgstr ""
 
-#: app/templates/base.html:506
+#: app/templates/base.html:509
 msgid "Tu sesión se cerrará en"
 msgstr ""
 
-#: app/templates/base.html:508
+#: app/templates/base.html:511
 msgid "segundos por inactividad"
 msgstr ""
 
-#: app/templates/base.html:512
+#: app/templates/base.html:515
 msgid "Seguir conectado"
 msgstr ""
 
@@ -1778,7 +1782,7 @@ msgid "o"
 msgstr ""
 
 #: app/templates/auth/login.html:65 app/templates/auth/login.html:173
-#: app/templates/main/guia.html:629 app/templates/main/guia.html:634
+#: app/templates/main/guia.html:528 app/templates/main/guia.html:533
 msgid "Ingresar con Face ID / Huella"
 msgstr ""
 
@@ -1858,7 +1862,7 @@ msgstr ""
 msgid "Carácter especial"
 msgstr ""
 
-#: app/templates/auth/register.html:93
+#: app/templates/auth/register.html:93 app/templates/main/configurar.html:275
 msgid "Repite la contraseña"
 msgstr ""
 
@@ -2168,6 +2172,7 @@ msgstr ""
 #: app/templates/partials/announcements/v2_1.html:71
 #: app/templates/partials/announcements/v2_2.html:56
 #: app/templates/partials/announcements/v2_3.html:56
+#: app/templates/partials/announcements/v2_5.html:51
 msgid "Entendido"
 msgstr ""
 
@@ -2253,362 +2258,457 @@ msgstr ""
 msgid "Registro de Auditoría"
 msgstr ""
 
-#: app/templates/main/configurar.html:213
-#: app/templates/main/configurar.html:397
-#: app/templates/main/configurar.html:426
+#: app/templates/main/configurar.html:210
+msgid "Migración de claves"
+msgstr ""
+
+#: app/templates/main/configurar.html:211
+msgid ""
+"El respaldo NO incluye las claves de cifrado (FIELD_ENCRYPTION_KEY, "
+"SECRET_KEY, JWT_SECRET_KEY). Al restaurar en un servidor nuevo, copia "
+"primero esas claves de docker/.env — sin ellas los secretos MFA, SMTP y "
+"tokens quedan ilegibles."
+msgstr ""
+
+#: app/templates/main/configurar.html:218
+#: app/templates/main/configurar.html:236
+msgid "Exportar base de datos"
+msgstr ""
+
+#: app/templates/main/configurar.html:222
+#: app/templates/main/configurar.html:303
+msgid "Restaurar base de datos"
+msgstr ""
+
+#: app/templates/main/configurar.html:244
+msgid ""
+"Se generará un archivo cifrado (.mntrbak) con toda la base de datos. "
+"Guárdalo en un lugar seguro."
+msgstr ""
+
+#: app/templates/main/configurar.html:248
+#: app/templates/main/configurar.html:341
+msgid "Contraseña de tu cuenta"
+msgstr ""
+
+#: app/templates/main/configurar.html:253
+#: app/templates/main/configurar.html:346
+msgid "Tu contraseña de administrador"
+msgstr ""
+
+#: app/templates/main/configurar.html:257
+#: app/templates/main/configurar.html:331
+msgid "Contraseña del respaldo"
+msgstr ""
+
+#: app/templates/main/configurar.html:262
+msgid "Contraseña para cifrar el archivo"
+msgstr ""
+
+#: app/templates/main/configurar.html:265
+msgid ""
+"Necesitarás esta contraseña para restaurar el respaldo. Si la pierdes, el"
+" archivo no se puede recuperar."
+msgstr ""
+
+#: app/templates/main/configurar.html:270
+msgid "Confirmar contraseña"
+msgstr ""
+
+#: app/templates/main/configurar.html:287
+#: app/templates/main/configurar.html:1705
+msgid "Descargar respaldo"
+msgstr ""
+
+#: app/templates/main/configurar.html:315
+msgid "Operación irreversible"
+msgstr ""
+
+#: app/templates/main/configurar.html:316
+msgid ""
+"Toda la base de datos actual — usuarios, transacciones, configuraciones —"
+" será reemplazada por el contenido del respaldo. La sesión se cerrará al "
+"finalizar."
+msgstr ""
+
+#: app/templates/main/configurar.html:322
+msgid "Archivo de respaldo (.mntrbak)"
+msgstr ""
+
+#: app/templates/main/configurar.html:336
+msgid "Contraseña con la que se cifró el archivo"
+msgstr ""
+
+#: app/templates/main/configurar.html:349
+msgid ""
+"Necesaria para confirmar tu identidad antes de sobreescribir la base de "
+"datos."
+msgstr ""
+
+#: app/templates/main/configurar.html:355
+msgid "Escribe RESTAURAR para confirmar"
+msgstr ""
+
+#: app/templates/main/configurar.html:369
+msgid "Restaurar ahora"
+msgstr ""
+
+#: app/templates/main/configurar.html:386
+#: app/templates/main/configurar.html:570
+#: app/templates/main/configurar.html:599
 msgid "Activo"
 msgstr ""
 
-#: app/templates/main/configurar.html:217
+#: app/templates/main/configurar.html:390
 msgid ""
 "Token de acceso personal para consumir la API desde agentes o "
 "aplicaciones externas. Activo mientras exista; solo puede haber uno por "
 "usuario."
 msgstr ""
 
-#: app/templates/main/configurar.html:227
-#: app/templates/main/configurar.html:1046
+#: app/templates/main/configurar.html:400
+#: app/templates/main/configurar.html:1218
 #: app/templates/main/recurrentes.html:69
 #: app/templates/main/recurrentes.html:158
 msgid "Creado"
 msgstr ""
 
-#: app/templates/main/configurar.html:229
-#: app/templates/main/configurar.html:1046
+#: app/templates/main/configurar.html:402
+#: app/templates/main/configurar.html:1218
 msgid "Último uso"
 msgstr ""
 
-#: app/templates/main/configurar.html:229
-#: app/templates/main/configurar.html:1046
+#: app/templates/main/configurar.html:402
+#: app/templates/main/configurar.html:1218
 msgid "Nunca"
 msgstr ""
 
-#: app/templates/main/configurar.html:236
+#: app/templates/main/configurar.html:409
 msgid "Regenerar"
 msgstr ""
 
-#: app/templates/main/configurar.html:239
+#: app/templates/main/configurar.html:412
 msgid "Revocar"
 msgstr ""
 
-#: app/templates/main/configurar.html:246
+#: app/templates/main/configurar.html:419
 msgid "Generar Token"
 msgstr ""
 
-#: app/templates/main/configurar.html:254
+#: app/templates/main/configurar.html:427
 msgid "Copia este token ahora. No se volverá a mostrar."
 msgstr ""
 
-#: app/templates/main/configurar.html:260
+#: app/templates/main/configurar.html:433
 msgid "Copiar"
 msgstr ""
 
-#: app/templates/main/configurar.html:273 app/templates/main/guia.html:34
-#: app/templates/main/guia.html:395 app/templates/main/guia.html:568
+#: app/templates/main/configurar.html:446 app/templates/main/guia.html:33
+#: app/templates/main/guia.html:395 app/templates/main/guia.html:467
 msgid "Escáner IA"
 msgstr ""
 
-#: app/templates/main/configurar.html:278
+#: app/templates/main/configurar.html:451
 msgid ""
 "Usa la cámara de tu dispositivo para fotografiar un recibo. La IA extrae "
 "el monto y los productos automáticamente."
 msgstr ""
 
-#: app/templates/main/configurar.html:286
+#: app/templates/main/configurar.html:459
 msgid ""
 "La imagen del recibo se envía al proveedor de IA que configures. No se "
 "almacena en Monetra."
 msgstr ""
 
-#: app/templates/main/configurar.html:310
+#: app/templates/main/configurar.html:483
 msgid "ej. gpt-4o"
 msgstr ""
 
-#: app/templates/main/configurar.html:313
+#: app/templates/main/configurar.html:486
 msgid ""
 "El modelo debe soportar imágenes (multimodal). Ej: gpt-4o, "
 "claude-3-5-sonnet, gemini-1.5-flash."
 msgstr ""
 
-#: app/templates/main/configurar.html:320
+#: app/templates/main/configurar.html:493
 msgid "https://api.openai.com/v1  (dejar vacío para usar el default)"
 msgstr ""
 
-#: app/templates/main/configurar.html:321
+#: app/templates/main/configurar.html:494
 msgid ""
 "Solo para proveedores compatibles con OpenAI (OpenAI, DeepSeek, "
 "OpenRouter). Dejar vacío usa la URL oficial."
 msgstr ""
 
-#: app/templates/main/configurar.html:338
+#: app/templates/main/configurar.html:511
 msgid "Cambiar"
 msgstr ""
 
-#: app/templates/main/configurar.html:342
+#: app/templates/main/configurar.html:515
 msgid ""
 "Token guardado. Usa \"Probar conexión\" para verificarlo o \"Cambiar\" "
 "para reemplazarlo."
 msgstr ""
 
-#: app/templates/main/configurar.html:350
+#: app/templates/main/configurar.html:523
 msgid "Ingresa el nuevo token y guarda. Deja vacío para conservar el actual."
 msgstr ""
 
-#: app/templates/main/configurar.html:363
+#: app/templates/main/configurar.html:536
 msgid "Tu token de API del proveedor seleccionado. Se guarda cifrado."
 msgstr ""
 
-#: app/templates/main/configurar.html:374
+#: app/templates/main/configurar.html:547
 msgid "Probar conexión"
 msgstr ""
 
-#: app/templates/main/configurar.html:388
+#: app/templates/main/configurar.html:561
 msgid "Seguridad"
 msgstr ""
 
-#: app/templates/main/configurar.html:395
+#: app/templates/main/configurar.html:568
 msgid "Autenticación en dos pasos (MFA)"
 msgstr ""
 
-#: app/templates/main/configurar.html:400
-#: app/templates/main/configurar.html:428
+#: app/templates/main/configurar.html:573
+#: app/templates/main/configurar.html:601
 msgid "Inactivo"
 msgstr ""
 
-#: app/templates/main/configurar.html:404
+#: app/templates/main/configurar.html:577
 msgid ""
 "Protege tu cuenta con un código adicional generado por Google "
 "Authenticator, Authy u otra\n"
 "                    aplicación TOTP."
 msgstr ""
 
-#: app/templates/main/configurar.html:410
-#: app/templates/main/configurar.html:564
+#: app/templates/main/configurar.html:583
+#: app/templates/main/configurar.html:737
 msgid "Desactivar MFA"
 msgstr ""
 
-#: app/templates/main/configurar.html:414
+#: app/templates/main/configurar.html:587
 msgid "Activar MFA"
 msgstr ""
 
-#: app/templates/main/configurar.html:424 app/templates/main/guia.html:35
-#: app/templates/main/guia.html:403 app/templates/main/guia.html:612
+#: app/templates/main/configurar.html:597 app/templates/main/guia.html:34
+#: app/templates/main/guia.html:403 app/templates/main/guia.html:511
+#: app/templates/partials/announcements/v2_5.html:24
 msgid "Autenticación biométrica"
 msgstr ""
 
-#: app/templates/main/configurar.html:432
+#: app/templates/main/configurar.html:605
 msgid ""
 "Inicia sesión con Face ID, huella dactilar o Windows Hello desde tu "
 "dispositivo móvil. El dispositivo hace la verificación — Monetra nunca "
 "almacena datos biométricos."
 msgstr ""
 
-#: app/templates/main/configurar.html:441
+#: app/templates/main/configurar.html:614
 msgid "Dispositivo registrado"
 msgstr ""
 
-#: app/templates/main/configurar.html:444
+#: app/templates/main/configurar.html:617
 msgid "Registrado el"
 msgstr ""
 
-#: app/templates/main/configurar.html:450
+#: app/templates/main/configurar.html:623
 msgid "Cambiar dispositivo"
 msgstr ""
 
-#: app/templates/main/configurar.html:459
-#: app/templates/main/configurar.html:1351
+#: app/templates/main/configurar.html:632
+#: app/templates/main/configurar.html:1523
 msgid "Tu navegador no soporta autenticación biométrica."
 msgstr ""
 
-#: app/templates/main/configurar.html:462 app/templates/main/guia.html:625
+#: app/templates/main/configurar.html:635 app/templates/main/guia.html:524
 msgid "Registrar este dispositivo"
 msgstr ""
 
-#: app/templates/main/configurar.html:471
+#: app/templates/main/configurar.html:644
 msgid "Confirma tu contraseña para continuar."
 msgstr ""
 
-#: app/templates/main/configurar.html:476
+#: app/templates/main/configurar.html:649
 msgid "Tu contraseña actual"
 msgstr ""
 
-#: app/templates/main/configurar.html:480
-#: app/templates/main/configurar.html:1400
+#: app/templates/main/configurar.html:653
+#: app/templates/main/configurar.html:1572
 msgid "Continuar"
 msgstr ""
 
-#: app/templates/main/configurar.html:496
+#: app/templates/main/configurar.html:669
 msgid "Al guardar se cerrará la sesión automáticamente."
 msgstr ""
 
-#: app/templates/main/configurar.html:509
+#: app/templates/main/configurar.html:682
 msgid "Mín. 10 caracteres, mayúscula, minúscula, número y carácter especial."
 msgstr ""
 
-#: app/templates/main/configurar.html:527
+#: app/templates/main/configurar.html:700
 msgid ""
 "Activar\n"
 "                            autenticación en dos pasos"
 msgstr ""
 
-#: app/templates/main/configurar.html:532
+#: app/templates/main/configurar.html:705
 msgid ""
 "Escanea este código QR con tu aplicación autenticadora y\n"
 "                            luego ingresa el código de 6 dígitos para "
 "confirmar."
 msgstr ""
 
-#: app/templates/main/configurar.html:537
+#: app/templates/main/configurar.html:710
 msgid "¿No puedes escanear? Ingresa esta clave manualmente:"
 msgstr ""
 
-#: app/templates/main/configurar.html:552
+#: app/templates/main/configurar.html:725
 msgid "Confirmar y activar"
 msgstr ""
 
-#: app/templates/main/configurar.html:568
+#: app/templates/main/configurar.html:741
 msgid ""
 "Ingresa el código actual de tu aplicación autenticadora\n"
 "                            para desactivar la protección."
 msgstr ""
 
-#: app/templates/main/configurar.html:578
+#: app/templates/main/configurar.html:751
 msgid "Desactivar"
 msgstr ""
 
-#: app/templates/main/configurar.html:588
+#: app/templates/main/configurar.html:761
 msgid ""
 "Configuración de correo\n"
 "                    (SMTP)"
 msgstr ""
 
-#: app/templates/main/configurar.html:590
+#: app/templates/main/configurar.html:763
 msgid ""
 "Permite enviar correos desde tu propia cuenta, como recordatorios\n"
 "                    o recuperación de contraseña."
 msgstr ""
 
-#: app/templates/main/configurar.html:597
+#: app/templates/main/configurar.html:770
 msgid "¿Cómo funciona la recuperación de contraseña?"
 msgstr ""
 
-#: app/templates/main/configurar.html:601
+#: app/templates/main/configurar.html:774
 msgid ""
 "Si activas tu propio SMTP, tus correos de recuperación se enviarán desde "
 "tu cuenta."
 msgstr ""
 
-#: app/templates/main/configurar.html:603
+#: app/templates/main/configurar.html:776
 msgid ""
 "Si no lo activas, el sistema usará automáticamente el\n"
 "                            SMTP del administrador para enviarte el "
 "correo (sin necesidad de que configures nada)."
 msgstr ""
 
-#: app/templates/main/configurar.html:605
+#: app/templates/main/configurar.html:778
 msgid ""
 "Si no lo activas y el administrador no tiene SMTP configurado, la\n"
 "                            recuperación por correo no estará disponible."
 msgstr ""
 
-#: app/templates/main/configurar.html:626
+#: app/templates/main/configurar.html:799
 msgid "ej. smtp.gmail.com"
 msgstr ""
 
-#: app/templates/main/configurar.html:650
+#: app/templates/main/configurar.html:823
 msgid ""
 "Deja en blanco para conservar la\n"
 "                                    actual."
 msgstr ""
 
-#: app/templates/main/configurar.html:651
+#: app/templates/main/configurar.html:824
 msgid "Usa contraseñas de aplicación si es Gmail."
 msgstr ""
 
-#: app/templates/main/configurar.html:695
+#: app/templates/main/configurar.html:868
 #, python-format
 msgid "Enviar correo de prueba a %(email)s"
 msgstr ""
 
-#: app/templates/main/configurar.html:699
+#: app/templates/main/configurar.html:872
 msgid "Utilizará los ajustes guardados."
 msgstr ""
 
-#: app/templates/main/configurar.html:708
+#: app/templates/main/configurar.html:881
 msgid "Reporte semanal por email"
 msgstr ""
 
-#: app/templates/main/configurar.html:711
+#: app/templates/main/configurar.html:884
 msgid ""
-"Recibe tu resumen Excel todos los lunes a las 10:00 AM (UTC). Incluye el "
-"año en curso desde\n"
-"                    enero hasta el mes actual."
+"Recibe tu resumen Excel todos los lunes a las 10:00 AM (UTC). Incluye "
+"únicamente el mes en curso."
 msgstr ""
 
-#: app/templates/main/configurar.html:722
+#: app/templates/main/configurar.html:894
 msgid "Activar reporte semanal"
 msgstr ""
 
-#: app/templates/main/configurar.html:736
+#: app/templates/main/configurar.html:908
 msgid "Enviar ahora"
 msgstr ""
 
-#: app/templates/main/configurar.html:739
-msgid "Genera y envía el Excel del año en curso a"
+#: app/templates/main/configurar.html:911
+msgid "Genera y envía el Excel del mes en curso a"
 msgstr ""
 
-#: app/templates/main/configurar.html:747
+#: app/templates/main/configurar.html:919
 msgid ""
 "Para enviar reportes necesitas configurar un SMTP (propio o del "
 "administrador)."
 msgstr ""
 
-#: app/templates/main/configurar.html:754
+#: app/templates/main/configurar.html:926
 msgid "Recuperación activa — SMTP propio"
 msgstr ""
 
-#: app/templates/main/configurar.html:758
+#: app/templates/main/configurar.html:930
 msgid "Recuperación activa — vía administrador"
 msgstr ""
 
-#: app/templates/main/configurar.html:762
+#: app/templates/main/configurar.html:934
 msgid "Recuperación por correo: no disponible"
 msgstr ""
 
-#: app/templates/main/configurar.html:774
+#: app/templates/main/configurar.html:946
 msgid "Ayuda Progresiva"
 msgstr ""
 
-#: app/templates/main/configurar.html:779
+#: app/templates/main/configurar.html:951
 msgid ""
 "Cuando está activa, los formularios muestran íconos de ayuda con "
 "explicaciones contextuales\n"
 "                    sobre cada campo."
 msgstr ""
 
-#: app/templates/main/configurar.html:788
+#: app/templates/main/configurar.html:960
 msgid "Mostrar íconos de ayuda en formularios"
 msgstr ""
 
-#: app/templates/main/configurar.html:800 app/templates/main/guia.html:363
+#: app/templates/main/configurar.html:972 app/templates/main/guia.html:363
 msgid "Panel de Insights"
 msgstr ""
 
-#: app/templates/main/configurar.html:805
+#: app/templates/main/configurar.html:977
 msgid ""
 "Muestra Salud financiera, Proyección de cierre y Alertas en el dashboard "
 "mensual."
 msgstr ""
 
-#: app/templates/main/configurar.html:814
+#: app/templates/main/configurar.html:986
 msgid "Activar panel de insights"
 msgstr ""
 
-#: app/templates/main/configurar.html:824
+#: app/templates/main/configurar.html:996
 msgid "Datos Demo"
 msgstr ""
 
-#: app/templates/main/configurar.html:829
+#: app/templates/main/configurar.html:1001
 msgid ""
 "Carga transacciones de ejemplo para explorar los dashboards sin ingresar "
 "datos reales. Puedes\n"
@@ -2616,120 +2716,124 @@ msgid ""
 "datos."
 msgstr ""
 
-#: app/templates/main/configurar.html:837 app/templates/main/guia.html:25
+#: app/templates/main/configurar.html:1009 app/templates/main/guia.html:25
 #: app/templates/main/guia.html:143
 msgid "Transacciones"
 msgstr ""
 
-#: app/templates/main/configurar.html:841
+#: app/templates/main/configurar.html:1013
 msgid "Total gastos"
 msgstr ""
 
-#: app/templates/main/configurar.html:845 app/templates/main/guia.html:305
+#: app/templates/main/configurar.html:1017 app/templates/main/guia.html:305
 #: app/templates/main/guia.html:306 app/templates/main/guia.html:307
 #: app/templates/main/guia.html:308 app/templates/main/guia.html:309
 #: app/templates/main/guia.html:312
 msgid "Período"
 msgstr ""
 
-#: app/templates/main/configurar.html:852
-#: app/templates/main/configurar.html:932
+#: app/templates/main/configurar.html:1024
+#: app/templates/main/configurar.html:1104
 msgid "Cargar demo"
 msgstr ""
 
-#: app/templates/main/configurar.html:855
+#: app/templates/main/configurar.html:1027
 msgid "Resetear demo"
 msgstr ""
 
-#: app/templates/main/configurar.html:929
+#: app/templates/main/configurar.html:1101
 msgid "Cargado"
 msgstr ""
 
-#: app/templates/main/configurar.html:930
+#: app/templates/main/configurar.html:1102
 msgid "No cargado"
 msgstr ""
 
-#: app/templates/main/configurar.html:931
+#: app/templates/main/configurar.html:1103
 msgid "Cargando…"
 msgstr ""
 
-#: app/templates/main/configurar.html:933
-#: app/templates/main/configurar.html:1264
+#: app/templates/main/configurar.html:1105
+#: app/templates/main/configurar.html:1436
 msgid "Error de conexión."
 msgstr ""
 
-#: app/templates/main/configurar.html:934
+#: app/templates/main/configurar.html:1106
 msgid "¿Eliminar todos los datos demo? Esta acción no se puede deshacer."
 msgstr ""
 
-#: app/templates/main/configurar.html:1053
+#: app/templates/main/configurar.html:1225
 msgid "Error al generar el token."
 msgstr ""
 
-#: app/templates/main/configurar.html:1061
+#: app/templates/main/configurar.html:1233
 msgid ""
 "¿Seguro que quieres revocar el token? Los agentes que lo usen perderán "
 "acceso."
 msgstr ""
 
-#: app/templates/main/configurar.html:1069
+#: app/templates/main/configurar.html:1241
 msgid "Error al revocar el token."
 msgstr ""
 
-#: app/templates/main/configurar.html:1110
+#: app/templates/main/configurar.html:1282
 msgid "Error al generar el QR."
 msgstr ""
 
-#: app/templates/main/configurar.html:1122
-#: app/templates/main/configurar.html:1135 app/templates/main/metas.html:296
+#: app/templates/main/configurar.html:1294
+#: app/templates/main/configurar.html:1307 app/templates/main/metas.html:296
 msgid "Error."
 msgstr ""
 
-#: app/templates/main/configurar.html:1212
+#: app/templates/main/configurar.html:1384
 msgid "Modelo recomendado: "
 msgstr ""
 
-#: app/templates/main/configurar.html:1227
+#: app/templates/main/configurar.html:1399
 msgid "Guarda el nuevo token primero para probarlo."
 msgstr ""
 
-#: app/templates/main/configurar.html:1383
+#: app/templates/main/configurar.html:1555
 msgid "Ingresa tu contraseña."
 msgstr ""
 
-#: app/templates/main/configurar.html:1411
+#: app/templates/main/configurar.html:1583
 msgid "Error al iniciar registro."
 msgstr ""
 
-#: app/templates/main/configurar.html:1445
+#: app/templates/main/configurar.html:1617
 msgid ""
 "Dispositivo registrado correctamente. Recarga la página para ver los "
 "cambios."
 msgstr ""
 
-#: app/templates/main/configurar.html:1448
+#: app/templates/main/configurar.html:1620
 msgid "Error al registrar."
 msgstr ""
 
-#: app/templates/main/configurar.html:1454
+#: app/templates/main/configurar.html:1626
 msgid "Registro cancelado."
 msgstr ""
 
-#: app/templates/main/configurar.html:1455
-#: app/templates/main/configurar.html:1457
-#: app/templates/main/configurar.html:1484
-#: app/templates/main/configurar.html:1485
+#: app/templates/main/configurar.html:1627
+#: app/templates/main/configurar.html:1629
+#: app/templates/main/configurar.html:1656
+#: app/templates/main/configurar.html:1657
 msgid "Contraseña incorrecta."
 msgstr ""
 
-#: app/templates/main/configurar.html:1459
+#: app/templates/main/configurar.html:1631
 msgid "Error al registrar el dispositivo."
 msgstr ""
 
-#: app/templates/main/configurar.html:1471
-#: app/templates/main/configurar.html:1479
-#: app/templates/main/configurar.html:1488
+#: app/templates/main/configurar.html:1643
+#: app/templates/main/configurar.html:1651
+#: app/templates/main/configurar.html:1660
 msgid "Error al eliminar."
+msgstr ""
+
+#: app/templates/main/configurar.html:1701
+msgid "Generando…"
 msgstr ""
 
 #: app/templates/main/dashboard.html:6
@@ -2927,10 +3031,11 @@ msgstr ""
 
 #: app/templates/main/guia.html:32 app/templates/main/guia.html:110
 #: app/templates/main/guia.html:414
+#: app/templates/partials/announcements/v2_5.html:29
 msgid "Panel de analítica"
 msgstr ""
 
-#: app/templates/main/guia.html:33 app/templates/main/guia.html:467
+#: app/templates/main/guia.html:35 app/templates/main/guia.html:553
 msgid "Preguntas frecuentes"
 msgstr ""
 
@@ -3342,7 +3447,7 @@ msgstr ""
 msgid "Campos de una meta"
 msgstr ""
 
-#: app/templates/main/guia.html:236 app/templates/main/guia.html:599
+#: app/templates/main/guia.html:236 app/templates/main/guia.html:498
 msgid "Campo"
 msgstr ""
 
@@ -3628,7 +3733,7 @@ msgid ""
 "Alertas) en el Dashboard. Desactivado por defecto."
 msgstr ""
 
-#: app/templates/main/guia.html:371 app/templates/main/guia.html:604
+#: app/templates/main/guia.html:371 app/templates/main/guia.html:503
 msgid "Token de API"
 msgstr ""
 
@@ -3758,121 +3863,7 @@ msgid ""
 "presupuesto)"
 msgstr ""
 
-#: app/templates/main/guia.html:475
-msgid "¿Por qué no puedo eliminar una categoría?"
-msgstr ""
-
-#: app/templates/main/guia.html:476
-msgid ""
-"Porque tiene registros asociados: transacciones, recurrentes o "
-"presupuestos. Primero elimina o reasigna esos registros, luego podrás "
-"eliminar la categoría. El sistema te indicará exactamente cuántos "
-"registros la bloquean."
-msgstr ""
-
-#: app/templates/main/guia.html:484
-msgid "¿Por qué no puedo editar un registro de Demo?"
-msgstr ""
-
-#: app/templates/main/guia.html:485
-msgid ""
-"Los registros de demostración son de solo lectura. Puedes crear tus "
-"propios registros en paralelo o resetear los datos demo desde el panel de"
-" administración."
-msgstr ""
-
-#: app/templates/main/guia.html:493
-msgid "¿Puedo eliminar una recurrente?"
-msgstr ""
-
-#: app/templates/main/guia.html:494
-msgid ""
-"No. Las recurrentes no pueden eliminarse para preservar la coherencia del"
-" historial. Para detenerla usa el botón Finalizar hoy o edita la fecha de"
-" término. Las transacciones ya generadas permanecen en tu historial."
-msgstr ""
-
-#: app/templates/main/guia.html:502
-msgid "¿Qué pasa si el día de mi recurrente no existe en el mes?"
-msgstr ""
-
-#: app/templates/main/guia.html:503
-msgid ""
-"Monetra ajusta automáticamente al último día del mes. Por eso se "
-"recomienda usar máximo el día 28 para que funcione igual en todos los "
-"meses, incluido febrero."
-msgstr ""
-
-#: app/templates/main/guia.html:511
-msgid "¿El presupuesto personalizado borra mis transacciones si lo elimino?"
-msgstr ""
-
-#: app/templates/main/guia.html:512
-msgid ""
-"Sí. Al eliminar un presupuesto personalizado vigente se borran también "
-"todas las transacciones y recurrentes de su categoría. Se te informará "
-"cuántos registros se eliminarán antes de confirmar. Los presupuestos "
-"finalizados no pueden eliminarse."
-msgstr ""
-
-#: app/templates/main/guia.html:520
-msgid "¿Abonar a una meta descuenta de mi saldo?"
-msgstr ""
-
-#: app/templates/main/guia.html:521
-msgid ""
-"No. Las metas son independientes de tus transacciones. Registrar un abono"
-" solo actualiza el contador de progreso. Si quieres también registrar el "
-"movimiento, debes crear una transacción por separado."
-msgstr ""
-
-#: app/templates/main/guia.html:529
-msgid "¿El Export incluye todos los datos o solo el período visible?"
-msgstr ""
-
-#: app/templates/main/guia.html:530
-msgid ""
-"Depende de la pestaña. Movimientos, Categorías, Presupuestos, Dashboard y"
-" Base de Datos se filtran al período exportado. Metas y Recurrentes "
-"muestran el historial completo, independientemente del período "
-"seleccionado."
-msgstr ""
-
-#: app/templates/main/guia.html:538
-msgid "¿Cada cuánto se envía el reporte semanal?"
-msgstr ""
-
-#: app/templates/main/guia.html:539
-msgid ""
-"Todos los lunes a las 10:00 UTC. Requiere haber configurado el servidor "
-"SMTP en Configuración de Cuenta y activado la opción \"Reporte semanal\"."
-msgstr ""
-
-#: app/templates/main/guia.html:547
-msgid "¿El escáner siempre extrae bien los datos?"
-msgstr ""
-
-#: app/templates/main/guia.html:548
-msgid ""
-"Depende de la calidad de la imagen y el modelo de IA configurado. "
-"Imágenes claras, bien encuadradas y con buena iluminación dan mejores "
-"resultados. Siempre puedes revisar y corregir los datos extraídos antes "
-"de guardar la transacción."
-msgstr ""
-
-#: app/templates/main/guia.html:556
-msgid "¿Puedo usar Face ID si tengo 2FA activado?"
-msgstr ""
-
-#: app/templates/main/guia.html:557
-msgid ""
-"Sí. El login biométrico (FIDO2) reemplaza el flujo completo de "
-"autenticación — no necesitas ingresar contraseña ni código TOTP. La "
-"verificación biométrica ya incluye la confirmación de identidad del "
-"usuario por diseño del estándar."
-msgstr ""
-
-#: app/templates/main/guia.html:570
+#: app/templates/main/guia.html:469
 msgid ""
 "El escáner usa inteligencia artificial para leer una foto o captura de "
 "pantalla de un recibo y extraer automáticamente el monto, la descripción "
@@ -3880,233 +3871,347 @@ msgid ""
 "Escáner IA."
 msgstr ""
 
-#: app/templates/main/guia.html:572
+#: app/templates/main/guia.html:471
 msgid "Cómo acceder"
 msgstr ""
 
-#: app/templates/main/guia.html:574
+#: app/templates/main/guia.html:473
 msgid "Botón \"Escanear recibo\""
 msgstr ""
 
-#: app/templates/main/guia.html:574
+#: app/templates/main/guia.html:473
 msgid "visible en la barra de herramientas de la sección Movimientos."
 msgstr ""
 
-#: app/templates/main/guia.html:575
+#: app/templates/main/guia.html:474
 msgid "Botón flotante (FAB)"
 msgstr ""
 
-#: app/templates/main/guia.html:575
+#: app/templates/main/guia.html:474
 msgid ""
 "ícono de cámara que aparece en la esquina inferior derecha en "
 "dispositivos móviles (modo responsive) cuando el escáner está configurado"
 " y activo."
 msgstr ""
 
-#: app/templates/main/guia.html:578
+#: app/templates/main/guia.html:477
 msgid "Flujo de uso"
 msgstr ""
 
-#: app/templates/main/guia.html:580
+#: app/templates/main/guia.html:479
 msgid "Elegir modo"
 msgstr ""
 
-#: app/templates/main/guia.html:580
+#: app/templates/main/guia.html:479
 msgid "selecciona"
 msgstr ""
 
-#: app/templates/main/guia.html:580
+#: app/templates/main/guia.html:479
 #: app/templates/partials/scanner_modal.html:25
 msgid "Cámara"
 msgstr ""
 
-#: app/templates/main/guia.html:580
+#: app/templates/main/guia.html:479
 msgid "(acceso directo a la cámara del dispositivo) o"
 msgstr ""
 
-#: app/templates/main/guia.html:580
+#: app/templates/main/guia.html:479
 #: app/templates/partials/scanner_modal.html:32
 msgid "Subir imagen"
 msgstr ""
 
-#: app/templates/main/guia.html:580
+#: app/templates/main/guia.html:479
 msgid "(arrastra o selecciona un archivo)."
 msgstr ""
 
-#: app/templates/main/guia.html:581
+#: app/templates/main/guia.html:480
 msgid "Capturar o subir"
 msgstr ""
 
-#: app/templates/main/guia.html:581
+#: app/templates/main/guia.html:480
 msgid ""
 "toma la foto o sube el archivo. Formatos soportados: JPEG, PNG, WebP, "
 "HEIC."
 msgstr ""
 
-#: app/templates/main/guia.html:582
+#: app/templates/main/guia.html:481
 msgid "Revisar"
 msgstr ""
 
-#: app/templates/main/guia.html:582
+#: app/templates/main/guia.html:481
 msgid ""
 "la IA extrae monto, descripción y comercio. Puedes editar cualquier dato "
 "antes de continuar."
 msgstr ""
 
-#: app/templates/main/guia.html:583
+#: app/templates/main/guia.html:482
 msgid "se crea la transacción en el mes activo con los datos revisados."
 msgstr ""
 
-#: app/templates/main/guia.html:588
+#: app/templates/main/guia.html:487
 msgid "Privacidad"
 msgstr ""
 
-#: app/templates/main/guia.html:588
+#: app/templates/main/guia.html:487
 msgid ""
 "la imagen se envía al proveedor de IA que hayas configurado. Monetra "
 "nunca almacena la imagen — se procesa en memoria y se descarta."
 msgstr ""
 
-#: app/templates/main/guia.html:593
+#: app/templates/main/guia.html:492
 msgid ""
 "Imágenes borrosas, con poca luz o con texto muy pequeño pueden producir "
 "resultados incorrectos. Revisa siempre los datos en el paso de revisión "
 "antes de guardar."
 msgstr ""
 
-#: app/templates/main/guia.html:596
+#: app/templates/main/guia.html:495
 msgid "Configuración del proveedor"
 msgstr ""
 
-#: app/templates/main/guia.html:597 app/templates/main/guia.html:624
+#: app/templates/main/guia.html:496 app/templates/main/guia.html:523
 msgid "Ve a"
 msgstr ""
 
-#: app/templates/main/guia.html:597
+#: app/templates/main/guia.html:496
 msgid "Configuración → Escáner IA"
 msgstr ""
 
-#: app/templates/main/guia.html:597
+#: app/templates/main/guia.html:496
 msgid "y completa:"
 msgstr ""
 
-#: app/templates/main/guia.html:601
+#: app/templates/main/guia.html:500
 msgid "OpenAI, Anthropic, Gemini, DeepSeek u OpenRouter"
 msgstr ""
 
-#: app/templates/main/guia.html:602
+#: app/templates/main/guia.html:501
 msgid "Modelo"
 msgstr ""
 
-#: app/templates/main/guia.html:602
+#: app/templates/main/guia.html:501
 msgid ""
 "Debe soportar imágenes (multimodal). Ej: gpt-4o, claude-3-5-sonnet, "
 "gemini-1.5-flash"
 msgstr ""
 
-#: app/templates/main/guia.html:603
+#: app/templates/main/guia.html:502
 msgid "URL base"
 msgstr ""
 
-#: app/templates/main/guia.html:603
+#: app/templates/main/guia.html:502
 msgid ""
 "Opcional. Solo para proveedores compatibles con OpenAI (DeepSeek, "
 "OpenRouter). Dejar vacío usa la URL oficial."
 msgstr ""
 
-#: app/templates/main/guia.html:604
+#: app/templates/main/guia.html:503
 msgid ""
 "Tu clave del proveedor. Se guarda cifrada. Usa \"Probar conexión\" para "
 "verificarla antes de guardar."
 msgstr ""
 
-#: app/templates/main/guia.html:614
+#: app/templates/main/guia.html:513
 msgid ""
 "Inicia sesión en Monetra usando Face ID o huella dactilar, sin necesidad "
 "de escribir tu email ni contraseña. Disponible solo en dispositivos "
 "móviles que soporten biometría."
 msgstr ""
 
-#: app/templates/main/guia.html:618
+#: app/templates/main/guia.html:517
 msgid ""
 "Tecnología estándar FIDO2 / WebAuthn. Monetra nunca almacena tus datos "
 "biométricos — la verificación la realiza exclusivamente tu dispositivo."
 msgstr ""
 
-#: app/templates/main/guia.html:621
+#: app/templates/main/guia.html:520
 msgid "Activar (primera vez)"
 msgstr ""
 
-#: app/templates/main/guia.html:623
+#: app/templates/main/guia.html:522
 msgid "Inicia sesión con tu email y contraseña desde tu dispositivo móvil."
 msgstr ""
 
-#: app/templates/main/guia.html:624
+#: app/templates/main/guia.html:523
 msgid "Configuración → Seguridad → Autenticación biométrica"
 msgstr ""
 
-#: app/templates/main/guia.html:625 app/templates/main/guia.html:634
+#: app/templates/main/guia.html:524 app/templates/main/guia.html:533
 msgid "Pulsa"
 msgstr ""
 
-#: app/templates/main/guia.html:626
+#: app/templates/main/guia.html:525
 msgid "Confirma tu contraseña actual cuando se solicite."
 msgstr ""
 
-#: app/templates/main/guia.html:627
+#: app/templates/main/guia.html:526
 msgid "El dispositivo pedirá Face ID o huella para crear la passkey."
 msgstr ""
 
-#: app/templates/main/guia.html:629
+#: app/templates/main/guia.html:528
 msgid ""
 "Una vez registrado, la próxima vez que entres a la página de login desde "
 "ese dispositivo verás el botón"
 msgstr ""
 
-#: app/templates/main/guia.html:631
+#: app/templates/main/guia.html:530
 msgid "Login biométrico"
 msgstr ""
 
-#: app/templates/main/guia.html:633
+#: app/templates/main/guia.html:532
 msgid "Abre la página de login desde tu móvil registrado."
 msgstr ""
 
-#: app/templates/main/guia.html:634
+#: app/templates/main/guia.html:533
 msgid "(no necesitas escribir tu email)."
 msgstr ""
 
-#: app/templates/main/guia.html:635
+#: app/templates/main/guia.html:534
 msgid ""
 "El dispositivo muestra la passkey guardada — confirma con Face ID o "
 "huella."
 msgstr ""
 
-#: app/templates/main/guia.html:636
+#: app/templates/main/guia.html:535
 msgid "Accedes directamente al dashboard."
 msgstr ""
 
-#: app/templates/main/guia.html:639
+#: app/templates/main/guia.html:538
 msgid "Cambiar de dispositivo"
 msgstr ""
 
-#: app/templates/main/guia.html:640
+#: app/templates/main/guia.html:539
 msgid ""
 "Ve a Configuración → Seguridad → \"Cambiar dispositivo\". Se pedirá tu "
 "contraseña, luego registras el nuevo dispositivo con biometría. Solo "
 "puede haber un dispositivo registrado a la vez."
 msgstr ""
 
-#: app/templates/main/guia.html:643
+#: app/templates/main/guia.html:542
 msgid ""
 "Pulsa \"Eliminar\" en la sección de biometría. Se pedirá tu contraseña "
 "para confirmar. El botón biométrico desaparecerá del login."
 msgstr ""
 
-#: app/templates/main/guia.html:647
+#: app/templates/main/guia.html:546
 msgid ""
 "Si cambias de dispositivo o restableces tu teléfono, deberás eliminar la "
 "passkey antigua y volver a registrar el nuevo dispositivo. Siempre podrás"
 " iniciar sesión con tu contraseña."
+msgstr ""
+
+#: app/templates/main/guia.html:561
+msgid "¿Por qué no puedo eliminar una categoría?"
+msgstr ""
+
+#: app/templates/main/guia.html:562
+msgid ""
+"Porque tiene registros asociados: transacciones, recurrentes o "
+"presupuestos. Primero elimina o reasigna esos registros, luego podrás "
+"eliminar la categoría. El sistema te indicará exactamente cuántos "
+"registros la bloquean."
+msgstr ""
+
+#: app/templates/main/guia.html:570
+msgid "¿Por qué no puedo editar un registro de Demo?"
+msgstr ""
+
+#: app/templates/main/guia.html:571
+msgid ""
+"Los registros de demostración son de solo lectura. Puedes crear tus "
+"propios registros en paralelo o resetear los datos demo desde el panel de"
+" administración."
+msgstr ""
+
+#: app/templates/main/guia.html:579
+msgid "¿Puedo eliminar una recurrente?"
+msgstr ""
+
+#: app/templates/main/guia.html:580
+msgid ""
+"No. Las recurrentes no pueden eliminarse para preservar la coherencia del"
+" historial. Para detenerla usa el botón Finalizar hoy o edita la fecha de"
+" término. Las transacciones ya generadas permanecen en tu historial."
+msgstr ""
+
+#: app/templates/main/guia.html:588
+msgid "¿Qué pasa si el día de mi recurrente no existe en el mes?"
+msgstr ""
+
+#: app/templates/main/guia.html:589
+msgid ""
+"Monetra ajusta automáticamente al último día del mes. Por eso se "
+"recomienda usar máximo el día 28 para que funcione igual en todos los "
+"meses, incluido febrero."
+msgstr ""
+
+#: app/templates/main/guia.html:597
+msgid "¿El presupuesto personalizado borra mis transacciones si lo elimino?"
+msgstr ""
+
+#: app/templates/main/guia.html:598
+msgid ""
+"Sí. Al eliminar un presupuesto personalizado vigente se borran también "
+"todas las transacciones y recurrentes de su categoría. Se te informará "
+"cuántos registros se eliminarán antes de confirmar. Los presupuestos "
+"finalizados no pueden eliminarse."
+msgstr ""
+
+#: app/templates/main/guia.html:606
+msgid "¿Abonar a una meta descuenta de mi saldo?"
+msgstr ""
+
+#: app/templates/main/guia.html:607
+msgid ""
+"No. Las metas son independientes de tus transacciones. Registrar un abono"
+" solo actualiza el contador de progreso. Si quieres también registrar el "
+"movimiento, debes crear una transacción por separado."
+msgstr ""
+
+#: app/templates/main/guia.html:615
+msgid "¿El Export incluye todos los datos o solo el período visible?"
+msgstr ""
+
+#: app/templates/main/guia.html:616
+msgid ""
+"Depende de la pestaña. Movimientos, Categorías, Presupuestos, Dashboard y"
+" Base de Datos se filtran al período exportado. Metas y Recurrentes "
+"muestran el historial completo, independientemente del período "
+"seleccionado."
+msgstr ""
+
+#: app/templates/main/guia.html:624
+msgid "¿Cada cuánto se envía el reporte semanal?"
+msgstr ""
+
+#: app/templates/main/guia.html:625
+msgid ""
+"Todos los lunes a las 10:00 UTC. Requiere haber configurado el servidor "
+"SMTP en Configuración de Cuenta y activado la opción \"Reporte semanal\"."
+msgstr ""
+
+#: app/templates/main/guia.html:633
+msgid "¿El escáner siempre extrae bien los datos?"
+msgstr ""
+
+#: app/templates/main/guia.html:634
+msgid ""
+"Depende de la calidad de la imagen y el modelo de IA configurado. "
+"Imágenes claras, bien encuadradas y con buena iluminación dan mejores "
+"resultados. Siempre puedes revisar y corregir los datos extraídos antes "
+"de guardar la transacción."
+msgstr ""
+
+#: app/templates/main/guia.html:642
+msgid "¿Puedo usar Face ID si tengo 2FA activado?"
+msgstr ""
+
+#: app/templates/main/guia.html:643
+msgid ""
+"Sí. El login biométrico (FIDO2) reemplaza el flujo completo de "
+"autenticación — no necesitas ingresar contraseña ni código TOTP. La "
+"verificación biométrica ya incluye la confirmación de identidad del "
+"usuario por diseño del estándar."
 msgstr ""
 
 #: app/templates/main/meta_form.html:8
@@ -4954,12 +5059,59 @@ msgstr ""
 
 #: app/templates/partials/announcements/v2_2.html:59
 #: app/templates/partials/announcements/v2_3.html:59
+#: app/templates/partials/announcements/v2_5.html:54
 msgid "Ver guía"
 msgstr ""
 
 #: app/templates/partials/announcements/v2_2.html:62
 #: app/templates/partials/announcements/v2_3.html:62
+#: app/templates/partials/announcements/v2_5.html:57
 msgid "Ir a Configuración"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_5.html:5
+msgid "¡Monetra 2.5 ya está aquí!"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_5.html:13
+msgid ""
+"Dos grandes novedades: registra gastos desde una foto y entra a Monetra "
+"con tu huella o Face ID."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_5.html:19
+msgid "Escáner IA de recibos"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_5.html:20
+msgid ""
+"— Toca el ícono de cámara en la barra superior, fotografía tu recibo y la"
+" IA extrae monto, categoría y fecha para crear la transacción en "
+"segundos. Configúralo en Configuración de Cuenta → Escáner IA."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_5.html:25
+msgid ""
+"— Inicia sesión con Face ID, huella dactilar o Windows Hello. El "
+"dispositivo realiza la verificación; Monetra nunca almacena tus datos "
+"biométricos. Actívalo en Configuración de Cuenta → Autenticación "
+"biométrica."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_5.html:30
+msgid ""
+"— Salud financiera, proyección de cierre del mes y alertas inteligentes, "
+"disponibles en el Dashboard Global → Analítica."
+msgstr ""
+
+#: app/templates/partials/announcements/v2_5.html:38
+msgid "¿Por dónde empezar?"
+msgstr ""
+
+#: app/templates/partials/announcements/v2_5.html:41
+msgid ""
+"Ve a Configuración de Cuenta para activar el Escáner IA (necesitas una "
+"clave de API de OpenAI u Ollama) y registrar tu dispositivo biométrico."
 msgstr ""
 
 #: app/templates/usd/dashboard.html:24
