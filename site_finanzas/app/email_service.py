@@ -55,34 +55,18 @@ def decrypt_ai_token(encrypted_token: bytes) -> str:
         return ""
 
 
-def _send_with_config(config, to_email, subject, body_text, body_html=None):
-    """Core SMTP send using a UserEmailConfig object."""
+def _open_and_send(config, msg):
+    """Abre la conexión SMTP, envía el mensaje y garantiza el cierre del socket."""
+    password = decrypt_smtp_password(config.smtp_password_encrypted)
+    if not password:
+        return False, "Error al descifrar la contraseña SMTP."
+
+    server = None
     try:
-        if not config.smtp_password_encrypted:
-            return False, "La configuración SMTP no tiene contraseña."
-
-        password = decrypt_smtp_password(config.smtp_password_encrypted)
-        if not password:
-            return False, "Error al descifrar la contraseña SMTP."
-
-        msg = EmailMessage()
-        msg['Subject'] = subject
-        sender_name = config.sender_name or 'Monetra'
-        sender_email = config.sender_email or config.smtp_username
-        msg['From'] = f"{sender_name} <{sender_email}>"
-        msg['To'] = to_email
-        msg.set_content(body_text)
-
-        if body_html:
-            msg.add_alternative(body_html, subtype='html')
-
-        host = config.smtp_host
-        port = config.smtp_port
-
         if config.smtp_use_ssl:
-            server = smtplib.SMTP_SSL(host, port, timeout=15)
+            server = smtplib.SMTP_SSL(config.smtp_host, config.smtp_port, timeout=15)
         else:
-            server = smtplib.SMTP(host, port, timeout=15)
+            server = smtplib.SMTP(config.smtp_host, config.smtp_port, timeout=15)
 
         server.ehlo()
         if config.smtp_use_tls and not config.smtp_use_ssl:
@@ -91,8 +75,6 @@ def _send_with_config(config, to_email, subject, body_text, body_html=None):
 
         server.login(config.smtp_username, password)
         server.send_message(msg)
-        server.quit()
-
         return True, "Correo enviado correctamente."
 
     except smtplib.SMTPAuthenticationError:
@@ -101,6 +83,31 @@ def _send_with_config(config, to_email, subject, body_text, body_html=None):
         return False, f"Error del servidor SMTP: {str(e)}"
     except Exception as e:
         return False, f"Error inesperado al enviar el correo: {str(e)}"
+    finally:
+        if server is not None:
+            try:
+                server.quit()
+            except Exception:
+                pass
+
+
+def _send_with_config(config, to_email, subject, body_text, body_html=None):
+    """Core SMTP send using a UserEmailConfig object."""
+    if not config.smtp_password_encrypted:
+        return False, "La configuración SMTP no tiene contraseña."
+
+    msg = EmailMessage()
+    msg['Subject'] = subject
+    sender_name = config.sender_name or 'Monetra'
+    sender_email = config.sender_email or config.smtp_username
+    msg['From'] = f"{sender_name} <{sender_email}>"
+    msg['To'] = to_email
+    msg.set_content(body_text)
+
+    if body_html:
+        msg.add_alternative(body_html, subtype='html')
+
+    return _open_and_send(config, msg)
 
 
 def send_user_email(user, to_email, subject, body_text, body_html=None):
@@ -216,56 +223,31 @@ def send_weekly_report(user, excel_bytes: bytes, filename: str):
     if smtp_config is None:
         return False, "No hay configuración SMTP disponible para enviar el reporte."
 
-    try:
-        password = decrypt_smtp_password(smtp_config.smtp_password_encrypted)
-        if not password:
-            return False, "Error al descifrar la contraseña SMTP."
+    from datetime import date
+    today = date.today()
+    subject = f"Monetra — Reporte semanal {today.strftime('%d/%m/%Y')}"
+    body_text = (
+        f"Hola {user.username},\n\n"
+        f"Adjunto encontrarás tu reporte financiero semanal de Monetra.\n"
+        f"Período: {today.strftime('%B %Y')}.\n\n"
+        f"Saludos,\nEquipo Monetra"
+    )
 
-        from datetime import date
-        today = date.today()
-        subject = f"Monetra — Reporte semanal {today.strftime('%d/%m/%Y')}"
-        body_text = (
-            f"Hola {user.username},\n\n"
-            f"Adjunto encontrarás tu reporte financiero semanal de Monetra.\n"
-            f"Período: {today.strftime('%B %Y')}.\n\n"
-            f"Saludos,\nEquipo Monetra"
-        )
+    msg = EmailMessage()
+    msg['Subject'] = subject
+    sender_name = smtp_config.sender_name or 'Monetra'
+    sender_email = smtp_config.sender_email or smtp_config.smtp_username
+    msg['From'] = f"{sender_name} <{sender_email}>"
+    msg['To'] = user.email
+    msg.set_content(body_text)
+    msg.add_attachment(
+        excel_bytes,
+        maintype='application',
+        subtype='vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        filename=filename,
+    )
 
-        msg = EmailMessage()
-        msg['Subject'] = subject
-        sender_name = smtp_config.sender_name or 'Monetra'
-        sender_email = smtp_config.sender_email or smtp_config.smtp_username
-        msg['From'] = f"{sender_name} <{sender_email}>"
-        msg['To'] = user.email
-        msg.set_content(body_text)
-        msg.add_attachment(
-            excel_bytes,
-            maintype='application',
-            subtype='vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            filename=filename,
-        )
-
-        host = smtp_config.smtp_host
-        port = smtp_config.smtp_port
-        if smtp_config.smtp_use_ssl:
-            server = smtplib.SMTP_SSL(host, port, timeout=15)
-        else:
-            server = smtplib.SMTP(host, port, timeout=15)
-
-        server.ehlo()
-        if smtp_config.smtp_use_tls and not smtp_config.smtp_use_ssl:
-            server.starttls()
-            server.ehlo()
-
-        server.login(smtp_config.smtp_username, password)
-        server.send_message(msg)
-        server.quit()
-
+    ok, err_msg = _open_and_send(smtp_config, msg)
+    if ok:
         return True, "Reporte enviado correctamente."
-
-    except smtplib.SMTPAuthenticationError:
-        return False, "Error de autenticación SMTP."
-    except smtplib.SMTPException as e:
-        return False, f"Error del servidor SMTP: {str(e)}"
-    except Exception as e:
-        return False, f"Error inesperado: {str(e)}"
+    return False, err_msg
