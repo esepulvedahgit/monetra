@@ -120,22 +120,14 @@ write_env() {
     JWT_SECRET_KEY=$(gen_hex 32)
     FIELD_ENCRYPTION_KEY=$(gen_fernet)
 
-    # Bloque WebAuthn: activo con dominio real, comentado si es localhost
-    if [ -n "$DOMAIN" ]; then
-        WEBAUTHN_BLOCK="# === WebAuthn / biometría ===
-WEBAUTHN_RP_ID=${DOMAIN}
+    # WEBAUTHN_ORIGIN siempre https://; sin puerto.
+    # Si el usuario no ingresó dominio, queda el placeholder https://midominio.com
+    local rp_id="${DOMAIN:-midominio.com}"
+    WEBAUTHN_BLOCK="# === WebAuthn / biometría ===
+# tu url — reemplaza por tu dominio real antes de activar la biometría
+WEBAUTHN_RP_ID=${rp_id}
 WEBAUTHN_RP_NAME=Monetra
-WEBAUTHN_ORIGIN=https://${DOMAIN}"
-    else
-        WEBAUTHN_BLOCK="# === WebAuthn / biometría (OPCIONAL — desactivada por defecto) ===
-# La biometría (Face ID / huella / Windows Hello) requiere HTTPS con un dominio real.
-# Para activarla: monta un reverse proxy con SSL (nginx/Caddy) apuntando a este
-# contenedor, descomenta estas 3 líneas y reemplaza por tu dominio. Luego reinicia.
-#   # tu url
-# WEBAUTHN_RP_ID=tudominio.com
-# WEBAUTHN_RP_NAME=Monetra
-# WEBAUTHN_ORIGIN=https://tudominio.com"
-    fi
+WEBAUTHN_ORIGIN=https://${rp_id}"
 
     cat > "$ENV_FILE" <<EOF
 # === Base de datos (auto-generado por install.sh) ===
@@ -219,6 +211,7 @@ wait_ready() {
 # ── PASO 9: Resumen final ────────────────────────────────────────────────────
 summary() {
     local access_url="http://localhost:8085"
+    local rp_id="${DOMAIN:-midominio.com}"
 
     echo ""
     echo -e "${BOLD}${GREEN}╔══════════════════════════════════════════════════════════╗${RESET}"
@@ -226,20 +219,12 @@ summary() {
     echo -e "${BOLD}${GREEN}╚══════════════════════════════════════════════════════════╝${RESET}"
     echo ""
     echo -e "  ${BOLD}URL local:${RESET}     $access_url"
-    if [ -n "$DOMAIN" ]; then
-        echo -e "  ${BOLD}Dominio:${RESET}       https://$DOMAIN  (activo cuando tengas SSL/proxy)"
-    fi
+    echo -e "  ${BOLD}WebAuthn:${RESET}      https://$rp_id  (requiere SSL + reverse proxy)"
     echo -e "  ${BOLD}Configuración:${RESET} $REPO_DIR/docker/.env"
     echo ""
     echo -e "  ${YELLOW}Primer acceso:${RESET} ve a $access_url/register"
     echo -e "  El primer usuario que se registre quedará como administrador."
     echo ""
-    if [ -z "$DOMAIN" ]; then
-        echo -e "  ${CYAN}Para activar biometría (opcional):${RESET}"
-        echo -e "  Edita docker/.env, descomenta y configura las líneas WEBAUTHN_*"
-        echo -e "  con tu dominio real + HTTPS, luego reinicia."
-        echo ""
-    fi
     echo -e "  ${CYAN}Comandos útiles:${RESET}"
     echo -e "    Logs:   $COMPOSE_CMD -f $REPO_DIR/docker/docker-compose.prod.yml logs -f"
     echo -e "    Parar:  $COMPOSE_CMD -f $REPO_DIR/docker/docker-compose.prod.yml down"
