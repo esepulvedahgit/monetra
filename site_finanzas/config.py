@@ -4,7 +4,9 @@ import secrets
 
 def _require_https_origin(env_var: str, default: str) -> str:
     value = os.environ.get(env_var, default)
-    if os.environ.get('FLASK_DEBUG', '0') == '0' and not value.startswith('https://'):
+    # localhost is a secure context per the WebAuthn spec — allow http:// for local installs
+    is_localhost = value.startswith('http://localhost') or value.startswith('http://127.0.0.1')
+    if os.environ.get('FLASK_DEBUG', '0') == '0' and not value.startswith('https://') and not is_localhost:
         raise RuntimeError(
             f"'{env_var}' debe comenzar con https:// en producción. "
             f"Valor actual: '{value}'. Agrégala al archivo docker/.env."
