@@ -76,10 +76,11 @@ fetch_repo() {
 }
 
 # ── PASO 3: Generar secretos ─────────────────────────────────────────────────
-gen_hex()    { openssl rand -hex "$1"; }
+gen_hex()    { openssl rand -hex "$1" | tr -d '\r\n'; }
 gen_fernet() {
     # Fernet: 32 bytes en base64 url-safe (sin padding '+' ni '/', 44 chars)
-    openssl rand -base64 32 | tr '+/' '-_' | tr -d '\n'
+    # tr -d '\r\n' elimina tanto LF como CRLF (necesario en Windows/Git Bash)
+    openssl rand -base64 32 | tr '+/' '-_' | tr -d '\r\n'
 }
 
 # ── PASO 4: Escribir docker/.env ─────────────────────────────────────────────
