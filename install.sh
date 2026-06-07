@@ -23,24 +23,17 @@ header()  { echo -e "\n${BOLD}${CYAN}=== $* ===${RESET}"; }
 REPO_URL="${REPO_URL:-https://github.com/esepulvedahgit/monetra.git}"
 MONETRA_BRANCH="${MONETRA_BRANCH:-main}"
 FRESH_ENV=false   # se actualiza a true en write_env si se genera un .env nuevo
+DOMAIN=""         # dominio ingresado por el usuario (vacío = localhost)
 
 # ── PASO 1: Dependencias ─────────────────────────────────────────────────────
 require_deps() {
     header "Verificando dependencias"
 
-    # git
-    command -v git &>/dev/null || error "git no está instalado. Instálalo con: sudo apt install git"
-
-    # openssl (para generar secretos)
+    command -v git    &>/dev/null || error "git no está instalado. Instálalo con: sudo apt install git"
     command -v openssl &>/dev/null || error "openssl no está instalado. Instálalo con: sudo apt install openssl"
-
-    # curl (para el healthcheck final)
-    command -v curl &>/dev/null || error "curl no está instalado. Instálalo con: sudo apt install curl"
-
-    # docker
+    command -v curl   &>/dev/null || error "curl no está instalado. Instálalo con: sudo apt install curl"
     command -v docker &>/dev/null || error "Docker no está instalado. Ver: https://docs.docker.com/engine/install/"
 
-    # docker compose (v2: 'docker compose'; v1: 'docker-compose')
     if docker compose version &>/dev/null 2>&1; then
         COMPOSE_CMD="docker compose"
     elif command -v docker-compose &>/dev/null; then
@@ -50,13 +43,36 @@ require_deps() {
     fi
     export COMPOSE_CMD
 
-    # daemon de docker corriendo
     docker info &>/dev/null 2>&1 || error "El daemon de Docker no está corriendo. Inícialo con: sudo systemctl start docker"
 
     ok "git, openssl, curl, Docker ($COMPOSE_CMD) — todo ok"
 }
 
-# ── PASO 2: Descargar / localizar el repo ────────────────────────────────────
+# ── PASO 2: Preguntar dominio ─────────────────────────────────────────────────
+# Lee desde /dev/tty para que funcione tanto con 'bash install.sh'
+# como con 'curl ... | bash' (donde stdin está ocupado por el pipe).
+ask_domain() {
+    header "Configuración de dominio (WebAuthn / biometría)"
+    echo -e "  Si tienes un dominio (ej: ${CYAN}miapp.com${RESET}), ingrésalo para pre-configurar"
+    echo -e "  la autenticación biométrica. La app levanta igual aunque el dominio"
+    echo -e "  aún no tenga SSL — podrás activar la biometría cuando tengas HTTPS."
+    echo -e "  Deja en blanco para usar ${CYAN}localhost${RESET}.\n"
+    printf "  Dominio (Enter para localhost): "
+    read -r DOMAIN </dev/tty || DOMAIN=""
+    DOMAIN="${DOMAIN// /}"   # strip spaces
+
+    if [ -n "$DOMAIN" ]; then
+        # Quitar protocolo si el usuario lo incluyó por error
+        DOMAIN="${DOMAIN#https://}"
+        DOMAIN="${DOMAIN#http://}"
+        DOMAIN="${DOMAIN%/}"
+        ok "Dominio configurado: $DOMAIN  (WebAuthn origin: https://$DOMAIN)"
+    else
+        ok "Sin dominio — usando localhost."
+    fi
+}
+
+# ── PASO 3: Descargar / localizar el repo ────────────────────────────────────
 REPO_DIR=""
 
 fetch_repo() {
@@ -76,15 +92,15 @@ fetch_repo() {
     fi
 }
 
-# ── PASO 3: Generar secretos ─────────────────────────────────────────────────
+# ── PASO 4: Generar secretos ─────────────────────────────────────────────────
 gen_hex()    { openssl rand -hex "$1" | tr -d '\r\n'; }
 gen_fernet() {
-    # Fernet: 32 bytes en base64 url-safe (sin padding '+' ni '/', 44 chars)
+    # Fernet: 32 bytes en base64 url-safe (44 chars)
     # tr -d '\r\n' elimina tanto LF como CRLF (necesario en Windows/Git Bash)
     openssl rand -base64 32 | tr '+/' '-_' | tr -d '\r\n'
 }
 
-# ── PASO 4: Escribir docker/.env ─────────────────────────────────────────────
+# ── PASO 5: Escribir docker/.env ─────────────────────────────────────────────
 write_env() {
     header "Configurando variables de entorno"
 
@@ -104,6 +120,23 @@ write_env() {
     JWT_SECRET_KEY=$(gen_hex 32)
     FIELD_ENCRYPTION_KEY=$(gen_fernet)
 
+    # Bloque WebAuthn: activo con dominio real, comentado si es localhost
+    if [ -n "$DOMAIN" ]; then
+        WEBAUTHN_BLOCK="# === WebAuthn / biometría ===
+WEBAUTHN_RP_ID=${DOMAIN}
+WEBAUTHN_RP_NAME=Monetra
+WEBAUTHN_ORIGIN=https://${DOMAIN}"
+    else
+        WEBAUTHN_BLOCK="# === WebAuthn / biometría (OPCIONAL — desactivada por defecto) ===
+# La biometría (Face ID / huella / Windows Hello) requiere HTTPS con un dominio real.
+# Para activarla: monta un reverse proxy con SSL (nginx/Caddy) apuntando a este
+# contenedor, descomenta estas 3 líneas y reemplaza por tu dominio. Luego reinicia.
+#   # tu url
+# WEBAUTHN_RP_ID=tudominio.com
+# WEBAUTHN_RP_NAME=Monetra
+# WEBAUTHN_ORIGIN=https://tudominio.com"
+    fi
+
     cat > "$ENV_FILE" <<EOF
 # === Base de datos (auto-generado por install.sh) ===
 DB_NAME=monetra
@@ -116,14 +149,7 @@ SECRET_KEY=${SECRET_KEY}
 FIELD_ENCRYPTION_KEY=${FIELD_ENCRYPTION_KEY}
 JWT_SECRET_KEY=${JWT_SECRET_KEY}
 
-# === WebAuthn / biometría (OPCIONAL — desactivada por defecto) ===
-# La biometría (Face ID / huella / Windows Hello) requiere HTTPS con un dominio real.
-# Para activarla: monta un reverse proxy con SSL (nginx/Caddy) apuntando a este
-# contenedor, descomenta estas 3 líneas y reemplaza por tu dominio. Luego reinicia.
-#   # tu url
-# WEBAUTHN_RP_ID=tudominio.com
-# WEBAUTHN_RP_NAME=Monetra
-# WEBAUTHN_ORIGIN=https://tudominio.com
+${WEBAUTHN_BLOCK}
 
 # === Límites backup/restore (admin) ===
 MAX_CONTENT_UPLOAD_MB=15
@@ -135,7 +161,7 @@ EOF
     ok "docker/.env creado con secretos generados (permisos 600)."
 }
 
-# ── PASO 5: Construir imagen de producción ───────────────────────────────────
+# ── PASO 6: Construir imagen de producción ───────────────────────────────────
 build_image() {
     header "Construyendo imagen de producción (monetra:release)"
     info "Esto puede tomar 2–5 minutos la primera vez..."
@@ -143,13 +169,13 @@ build_image() {
     ok "Imagen monetra:release lista."
 }
 
-# ── PASO 6: Levantar servicios ───────────────────────────────────────────────
+# ── PASO 7: Levantar servicios ───────────────────────────────────────────────
 launch() {
     header "Levantando servicios"
 
     # Si los secretos son nuevos, limpiar volúmenes previos para evitar
-    # "Access denied": MySQL guarda la contraseña en el volumen y no la
-    # actualiza si ya existe datos; un .env nuevo implica BD nueva.
+    # "Access denied": MySQL persiste la contraseña en el volumen y no la
+    # actualiza con datos existentes; secretos nuevos implica BD nueva.
     if [ "${FRESH_ENV:-false}" = "true" ]; then
         info "Limpiando volúmenes anteriores (nuevos secretos detectados)..."
         $COMPOSE_CMD \
@@ -165,7 +191,7 @@ launch() {
     ok "Contenedores iniciados."
 }
 
-# ── PASO 7: Esperar a que la app responda ────────────────────────────────────
+# ── PASO 8: Esperar a que la app responda ────────────────────────────────────
 wait_ready() {
     header "Esperando a que la app esté lista"
     local url="http://localhost:8085/"
@@ -190,25 +216,30 @@ wait_ready() {
     ok "La app está respondiendo."
 }
 
-# ── PASO 8: Resumen final ────────────────────────────────────────────────────
+# ── PASO 9: Resumen final ────────────────────────────────────────────────────
 summary() {
+    local access_url="http://localhost:8085"
+
     echo ""
     echo -e "${BOLD}${GREEN}╔══════════════════════════════════════════════════════════╗${RESET}"
     echo -e "${BOLD}${GREEN}║          Monetra instalado correctamente 🎉              ║${RESET}"
     echo -e "${BOLD}${GREEN}╚══════════════════════════════════════════════════════════╝${RESET}"
     echo ""
-    echo -e "  ${BOLD}URL:${RESET}          http://localhost:8085"
+    echo -e "  ${BOLD}URL local:${RESET}     $access_url"
+    if [ -n "$DOMAIN" ]; then
+        echo -e "  ${BOLD}Dominio:${RESET}       https://$DOMAIN  (activo cuando tengas SSL/proxy)"
+    fi
     echo -e "  ${BOLD}Configuración:${RESET} $REPO_DIR/docker/.env"
     echo ""
-    echo -e "  ${YELLOW}Primer acceso:${RESET} ve a http://localhost:8085/register"
+    echo -e "  ${YELLOW}Primer acceso:${RESET} ve a $access_url/register"
     echo -e "  El primer usuario que se registre quedará como administrador."
     echo ""
-    echo -e "  ${CYAN}Para producción con dominio propio,${RESET} edita docker/.env:"
-    echo -e "    WEBAUTHN_RP_ID=tudominio.com"
-    echo -e "    WEBAUTHN_RP_NAME=Monetra"
-    echo -e "    WEBAUTHN_ORIGIN=https://tudominio.com"
-    echo -e "  y reinicia: $COMPOSE_CMD -f $REPO_DIR/docker/docker-compose.prod.yml restart"
-    echo ""
+    if [ -z "$DOMAIN" ]; then
+        echo -e "  ${CYAN}Para activar biometría (opcional):${RESET}"
+        echo -e "  Edita docker/.env, descomenta y configura las líneas WEBAUTHN_*"
+        echo -e "  con tu dominio real + HTTPS, luego reinicia."
+        echo ""
+    fi
     echo -e "  ${CYAN}Comandos útiles:${RESET}"
     echo -e "    Logs:   $COMPOSE_CMD -f $REPO_DIR/docker/docker-compose.prod.yml logs -f"
     echo -e "    Parar:  $COMPOSE_CMD -f $REPO_DIR/docker/docker-compose.prod.yml down"
@@ -223,6 +254,7 @@ main() {
     echo ""
 
     require_deps
+    ask_domain
     fetch_repo
     write_env
     build_image
