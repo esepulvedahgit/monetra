@@ -43,7 +43,7 @@
     volumes:
       - mysql_finanzas_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER:-finanzas_user}", "-p${DB_PASSWORD:-FinanzasPass123!}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER}", "-p${DB_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5

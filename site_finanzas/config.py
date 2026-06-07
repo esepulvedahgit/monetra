@@ -32,7 +32,7 @@ class Config:
         os.environ.get('DATABASE_URL')
         or 'mysql+pymysql://{user}:{password}@{host}:{port}/{db}'.format(
             user=os.environ.get('DB_USER', 'finanzas_user'),
-            password=os.environ.get('DB_PASSWORD', 'FinanzasPass123!'),
+            password=os.environ.get('DB_PASSWORD', ''),
             host=os.environ.get('DB_HOST', 'mysql'),
             port=os.environ.get('DB_PORT', '3306'),
             db=os.environ.get('DB_NAME', 'finanzas_db'),
