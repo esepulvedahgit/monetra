@@ -116,11 +116,14 @@ SECRET_KEY=${SECRET_KEY}
 FIELD_ENCRYPTION_KEY=${FIELD_ENCRYPTION_KEY}
 JWT_SECRET_KEY=${JWT_SECRET_KEY}
 
-# === WebAuthn / biometría ===
-# tu url -> reemplaza por tu dominio real en producción (ej: midominio.com)
-WEBAUTHN_RP_ID=localhost
-WEBAUTHN_RP_NAME=Monetra
-WEBAUTHN_ORIGIN=http://localhost:8085
+# === WebAuthn / biometría (OPCIONAL — desactivada por defecto) ===
+# La biometría (Face ID / huella / Windows Hello) requiere HTTPS con un dominio real.
+# Para activarla: monta un reverse proxy con SSL (nginx/Caddy) apuntando a este
+# contenedor, descomenta estas 3 líneas y reemplaza por tu dominio. Luego reinicia.
+#   # tu url
+# WEBAUTHN_RP_ID=tudominio.com
+# WEBAUTHN_RP_NAME=Monetra
+# WEBAUTHN_ORIGIN=https://tudominio.com
 
 # === Límites backup/restore (admin) ===
 MAX_CONTENT_UPLOAD_MB=15
