@@ -22,6 +22,7 @@ header()  { echo -e "\n${BOLD}${CYAN}=== $* ===${RESET}"; }
 
 REPO_URL="${REPO_URL:-https://github.com/esepulvedahgit/monetra.git}"
 MONETRA_BRANCH="${MONETRA_BRANCH:-main}"
+FRESH_ENV=false   # se actualiza a true en write_env si se genera un .env nuevo
 
 # ── PASO 1: Dependencias ─────────────────────────────────────────────────────
 require_deps() {
@@ -91,6 +92,7 @@ write_env() {
 
     if [ -f "$ENV_FILE" ]; then
         warn "Ya existe $ENV_FILE — conservando secretos actuales."
+        FRESH_ENV=false
         return 0
     fi
 
@@ -126,6 +128,7 @@ MAX_RESTORE_SQL_MB=500
 EOF
 
     chmod 600 "$ENV_FILE"
+    FRESH_ENV=true
     ok "docker/.env creado con secretos generados (permisos 600)."
 }
 
@@ -140,6 +143,18 @@ build_image() {
 # ── PASO 6: Levantar servicios ───────────────────────────────────────────────
 launch() {
     header "Levantando servicios"
+
+    # Si los secretos son nuevos, limpiar volúmenes previos para evitar
+    # "Access denied": MySQL guarda la contraseña en el volumen y no la
+    # actualiza si ya existe datos; un .env nuevo implica BD nueva.
+    if [ "${FRESH_ENV:-false}" = "true" ]; then
+        info "Limpiando volúmenes anteriores (nuevos secretos detectados)..."
+        $COMPOSE_CMD \
+            -f "$REPO_DIR/docker/docker-compose.prod.yml" \
+            --env-file "$REPO_DIR/docker/.env" \
+            down -v --remove-orphans 2>/dev/null || true
+    fi
+
     $COMPOSE_CMD \
         -f "$REPO_DIR/docker/docker-compose.prod.yml" \
         --env-file "$REPO_DIR/docker/.env" \
