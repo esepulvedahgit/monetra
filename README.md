@@ -104,6 +104,28 @@ monetra/
 
 ---
 
+## Instalación rápida (un comando)
+
+Requiere **Docker** y **Docker Compose** instalados. El script descarga el repositorio, genera todos los secretos automáticamente y levanta la aplicación lista para usar.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/esepulvedahgit/monetra/main/install.sh | bash
+```
+
+El script:
+- Verifica las dependencias (Docker, git, openssl)
+- Pregunta tu dominio para pre-configurar la autenticación biométrica (opcional — Enter para omitir)
+- Genera automáticamente: `SECRET_KEY`, `FIELD_ENCRYPTION_KEY`, `JWT_SECRET_KEY`, `DB_PASSWORD`, `MYSQL_ROOT_PASSWORD`
+- Construye la imagen de producción `monetra:release`
+- Levanta `docker-compose.prod.yml` y espera a que la app responda
+- Imprime la URL de acceso y los pasos siguientes
+
+La app queda disponible en `http://localhost:8085`. El primer usuario en registrarse queda como administrador.
+
+> **Biometría (WebAuthn):** si ingresaste un dominio durante la instalación, edita `docker/.env` y activa las líneas `WEBAUTHN_*` con tu dominio real + HTTPS (nginx/Caddy delante del contenedor). Sin dominio propio la app funciona completamente; solo la autenticación biométrica requiere HTTPS.
+
+---
+
 ## Despliegue con Docker
 
 ### Desarrollo
@@ -269,7 +291,7 @@ MAX_RESTORE_SQL_MB=500
 
 ## Primera ejecución
 
-Al iniciar, `init_db.py` crea todas las tablas y siembra 12 categorías predeterminadas con sus colores. El primer usuario registrado con el email `e.esepulvedah@gmail.com` es promovido automáticamente a administrador. Este email puede cambiarse en `init_db.py` (constante `FIRST_ADMIN_EMAIL`).
+Al iniciar, `init_db.py` crea todas las tablas y siembra 12 categorías predeterminadas con sus colores. El **primer usuario que se registre** queda automáticamente como administrador.
 
 Para cargar datos de demostración (3 años de transacciones ficticias), accede a `/admin/demo/load` como administrador.
 
