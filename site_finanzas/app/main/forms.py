@@ -151,10 +151,7 @@ class SMTPConfigForm(FlaskForm):
             if not self.smtp_host.data:
                 self.smtp_host.errors.append(_('Requerido si SMTP está activado.'))
                 return False
-            if getattr(self, 'require_password', False) and not self.smtp_password.data:
-                self.smtp_password.errors.append(_('La contraseña es requerida para activar SMTP.'))
-                return False
-            if getattr(self, 'require_password', False) == False and not self.smtp_password.data and getattr(self, 'password_is_empty', False):
+            if not self.smtp_password.data and getattr(self, 'password_is_empty', False):
                 self.smtp_password.errors.append(_('La contraseña es obligatoria porque no hay una guardada.'))
                 return False
             if not self.smtp_port.data:

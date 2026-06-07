@@ -816,12 +816,17 @@
                             </div>
                             <div class="col-md-6">
                                 {{ smtp_form.smtp_password.label(class="form-label small mb-1") }}
+                                {% if email_config.smtp_password_encrypted %}
+                                <div class="d-flex align-items-center gap-2 mb-1"
+                                    style="color:#00C896; font-size:0.75rem;">
+                                    <i class="bi bi-shield-lock-fill"></i>
+                                    <span>{{ _('Contraseña guardada — deja en blanco para conservarla') }}</span>
+                                </div>
+                                {% endif %}
                                 {{ smtp_form.smtp_password(class="form-control form-control-sm" + (" is-invalid" if
-                                smtp_form.smtp_password.errors else ""), placeholder=("********" if
-                                email_config.smtp_password_encrypted else "")) }}
+                                smtp_form.smtp_password.errors else "")) }}
                                 <div class="form-text" style="font-size:0.7rem;">
-                                    {% if email_config.smtp_password_encrypted %}{{ _('Deja en blanco para conservar la
-                                    actual.') }} {% endif %}{{ _('Usa contraseñas de aplicación si es Gmail.') }}
+                                    {{ _('Usa contraseñas de aplicación si es Gmail.') }}
                                 </div>
                                 {% for e in smtp_form.smtp_password.errors %}<div class="invalid-feedback d-block">{{ e
                                     }}</div>{% endfor %}
@@ -850,6 +855,9 @@
                                         {{ smtp_form.smtp_use_ssl(class="form-check-input", id="useSsl") }}
                                         {{ smtp_form.smtp_use_ssl.label(class="form-check-label small", for="useSsl") }}
                                     </div>
+                                </div>
+                                <div class="form-text mt-1" style="font-size:0.7rem;">
+                                    <i class="bi bi-info-circle me-1"></i>{{ _('SSL → puerto 465 · TLS (STARTTLS) → puerto 587. Solo activa uno a la vez.') }}
                                 </div>
                                 {% for e in smtp_form.smtp_use_tls.errors %}<div class="text-danger small mt-1">{{ e }}
                                 </div>{% endfor %}

@@ -1,5 +1,7 @@
 import os
 import smtplib
+import socket
+import ssl
 from email.message import EmailMessage
 from cryptography.fernet import Fernet
 
@@ -81,6 +83,23 @@ def _open_and_send(config, msg):
         return False, "Error de autenticación SMTP. Verifica tu usuario y contraseña."
     except smtplib.SMTPException as e:
         return False, f"Error del servidor SMTP: {str(e)}"
+    except (socket.timeout, TimeoutError):
+        return False, (
+            "Tiempo de espera agotado al conectar con el servidor SMTP. "
+            "Revisa el host y el puerto, y la combinación TLS/SSL: "
+            "usa SSL para el puerto 465, o TLS (STARTTLS) para el 587. "
+            "También puede ser un firewall que bloquea la salida de correo."
+        )
+    except (ConnectionRefusedError, socket.gaierror) as e:
+        return False, (
+            f"No se pudo conectar al servidor SMTP ({str(e)}). "
+            "Verifica que el host y el puerto sean correctos."
+        )
+    except ssl.SSLError as e:
+        return False, (
+            f"Error de cifrado SSL/TLS ({str(e)}). "
+            "Verifica la combinación: puerto 465 → SSL, puerto 587 → TLS (STARTTLS)."
+        )
     except Exception as e:
         return False, f"Error inesperado al enviar el correo: {str(e)}"
     finally:
