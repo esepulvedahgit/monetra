@@ -595,46 +595,52 @@
             <div class="card-body p-4 pb-3">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="fw-semibold">{{ _('Autenticación biométrica') }}</span>
-                    {% if webauthn_credential %}
+                    {% if webauthn_credentials %}
                     <span class="badge" style="background:var(--monetra-primary,#00C896); color:#000;">{{ _('Activo') }}</span>
                     {% else %}
                     <span class="badge bg-secondary">{{ _('Inactivo') }}</span>
                     {% endif %}
                 </div>
                 <p class="small mb-3" style="color: var(--monetra-text-muted, #B0BEC5);">
-                    {{ _('Inicia sesión con Face ID, huella dactilar o Windows Hello desde tu dispositivo móvil. El dispositivo hace la verificación — Monetra nunca almacena datos biométricos.') }}
+                    {{ _('Inicia sesión con Face ID, huella dactilar o Windows Hello desde cualquier dispositivo registrado. El dispositivo hace la verificación — Monetra nunca almacena datos biométricos.') }}
                 </p>
 
-                {% if webauthn_credential %}
-                <div class="rounded p-2 mb-3 small d-flex align-items-center gap-2"
-                     style="background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.2);">
-                    <i class="bi bi-fingerprint" style="color:var(--monetra-primary,#00C896); font-size:1.3rem;"></i>
-                    <div>
-                        <div class="fw-semibold" style="color:var(--monetra-text,#E0E0E0);">
-                            {{ webauthn_credential.device_name or _('Dispositivo registrado') }}
+                <!-- Lista de credenciales registradas -->
+                {% if webauthn_credentials %}
+                <div id="webauthnCredentialsList" class="mb-3">
+                    {% for cred in webauthn_credentials %}
+                    <div class="rounded p-2 mb-2 small d-flex align-items-center justify-content-between gap-2"
+                         style="background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.2);">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-fingerprint" style="color:var(--monetra-primary,#00C896); font-size:1.3rem;"></i>
+                            <div>
+                                <div class="fw-semibold" style="color:var(--monetra-text,#E0E0E0);">
+                                    {{ cred.device_name or _('Dispositivo registrado') }}
+                                </div>
+                                <div style="color:var(--monetra-text-muted,#B0BEC5); font-size:0.72rem;">
+                                    {{ _('Registrado el') }} {{ cred.created_at.strftime('%d %b %Y') if cred.created_at else '—' }}
+                                </div>
+                            </div>
                         </div>
-                        <div style="color:var(--monetra-text-muted,#B0BEC5); font-size:0.72rem;">
-                            {{ _('Registrado el') }} {{ webauthn_credential.created_at.strftime('%d %b %Y') if webauthn_credential.created_at else '—' }}
-                        </div>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-danger fw-semibold btnWebAuthnDeleteSingle flex-shrink-0"
+                                data-cred-id="{{ cred.credential_id }}">
+                            <i class="bi bi-trash3"></i>
+                        </button>
                     </div>
-                </div>
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-sm btn-outline-secondary fw-semibold" id="btnWebAuthnRegister">
-                        <i class="bi bi-arrow-repeat me-1"></i>{{ _('Cambiar dispositivo') }}
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-danger fw-semibold" id="btnWebAuthnDelete">
-                        <i class="bi bi-trash3 me-1"></i>{{ _('Eliminar') }}
-                    </button>
+                    {% endfor %}
                 </div>
                 {% else %}
                 <div id="webauthnBrowserWarning" class="alert alert-warning d-none small py-2 mb-3">
                     <i class="bi bi-exclamation-triangle me-1"></i>
                     {{ _('Tu navegador no soporta autenticación biométrica.') }}
                 </div>
-                <button type="button" class="btn btn-sm btn-primary fw-semibold" id="btnWebAuthnRegister">
-                    <i class="bi bi-fingerprint me-1"></i>{{ _('Registrar este dispositivo') }}
-                </button>
                 {% endif %}
+
+                <!-- Botón agregar dispositivo — siempre visible -->
+                <button type="button" class="btn btn-sm btn-primary fw-semibold" id="btnWebAuthnRegister">
+                    <i class="bi bi-fingerprint me-1"></i>{{ _('Agregar dispositivo') }}
+                </button>
 
                 <div id="webauthnStatusMsg" class="mt-2 small d-none"></div>
 
@@ -657,6 +663,77 @@
                         </button>
                     </div>
                     <div id="webauthnPasswordError" class="mt-1 small text-danger d-none"></div>
+                </div>
+            </div>
+
+            <hr class="my-0" style="border-color: rgba(255,255,255,0.07);">
+
+            <!-- PIN de respaldo (fallback contextual cuando Face ID falla) -->
+            <div class="card-body p-4 pb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-semibold">{{ _('PIN de respaldo') }}</span>
+                    {% if has_pin %}
+                    <span class="badge" style="background:var(--monetra-primary,#00C896); color:#000;">{{ _('Activo') }}</span>
+                    {% else %}
+                    <span class="badge bg-secondary">{{ _('Inactivo') }}</span>
+                    {% endif %}
+                </div>
+                <p class="small mb-3" style="color: var(--monetra-text-muted, #B0BEC5);">
+                    {{ _('Aparece solo cuando Face ID no te reconozca (gorro, lentes), en este dispositivo. No es una alternativa de inicio de sesión fija.') }}
+                </p>
+
+                <!-- Inputs de PIN -->
+                <div id="pinSetPanel">
+                    <div class="row g-2 mb-2">
+                        <div class="col-auto">
+                            <input type="password" id="pinInput"
+                                   inputmode="numeric" pattern="\d*" maxlength="6"
+                                   class="form-control form-control-sm"
+                                   placeholder="{{ _('PIN de 6 dígitos') }}"
+                                   style="max-width:160px; letter-spacing:0.2em;">
+                        </div>
+                        <div class="col-auto">
+                            <input type="password" id="pinConfirmInput"
+                                   inputmode="numeric" pattern="\d*" maxlength="6"
+                                   class="form-control form-control-sm"
+                                   placeholder="{{ _('Confirmar PIN') }}"
+                                   style="max-width:160px; letter-spacing:0.2em;">
+                        </div>
+                    </div>
+                    <div id="pinMismatchMsg" class="small text-danger mb-2 d-none">{{ _('Los PIN no coinciden.') }}</div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-sm btn-primary fw-semibold" id="btnPinSet">
+                            <i class="bi bi-lock me-1"></i>{% if has_pin %}{{ _('Cambiar PIN') }}{% else %}{{ _('Configurar PIN') }}{% endif %}
+                        </button>
+                        {% if has_pin %}
+                        <button type="button" class="btn btn-sm btn-outline-danger fw-semibold" id="btnPinDelete">
+                            <i class="bi bi-trash me-1"></i>{{ _('Eliminar PIN') }}
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div id="pinStatusMsg" class="mt-2 small d-none"></div>
+
+                <!-- Panel de confirmación de contraseña -->
+                <div id="pinPasswordPanel" class="mt-3 d-none">
+                    <p class="small mb-2" style="color:var(--monetra-text-muted,#B0BEC5);">
+                        {{ _('Confirma tu contraseña para continuar.') }}
+                    </p>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <input type="password" id="pinPasswordInput"
+                               class="form-control form-control-sm"
+                               placeholder="{{ _('Tu contraseña actual') }}"
+                               autocomplete="current-password"
+                               style="max-width:220px;">
+                        <button type="button" class="btn btn-sm btn-primary fw-semibold" id="btnPinConfirm">
+                            {{ _('Continuar') }}
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnPinCancelPwd">
+                            {{ _('Cancelar') }}
+                        </button>
+                    </div>
+                    <div id="pinPasswordError" class="mt-1 small text-danger d-none"></div>
                 </div>
             </div>
 
@@ -1463,9 +1540,8 @@
         'use strict';
 
         var btnRegister    = document.getElementById('btnWebAuthnRegister');
-        var btnDelete      = document.getElementById('btnWebAuthnDelete');
-        var statusMsg      = document.getElementById('webauthnStatusMsg');
         var browserWarning = document.getElementById('webauthnBrowserWarning');
+        var statusMsg      = document.getElementById('webauthnStatusMsg');
         var pwdPanel       = document.getElementById('webauthnPasswordPanel');
         var pwdInput       = document.getElementById('webauthnPasswordInput');
         var pwdError       = document.getElementById('webauthnPasswordError');
@@ -1477,11 +1553,12 @@
         var deleteUrl   = '{{ url_for("auth.webauthn_delete") }}';
         var csrfToken   = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
 
-        var pendingAction = null; // 'register' | 'delete'
+        // 'register' | { action: 'delete', credentialId: '...' }
+        var pendingAction = null;
 
-        if (!window.PublicKeyCredential && browserWarning) {
-            browserWarning.classList.remove('d-none');
-            if (btnRegister) btnRegister.disabled = true;
+        if (!window.PublicKeyCredential) {
+            if (browserWarning) browserWarning.classList.remove('d-none');
+            if (btnRegister)    btnRegister.disabled = true;
         }
 
         function showStatus(msg, ok) {
@@ -1491,13 +1568,18 @@
             statusMsg.classList.remove('d-none');
         }
 
+        function setDeleteBtnsDisabled(disabled) {
+            var btns = document.querySelectorAll('.btnWebAuthnDeleteSingle');
+            for (var i = 0; i < btns.length; i++) btns[i].disabled = disabled;
+        }
+
         function showPwdPanel(action) {
             pendingAction = action;
             if (pwdInput)  { pwdInput.value = ''; pwdInput.focus(); }
             if (pwdError)  pwdError.classList.add('d-none');
             if (pwdPanel)  pwdPanel.classList.remove('d-none');
             if (btnRegister) btnRegister.disabled = true;
-            if (btnDelete)   btnDelete.disabled   = true;
+            setDeleteBtnsDisabled(true);
         }
 
         function hidePwdPanel() {
@@ -1505,7 +1587,7 @@
             if (pwdPanel)    pwdPanel.classList.add('d-none');
             if (pwdInput)    pwdInput.value = '';
             if (btnRegister) btnRegister.disabled = false;
-            if (btnDelete)   btnDelete.disabled   = false;
+            setDeleteBtnsDisabled(false);
         }
 
         function showPwdError(msg) {
@@ -1529,7 +1611,7 @@
             return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
         }
 
-        // Step 1: any action button → show password panel
+        // Register button
         if (btnRegister) {
             btnRegister.addEventListener('click', function () {
                 if (!window.PublicKeyCredential) {
@@ -1540,11 +1622,14 @@
             });
         }
 
-        if (btnDelete) {
-            btnDelete.addEventListener('click', function () {
-                showPwdPanel('delete');
-            });
-        }
+        // Delete buttons — delegated via querySelectorAll (multiple buttons possible)
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.btnWebAuthnDeleteSingle');
+            if (!btn) return;
+            var credId = btn.getAttribute('data-cred-id');
+            if (!credId) return;
+            showPwdPanel({ action: 'delete', credentialId: credId });
+        });
 
         if (btnCancelPwd) {
             btnCancelPwd.addEventListener('click', hidePwdPanel);
@@ -1561,7 +1646,6 @@
             btnConfirm.addEventListener('click', doConfirm);
         }
 
-        // Step 2: password confirmed → run the pending action
         function doConfirm() {
             var pwd = pwdInput ? pwdInput.value.trim() : '';
             if (!pwd) {
@@ -1574,8 +1658,8 @@
             }
             if (pendingAction === 'register') {
                 doRegister(pwd);
-            } else if (pendingAction === 'delete') {
-                doDelete(pwd);
+            } else if (pendingAction && pendingAction.action === 'delete') {
+                doDelete(pwd, pendingAction.credentialId);
             }
         }
 
@@ -1627,7 +1711,7 @@
             .then(function (data) {
                 if (data.ok) {
                     localStorage.setItem('monetra_passkey', '1');
-                    showStatus('{{ _("Dispositivo registrado correctamente. Recarga la página para ver los cambios.") }}', true);
+                    showStatus('{{ _("Dispositivo agregado correctamente. Recarga la página para ver los cambios.") }}', true);
                     setTimeout(function () { location.reload(); }, 1500);
                 } else {
                     throw new Error(data.error || '{{ _("Error al registrar.") }}');
@@ -1646,11 +1730,11 @@
             });
         }
 
-        function doDelete(pwd) {
+        function doDelete(pwd, credentialId) {
             fetch(deleteUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-                body: JSON.stringify({ password: pwd }),
+                body: JSON.stringify({ password: pwd, credential_id: credentialId }),
             })
             .then(function (r) {
                 if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || '{{ _("Error al eliminar.") }}'); });
@@ -1658,7 +1742,10 @@
             })
             .then(function (data) {
                 if (data.ok) {
-                    localStorage.removeItem('monetra_passkey');
+                    // Remove passkey flag only if no credentials remain on this user account
+                    if (data.remaining === 0) {
+                        localStorage.removeItem('monetra_passkey');
+                    }
                     location.reload();
                 } else {
                     throw new Error(data.error || '{{ _("Error al eliminar.") }}');
@@ -1672,6 +1759,132 @@
                     hidePwdPanel();
                     showStatus((err && err.message) || '{{ _("Error al eliminar.") }}', false);
                 }
+            });
+        }
+    })();
+    </script>
+
+    <script>
+    // ── PIN de respaldo (fallback de Face ID, ligado al dispositivo) ─────────────
+    (function () {
+        'use strict';
+
+        var pinInput    = document.getElementById('pinInput');
+        var pinConfirm  = document.getElementById('pinConfirmInput');
+        var pinMismatch = document.getElementById('pinMismatchMsg');
+        var btnSet      = document.getElementById('btnPinSet');
+        var btnDelete   = document.getElementById('btnPinDelete');
+        var statusMsg   = document.getElementById('pinStatusMsg');
+        var pwdPanel    = document.getElementById('pinPasswordPanel');
+        var pwdInput    = document.getElementById('pinPasswordInput');
+        var pwdError    = document.getElementById('pinPasswordError');
+        var btnConfirm  = document.getElementById('btnPinConfirm');
+        var btnCancel   = document.getElementById('btnPinCancelPwd');
+
+        var setUrl    = '{{ url_for("auth.pin_set") }}';
+        var deleteUrl = '{{ url_for("auth.pin_delete") }}';
+        var csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+
+        var pendingAction = null; // 'set' | 'delete'
+
+        function showStatus(msg, ok) {
+            statusMsg.textContent = msg;
+            statusMsg.className   = 'mt-2 small ' + (ok ? 'text-success' : 'text-danger');
+            statusMsg.classList.remove('d-none');
+        }
+
+        function showPwdPanel(action) {
+            pendingAction = action;
+            if (pwdInput) pwdInput.value = '';
+            if (pwdError) pwdError.classList.add('d-none');
+            if (pwdPanel) { pwdPanel.classList.remove('d-none'); pwdInput && pwdInput.focus(); }
+        }
+
+        function hidePwdPanel() {
+            if (pwdPanel) pwdPanel.classList.add('d-none');
+            pendingAction = null;
+        }
+
+        // Digit-only enforcement
+        [pinInput, pinConfirm].forEach(function (el) {
+            if (!el) return;
+            el.addEventListener('input', function () {
+                el.value = el.value.replace(/\D/g, '').slice(0, 6);
+                if (pinMismatch) pinMismatch.classList.add('d-none');
+            });
+        });
+
+        if (btnSet) {
+            btnSet.addEventListener('click', function () {
+                if (!pinInput || !pinConfirm) return;
+                var pin  = pinInput.value;
+                var pin2 = pinConfirm.value;
+                if (pin.length !== 6 || !/^\d{6}$/.test(pin)) {
+                    showStatus('{{ _("El PIN debe tener exactamente 6 dígitos.") }}', false);
+                    return;
+                }
+                if (pin !== pin2) {
+                    if (pinMismatch) pinMismatch.classList.remove('d-none');
+                    return;
+                }
+                showPwdPanel('set');
+            });
+        }
+
+        if (btnDelete) {
+            btnDelete.addEventListener('click', function () { showPwdPanel('delete'); });
+        }
+
+        if (btnCancel) {
+            btnCancel.addEventListener('click', hidePwdPanel);
+        }
+
+        if (btnConfirm) {
+            btnConfirm.addEventListener('click', function () {
+                var password = pwdInput ? pwdInput.value : '';
+                if (!password) {
+                    if (pwdError) { pwdError.textContent = '{{ _("Escribe tu contraseña.") }}'; pwdError.classList.remove('d-none'); }
+                    return;
+                }
+                btnConfirm.disabled = true;
+
+                var action = pendingAction;
+                var url    = action === 'set' ? setUrl : deleteUrl;
+                var body   = action === 'set'
+                    ? JSON.stringify({ password: password, pin: pinInput.value })
+                    : JSON.stringify({ password: password });
+
+                fetch(url, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                    body: body,
+                })
+                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+                .then(function (res) {
+                    btnConfirm.disabled = false;
+                    hidePwdPanel();
+                    if (res.ok && res.data.ok) {
+                        if (action === 'set') {
+                            localStorage.setItem('monetra_pin', '1');
+                        } else {
+                            localStorage.removeItem('monetra_pin');
+                        }
+                        location.reload();
+                    } else {
+                        throw new Error(res.data.error || '{{ _("Error.") }}');
+                    }
+                })
+                .catch(function (err) {
+                    btnConfirm.disabled = false;
+                    var msg = (err && err.message) || '{{ _("Error.") }}';
+                    if (msg.indexOf('{{ _("Contraseña incorrecta.") }}') !== -1) {
+                        if (pwdError) { pwdError.textContent = '{{ _("Contraseña incorrecta.") }}'; pwdError.classList.remove('d-none'); }
+                    } else {
+                        hidePwdPanel();
+                        showStatus(msg, false);
+                    }
+                });
             });
         }
     })();

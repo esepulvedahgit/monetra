@@ -1706,7 +1706,8 @@ def configurar():
                            api_token_prefix=api_tok.prefix if api_tok else None,
                            api_token_created_at=api_tok.created_at if api_tok else None,
                            api_token_last_used_at=api_tok.last_used_at if api_tok else None,
-                           webauthn_credential=current_user.webauthn_credential,
+                           webauthn_credentials=current_user.webauthn_credentials,
+                           has_pin=current_user.has_pin,
                            title=_('Configurar Cuenta'))
 
 

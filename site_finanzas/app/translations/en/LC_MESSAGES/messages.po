@@ -5659,6 +5659,62 @@ msgstr "There is already a category with that name."
 msgid "No se puede eliminar: la categoría tiene movimientos asociados."
 msgstr "Cannot be deleted: the category has associated movements."
 
+#: app/templates/main/configurar.html app/templates/auth/login.html
+msgid "PIN de respaldo"
+msgstr "Backup PIN"
+
+#: app/templates/main/configurar.html app/templates/auth/login.html
+msgid "Aparece solo cuando Face ID no te reconozca (gorro, lentes), en este dispositivo. No es una alternativa de inicio de sesión fija."
+msgstr "Appears only when Face ID doesn't recognize you (hat, glasses), on this device. Not a fixed login alternative."
+
+#: app/templates/main/configurar.html app/templates/auth/login.html
+msgid "PIN de 6 dígitos"
+msgstr "6-digit PIN"
+
+#: app/templates/main/configurar.html
+msgid "Confirmar PIN"
+msgstr "Confirm PIN"
+
+#: app/templates/main/configurar.html
+msgid "Los PIN no coinciden."
+msgstr "PINs do not match."
+
+#: app/templates/main/configurar.html
+msgid "Cambiar PIN"
+msgstr "Change PIN"
+
+#: app/templates/main/configurar.html
+msgid "Configurar PIN"
+msgstr "Set up PIN"
+
+#: app/templates/main/configurar.html
+msgid "Eliminar PIN"
+msgstr "Remove PIN"
+
+#: app/templates/main/configurar.html
+msgid "Confirma tu contraseña para continuar."
+msgstr "Confirm your password to continue."
+
+#: app/templates/main/configurar.html
+msgid "El PIN debe tener exactamente 6 dígitos."
+msgstr "The PIN must be exactly 6 digits."
+
+#: app/templates/auth/login.html
+msgid "¿Face ID no te reconoció? Ingresa tu PIN"
+msgstr "Face ID didn't recognize you? Enter your PIN"
+
+#: app/templates/auth/login.html
+msgid "Ingresar con PIN"
+msgstr "Sign in with PIN"
+
+#: app/templates/auth/login.html
+msgid "El PIN debe tener 6 dígitos."
+msgstr "The PIN must be 6 digits."
+
+#: app/templates/auth/login.html app/auth/pin_routes.py
+msgid "PIN incorrecto."
+msgstr "Incorrect PIN."
+
 #~ msgid "Habilitar recuperación por correo (SMTP)"
 #~ msgstr "Enable email recovery (SMTP)"
 

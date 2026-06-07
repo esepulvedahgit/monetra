@@ -29,6 +29,10 @@ class User(db.Model, UserMixin):
     help_mode_enabled = db.Column(db.Boolean, nullable=False, default=True)
     mfa_enabled = db.Column(db.Boolean, nullable=False, default=False)
     mfa_secret_encrypted = db.Column(db.LargeBinary, nullable=True)
+    # PIN de respaldo (fallback contextual de Face ID, ligado al dispositivo vía cookie)
+    pin_hash = db.Column(db.String(256), nullable=True)
+    pin_failed_attempts = db.Column(db.Integer, nullable=False, default=0)
+    pin_locked_until = db.Column(db.DateTime, nullable=True)
     weekly_report_enabled = db.Column(db.Boolean, nullable=False, default=False)
     insights_panel_enabled = db.Column(db.Boolean, nullable=False, default=False)
     email_verified = db.Column(db.Boolean, nullable=False, default=False)
@@ -54,26 +58,84 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def set_pin(self, pin):
+        self.pin_hash = generate_password_hash(pin)
+
+    def check_pin(self, pin):
+        if not self.pin_hash:
+            return False
+        return check_password_hash(self.pin_hash, pin)
+
+    @property
+    def has_pin(self):
+        return self.pin_hash is not None
+
+    @property
+    def pin_is_locked(self):
+        if not self.pin_locked_until:
+            return False
+        locked_until = self.pin_locked_until
+        # Stored naive (UTC); compare against naive UTC now
+        if locked_until.tzinfo is not None:
+            locked_until = locked_until.replace(tzinfo=None)
+        return locked_until > datetime.utcnow()
+
     def __repr__(self):
         return f'<User {self.username}>'
 
 
 class UserWebAuthnCredential(db.Model):
-    """Stores a single WebAuthn passkey per user (Face ID / fingerprint / hardware key)."""
+    """Stores WebAuthn passkeys for a user (Face ID / fingerprint / hardware key).
+
+    A user may have multiple credentials — e.g. phone + laptop + hardware key — so
+    that if one authenticator is unavailable another can be used as fallback.
+    """
     __tablename__ = 'user_webauthn_credentials'
 
     id            = db.Column(db.Integer, primary_key=True)
-    user_id       = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
+    user_id       = db.Column(db.Integer, db.ForeignKey('users.id'), index=True, nullable=False)
     credential_id = db.Column(db.String(512), unique=True, nullable=False)  # base64url string — MySQL can't index BLOB without prefix length
     public_key    = db.Column(db.LargeBinary(2048), nullable=False)
     sign_count    = db.Column(db.Integer, default=0, nullable=False)
     device_name   = db.Column(db.String(100), nullable=True)
     created_at    = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    user = db.relationship('User', backref=db.backref('webauthn_credential', uselist=False))
+    user = db.relationship(
+        'User',
+        backref=db.backref(
+            'webauthn_credentials',
+            cascade='all, delete-orphan',
+            order_by='UserWebAuthnCredential.created_at',
+        ),
+    )
 
     def __repr__(self):
-        return f'<UserWebAuthnCredential user_id={self.user_id}>'
+        return f'<UserWebAuthnCredential user_id={self.user_id} device={self.device_name!r}>'
+
+
+class UserPinDevice(db.Model):
+    """A device authorized to use the backup PIN (fallback when Face ID fails).
+
+    The raw device token lives only in an httpOnly cookie on the device; the DB
+    stores just its SHA-256 hash, so a DB leak does not expose usable cookies.
+    """
+    __tablename__ = 'user_pin_devices'
+
+    id           = db.Column(db.Integer, primary_key=True)
+    user_id      = db.Column(db.Integer, db.ForeignKey('users.id'), index=True, nullable=False)
+    token_hash   = db.Column(db.String(64), unique=True, nullable=False)  # sha256 hex
+    device_name  = db.Column(db.String(100), nullable=True)
+    created_at   = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    last_used_at = db.Column(db.DateTime, nullable=True)
+    expires_at   = db.Column(db.DateTime, nullable=False)
+
+    user = db.relationship(
+        'User',
+        backref=db.backref('pin_devices', cascade='all, delete-orphan'),
+    )
+
+    def __repr__(self):
+        return f'<UserPinDevice user_id={self.user_id} device={self.device_name!r}>'
 
 
 class UserYear(db.Model):

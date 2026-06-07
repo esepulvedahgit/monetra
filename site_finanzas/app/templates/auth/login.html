@@ -65,6 +65,24 @@
                 <i class="bi bi-fingerprint me-2"></i>{{ _('Ingresar con Face ID / Huella') }}
             </button>
             <div id="biometricError" class="mt-2 alert alert-danger d-none small py-2" role="alert"></div>
+
+            <!-- PIN fallback — hidden; revealed only when Face ID fails and device has a PIN configured -->
+            <div id="pinFallback" class="d-none mt-3">
+                <p class="small mb-2 text-center" style="color:var(--monetra-text-muted,#B0BEC5);">
+                    {{ _('¿Face ID no te reconoció? Ingresa tu PIN') }}
+                </p>
+                <input type="password" id="pinLoginInput"
+                       inputmode="numeric" pattern="\d*" maxlength="6"
+                       class="form-control form-control-sm text-center mb-2"
+                       placeholder="{{ _('PIN de 6 dígitos') }}"
+                       style="letter-spacing:0.3em; font-size:1.1rem;">
+                <button type="button" id="btnPinLogin"
+                        class="btn w-100 py-2 fw-semibold"
+                        style="background:var(--monetra-primary,#00C896); color:#0a1628; border:none; font-size:0.95rem;">
+                    <i class="bi bi-lock me-2"></i>{{ _('Ingresar con PIN') }}
+                </button>
+                <div id="pinLoginError" class="mt-2 alert alert-danger d-none small py-2" role="alert"></div>
+            </div>
         </div>
 
         <hr class="my-4">
@@ -92,9 +110,14 @@
     var webauthnSection = document.getElementById('webauthnSection');
     var btnBiometric    = document.getElementById('btnBiometric');
     var biometricError  = document.getElementById('biometricError');
+    var pinFallback     = document.getElementById('pinFallback');
+    var pinLoginInput   = document.getElementById('pinLoginInput');
+    var pinLoginError   = document.getElementById('pinLoginError');
+    var btnPinLogin     = document.getElementById('btnPinLogin');
     var csrfToken       = '{{ csrf_token() }}';
     var beginUrl        = '{{ url_for("auth.webauthn_login_begin") }}';
     var completeUrl     = '{{ url_for("auth.webauthn_login_complete") }}';
+    var pinLoginUrl     = '{{ url_for("auth.pin_login") }}';
 
     // Show biometric section — passkey hint confirmed for this device
     if (webauthnSection) webauthnSection.style.display = '';
@@ -171,12 +194,59 @@
                 .catch(function (err) {
                     btnBiometric.disabled = false;
                     btnBiometric.innerHTML = '<i class="bi bi-fingerprint me-2"></i>{{ _("Ingresar con Face ID / Huella") }}';
-                    if (err && err.name === 'NotAllowedError') {
+                    // Reveal PIN fallback if this device has a PIN configured
+                    if (localStorage.getItem('monetra_pin') === '1' && pinFallback) {
+                        pinFallback.classList.remove('d-none');
+                        if (biometricError) biometricError.classList.add('d-none');
+                    } else if (err && err.name === 'NotAllowedError') {
                         showBiometricError('{{ _("Autenticación cancelada.") }}');
                     } else {
                         showBiometricError((err && err.message) || '{{ _("Error al verificar la biometría. Usa tu contraseña.") }}');
                     }
                 });
+        });
+    }
+
+    // PIN fallback handler — only reachable after biometric attempt fails
+    if (btnPinLogin && pinLoginInput) {
+        // Digit-only enforcement
+        pinLoginInput.addEventListener('input', function () {
+            pinLoginInput.value = pinLoginInput.value.replace(/\D/g, '').slice(0, 6);
+            if (pinLoginError) pinLoginError.classList.add('d-none');
+        });
+
+        btnPinLogin.addEventListener('click', function () {
+            var pin = pinLoginInput.value;
+            if (pin.length !== 6) {
+                if (pinLoginError) { pinLoginError.textContent = '{{ _("El PIN debe tener 6 dígitos.") }}'; pinLoginError.classList.remove('d-none'); }
+                return;
+            }
+            btnPinLogin.disabled = true;
+            btnPinLogin.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>{{ _("Verificando...") }}';
+            if (pinLoginError) pinLoginError.classList.add('d-none');
+
+            fetch(pinLoginUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                body: JSON.stringify({ pin: pin }),
+            })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+            .then(function (res) {
+                if (res.data.ok) {
+                    window.location.href = res.data.redirect;
+                } else {
+                    throw new Error(res.data.error || '{{ _("PIN incorrecto.") }}');
+                }
+            })
+            .catch(function (err) {
+                btnPinLogin.disabled = false;
+                btnPinLogin.innerHTML = '<i class="bi bi-lock me-2"></i>{{ _("Ingresar con PIN") }}';
+                if (pinLoginError) {
+                    pinLoginError.textContent = (err && err.message) || '{{ _("PIN incorrecto.") }}';
+                    pinLoginError.classList.remove('d-none');
+                }
+            });
         });
     }
 

@@ -1,5 +1,5 @@
 ﻿from app import create_app, db
-from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, EmailActivationToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget, UserAIConfig, ApiToken, UserWebAuthnCredential  # noqa: F401
+from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, EmailActivationToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget, UserAIConfig, ApiToken, UserWebAuthnCredential, UserPinDevice  # noqa: F401
 from sqlalchemy import inspect, text
 
 app = create_app()
@@ -109,6 +109,18 @@ with app.app_context():
             conn.execute(text("UPDATE users SET email_verified_at = NOW() WHERE email_verified = 1"))
             conn.commit()
             print("Columna email_verified_at agregada a users.")
+        if 'pin_hash' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN pin_hash VARCHAR(256) NULL"))
+            conn.commit()
+            print("Columna pin_hash agregada a users.")
+        if 'pin_failed_attempts' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN pin_failed_attempts INT NOT NULL DEFAULT 0"))
+            conn.commit()
+            print("Columna pin_failed_attempts agregada a users.")
+        if 'pin_locked_until' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN pin_locked_until DATETIME NULL"))
+            conn.commit()
+            print("Columna pin_locked_until agregada a users.")
 
         # El primer usuario que se registre en /register queda como admin automáticamente.
 
@@ -316,3 +328,48 @@ with app.app_context():
             scanner_cat.color = '#06B6D4'
             db.session.commit()
             print("Color de categoría 'Scanner' actualizado.")
+
+    # ── user_webauthn_credentials: drop UNIQUE on user_id (1 → N credentials) ──
+    # Installations created after this migration already get the correct schema via
+    # db.create_all() above; this block handles existing DBs that still have the old
+    # UNIQUE constraint on user_id.
+    #
+    # Strategy: add a plain non-unique index on user_id first (MySQL refuses to drop a
+    # UNIQUE key if a FK depends on it unless an equivalent index already exists), then
+    # drop the unique constraint.
+    if 'user_webauthn_credentials' in inspect(db.engine).get_table_names():
+        wa_constraints = {uc['name'] for uc in inspect(db.engine).get_unique_constraints('user_webauthn_credentials')}
+        # MySQL may name the constraint differently; detect by inspecting column uniqueness too
+        wa_indexes = {idx['name']: idx for idx in inspect(db.engine).get_indexes('user_webauthn_credentials')}
+        user_id_unique_idx = next(
+            (name for name, idx in wa_indexes.items()
+             if idx.get('unique') and idx.get('column_names') == ['user_id']),
+            None
+        )
+        # Also check explicit unique constraints list
+        if user_id_unique_idx is None:
+            user_id_unique_idx = next((name for name in wa_constraints if 'user_id' in name), None)
+        if user_id_unique_idx:
+            with db.engine.connect() as conn:
+                # Add plain index so FK stays satisfied after dropping the unique one
+                existing_plain = any(
+                    not idx.get('unique') and idx.get('column_names') == ['user_id']
+                    for idx in wa_indexes.values()
+                )
+                if not existing_plain:
+                    conn.execute(text(
+                        "ALTER TABLE user_webauthn_credentials ADD INDEX ix_wa_creds_user_id (user_id)"
+                    ))
+                    conn.commit()
+                    print("Índice ix_wa_creds_user_id creado en user_webauthn_credentials.")
+                conn.execute(text(
+                    f"ALTER TABLE user_webauthn_credentials DROP INDEX `{user_id_unique_idx}`"
+                ))
+                conn.commit()
+                print(f"Restricción UNIQUE '{user_id_unique_idx}' eliminada de user_webauthn_credentials (soporte múltiples credenciales por usuario).")
+        else:
+            print("user_webauthn_credentials ya permite múltiples credenciales por usuario.")
+
+    # ── user_pin_devices: table created by db.create_all() via the model. ──────
+    if 'user_pin_devices' in inspect(db.engine).get_table_names():
+        print("Tabla user_pin_devices verificada.")

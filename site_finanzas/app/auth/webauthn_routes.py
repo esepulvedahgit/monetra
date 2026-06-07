@@ -9,6 +9,7 @@ Endpoints (all under /auth/webauthn/):
 """
 
 import base64
+from datetime import datetime, timezone
 
 from flask import current_app, jsonify, request, session, url_for
 from flask_login import current_user, login_required, login_user
@@ -75,6 +76,9 @@ def webauthn_login_begin():
 
     # Store challenge in session (single-use)
     session['webauthn_auth_challenge'] = _b64url(options.challenge)
+    # Mark that a biometric attempt was initiated; used by /auth/pin/login to enforce
+    # that the PIN fallback is only reachable right after Face ID is attempted.
+    session['biometric_attempt_at'] = datetime.now(timezone.utc).isoformat()
 
     return options_to_json(options), 200, {'Content-Type': 'application/json'}
 
@@ -156,12 +160,12 @@ def webauthn_register_begin():
     if not password or not user.check_password(password):
         return jsonify({'error': 'Contraseña incorrecta.'}), 403
 
-    # Exclude existing credential if re-registering (replace flow)
+    # Exclude all credentials already registered for this user so the browser
+    # refuses to register the same authenticator twice.
     exclude = []
-    if user.webauthn_credential:
-        existing_cred_id = user.webauthn_credential.credential_id
+    for existing in user.webauthn_credentials:
         existing_cred_id_bytes = base64.urlsafe_b64decode(
-            existing_cred_id + '=' * (-len(existing_cred_id) % 4)
+            existing.credential_id + '=' * (-len(existing.credential_id) % 4)
         )
         exclude.append(PublicKeyCredentialDescriptor(id=existing_cred_id_bytes))
 
@@ -214,35 +218,34 @@ def webauthn_register_complete():
     # Infer device name from User-Agent
     ua = request.headers.get('User-Agent', '')
     if 'iPhone' in ua or 'iPad' in ua:
-        device_name = 'iPhone / iPad'
+        base_name = 'iPhone / iPad'
     elif 'Android' in ua:
-        device_name = 'Android'
+        base_name = 'Android'
     elif 'Macintosh' in ua:
-        device_name = 'Mac'
+        base_name = 'Mac'
     elif 'Windows' in ua:
-        device_name = 'Windows'
+        base_name = 'Windows'
     else:
-        device_name = 'Dispositivo'
+        base_name = 'Dispositivo'
 
-    # Upsert: one row per user (replace if exists)
-    cred = current_user.webauthn_credential
-    if cred:
-        cred.credential_id = _b64url(verification.credential_id)
-        cred.public_key    = verification.credential_public_key
-        cred.sign_count    = verification.sign_count
-        cred.device_name   = device_name
-        from datetime import datetime, timezone
-        cred.created_at    = datetime.now(timezone.utc)
+    # Disambiguate name if the user already has a credential with the same base name.
+    existing_names = {c.device_name for c in current_user.webauthn_credentials}
+    from datetime import datetime, timezone
+    if base_name in existing_names:
+        device_name = f'{base_name} ({datetime.now(timezone.utc).strftime("%d %b %Y")})'
     else:
-        cred = UserWebAuthnCredential(
-            user_id=current_user.id,
-            credential_id=_b64url(verification.credential_id),
-            public_key=verification.credential_public_key,
-            sign_count=verification.sign_count,
-            device_name=device_name,
-        )
-        db.session.add(cred)
+        device_name = base_name
 
+    # Always insert a new credential — multiple credentials per user are allowed.
+    cred = UserWebAuthnCredential(
+        user_id=current_user.id,
+        credential_id=_b64url(verification.credential_id),
+        public_key=verification.credential_public_key,
+        sign_count=verification.sign_count,
+        device_name=device_name,
+        created_at=datetime.now(timezone.utc),
+    )
+    db.session.add(cred)
     db.session.commit()
     return jsonify({'ok': True, 'device_name': device_name})
 
@@ -267,8 +270,21 @@ def webauthn_delete():
     if not password or not current_user.check_password(password):
         return jsonify({'error': 'Contraseña incorrecta.'}), 403
 
-    cred = current_user.webauthn_credential
-    if cred:
-        db.session.delete(cred)
-        db.session.commit()
-    return jsonify({'ok': True})
+    credential_id = (data.get('credential_id') or '').strip()
+    if not credential_id:
+        return jsonify({'error': 'Credencial no especificada.'}), 400
+
+    # Verify ownership — never delete a credential that belongs to another user.
+    cred = UserWebAuthnCredential.query.filter_by(
+        credential_id=credential_id,
+        user_id=current_user.id,
+    ).first()
+    if not cred:
+        return jsonify({'error': 'Credencial no encontrada.'}), 404
+
+    db.session.delete(cred)
+    db.session.commit()
+
+    # Tell the client how many credentials remain so it can update localStorage.
+    remaining = len(current_user.webauthn_credentials)
+    return jsonify({'ok': True, 'remaining': remaining})
