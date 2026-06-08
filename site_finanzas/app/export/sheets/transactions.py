@@ -24,24 +24,25 @@ def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
     ws.set_column(0, 0, 5)    # #
     ws.set_column(1, 1, 12)   # Fecha
     ws.set_column(2, 2, 11)   # Tipo
-    ws.set_column(3, 3, 20)   # Categoría
-    ws.set_column(4, 4, 35)   # Descripción
-    ws.set_column(5, 5, 15)   # Monto
+    ws.set_column(3, 3, 14)   # Origen
+    ws.set_column(4, 4, 20)   # Categoría
+    ws.set_column(5, 5, 35)   # Descripción
+    ws.set_column(6, 6, 15)   # Monto
 
     # ── Title ─────────────────────────────────────────────────────────────────
-    write_title_row(ws, 0, f"  {title}", subtitle, fmt, 6)
+    write_title_row(ws, 0, f"  {title}", subtitle, fmt, 7)
 
     # ── Column headers (row 3) ────────────────────────────────────────────────
     hdrs = (
-        ["#", "Fecha", "Tipo", "Categoría", "Descripción", "Monto"]
+        ["#", "Fecha", "Tipo", "Origen", "Categoría", "Descripción", "Monto"]
         if lang == "es"
-        else ["#", "Date", "Type", "Category", "Description", "Amount"]
+        else ["#", "Date", "Type", "Origin", "Category", "Description", "Amount"]
     )
     ws.set_row(3, 22)
     for c, h in enumerate(hdrs):
         ws.write(3, c, h, fmt["col_header"])
 
-    ws.autofilter(3, 0, 3, 5)
+    ws.autofilter(3, 0, 3, 6)
 
     # ── Data rows ─────────────────────────────────────────────────────────────
     total_income = 0.0
@@ -49,6 +50,8 @@ def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
 
     lbl_income = "Ingreso" if lang == "es" else "Income"
     lbl_expense = "Gasto" if lang == "es" else "Expense"
+    lbl_recurrente = "Recurrente" if lang == "es" else "Recurring"
+    lbl_manual = "Manual"
 
     for i, tx in enumerate(txs):
         row = 4 + i
@@ -70,6 +73,8 @@ def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
             lbl_type = lbl_expense
             total_expense += tx["amount"]
 
+        origen = lbl_recurrente if tx.get("recurring_id") else lbl_manual
+
         ws.set_row(row, 17)
         ws.write(row, 0, i + 1, ccfmt)
         if tx_date:
@@ -77,9 +82,10 @@ def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
         else:
             ws.write(row, 1, tx.get("date", ""), dfmt)
         ws.write(row, 2, lbl_type, tbadge)
-        ws.write(row, 3, tx.get("category_name") or "—", cfmt)
-        ws.write(row, 4, tx.get("description") or "—", cfmt)
-        ws.write(row, 5, tx["amount"], mfmt)
+        ws.write(row, 3, origen, ccfmt)
+        ws.write(row, 4, tx.get("category_name") or "—", cfmt)
+        ws.write(row, 5, tx.get("description") or "—", cfmt)
+        ws.write(row, 6, tx["amount"], mfmt)
 
     # ── Totals ────────────────────────────────────────────────────────────────
     if txs:
@@ -91,16 +97,16 @@ def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
         lbl_tb = "Balance" if lang == "es" else "Balance"
 
         ws.set_row(tot_row, 20)
-        ws.merge_range(tot_row, 0, tot_row, 4, lbl_ti, fmt["total_label"])
-        ws.write(tot_row, 5, total_income, fmt["money_total"])
+        ws.merge_range(tot_row, 0, tot_row, 5, lbl_ti, fmt["total_label"])
+        ws.write(tot_row, 6, total_income, fmt["money_total"])
 
         ws.set_row(tot_row + 1, 20)
-        ws.merge_range(tot_row + 1, 0, tot_row + 1, 4, lbl_te, fmt["total_label"])
-        ws.write(tot_row + 1, 5, total_expense, fmt["money_total"])
+        ws.merge_range(tot_row + 1, 0, tot_row + 1, 5, lbl_te, fmt["total_label"])
+        ws.write(tot_row + 1, 6, total_expense, fmt["money_total"])
 
         ws.set_row(tot_row + 2, 20)
-        ws.merge_range(tot_row + 2, 0, tot_row + 2, 4, lbl_tb, fmt["total_label"])
-        ws.write(tot_row + 2, 5, total_income - total_expense, fmt["money_total"])
+        ws.merge_range(tot_row + 2, 0, tot_row + 2, 5, lbl_tb, fmt["total_label"])
+        ws.write(tot_row + 2, 6, total_income - total_expense, fmt["money_total"])
     else:
         empty_lbl = "Sin transacciones para el período." if lang == "es" else "No transactions for this period."
-        ws.merge_range(4, 0, 4, 5, empty_lbl, fmt["status_none"])
+        ws.merge_range(4, 0, 4, 6, empty_lbl, fmt["status_none"])
