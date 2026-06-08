@@ -31,7 +31,7 @@ Aplicación web de **finanzas personales** desarrollada en Flask. Permite regist
 - Metas de ahorro con seguimiento de progreso y fecha objetivo
 - **Cuenta en dólares (USD)** con vista consolidada en moneda local
 - **Escáner IA de recibos** — fotografía un ticket y extrae monto, categoría y fecha automáticamente (OpenAI, Anthropic, Gemini, Ollama)
-- **Autenticación biométrica** — Face ID, huella dactilar o Windows Hello vía WebAuthn
+- **PIN de acceso rápido** — login móvil con PIN de 8 dígitos vinculado al dispositivo (opt-in)
 - **Panel de analítica** — salud financiera, proyección de cierre del mes y alertas inteligentes
 - **Backup y restauración de base de datos** (admin) — export cifrado `.sql.gz` con re-autenticación
 - Exportación a Excel con todas las secciones del período seleccionado (mensual, anual o rango)
@@ -58,7 +58,6 @@ Aplicación web de **finanzas personales** desarrollada en Flask. Permite regist
 | ORM | SQLAlchemy + PyMySQL | 3.1.1 / 1.1.0 |
 | Autenticación web | Flask-Login + Flask-WTF (CSRF) | 0.6.3 / 1.2.1 |
 | Autenticación API | Flask-JWT-Extended | 4.6.0 |
-| Biometría | python-webauthn | 2.1.0 |
 | MFA (TOTP) | pyotp + qrcode | ≥2.9 / ≥7.4 |
 | i18n | Flask-Babel | ≥3.1 |
 | Cifrado | Cryptography (Fernet) | 41.0.7 |
@@ -81,7 +80,7 @@ monetra/
   site_finanzas/      # Código fuente de la aplicación Flask
     app/
       main/           # Vistas web principales (dashboard, transacciones, presupuestos, etc.)
-      auth/           # Login, registro, MFA, biometría, recuperación de contraseña
+      auth/           # Login, registro, MFA, PIN de acceso rápido, recuperación de contraseña
       api/            # API REST en /api/v1
       export/         # Generador de reportes Excel
       demo_data/      # Carga y reset de datos de demostración
@@ -121,15 +120,12 @@ curl -fsSL https://raw.githubusercontent.com/esepulvedahgit/monetra/main/install
 
 El script:
 - Verifica las dependencias (Docker, git, openssl)
-- Pregunta tu dominio para pre-configurar la autenticación biométrica (opcional — Enter para omitir)
 - Genera automáticamente: `SECRET_KEY`, `FIELD_ENCRYPTION_KEY`, `JWT_SECRET_KEY`, `DB_PASSWORD`, `MYSQL_ROOT_PASSWORD`
 - Construye la imagen de producción `monetra:release`
 - Levanta `docker-compose.prod.yml` y espera a que la app responda
 - Imprime la URL de acceso y los pasos siguientes
 
 La app queda disponible en `http://localhost:8085`. El primer usuario en registrarse queda como administrador.
-
-> **Biometría (WebAuthn):** si ingresaste un dominio durante la instalación, edita `docker/.env` y activa las líneas `WEBAUTHN_*` con tu dominio real + HTTPS (nginx/Caddy delante del contenedor). Sin dominio propio la app funciona completamente; solo la autenticación biométrica requiere HTTPS.
 
 ---
 
@@ -175,10 +171,6 @@ SECRET_KEY=genera-con-secrets.token_hex(32)
 FIELD_ENCRYPTION_KEY=genera-con-Fernet.generate_key()
 JWT_SECRET_KEY=genera-con-secrets.token_hex(32)
 
-# WebAuthn (biometría) — ajustar al dominio real en producción
-WEBAUTHN_RP_ID=tudominio.com
-WEBAUTHN_RP_NAME=Monetra
-WEBAUTHN_ORIGIN=https://tudominio.com
 ```
 
 **3. Levantar los servicios:**
@@ -258,9 +250,6 @@ docker load -i monetra-release-arm64.tar
 | `CORS_ORIGINS` | No | Orígenes permitidos para la API REST (default: `*`) |
 | `FLASK_DEBUG` | No | `true` activa modo debug (default: `false`) |
 | `FLASK_TESTING` | No | `true` activa modo testing (default: `false`) |
-| `WEBAUTHN_RP_ID` | No | Dominio para biometría WebAuthn (default: `localhost`) |
-| `WEBAUTHN_RP_NAME` | No | Nombre de la app en el diálogo biométrico (default: `Monetra`) |
-| `WEBAUTHN_ORIGIN` | No | Origen completo `https://dominio` para verificación WebAuthn |
 | `MAX_CONTENT_UPLOAD_MB` | No | Tamaño máximo de archivos subidos en MB (default: `15`) |
 | `MAX_RESTORE_SQL_MB` | No | Tamaño máximo del archivo SQL de restauración en MB (default: `500`) |
 
@@ -283,11 +272,6 @@ DB_PASSWORD=
 SECRET_KEY=
 FIELD_ENCRYPTION_KEY=
 JWT_SECRET_KEY=
-
-# WebAuthn (producción)
-WEBAUTHN_RP_ID=
-WEBAUTHN_RP_NAME=Monetra
-WEBAUTHN_ORIGIN=
 
 # Backup (opcional, defaults razonables)
 MAX_CONTENT_UPLOAD_MB=15

@@ -13,6 +13,8 @@ AUTH_PASSWORD_RESET_REQ  = 'auth.password_reset_req'
 AUTH_PASSWORD_RESET_DONE = 'auth.password_reset_done'
 AUTH_EMAIL_VERIFY        = 'auth.email_verify'
 AUTH_EMAIL_RESEND        = 'auth.email_resend'
+AUTH_PIN_ENABLED         = 'auth.pin_enabled'
+AUTH_PIN_DISABLED        = 'auth.pin_disabled'
 
 # Application events
 APP_ERROR_500    = 'app.error_500'
@@ -24,10 +26,13 @@ CONFIG_SMTP          = 'config.smtp'
 CONFIG_REGISTRATION  = 'config.registration'
 
 # Admin events
-ADMIN_DEMO_LOAD  = 'admin.demo_load'
-ADMIN_DEMO_RESET = 'admin.demo_reset'
-ADMIN_DB_EXPORT  = 'admin.db_export'
-ADMIN_DB_RESTORE = 'admin.db_restore'
+ADMIN_DEMO_LOAD         = 'admin.demo_load'
+ADMIN_DEMO_RESET        = 'admin.demo_reset'
+ADMIN_DB_EXPORT         = 'admin.db_export'
+ADMIN_DB_RESTORE        = 'admin.db_restore'
+ADMIN_ACCOUNT_SUSPENDED   = 'admin.account_suspended'
+ADMIN_ACCOUNT_REACTIVATED = 'admin.account_reactivated'
+ADMIN_ACCOUNT_DELETED     = 'admin.account_deleted'
 
 
 # Map prefix → display label + pastel color

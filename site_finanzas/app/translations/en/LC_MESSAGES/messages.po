@@ -5659,6 +5659,231 @@ msgstr "There is already a category with that name."
 msgid "No se puede eliminar: la categoría tiene movimientos asociados."
 msgstr "Cannot be deleted: the category has associated movements."
 
+#: app/templates/main/configurar.html
+msgid "PIN de acceso rápido"
+msgstr "Quick-access PIN"
+
+#: app/templates/main/configurar.html
+msgid "Inicia sesión en este dispositivo con un PIN de 8 dígitos. Más rápido pero menos seguro que tu contraseña — úsalo bajo tu propio criterio. Disponible solo en el móvil."
+msgstr "Log in on this device with an 8-digit PIN. Faster but less secure than your password — use at your own discretion. Available on mobile only."
+
+#: app/templates/main/configurar.html app/templates/auth/login.html
+msgid "PIN de 8 dígitos"
+msgstr "8-digit PIN"
+
+#: app/templates/main/configurar.html
+msgid "Confirmar PIN"
+msgstr "Confirm PIN"
+
+#: app/templates/main/configurar.html
+msgid "Los PIN no coinciden."
+msgstr "PINs do not match."
+
+#: app/templates/main/configurar.html
+msgid "Cambiar PIN"
+msgstr "Change PIN"
+
+#: app/templates/main/configurar.html
+msgid "Configurar PIN"
+msgstr "Set up PIN"
+
+#: app/templates/main/configurar.html
+msgid "Eliminar PIN"
+msgstr "Remove PIN"
+
+#: app/templates/main/configurar.html
+msgid "Confirma tu contraseña para continuar."
+msgstr "Confirm your password to continue."
+
+#: app/templates/main/configurar.html
+msgid "El PIN debe tener exactamente 8 dígitos."
+msgstr "The PIN must be exactly 8 digits."
+
+#: app/templates/auth/login.html
+msgid "Ingresa tu PIN"
+msgstr "Enter your PIN"
+
+#: app/templates/auth/login.html
+msgid "Ingresar con PIN"
+msgstr "Sign in with PIN"
+
+#: app/templates/auth/login.html
+msgid "Ingresar con contraseña"
+msgstr "Sign in with password"
+
+#: app/templates/auth/login.html app/auth/pin_routes.py
+msgid "PIN incorrecto."
+msgstr "Incorrect PIN."
+
+#: app/auth/pin_routes.py
+msgid "Activa la verificación en dos pasos (MFA) antes de configurar un PIN."
+msgstr "Enable two-step verification (MFA) before setting up a PIN."
+
+#: app/templates/main/configurar.html
+msgid "Activa la verificación en dos pasos (MFA) para poder usar el PIN de acceso rápido."
+msgstr "Enable two-step verification (MFA) to use the quick-access PIN."
+
+# ── Admin user management ──
+#: app/admin/routes.py app/templates/admin/users.html
+msgid "Gestión de usuarios"
+msgstr "User Management"
+
+#: app/admin/routes.py app/templates/admin/users.html
+msgid "Usuarios"
+msgstr "Users"
+
+#: app/templates/admin/users.html
+msgid "Usuarios registrados"
+msgstr "Registered users"
+
+#: app/templates/admin/users.html
+msgid "Administrador"
+msgstr "Administrator"
+
+#: app/templates/admin/users.html
+msgid "Volver a Configurar"
+msgstr "Back to Settings"
+
+#: app/templates/admin/users.html
+msgid "Usuario"
+msgstr "User"
+
+#: app/templates/admin/users.html
+msgid "Correo"
+msgstr "Email"
+
+#: app/templates/admin/users.html
+msgid "Rol"
+msgstr "Role"
+
+#: app/templates/admin/users.html
+msgid "Estado"
+msgstr "Status"
+
+#: app/templates/admin/users.html
+msgid "Creado"
+msgstr "Created"
+
+#: app/templates/admin/users.html
+msgid "Último ingreso"
+msgstr "Last login"
+
+#: app/templates/admin/users.html
+msgid "Acciones"
+msgstr "Actions"
+
+#: app/templates/admin/users.html
+msgid "Tú"
+msgstr "You"
+
+#: app/templates/admin/users.html
+msgid "Admin principal"
+msgstr "Primary Admin"
+
+#: app/templates/admin/users.html
+msgid "Admin"
+msgstr "Admin"
+
+#: app/templates/admin/users.html
+msgid "Activo"
+msgstr "Active"
+
+#: app/templates/admin/users.html
+msgid "Suspendido"
+msgstr "Suspended"
+
+#: app/templates/admin/users.html
+msgid "Nunca"
+msgstr "Never"
+
+#: app/templates/admin/users.html
+msgid "Suspender"
+msgstr "Suspend"
+
+#: app/templates/admin/users.html
+msgid "Reactivar"
+msgstr "Reactivate"
+
+#: app/templates/admin/users.html
+msgid "Eliminar"
+msgstr "Delete"
+
+#: app/templates/admin/users.html
+msgid "Eliminar usuario"
+msgstr "Delete user"
+
+#: app/templates/admin/users.html
+msgid "¿Eliminar permanentemente a"
+msgstr "Permanently delete"
+
+#: app/templates/admin/users.html
+msgid ""
+"Esta acción es irreversible. Se borrarán todas las transacciones, "
+"presupuestos y datos asociados a esta cuenta."
+msgstr ""
+"This action is irreversible. All transactions, budgets and data associated "
+"with this account will be deleted."
+
+#: app/templates/admin/users.html
+msgid "Confirma tu contraseña de administrador"
+msgstr "Confirm your administrator password"
+
+#: app/templates/admin/users.html
+msgid "Cancelar"
+msgstr "Cancel"
+
+#: app/templates/admin/users.html
+msgid "Eliminar definitivamente"
+msgstr "Delete permanently"
+
+#: app/admin/routes.py
+msgid "No puedes suspender tu propia cuenta."
+msgstr "You cannot suspend your own account."
+
+#: app/admin/routes.py
+msgid "El administrador principal no puede ser suspendido."
+msgstr "The primary administrator cannot be suspended."
+
+#: app/admin/routes.py
+msgid "tu cuenta fue suspendida por el administrador"
+msgstr "your account was suspended by the administrator"
+
+#: app/admin/routes.py
+msgid "tu cuenta fue reactivada por el administrador"
+msgstr "your account was reactivated by the administrator"
+
+#: app/admin/routes.py
+msgid "Usuario %(name)s suspendido."
+msgstr "User %(name)s suspended."
+
+#: app/admin/routes.py
+msgid "Usuario %(name)s reactivado."
+msgstr "User %(name)s reactivated."
+
+#: app/admin/routes.py
+msgid "No puedes eliminar tu propia cuenta."
+msgstr "You cannot delete your own account."
+
+#: app/admin/routes.py
+msgid "El administrador principal no puede ser eliminado."
+msgstr "The primary administrator cannot be deleted."
+
+#: app/admin/routes.py
+msgid "Contraseña incorrecta. El usuario no fue eliminado."
+msgstr "Incorrect password. The user was not deleted."
+
+#: app/admin/routes.py
+msgid "tu cuenta fue eliminada por el administrador"
+msgstr "your account was deleted by the administrator"
+
+#: app/admin/routes.py
+msgid "Usuario %(name)s eliminado permanentemente."
+msgstr "User %(name)s permanently deleted."
+
+#: app/auth/routes.py
+msgid "Tu cuenta ha sido suspendida. Contacta al administrador."
+msgstr "Your account has been suspended. Contact the administrator."
+
 #~ msgid "Habilitar recuperación por correo (SMTP)"
 #~ msgstr "Enable email recovery (SMTP)"
 

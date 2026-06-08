@@ -42,7 +42,7 @@
 | `UserSeenAnnouncement` | Control de anuncios de versión vistos por usuario |
 | `DemoState` | Registra qué años creó el demo para restaurar estado al resetear |
 | `AuditLog` | Registro de eventos de seguridad y actividad de la app (admin) |
-| `UserWebAuthnCredential` | Credenciales biométricas WebAuthn por usuario y dispositivo |
+| `UserPinDevice` | Dispositivos autorizados para login con PIN (token sha256, expira 90 días) |
 | `UserAIConfig` | Configuración del proveedor IA para el escáner (clave de API cifrada con Fernet) |
 | `EmailActivationToken` | Tokens de activación de cuenta por email (expiran en 24 h) |
 | `UsdCategory` | Categorías propias de la cuenta en dólares (separadas de las principales) |
@@ -296,7 +296,9 @@
 | Descartar onboarding | `/onboarding/dismiss` | POST | Marca como visto |
 | Cambiar idioma | `/set-language/<lang>` | GET | 'es' o 'en' |
 | Configurar Escáner IA | `/configurar` (submit_ai) | POST | Proveedor, modelo, URL base y API key cifrada |
-| Registrar biometría | `/auth/webauthn/register/*` | GET/POST | Registra dispositivo biométrico (Face ID / huella / Windows Hello) |
+| Activar PIN | `/pin/set` | POST | Activa el PIN de acceso rápido; requiere contraseña actual |
+| Eliminar PIN | `/pin/delete` | POST | Revoca el PIN y todos los dispositivos autorizados; requiere contraseña |
+| Login con PIN | `/pin/login` | POST | Inicio de sesión con PIN desde dispositivo autorizado (solo móvil) |
 | Toggle panel de analítica | `/configurar` (insights toggle) | POST | Activa/desactiva el panel de salud financiera y alertas |
 | Config. admin (registro) | `/configurar` (submit_admin) | POST | Solo para `is_first_admin` |
 | Datos Demo | `/admin/demo/*` | GET/POST | Solo para usuarios con `role = admin` |
@@ -311,7 +313,7 @@
 - **Tema inválido**: Se resetea a 'dark'.
 - **Desactivar MFA**: Requiere código TOTP válido.
 - **Escáner IA**: Sin `UserAIConfig` configurado, el botón de cámara no aparece en la UI.
-- **Biometría**: Solo se puede registrar desde un dispositivo compatible con WebAuthn. Requiere `WEBAUTHN_RP_ID` correcto en producción.
+- **PIN de acceso rápido**: Solo aparece en móvil (pantalla < 992 px). El dispositivo debe haber sido autorizado desde Configuración y la cookie `monetra_pin_device` debe estar presente.
 - **Sección Demo**: Solo visible y operable por usuarios con `role = admin`.
 - **Sección Auditoría**: Solo visible y operable por usuarios con `role = admin`.
 
@@ -593,24 +595,25 @@ Permite fotografiar un ticket o recibo y extraer automáticamente el monto, la c
 
 ---
 
-### 3.18 Autenticación Biométrica (WebAuthn)
+### 3.18 PIN de acceso rápido
 
-Permite iniciar sesión con Face ID, huella dactilar o Windows Hello. El dispositivo realiza la verificación criptográfica; Monetra nunca almacena ni procesa datos biométricos directamente.
+Login opt-in vinculado al dispositivo. Solo se activa desde Configuración y solo aparece en la pantalla de login en móvil (pantalla < 992 px). No es portátil: si se borran las cookies o se cambia de dispositivo hay que reactivarlo desde Configuración.
 
 #### ✅ Acciones Permitidas
 
 | Acción | Ruta | Detalles |
 |---|---|---|
-| Registrar dispositivo biométrico | `/auth/webauthn/register/...` | Genera challenge, el navegador firma con el dispositivo, se guarda `UserWebAuthnCredential` |
-| Iniciar sesión biométrica | `/auth/webauthn/login/...` | Challenge + respuesta firmada del dispositivo → sesión Flask |
-| Eliminar credencial | Desde Configuración | Elimina la `UserWebAuthnCredential` del dispositivo |
+| Activar PIN | `/pin/set` | El usuario elige un PIN de 8 dígitos; se guarda hash en `User`; se crea `UserPinDevice` con token sha256 en cookie httpOnly |
+| Login con PIN | `/pin/login` | Cookie `monetra_pin_device` identifica el dispositivo; se verifica PIN + token; si hay 2FA activo redirige a TOTP |
+| Eliminar PIN | `/pin/delete` | Revoca el PIN y todos los `UserPinDevice` del usuario; requiere contraseña actual |
 
 #### 🚫 Restricciones
 
-- **Compatibilidad**: Requiere navegador con soporte WebAuthn y dispositivo con autenticador biométrico o de seguridad.
-- **`WEBAUTHN_RP_ID`**: Debe coincidir exactamente con el dominio de la aplicación en producción. En localhost usa `localhost`.
-- **`WEBAUTHN_ORIGIN`**: Debe coincidir con el origen (`https://dominio`) desde el que el usuario accede.
-- **Sin almacenamiento biométrico**: Solo se guarda la clave pública del autenticador en `UserWebAuthnCredential`. La biometría permanece en el dispositivo.
+- **Solo móvil**: El campo de PIN solo se muestra en pantallas < 992 px (gate client-side).
+- **No portátil**: La autorización es por dispositivo (cookie httpOnly `monetra_pin_device`). Si se borra la cookie o se cambia de navegador, hay que reactivar desde Configuración.
+- **Expiración**: La autorización del dispositivo caduca a los 90 días de inactividad.
+- **Bloqueo**: 5 intentos fallidos bloquean el PIN durante 15 minutos (`MAX_FAILS=5 / LOCK_MINUTES=15`).
+- **No reemplaza la contraseña**: La contraseña es necesaria para activar y eliminar el PIN.
 
 ---
 
@@ -690,7 +693,7 @@ Permite al administrador exportar un backup cifrado de la base de datos y restau
 | Hashing contraseñas | Werkzeug (pbkdf2) |
 | Encriptación SMTP/MFA/AI | Fernet (clave en `FIELD_ENCRYPTION_KEY`) — cifra contraseñas SMTP, secrets TOTP y API keys del scanner |
 | MFA | TOTP (pyotp), QR code con qrcode |
-| Biometría WebAuthn | Solo se almacena la clave pública (`UserWebAuthnCredential`). La biometría permanece en el dispositivo |
+| PIN de acceso rápido | Token sha256 en cookie httpOnly (`monetra_pin_device`). Bloqueo automático tras 5 intentos fallidos (15 min) |
 | Aislamiento de datos | Todas las queries filtran por `user_id` |
 | Tokens de reset | SHA-256 hash, expiración 30 min, single-use |
 | CORS | Configurable via `CORS_ORIGINS` (solo `/api/*`) |
@@ -783,7 +786,6 @@ graph TB
 | Usar `since`/`until` con formato inválido en API de auditoría | API /audit/logs |
 | Consumir API de auditoría sin rol admin | API /audit/logs |
 | Usar escáner IA sin `UserAIConfig` configurado | Scanner IA |
-| Registrar biometría con `WEBAUTHN_RP_ID` incorrecto | WebAuthn |
 | Exportar/restaurar BD sin contraseña de cuenta | Backup/Restore |
 | Acceder a backup/restore sin ser admin | Backup/Restore |
 | Subir archivo SQL mayor a `MAX_CONTENT_UPLOAD_MB` | Restore BD |

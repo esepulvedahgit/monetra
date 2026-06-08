@@ -1,5 +1,5 @@
 ﻿from app import create_app, db
-from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, EmailActivationToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget, UserAIConfig, ApiToken, UserWebAuthnCredential  # noqa: F401
+from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, EmailActivationToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget, UserAIConfig, ApiToken, UserPinDevice  # noqa: F401
 from sqlalchemy import inspect, text
 
 app = create_app()
@@ -109,6 +109,30 @@ with app.app_context():
             conn.execute(text("UPDATE users SET email_verified_at = NOW() WHERE email_verified = 1"))
             conn.commit()
             print("Columna email_verified_at agregada a users.")
+        if 'pin_hash' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN pin_hash VARCHAR(256) NULL"))
+            conn.commit()
+            print("Columna pin_hash agregada a users.")
+        if 'pin_failed_attempts' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN pin_failed_attempts INT NOT NULL DEFAULT 0"))
+            conn.commit()
+            print("Columna pin_failed_attempts agregada a users.")
+        if 'pin_locked_until' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN pin_locked_until DATETIME NULL"))
+            conn.commit()
+            print("Columna pin_locked_until agregada a users.")
+        if 'pin_lock_cycles' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN pin_lock_cycles INT NOT NULL DEFAULT 0"))
+            conn.commit()
+            print("Columna pin_lock_cycles agregada a users.")
+        if 'last_login_at' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN last_login_at DATETIME NULL"))
+            conn.commit()
+            print("Columna last_login_at agregada a users.")
+        if 'is_suspended' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN is_suspended TINYINT(1) NOT NULL DEFAULT 0"))
+            conn.commit()
+            print("Columna is_suspended agregada a users.")
 
         # El primer usuario que se registre en /register queda como admin automáticamente.
 
@@ -316,3 +340,14 @@ with app.app_context():
             scanner_cat.color = '#06B6D4'
             db.session.commit()
             print("Color de categoría 'Scanner' actualizado.")
+
+    # ── user_webauthn_credentials: drop table (biometría retirada) ─────────────
+    if 'user_webauthn_credentials' in inspect(db.engine).get_table_names():
+        with db.engine.connect() as conn:
+            conn.execute(text("DROP TABLE user_webauthn_credentials"))
+            conn.commit()
+        print("Tabla user_webauthn_credentials eliminada (biometría retirada).")
+
+    # ── user_pin_devices: table created by db.create_all() via the model. ──────
+    if 'user_pin_devices' in inspect(db.engine).get_table_names():
+        print("Tabla user_pin_devices verificada.")

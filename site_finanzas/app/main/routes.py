@@ -16,8 +16,8 @@ from sqlalchemy import extract, func
 from app import db
 from app.main import main
 from app.main.forms import TransactionForm, CategoryForm, BudgetForm, CategoryBudgetForm, ConfigForm, SMTPConfigForm, RecurringTransactionForm, SavingsGoalForm, ChangePasswordForm, CustomBudgetForm, AIConfigForm
-from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal, UserSeenAnnouncement, CustomBudget, UserAIConfig, ApiToken
-from app.email_service import encrypt_smtp_password, send_user_email, encrypt_mfa_secret, decrypt_mfa_secret, encrypt_ai_token
+from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal, UserSeenAnnouncement, CustomBudget, UserAIConfig, ApiToken, UserPinDevice
+from app.email_service import encrypt_smtp_password, send_user_email, encrypt_mfa_secret, decrypt_mfa_secret, encrypt_ai_token, send_security_alert_email
 
 # (nombre, símbolo, nombre_moneda, código_ISO, locale_babel)
 COUNTRIES_CURRENCIES = [
@@ -1706,7 +1706,7 @@ def configurar():
                            api_token_prefix=api_tok.prefix if api_tok else None,
                            api_token_created_at=api_tok.created_at if api_tok else None,
                            api_token_last_used_at=api_tok.last_used_at if api_tok else None,
-                           webauthn_credential=current_user.webauthn_credential,
+                           has_pin=current_user.has_pin,
                            title=_('Configurar Cuenta'))
 
 
@@ -1832,6 +1832,16 @@ def change_password():
             return redirect(url_for('main.configurar'))
         current_user.set_password(form.new_password.data)
         db.session.commit()
+        send_security_alert_email(current_user, "cambió la contraseña")
+        try:
+            from app.audit import events as ev
+            from app.audit.logger import log_event
+            log_event(ev.AUTH_PASSWORD_CHANGE,
+                      description=f'{current_user.email} cambió su contraseña',
+                      user_id=current_user.id, request=request)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
         logout_user()
         flash(_('Contraseña actualizada correctamente. Inicia sesión con tu nueva contraseña.'), 'success')
         return redirect(url_for('auth.login'))
@@ -1889,7 +1899,25 @@ def mfa_disable():
         return jsonify({'error': _('Código incorrecto.')}), 400
     current_user.mfa_enabled = False
     current_user.mfa_secret_encrypted = None
+    # MFA is the prerequisite for PIN — revoke the PIN and all authorized devices
+    # so no orphaned PIN can bypass the gate that requires MFA to be active.
+    had_pin = current_user.has_pin
+    current_user.disable_pin()
     db.session.commit()
+    if had_pin:
+        from app.audit.logger import log_event
+        from app.audit import events as ev
+        try:
+            log_event(ev.AUTH_PIN_DISABLED,
+                      description=f'{current_user.email} PIN revocado al desactivar MFA',
+                      user_id=current_user.id, request=request)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+        try:
+            send_security_alert_email(current_user, "desactivó MFA (el PIN fue revocado automáticamente)")
+        except Exception:
+            pass
     return jsonify({'ok': True})
 
 
