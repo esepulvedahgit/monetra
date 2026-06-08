@@ -36,6 +36,7 @@ COOKIE_PATH      = '/pin'
 COOKIE_DAYS      = 90
 MAX_FAILS        = 5
 LOCK_MINUTES     = 15
+MAX_LOCK_CYCLES  = 3   # revoke PIN after this many lockout cycles (brute-force protection)
 
 
 # ---------------------------------------------------------------------------
@@ -70,7 +71,10 @@ def _set_device_cookie(response, raw_token: str):
         raw_token,
         max_age=COOKIE_DAYS * 24 * 3600,
         httponly=True,
-        secure=request.is_secure,   # HTTPS in prod; allows http://localhost in dev
+        # Use the same SESSION_COOKIE_SECURE config as all other cookies so the
+        # flag is always True in production (behind a TLS proxy with ProxyFix)
+        # and False in dev/test without extra config.
+        secure=current_app.config.get('SESSION_COOKIE_SECURE', False),
         samesite='Strict',
         path=COOKIE_PATH,
     )
@@ -117,6 +121,9 @@ def pin_set():
     if not password or not current_user.check_password(password):
         return jsonify({'error': 'Contraseña incorrecta.'}), 403
 
+    if not current_user.mfa_enabled:
+        return jsonify({'error': 'Activa la verificación en dos pasos (MFA) antes de configurar un PIN.'}), 403
+
     if not _is_valid_pin(pin):
         return jsonify({'error': 'El PIN debe tener 8 dígitos y no ser una secuencia obvia.'}), 400
 
@@ -159,10 +166,7 @@ def pin_delete():
     if not password or not current_user.check_password(password):
         return jsonify({'error': 'Contraseña incorrecta.'}), 403
 
-    current_user.pin_hash = None
-    current_user.pin_failed_attempts = 0
-    current_user.pin_locked_until = None
-    UserPinDevice.query.filter_by(user_id=current_user.id).delete()
+    current_user.disable_pin()
     db.session.commit()
 
     _audit(ev.AUTH_PIN_DISABLED, description=f'{current_user.email} desactivó PIN de acceso rápido',
@@ -182,14 +186,18 @@ def pin_delete():
 @limiter.limit("5 per minute")
 def pin_login():
     # 1. Identify the device from the cookie
+    # pin_unavailable=True tells the client to clear its localStorage hint and
+    # switch to the password view. Only sent for device-level failures (no cookie,
+    # unknown device, expired, user has no PIN) — not for wrong-PIN attempts where
+    # the device is still valid.
     _generic_403 = 'No se pudo iniciar sesión con PIN. Usa tu contraseña.'
     raw_token = request.cookies.get(COOKIE_NAME, '')
     if not raw_token:
-        return jsonify({'error': _generic_403}), 403
+        return jsonify({'error': _generic_403, 'pin_unavailable': True}), 403
 
     device = UserPinDevice.query.filter_by(token_hash=_hash_token(raw_token)).first()
     if not device:
-        return jsonify({'error': _generic_403}), 403
+        return jsonify({'error': _generic_403, 'pin_unavailable': True}), 403
 
     # 2. Expiry check (absolute)
     expires_at = device.expires_at
@@ -198,13 +206,14 @@ def pin_login():
     if not expires_at or expires_at <= _utcnow():
         db.session.delete(device)
         db.session.commit()
-        resp = jsonify({'error': 'El PIN expiró en este dispositivo. Vuelve a configurarlo.'})
+        resp = jsonify({'error': 'El PIN expiró en este dispositivo. Vuelve a configurarlo.',
+                        'pin_unavailable': True})
         _clear_device_cookie(resp)
         return resp, 403
 
     user = device.user
     if not user or not user.has_pin:
-        return jsonify({'error': _generic_403}), 403
+        return jsonify({'error': _generic_403, 'pin_unavailable': True}), 403
 
     # 3. Account-level lockout
     if user.pin_is_locked:
@@ -216,6 +225,21 @@ def pin_login():
     if not user.check_pin(pin):
         user.pin_failed_attempts = (user.pin_failed_attempts or 0) + 1
         if user.pin_failed_attempts >= MAX_FAILS:
+            user.pin_lock_cycles = (user.pin_lock_cycles or 0) + 1
+            if user.pin_lock_cycles >= MAX_LOCK_CYCLES:
+                # Repeated brute-force: revoke the PIN and all devices permanently.
+                user.disable_pin()
+                db.session.commit()
+                _audit(ev.AUTH_LOGIN_FAIL, description=f'{user.email} (PIN revocado por abuso)')
+                try:
+                    send_security_alert_email(
+                        user, "revocó el PIN de acceso rápido tras múltiples intentos fallidos"
+                    )
+                except Exception:
+                    pass
+                resp = jsonify({'error': _generic_403, 'pin_unavailable': True})
+                _clear_device_cookie(resp)
+                return resp, 403
             user.pin_locked_until = _utcnow() + timedelta(minutes=LOCK_MINUTES)
             try:
                 send_security_alert_email(user, "bloqueó el PIN tras varios intentos fallidos")
@@ -235,6 +259,7 @@ def pin_login():
     # 6. Reset counters + rotate device token (device timestamps stay naive for consistency with pin_set).
     user.pin_failed_attempts = 0
     user.pin_locked_until = None
+    user.pin_lock_cycles = 0
     device.last_used_at = _utcnow()
     new_token = secrets.token_urlsafe(32)
     device.token_hash = _hash_token(new_token)   # rotation (expires_at unchanged)

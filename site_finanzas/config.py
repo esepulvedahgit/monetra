@@ -49,3 +49,5 @@ class Config:
     REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_SAMESITE = 'Lax'
     REMEMBER_COOKIE_SECURE   = _in_production
+    # Inactivity timeout (seconds). Override with SESSION_INACTIVITY_TIMEOUT env var.
+    SESSION_INACTIVITY_TIMEOUT = int(os.environ.get('SESSION_INACTIVITY_TIMEOUT', 900))  # 15 min

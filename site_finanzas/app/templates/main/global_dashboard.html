@@ -400,9 +400,29 @@
             + '&to_month='   + toSel.value;
     }
 
-    [yearSel, fromSel, toSel].forEach(function(sel) {
-        if (sel) sel.addEventListener('change', syncExportLink);
-    });
+    // Mantiene coherencia Desde <= Hasta: corrige el otro select si es necesario
+    // y deshabilita las opciones inválidas en ambos selects.
+    function clampMonthRange(changed) {
+        if (!fromSel || !toSel) return;
+        var f = parseInt(fromSel.value, 10);
+        var t = parseInt(toSel.value, 10);
+        if (f > t) {
+            if (changed === 'from') { toSel.value   = fromSel.value; }
+            else                    { fromSel.value = toSel.value;   }
+        }
+        var fv = parseInt(fromSel.value, 10);
+        var tv = parseInt(toSel.value,   10);
+        Array.prototype.forEach.call(toSel.options,   function (o) { o.disabled = parseInt(o.value, 10) < fv; });
+        Array.prototype.forEach.call(fromSel.options, function (o) { o.disabled = parseInt(o.value, 10) > tv; });
+    }
+
+    if (yearSel) yearSel.addEventListener('change', syncExportLink);
+    if (fromSel) fromSel.addEventListener('change', function () { clampMonthRange('from'); syncExportLink(); });
+    if (toSel)   toSel.addEventListener(  'change', function () { clampMonthRange('to');   syncExportLink(); });
+
+    // Aplicar al cargar para reflejar el estado inicial renderizado por el servidor
+    clampMonthRange();
+    syncExportLink();
 }());
 </script>
 {% endblock %}

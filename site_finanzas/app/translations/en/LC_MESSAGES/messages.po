@@ -5700,20 +5700,28 @@ msgid "El PIN debe tener exactamente 8 dígitos."
 msgstr "The PIN must be exactly 8 digits."
 
 #: app/templates/auth/login.html
-msgid "Ingresa tu PIN de acceso rápido"
-msgstr "Enter your quick-access PIN"
+msgid "Ingresa tu PIN"
+msgstr "Enter your PIN"
 
 #: app/templates/auth/login.html
 msgid "Ingresar con PIN"
 msgstr "Sign in with PIN"
 
 #: app/templates/auth/login.html
-msgid "El PIN debe tener 8 dígitos."
-msgstr "The PIN must be 8 digits."
+msgid "Ingresar con contraseña"
+msgstr "Sign in with password"
 
 #: app/templates/auth/login.html app/auth/pin_routes.py
 msgid "PIN incorrecto."
 msgstr "Incorrect PIN."
+
+#: app/auth/pin_routes.py
+msgid "Activa la verificación en dos pasos (MFA) antes de configurar un PIN."
+msgstr "Enable two-step verification (MFA) before setting up a PIN."
+
+#: app/templates/main/configurar.html
+msgid "Activa la verificación en dos pasos (MFA) para poder usar el PIN de acceso rápido."
+msgstr "Enable two-step verification (MFA) to use the quick-access PIN."
 
 # ── Admin user management ──
 #: app/admin/routes.py app/templates/admin/users.html

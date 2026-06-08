@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timezone
+﻿from datetime import datetime, timezone, timedelta
 
 from flask import Flask, render_template, request, session, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
@@ -37,6 +37,12 @@ def get_locale():
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # Trust the X-Forwarded-For / X-Forwarded-Proto headers from the reverse proxy
+    # (nginx, Traefik, Caddy…). Required so request.is_secure, get_remote_address
+    # and SESSION_COOKIE_SECURE work correctly behind TLS termination.
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
     db.init_app(app)
     login_manager.init_app(app)
@@ -171,7 +177,8 @@ def create_app(config_class=Config):
 
     @app.before_request
     def _enforce_session_validity():
-        """Invalidate web sessions created before a DB restore, and force-logout suspended users.
+        """Invalidate web sessions created before a DB restore, force-logout suspended users,
+        and close sessions that have been inactive for longer than SESSION_INACTIVITY_TIMEOUT.
 
         After a restore, backup/routes.py sets app_config.sessions_valid_after = now().
         Any session cookie missing _login_at or stamped before that threshold is
@@ -186,6 +193,22 @@ def create_app(config_class=Config):
                 logout_user()
                 session.clear()
                 return redirect(url_for('auth.login'))
+            # Inactivity timeout — skip /api routes (those use JWT with their own TTL)
+            if not request.path.startswith('/api'):
+                timeout = app.config.get('SESSION_INACTIVITY_TIMEOUT', 900)
+                now = datetime.now(timezone.utc)
+                last_str = session.get('_last_activity')
+                if last_str is not None:
+                    last = datetime.fromisoformat(last_str)
+                    if last.tzinfo is None:
+                        last = last.replace(tzinfo=timezone.utc)
+                    if (now - last) > timedelta(seconds=timeout):
+                        logout_user()
+                        session.clear()
+                        flash(_('Tu sesión expiró por inactividad. Inicia sesión nuevamente.'), 'warning')
+                        return redirect(url_for('auth.login'))
+                # Renew activity timestamp on every authenticated non-API request
+                session['_last_activity'] = now.isoformat()
             from app.models import AppConfig
             config = AppConfig.get()
             valid_after = getattr(config, 'sessions_valid_after', None)

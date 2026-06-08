@@ -33,6 +33,7 @@ class User(db.Model, UserMixin):
     pin_hash = db.Column(db.String(256), nullable=True)
     pin_failed_attempts = db.Column(db.Integer, nullable=False, default=0)
     pin_locked_until = db.Column(db.DateTime, nullable=True)
+    pin_lock_cycles = db.Column(db.Integer, nullable=False, default=0)
     weekly_report_enabled = db.Column(db.Boolean, nullable=False, default=False)
     insights_panel_enabled = db.Column(db.Boolean, nullable=False, default=False)
     email_verified = db.Column(db.Boolean, nullable=False, default=False)
@@ -86,6 +87,19 @@ class User(db.Model, UserMixin):
         if locked_until.tzinfo is not None:
             locked_until = locked_until.replace(tzinfo=None)
         return locked_until > datetime.utcnow()
+
+    def disable_pin(self):
+        """Remove the PIN, reset lockout counters, and revoke all authorized devices.
+
+        Centralises PIN teardown so mfa_disable(), pin_delete() and the
+        repeated-lockout-cycle handler all stay in sync.
+        """
+        from app.models import UserPinDevice  # local import avoids circular at module load
+        self.pin_hash = None
+        self.pin_failed_attempts = 0
+        self.pin_locked_until = None
+        self.pin_lock_cycles = 0
+        UserPinDevice.query.filter_by(user_id=self.id).delete()
 
     def __repr__(self):
         return f'<User {self.username}>'

@@ -16,7 +16,7 @@ from sqlalchemy import extract, func
 from app import db
 from app.main import main
 from app.main.forms import TransactionForm, CategoryForm, BudgetForm, CategoryBudgetForm, ConfigForm, SMTPConfigForm, RecurringTransactionForm, SavingsGoalForm, ChangePasswordForm, CustomBudgetForm, AIConfigForm
-from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal, UserSeenAnnouncement, CustomBudget, UserAIConfig, ApiToken
+from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal, UserSeenAnnouncement, CustomBudget, UserAIConfig, ApiToken, UserPinDevice
 from app.email_service import encrypt_smtp_password, send_user_email, encrypt_mfa_secret, decrypt_mfa_secret, encrypt_ai_token, send_security_alert_email
 
 # (nombre, símbolo, nombre_moneda, código_ISO, locale_babel)
@@ -1899,7 +1899,25 @@ def mfa_disable():
         return jsonify({'error': _('Código incorrecto.')}), 400
     current_user.mfa_enabled = False
     current_user.mfa_secret_encrypted = None
+    # MFA is the prerequisite for PIN — revoke the PIN and all authorized devices
+    # so no orphaned PIN can bypass the gate that requires MFA to be active.
+    had_pin = current_user.has_pin
+    current_user.disable_pin()
     db.session.commit()
+    if had_pin:
+        from app.audit.logger import log_event
+        from app.audit import events as ev
+        try:
+            log_event(ev.AUTH_PIN_DISABLED,
+                      description=f'{current_user.email} PIN revocado al desactivar MFA',
+                      user_id=current_user.id, request=request)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+        try:
+            send_security_alert_email(current_user, "desactivó MFA (el PIN fue revocado automáticamente)")
+        except Exception:
+            pass
     return jsonify({'ok': True})
 
 
