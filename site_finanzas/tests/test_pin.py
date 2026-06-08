@@ -1,13 +1,13 @@
-"""Integration tests for the backup PIN feature (contextual Face ID fallback).
+"""Integration tests for the PIN de acceso rápido feature.
 
 Covers:
-- /auth/pin/set  : set PIN with correct/wrong password, trivial PINs
-- /auth/pin/login: success, no biometric marker, stale marker, wrong PIN,
-                   lockout after 5 failures, invalid/expired cookie, MFA redirect
-- /auth/pin/delete: delete with correct/wrong password
+- /pin/set  : set PIN with correct/wrong password, trivial/invalid PINs, email alert
+- /pin/login: success (device cookie), wrong PIN, lockout, invalid/expired cookie, MFA redirect
+- /pin/delete: delete with correct/wrong password, email alert
 """
 import hashlib
 from datetime import datetime, timedelta
+from unittest.mock import patch
 
 import pytest
 
@@ -21,7 +21,7 @@ from app.models import User, UserPinDevice
 
 PIN_EMAIL    = 'pin_test@example.com'
 PIN_PASSWORD = 'PinTestPass123!'
-VALID_PIN    = '472839'   # Non-trivial, non-sequential
+VALID_PIN    = '47283915'   # 8 digits, non-trivial, non-sequential
 
 SET_URL    = '/pin/set'
 DELETE_URL = '/pin/delete'
@@ -46,13 +46,6 @@ def _web_login(app, email=PIN_EMAIL, password=PIN_PASSWORD):
         f'loc={r.headers.get("Location")}'
     )
     return c
-
-
-def _set_biometric_marker(client, minutes_ago=0):
-    """Inject biometric_attempt_at into the session (simulates a recent Face ID attempt)."""
-    ts = (datetime.utcnow() - timedelta(minutes=minutes_ago)).isoformat()
-    with client.session_transaction() as sess:
-        sess['biometric_attempt_at'] = ts
 
 
 def _plant_device_cookie(client, raw_token: str):
@@ -89,12 +82,13 @@ def pin_user_id(app):
 
 
 # ---------------------------------------------------------------------------
-# POST /auth/pin/set
+# POST /pin/set
 # ---------------------------------------------------------------------------
 
 class TestPinSet:
 
-    def test_set_pin_ok(self, app, pin_user_id):
+    @patch('app.auth.pin_routes.send_security_alert_email')
+    def test_set_pin_ok(self, mock_alert, app, pin_user_id):
         c = _web_login(app)
         r = c.post(SET_URL, json={'password': PIN_PASSWORD, 'pin': VALID_PIN},
                    content_type='application/json')
@@ -108,6 +102,9 @@ class TestPinSet:
             u = User.query.get(pin_user_id)
             assert u.has_pin
             assert UserPinDevice.query.filter_by(user_id=pin_user_id).count() >= 1
+        # Security alert must have been sent
+        mock_alert.assert_called_once()
+        assert 'activó' in mock_alert.call_args[0][1]
 
     def test_set_pin_wrong_password(self, app, pin_user_id):
         c = _web_login(app)
@@ -118,21 +115,21 @@ class TestPinSet:
 
     def test_set_pin_trivial_all_same_rejected(self, app, pin_user_id):
         c = _web_login(app)
-        for bad in ('000000', '111111', '999999'):
+        for bad in ('00000000', '11111111', '99999999'):
             r = c.post(SET_URL, json={'password': PIN_PASSWORD, 'pin': bad},
                        content_type='application/json')
             assert r.status_code == 400, f'Expected 400 for trivial PIN {bad!r}'
 
     def test_set_pin_trivial_sequence_rejected(self, app, pin_user_id):
         c = _web_login(app)
-        for bad in ('123456', '654321', '012345'):
+        for bad in ('12345678', '87654321', '01234567'):
             r = c.post(SET_URL, json={'password': PIN_PASSWORD, 'pin': bad},
                        content_type='application/json')
             assert r.status_code == 400, f'Expected 400 for sequential PIN {bad!r}'
 
     def test_set_pin_wrong_length_rejected(self, app, pin_user_id):
         c = _web_login(app)
-        for bad in ('1234', '12345', '1234567', 'abcdef'):
+        for bad in ('1234', '123456', '1234567', 'abcdefgh', ''):
             r = c.post(SET_URL, json={'password': PIN_PASSWORD, 'pin': bad},
                        content_type='application/json')
             assert r.status_code == 400, f'Expected 400 for invalid PIN {bad!r}'
@@ -145,7 +142,7 @@ class TestPinSet:
 
 
 # ---------------------------------------------------------------------------
-# POST /auth/pin/login
+# POST /pin/login
 # ---------------------------------------------------------------------------
 
 _KNOWN_RAW_TOKEN = 'test-raw-token-known-device-x1'
@@ -174,7 +171,6 @@ class TestPinLogin:
 
     def test_login_ok(self, app, pin_user_id):
         c = app.test_client()
-        _set_biometric_marker(c)
         _plant_device_cookie(c, _KNOWN_RAW_TOKEN)
         r = c.post(LOGIN_URL, json={'pin': VALID_PIN},
                    content_type='application/json')
@@ -188,27 +184,10 @@ class TestPinLogin:
                 token_hash=_hash(_KNOWN_RAW_TOKEN)).first()
             assert old is None, 'Old token should have been rotated out'
 
-    def test_login_no_biometric_marker_rejected(self, app, pin_user_id):
-        c = app.test_client()
-        # No biometric_attempt_at in session → 403
-        _plant_device_cookie(c, _KNOWN_RAW_TOKEN)
-        r = c.post(LOGIN_URL, json={'pin': VALID_PIN},
-                   content_type='application/json')
-        assert r.status_code == 403
-
-    def test_login_stale_biometric_marker_rejected(self, app, pin_user_id):
-        c = app.test_client()
-        _set_biometric_marker(c, minutes_ago=10)   # 10 min ago > 5-min window
-        _plant_device_cookie(c, _KNOWN_RAW_TOKEN)
-        r = c.post(LOGIN_URL, json={'pin': VALID_PIN},
-                   content_type='application/json')
-        assert r.status_code == 403
-
     def test_login_wrong_pin_increments_counter(self, app, pin_user_id):
         c = app.test_client()
-        _set_biometric_marker(c)
         _plant_device_cookie(c, _KNOWN_RAW_TOKEN)
-        r = c.post(LOGIN_URL, json={'pin': '000001'},
+        r = c.post(LOGIN_URL, json={'pin': '00000001'},
                    content_type='application/json')
         assert r.status_code == 403
         with app.app_context():
@@ -218,14 +197,12 @@ class TestPinLogin:
     def test_lockout_after_5_failures(self, app, pin_user_id):
         c = app.test_client()
         for _ in range(5):
-            _set_biometric_marker(c)
             _plant_device_cookie(c, _KNOWN_RAW_TOKEN)
-            resp = c.post(LOGIN_URL, json={'pin': '000001'},
+            resp = c.post(LOGIN_URL, json={'pin': '00000001'},
                           content_type='application/json')
             assert resp.status_code == 403
 
         # 6th attempt — even with correct PIN — should return 429 (locked)
-        _set_biometric_marker(c)
         _plant_device_cookie(c, _KNOWN_RAW_TOKEN)
         r = c.post(LOGIN_URL, json={'pin': VALID_PIN},
                    content_type='application/json')
@@ -236,7 +213,6 @@ class TestPinLogin:
 
     def test_invalid_cookie_rejected(self, app, pin_user_id):
         c = app.test_client()
-        _set_biometric_marker(c)
         _plant_device_cookie(c, 'completely-bogus-token-xyz')
         r = c.post(LOGIN_URL, json={'pin': VALID_PIN},
                    content_type='application/json')
@@ -244,7 +220,6 @@ class TestPinLogin:
 
     def test_no_cookie_rejected(self, app, pin_user_id):
         c = app.test_client()
-        _set_biometric_marker(c)
         # No device cookie at all
         r = c.post(LOGIN_URL, json={'pin': VALID_PIN},
                    content_type='application/json')
@@ -256,7 +231,6 @@ class TestPinLogin:
             d.expires_at = datetime.utcnow() - timedelta(days=1)
             db.session.commit()
         c = app.test_client()
-        _set_biometric_marker(c)
         _plant_device_cookie(c, _KNOWN_RAW_TOKEN)
         r = c.post(LOGIN_URL, json={'pin': VALID_PIN},
                    content_type='application/json')
@@ -268,7 +242,6 @@ class TestPinLogin:
             u.mfa_enabled = True
             db.session.commit()
         c = app.test_client()
-        _set_biometric_marker(c)
         _plant_device_cookie(c, _KNOWN_RAW_TOKEN)
         r = c.post(LOGIN_URL, json={'pin': VALID_PIN},
                    content_type='application/json')
@@ -279,7 +252,7 @@ class TestPinLogin:
 
 
 # ---------------------------------------------------------------------------
-# POST /auth/pin/delete
+# POST /pin/delete
 # ---------------------------------------------------------------------------
 
 _DELETE_RAW_TOKEN = 'test-raw-token-delete-device-x1'
@@ -305,7 +278,8 @@ class TestPinDelete:
             ))
             db.session.commit()
 
-    def test_delete_pin_ok(self, app, pin_user_id):
+    @patch('app.auth.pin_routes.send_security_alert_email')
+    def test_delete_pin_ok(self, mock_alert, app, pin_user_id):
         c = _web_login(app)
         r = c.post(DELETE_URL, json={'password': PIN_PASSWORD},
                    content_type='application/json')
@@ -315,6 +289,9 @@ class TestPinDelete:
             u = User.query.get(pin_user_id)
             assert not u.has_pin
             assert UserPinDevice.query.filter_by(user_id=pin_user_id).count() == 0
+        # Security alert must have been sent
+        mock_alert.assert_called_once()
+        assert 'desactivó' in mock_alert.call_args[0][1]
 
     def test_delete_pin_wrong_password(self, app, pin_user_id):
         c = _web_login(app)

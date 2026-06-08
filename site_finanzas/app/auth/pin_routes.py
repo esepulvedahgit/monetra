@@ -1,14 +1,15 @@
-"""Backup PIN routes — contextual fallback when Face ID fails.
+"""PIN de acceso rápido — método de login opt-in para dispositivos de confianza.
 
-The PIN is NOT a standalone login method. It only works:
-  - on a device authorized at PIN setup (identified by an httpOnly cookie whose
-    token is stored hashed in user_pin_devices), and
-  - right after a biometric login attempt (session marker set in webauthn_login_begin).
+El PIN es un método de acceso independiente (no un fallback). Solo funciona:
+  - en un dispositivo autorizado al configurar el PIN (identificado por una cookie
+    httpOnly cuyo token se almacena hasheado en user_pin_devices), y
+  - en modo responsive (< 992 px). La restricción es client-side; server-side el
+    endpoint no distingue viewport, por diseño.
 
-Endpoints (all under /auth/pin/):
-  POST set     — set/replace the PIN and authorize the current device (login required)
-  POST delete  — remove the PIN and revoke all devices (login required)
-  POST login   — verify PIN using the device cookie; logs the user in (public)
+Endpoints (all under /pin/):
+  POST set     — establece/reemplaza el PIN y autoriza el dispositivo actual (login required)
+  POST delete  — elimina el PIN y revoca todos los dispositivos (login required)
+  POST login   — verifica el PIN usando la cookie del dispositivo; logea al usuario (public)
 """
 
 import hashlib
@@ -23,6 +24,7 @@ from app.auth import auth
 from app.models import User, UserPinDevice
 from app.audit import events as ev
 from app.audit.logger import log_event
+from app.email_service import send_security_alert_email
 
 
 # ---------------------------------------------------------------------------
@@ -32,7 +34,6 @@ from app.audit.logger import log_event
 COOKIE_NAME      = 'monetra_pin_device'
 COOKIE_PATH      = '/pin'
 COOKIE_DAYS      = 90
-ATTEMPT_WINDOW   = timedelta(minutes=5)   # PIN allowed only this long after a biometric attempt
 MAX_FAILS        = 5
 LOCK_MINUTES     = 15
 
@@ -88,16 +89,14 @@ def _audit(event_type, description=None, user_id=None):
 
 
 def _is_valid_pin(pin: str) -> bool:
-    """Exactly 6 digits and not a trivial sequence/repetition."""
-    if not pin or len(pin) != 6 or not pin.isdigit():
+    """Exactly 8 digits and not a trivial sequence/repetition."""
+    if not pin or len(pin) != 8 or not pin.isdigit():
         return False
-    if len(set(pin)) == 1:                       # 000000, 111111, ...
+    if len(set(pin)) == 1:                        # 00000000, 11111111, ...
         return False
-    asc = ''.join(str((int(pin[0]) + i) % 10) for i in range(6))
-    desc = ''.join(str((int(pin[0]) - i) % 10) for i in range(6))
-    if pin in (asc, desc):                        # 123456, 654321, wrap-arounds
-        return False
-    if pin in ('123456', '654321', '012345', '111111'):
+    asc = ''.join(str((int(pin[0]) + i) % 10) for i in range(8))
+    desc = ''.join(str((int(pin[0]) - i) % 10) for i in range(8))
+    if pin in (asc, desc):                        # 12345678, 87654321, wrap-arounds
         return False
     return True
 
@@ -118,7 +117,7 @@ def pin_set():
         return jsonify({'error': 'Contraseña incorrecta.'}), 403
 
     if not _is_valid_pin(pin):
-        return jsonify({'error': 'El PIN debe tener 6 dígitos y no ser una secuencia obvia.'}), 400
+        return jsonify({'error': 'El PIN debe tener 8 dígitos y no ser una secuencia obvia.'}), 400
 
     # Set PIN and clear any lockout state
     current_user.set_pin(pin)
@@ -136,6 +135,10 @@ def pin_set():
     )
     db.session.add(device)
     db.session.commit()
+
+    _audit(ev.AUTH_PIN_ENABLED, description=f'{current_user.email} activó PIN de acceso rápido',
+           user_id=current_user.id)
+    send_security_alert_email(current_user, "activó el PIN de acceso rápido")
 
     resp = jsonify({'ok': True})
     _set_device_cookie(resp, raw_token)
@@ -161,6 +164,10 @@ def pin_delete():
     UserPinDevice.query.filter_by(user_id=current_user.id).delete()
     db.session.commit()
 
+    _audit(ev.AUTH_PIN_DISABLED, description=f'{current_user.email} desactivó PIN de acceso rápido',
+           user_id=current_user.id)
+    send_security_alert_email(current_user, "desactivó el PIN de acceso rápido")
+
     resp = jsonify({'ok': True})
     _clear_device_cookie(resp)
     return resp
@@ -173,21 +180,7 @@ def pin_delete():
 @auth.route('/pin/login', methods=['POST'])
 @limiter.limit("5 per minute")
 def pin_login():
-    # 1. Must follow a recent biometric attempt — the PIN is a fallback, not a fixed door.
-    attempt_at = session.get('biometric_attempt_at')
-    if not attempt_at:
-        return jsonify({'error': 'Inicia con Face ID primero.'}), 403
-    try:
-        attempted = datetime.fromisoformat(attempt_at)
-        if attempted.tzinfo is not None:
-            attempted = attempted.replace(tzinfo=None)
-    except (ValueError, TypeError):
-        return jsonify({'error': 'Inicia con Face ID primero.'}), 403
-    if _utcnow() - attempted > ATTEMPT_WINDOW:
-        session.pop('biometric_attempt_at', None)
-        return jsonify({'error': 'Inicia con Face ID primero.'}), 403
-
-    # 2. Identify the device from the cookie
+    # 1. Identify the device from the cookie
     raw_token = request.cookies.get(COOKIE_NAME, '')
     if not raw_token:
         return jsonify({'error': 'PIN no disponible en este dispositivo.'}), 403
@@ -196,7 +189,7 @@ def pin_login():
     if not device:
         return jsonify({'error': 'PIN no disponible en este dispositivo.'}), 403
 
-    # 3. Expiry check (absolute)
+    # 2. Expiry check (absolute)
     expires_at = device.expires_at
     if expires_at and expires_at.tzinfo is not None:
         expires_at = expires_at.replace(tzinfo=None)
@@ -211,11 +204,11 @@ def pin_login():
     if not user or not user.has_pin:
         return jsonify({'error': 'PIN no disponible en este dispositivo.'}), 403
 
-    # 4. Account-level lockout
+    # 3. Account-level lockout
     if user.pin_is_locked:
         return jsonify({'error': 'Demasiados intentos. Usa tu contraseña.'}), 429
 
-    # 5. Verify the PIN
+    # 4. Verify the PIN
     data = request.get_json(silent=True) or {}
     pin = (data.get('pin') or '').strip()
     if not user.check_pin(pin):
@@ -226,16 +219,15 @@ def pin_login():
         _audit(ev.AUTH_LOGIN_FAIL, description=f'{user.email} (PIN)')
         return jsonify({'error': 'PIN incorrecto.'}), 403
 
-    # 6. Success — reset counters, rotate the device token, consume the biometric marker
+    # 5. Success — reset counters, rotate the device token
     user.pin_failed_attempts = 0
     user.pin_locked_until = None
     device.last_used_at = _utcnow()
     new_token = secrets.token_urlsafe(32)
     device.token_hash = _hash_token(new_token)   # rotation (expires_at unchanged)
     db.session.commit()
-    session.pop('biometric_attempt_at', None)
 
-    # 7. Same post-auth checks as the password login flow
+    # 6. Same post-auth checks as the password login flow
     if not user.email_verified:
         return jsonify({'error': 'Tu cuenta aún no está activada. Revisa tu correo.'}), 403
 

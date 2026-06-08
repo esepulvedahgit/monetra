@@ -17,7 +17,7 @@ from app import db
 from app.main import main
 from app.main.forms import TransactionForm, CategoryForm, BudgetForm, CategoryBudgetForm, ConfigForm, SMTPConfigForm, RecurringTransactionForm, SavingsGoalForm, ChangePasswordForm, CustomBudgetForm, AIConfigForm
 from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal, UserSeenAnnouncement, CustomBudget, UserAIConfig, ApiToken
-from app.email_service import encrypt_smtp_password, send_user_email, encrypt_mfa_secret, decrypt_mfa_secret, encrypt_ai_token
+from app.email_service import encrypt_smtp_password, send_user_email, encrypt_mfa_secret, decrypt_mfa_secret, encrypt_ai_token, send_security_alert_email
 
 # (nombre, símbolo, nombre_moneda, código_ISO, locale_babel)
 COUNTRIES_CURRENCIES = [
@@ -1833,6 +1833,16 @@ def change_password():
             return redirect(url_for('main.configurar'))
         current_user.set_password(form.new_password.data)
         db.session.commit()
+        send_security_alert_email(current_user, "cambió la contraseña")
+        try:
+            from app.audit import events as ev
+            from app.audit.logger import log_event
+            log_event(ev.AUTH_PASSWORD_CHANGE,
+                      description=f'{current_user.email} cambió su contraseña',
+                      user_id=current_user.id, request=request)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
         logout_user()
         flash(_('Contraseña actualizada correctamente. Inicia sesión con tu nueva contraseña.'), 'success')
         return redirect(url_for('auth.login'))

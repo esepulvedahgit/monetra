@@ -220,6 +220,93 @@ def send_activation_email(user, activation_url: str) -> tuple[bool, str]:
     return send_recovery_email(user, user.email, subject, body_text, body_html)
 
 
+def send_security_alert_email(user, action_label: str, detail: str = None) -> None:
+    """Send a security notification when the user changes a security setting.
+
+    Best-effort: never raises — the alert is informational and must not interrupt
+    the flow that triggered it (PIN activation, PIN deletion, password change).
+
+    Uses send_recovery_email() so user SMTP → admin SMTP fallback is automatic.
+    """
+    from datetime import datetime
+
+    try:
+        ts = datetime.utcnow().strftime('%d/%m/%Y a las %H:%M UTC')
+        subject = "Aviso de seguridad — Monetra"
+        body_text = (
+            f"Hola {user.username},\n\n"
+            f"Se {action_label} en tu cuenta Monetra el {ts}.\n\n"
+            f"Si no fuiste tú, cambia tu contraseña de inmediato.\n\n"
+            f"Saludos,\nEquipo Monetra"
+        )
+        if detail:
+            body_text = (
+                f"Hola {user.username},\n\n"
+                f"Se {action_label} en tu cuenta Monetra el {ts}.\n"
+                f"Detalle: {detail}\n\n"
+                f"Si no fuiste tú, cambia tu contraseña de inmediato.\n\n"
+                f"Saludos,\nEquipo Monetra"
+            )
+        detail_row = f"""
+            <p style="color:#a0a0b0;font-size:.85rem;margin:8px 0 0;">
+              Detalle: {detail}
+            </p>""" if detail else ""
+        body_html = f"""
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#0f0f1a;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0"
+         style="background:#0f0f1a;padding:40px 0;">
+    <tr><td align="center">
+      <table width="520" cellpadding="0" cellspacing="0"
+             style="background:#1a1a2e;border-radius:12px;
+                    border:1px solid rgba(0,200,150,0.20);overflow:hidden;">
+        <tr>
+          <td style="padding:32px 40px 24px;text-align:center;">
+            <div style="font-size:2rem;margin-bottom:8px;">&#128275;</div>
+            <h1 style="color:#00C896;font-size:1.4rem;margin:0 0 8px;">
+              Aviso de seguridad
+            </h1>
+            <p style="color:#a0a0b0;font-size:.9rem;margin:0;">
+              Hola <strong style="color:#e0e0f0;">{user.username}</strong>,
+              se registró un cambio en tu cuenta.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 40px 32px;text-align:center;">
+            <div style="background:rgba(0,200,150,0.08);border:1px solid rgba(0,200,150,0.20);
+                        border-radius:8px;padding:20px;">
+              <p style="color:#e0e0f0;font-size:1rem;margin:0;">
+                Se <strong>{action_label}</strong>
+              </p>
+              <p style="color:#a0a0b0;font-size:.85rem;margin:8px 0 0;">
+                {ts}
+              </p>{detail_row}
+            </div>
+            <p style="color:#606070;font-size:.8rem;margin:24px 0 0;">
+              Si no fuiste tú, cambia tu contraseña de inmediato.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 40px;border-top:1px solid rgba(255,255,255,0.06);
+                     text-align:center;">
+            <p style="color:#404055;font-size:.75rem;margin:0;">
+              Monetra &mdash; Finanzas personales
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>"""
+        send_recovery_email(user, user.email, subject, body_text, body_html)
+    except Exception:
+        pass  # Best-effort — never break the caller
+
+
 def send_weekly_report(user, excel_bytes: bytes, filename: str):
     """
     Sends the weekly Excel report to the user.

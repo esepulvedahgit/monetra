@@ -5659,17 +5659,17 @@ msgstr "There is already a category with that name."
 msgid "No se puede eliminar: la categoría tiene movimientos asociados."
 msgstr "Cannot be deleted: the category has associated movements."
 
-#: app/templates/main/configurar.html app/templates/auth/login.html
-msgid "PIN de respaldo"
-msgstr "Backup PIN"
+#: app/templates/main/configurar.html
+msgid "PIN de acceso rápido"
+msgstr "Quick-access PIN"
+
+#: app/templates/main/configurar.html
+msgid "Inicia sesión en este dispositivo con un PIN de 8 dígitos. Más rápido pero menos seguro que tu contraseña — úsalo bajo tu propio criterio. Disponible solo en el móvil."
+msgstr "Log in on this device with an 8-digit PIN. Faster but less secure than your password — use at your own discretion. Available on mobile only."
 
 #: app/templates/main/configurar.html app/templates/auth/login.html
-msgid "Aparece solo cuando Face ID no te reconozca (gorro, lentes), en este dispositivo. No es una alternativa de inicio de sesión fija."
-msgstr "Appears only when Face ID doesn't recognize you (hat, glasses), on this device. Not a fixed login alternative."
-
-#: app/templates/main/configurar.html app/templates/auth/login.html
-msgid "PIN de 6 dígitos"
-msgstr "6-digit PIN"
+msgid "PIN de 8 dígitos"
+msgstr "8-digit PIN"
 
 #: app/templates/main/configurar.html
 msgid "Confirmar PIN"
@@ -5696,20 +5696,20 @@ msgid "Confirma tu contraseña para continuar."
 msgstr "Confirm your password to continue."
 
 #: app/templates/main/configurar.html
-msgid "El PIN debe tener exactamente 6 dígitos."
-msgstr "The PIN must be exactly 6 digits."
+msgid "El PIN debe tener exactamente 8 dígitos."
+msgstr "The PIN must be exactly 8 digits."
 
 #: app/templates/auth/login.html
-msgid "¿Face ID no te reconoció? Ingresa tu PIN"
-msgstr "Face ID didn't recognize you? Enter your PIN"
+msgid "Ingresa tu PIN de acceso rápido"
+msgstr "Enter your quick-access PIN"
 
 #: app/templates/auth/login.html
 msgid "Ingresar con PIN"
 msgstr "Sign in with PIN"
 
 #: app/templates/auth/login.html
-msgid "El PIN debe tener 6 dígitos."
-msgstr "The PIN must be 6 digits."
+msgid "El PIN debe tener 8 dígitos."
+msgstr "The PIN must be 8 digits."
 
 #: app/templates/auth/login.html app/auth/pin_routes.py
 msgid "PIN incorrecto."

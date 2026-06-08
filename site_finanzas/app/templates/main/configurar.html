@@ -668,10 +668,10 @@
 
             <hr class="my-0" style="border-color: rgba(255,255,255,0.07);">
 
-            <!-- PIN de respaldo (fallback contextual cuando Face ID falla) -->
+            <!-- PIN de acceso rápido (opt-in, device-bound) -->
             <div class="card-body p-4 pb-3">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="fw-semibold">{{ _('PIN de respaldo') }}</span>
+                    <span class="fw-semibold">{{ _('PIN de acceso rápido') }}</span>
                     {% if has_pin %}
                     <span class="badge" style="background:var(--monetra-primary,#00C896); color:#000;">{{ _('Activo') }}</span>
                     {% else %}
@@ -679,7 +679,7 @@
                     {% endif %}
                 </div>
                 <p class="small mb-3" style="color: var(--monetra-text-muted, #B0BEC5);">
-                    {{ _('Aparece solo cuando Face ID no te reconozca (gorro, lentes), en este dispositivo. No es una alternativa de inicio de sesión fija.') }}
+                    {{ _('Inicia sesión en este dispositivo con un PIN de 8 dígitos. Más rápido pero menos seguro que tu contraseña — úsalo bajo tu propio criterio. Disponible solo en el móvil.') }}
                 </p>
 
                 <!-- Inputs de PIN -->
@@ -687,14 +687,14 @@
                     <div class="row g-2 mb-2">
                         <div class="col-auto">
                             <input type="password" id="pinInput"
-                                   inputmode="numeric" pattern="\d*" maxlength="6"
+                                   inputmode="numeric" pattern="\d*" maxlength="8"
                                    class="form-control form-control-sm"
-                                   placeholder="{{ _('PIN de 6 dígitos') }}"
+                                   placeholder="{{ _('PIN de 8 dígitos') }}"
                                    style="max-width:160px; letter-spacing:0.2em;">
                         </div>
                         <div class="col-auto">
                             <input type="password" id="pinConfirmInput"
-                                   inputmode="numeric" pattern="\d*" maxlength="6"
+                                   inputmode="numeric" pattern="\d*" maxlength="8"
                                    class="form-control form-control-sm"
                                    placeholder="{{ _('Confirmar PIN') }}"
                                    style="max-width:160px; letter-spacing:0.2em;">
@@ -1543,6 +1543,23 @@
     </script>
 
     <script>
+    // Sync localStorage hints with server state so the login page shows/hides
+    // the biometric button and PIN fallback correctly after any credential change.
+    (function () {
+        {% if webauthn_credentials %}
+        localStorage.setItem('monetra_passkey', '1');
+        {% else %}
+        localStorage.removeItem('monetra_passkey');
+        {% endif %}
+        {% if has_pin %}
+        localStorage.setItem('monetra_pin', '1');
+        {% else %}
+        localStorage.removeItem('monetra_pin');
+        {% endif %}
+    })();
+    </script>
+
+    <script>
     // ── WebAuthn registration & deletion ─────────────────────────────────────
     (function () {
         'use strict';
@@ -1773,7 +1790,7 @@
     </script>
 
     <script>
-    // ── PIN de respaldo (fallback de Face ID, ligado al dispositivo) ─────────────
+    // ── PIN de acceso rápido (opt-in, device-bound) ──────────────────────────────
     (function () {
         'use strict';
 
@@ -1817,7 +1834,7 @@
         [pinInput, pinConfirm].forEach(function (el) {
             if (!el) return;
             el.addEventListener('input', function () {
-                el.value = el.value.replace(/\D/g, '').slice(0, 6);
+                el.value = el.value.replace(/\D/g, '').slice(0, 8);
                 if (pinMismatch) pinMismatch.classList.add('d-none');
             });
         });
@@ -1827,8 +1844,8 @@
                 if (!pinInput || !pinConfirm) return;
                 var pin  = pinInput.value;
                 var pin2 = pinConfirm.value;
-                if (pin.length !== 6 || !/^\d{6}$/.test(pin)) {
-                    showStatus('{{ _("El PIN debe tener exactamente 6 dígitos.") }}', false);
+                if (pin.length !== 8 || !/^\d{8}$/.test(pin)) {
+                    showStatus('{{ _("El PIN debe tener exactamente 8 dígitos.") }}', false);
                     return;
                 }
                 if (pin !== pin2) {

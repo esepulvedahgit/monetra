@@ -76,9 +76,6 @@ def webauthn_login_begin():
 
     # Store challenge in session (single-use)
     session['webauthn_auth_challenge'] = _b64url(options.challenge)
-    # Mark that a biometric attempt was initiated; used by /auth/pin/login to enforce
-    # that the PIN fallback is only reachable right after Face ID is attempted.
-    session['biometric_attempt_at'] = datetime.now(timezone.utc).isoformat()
 
     return options_to_json(options), 200, {'Content-Type': 'application/json'}
 

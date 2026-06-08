@@ -5233,16 +5233,16 @@ msgstr ""
 msgid "No se puede eliminar: la categoría tiene movimientos asociados."
 msgstr ""
 
-#: app/templates/main/configurar.html app/templates/auth/login.html
-msgid "PIN de respaldo"
+#: app/templates/main/configurar.html
+msgid "PIN de acceso rápido"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Inicia sesión en este dispositivo con un PIN de 8 dígitos. Más rápido pero menos seguro que tu contraseña — úsalo bajo tu propio criterio. Disponible solo en el móvil."
 msgstr ""
 
 #: app/templates/main/configurar.html app/templates/auth/login.html
-msgid "Aparece solo cuando Face ID no te reconozca (gorro, lentes), en este dispositivo. No es una alternativa de inicio de sesión fija."
-msgstr ""
-
-#: app/templates/main/configurar.html app/templates/auth/login.html
-msgid "PIN de 6 dígitos"
+msgid "PIN de 8 dígitos"
 msgstr ""
 
 #: app/templates/main/configurar.html
@@ -5270,11 +5270,11 @@ msgid "Confirma tu contraseña para continuar."
 msgstr ""
 
 #: app/templates/main/configurar.html
-msgid "El PIN debe tener exactamente 6 dígitos."
+msgid "El PIN debe tener exactamente 8 dígitos."
 msgstr ""
 
 #: app/templates/auth/login.html
-msgid "¿Face ID no te reconoció? Ingresa tu PIN"
+msgid "Ingresa tu PIN de acceso rápido"
 msgstr ""
 
 #: app/templates/auth/login.html
@@ -5282,7 +5282,7 @@ msgid "Ingresar con PIN"
 msgstr ""
 
 #: app/templates/auth/login.html
-msgid "El PIN debe tener 6 dígitos."
+msgid "El PIN debe tener 8 dígitos."
 msgstr ""
 
 #: app/templates/auth/login.html app/auth/pin_routes.py
