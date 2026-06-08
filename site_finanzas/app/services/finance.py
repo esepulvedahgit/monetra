@@ -15,6 +15,7 @@ def _tx_dict(tx):
         "category_name": tx.category.name if tx.category else None,
         "is_demo": tx.is_demo,
         "created_at": tx.created_at.isoformat() if tx.created_at else None,
+        "recurring_id": tx.recurring_id,
     }
 
 

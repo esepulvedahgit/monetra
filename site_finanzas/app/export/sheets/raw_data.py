@@ -35,29 +35,32 @@ def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
     ws.set_column(2, 2, 6)    # Año
     ws.set_column(3, 3, 6)    # Mes
     ws.set_column(4, 4, 11)   # Tipo
-    ws.set_column(5, 5, 22)   # Categoría
-    ws.set_column(6, 6, 35)   # Descripción
-    ws.set_column(7, 7, 15)   # Monto
-    ws.set_column(8, 8, 8)    # Demo
+    ws.set_column(5, 5, 14)   # Origen
+    ws.set_column(6, 6, 22)   # Categoría
+    ws.set_column(7, 7, 35)   # Descripción
+    ws.set_column(8, 8, 15)   # Monto
+    ws.set_column(9, 9, 8)    # Demo
 
     # ── Title ─────────────────────────────────────────────────────────────────
-    write_title_row(ws, 0, f"  {title}", subtitle, fmt, 9)
+    write_title_row(ws, 0, f"  {title}", subtitle, fmt, 10)
 
     # ── Column headers ────────────────────────────────────────────────────────
     hdrs = (
-        ["ID", "Fecha", "Año", "Mes", "Tipo", "Categoría", "Descripción", "Monto", "Demo"]
+        ["ID", "Fecha", "Año", "Mes", "Tipo", "Origen", "Categoría", "Descripción", "Monto", "Demo"]
         if lang == "es"
-        else ["ID", "Date", "Year", "Month", "Type", "Category", "Description", "Amount", "Demo"]
+        else ["ID", "Date", "Year", "Month", "Type", "Origin", "Category", "Description", "Amount", "Demo"]
     )
     ws.set_row(3, 22)
     for c, h in enumerate(hdrs):
         ws.write(3, c, h, fmt["col_header"])
 
-    ws.autofilter(3, 0, 3, 8)
+    ws.autofilter(3, 0, 3, 9)
 
     # ── Data rows ─────────────────────────────────────────────────────────────
     lbl_income = "Ingreso" if lang == "es" else "Income"
     lbl_expense = "Gasto" if lang == "es" else "Expense"
+    lbl_recurrente = "Recurrente" if lang == "es" else "Recurring"
+    lbl_manual = "Manual"
 
     for i, tx in enumerate(all_txs):
         row = 4 + i
@@ -79,6 +82,7 @@ def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
 
         year_val = tx_date.year if tx_date else ""
         month_val = tx_date.month if tx_date else ""
+        origen = lbl_recurrente if tx.get("recurring_id") else lbl_manual
 
         ws.set_row(row, 16)
         ws.write(row, 0, tx["id"], ccfmt)
@@ -89,11 +93,12 @@ def write(workbook, ws, fmt: dict, data: dict, lang: str = "es"):
         ws.write(row, 2, year_val, ccfmt)
         ws.write(row, 3, month_val, ccfmt)
         ws.write(row, 4, t_lbl, tbadge)
-        ws.write(row, 5, tx.get("category_name") or "—", cfmt)
-        ws.write(row, 6, tx.get("description") or "—", cfmt)
-        ws.write(row, 7, tx["amount"], mfmt)
-        ws.write(row, 8, "Sí" if tx.get("is_demo") else "No", ccfmt)
+        ws.write(row, 5, origen, ccfmt)
+        ws.write(row, 6, tx.get("category_name") or "—", cfmt)
+        ws.write(row, 7, tx.get("description") or "—", cfmt)
+        ws.write(row, 8, tx["amount"], mfmt)
+        ws.write(row, 9, "Sí" if tx.get("is_demo") else "No", ccfmt)
 
     if not all_txs:
         empty = "Sin transacciones registradas." if lang == "es" else "No transactions found."
-        ws.merge_range(4, 0, 4, 8, empty, fmt["status_none"])
+        ws.merge_range(4, 0, 4, 9, empty, fmt["status_none"])
