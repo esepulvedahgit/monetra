@@ -612,6 +612,7 @@
                     {{ _('Inicia sesión en este dispositivo con un PIN de 8 dígitos. Más rápido pero menos seguro que tu contraseña — úsalo bajo tu propio criterio. Disponible solo en el móvil.') }}
                 </p>
 
+                {% if current_user.mfa_enabled %}
                 <!-- Inputs de PIN -->
                 <div id="pinSetPanel">
                     <div class="row g-2 mb-2">
@@ -665,6 +666,16 @@
                     </div>
                     <div id="pinPasswordError" class="mt-1 small text-danger d-none"></div>
                 </div>
+                {% else %}
+                <!-- MFA inactivo: PIN no disponible -->
+                <div class="d-flex align-items-start gap-2 p-3 rounded"
+                     style="background:rgba(255,193,7,0.08); border:1px solid rgba(255,193,7,0.25);">
+                    <i class="bi bi-shield-exclamation text-warning mt-1" style="flex-shrink:0;"></i>
+                    <p class="mb-0 small" style="color:var(--monetra-text-muted,#B0BEC5);">
+                        {{ _('Activa la verificación en dos pasos (MFA) para poder usar el PIN de acceso rápido.') }}
+                    </p>
+                </div>
+                {% endif %}
             </div>
 
             <hr class="my-0" style="border-color: rgba(255,255,255,0.07);">

@@ -19,60 +19,70 @@
             {{ _('Inicia sesión en tu cuenta') }}
         </h5>
 
-        <form method="POST" novalidate>
-            {{ form.hidden_tag() }}
+        <!-- Vista: usuario + contraseña -->
+        <div id="passwordView">
+            <form method="POST" novalidate>
+                {{ form.hidden_tag() }}
 
-            <div class="mb-3">
-                {{ form.email.label(class="form-label") }}
-                {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""),
-                placeholder="correo@ejemplo.com") }}
-                {% for e in form.email.errors %}
-                <div class="invalid-feedback">{{ e }}</div>
-                {% endfor %}
+                <div class="mb-3">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""),
+                    placeholder="correo@ejemplo.com") }}
+                    {% for e in form.email.errors %}
+                    <div class="invalid-feedback">{{ e }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.password.label(class="form-label") }}
+                    {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""),
+                    placeholder="••••••••") }}
+                    {% for e in form.password.errors %}
+                    <div class="invalid-feedback">{{ e }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-4 form-check">
+                    {{ form.remember(class="form-check-input") }}
+                    {{ form.remember.label(class="form-check-label") }}
+                </div>
+
+                {{ form.submit(class="btn btn-monetra-primary w-100 py-2 fs-6") }}
+            </form>
+
+            <div class="text-center mt-3">
+                <a href="{{ url_for('auth.forgot_password') }}" style="font-size: 0.88rem; color: var(--monetra-text-soft);">{{ _('¿Olvidaste tu contraseña?') }}</a>
             </div>
 
-            <div class="mb-3">
-                {{ form.password.label(class="form-label") }}
-                {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""),
-                placeholder="••••••••") }}
-                {% for e in form.password.errors %}
-                <div class="invalid-feedback">{{ e }}</div>
-                {% endfor %}
+            <!-- Enlace "Ingresar con PIN" — visible en móvil al volver desde la vista PIN -->
+            <div id="switchToPinLink" class="text-center mt-3" style="display:none;">
+                <a href="#" id="switchToPin" style="font-size: 0.82rem; color: var(--monetra-text-muted);">{{ _('Ingresar con PIN') }}</a>
             </div>
-
-            <div class="mb-4 form-check">
-                {{ form.remember(class="form-check-input") }}
-                {{ form.remember.label(class="form-check-label") }}
-            </div>
-
-            {{ form.submit(class="btn btn-monetra-primary w-100 py-2 fs-6") }}
-        </form>
-
-        <div class="text-center mt-3">
-            <a href="{{ url_for('auth.forgot_password') }}" style="font-size: 0.88rem; color: var(--monetra-text-soft);">{{ _('¿Olvidaste tu contraseña?') }}</a>
         </div>
 
-        <!-- PIN de acceso rápido — se muestra directamente si el dispositivo tiene PIN configurado -->
-        <div id="pinFallback" style="display:none;">
-            <div class="d-flex align-items-center gap-2 my-3">
-                <hr class="flex-grow-1 m-0">
-                <span style="font-size:0.78rem; color:var(--monetra-text-muted); white-space:nowrap;">{{ _('o') }}</span>
-                <hr class="flex-grow-1 m-0">
-            </div>
-            <p class="small mb-2 text-center" style="color:var(--monetra-text-muted,#B0BEC5);">
-                {{ _('Ingresa tu PIN de acceso rápido') }}
+        <!-- Vista: PIN de acceso rápido — oculta por defecto, JS la activa en móvil -->
+        <div id="pinView" style="display:none;">
+            <p class="text-center mb-3"
+               style="color:var(--monetra-text-soft,#CFD8DC); font-size:0.95rem;
+                      font-weight:600; letter-spacing:0.02em;">
+                {{ _('Ingresa tu PIN') }}
             </p>
             <input type="password" id="pinLoginInput"
-                   inputmode="numeric" pattern="\d*" maxlength="8"
+                   inputmode="numeric" pattern="\d*"
                    class="form-control form-control-sm text-center mb-2"
-                   placeholder="{{ _('PIN de 8 dígitos') }}"
-                   style="letter-spacing:0.3em; font-size:1.1rem;">
+                   placeholder="{{ _('Ingresa tu PIN') }}"
+                   autocomplete="off"
+                   style="max-width:200px; margin:0 auto; letter-spacing:0.35em; font-size:1.05rem;">
             <button type="button" id="btnPinLogin"
                     class="btn w-100 py-2 fw-semibold"
                     style="background:var(--monetra-primary,#00C896); color:#0a1628; border:none; font-size:0.95rem;">
                 <i class="bi bi-lock me-2"></i>{{ _('Ingresar con PIN') }}
             </button>
             <div id="pinLoginError" class="mt-2 alert alert-danger d-none small py-2" role="alert"></div>
+            <!-- Enlace para volver a usuario+contraseña -->
+            <div class="text-center mt-3">
+                <a href="#" id="switchToPassword" style="font-size: 0.82rem; color: var(--monetra-text-muted);">{{ _('Ingresar con contraseña') }}</a>
+            </div>
         </div>
 
         <hr class="my-4">
@@ -92,34 +102,69 @@
 (function () {
     'use strict';
 
-    // Only activate on mobile. Show PIN block if this device has a PIN configured.
-    if (window.innerWidth >= 992) return;
-    var hasPin = localStorage.getItem('monetra_pin') === '1';
-    if (!hasPin) return;
+    var passwordView     = document.getElementById('passwordView');
+    var pinView          = document.getElementById('pinView');
+    var pinLoginInput    = document.getElementById('pinLoginInput');
+    var pinLoginError    = document.getElementById('pinLoginError');
+    var btnPinLogin      = document.getElementById('btnPinLogin');
+    var switchToPassword = document.getElementById('switchToPassword');
+    var switchToPin      = document.getElementById('switchToPin');
+    var switchToPinLink  = document.getElementById('switchToPinLink');
+    var csrfToken        = '{{ csrf_token() }}';
+    var pinLoginUrl      = '{{ url_for("auth.pin_login") }}';
 
-    var pinFallback   = document.getElementById('pinFallback');
-    var pinLoginInput = document.getElementById('pinLoginInput');
-    var pinLoginError = document.getElementById('pinLoginError');
-    var btnPinLogin   = document.getElementById('btnPinLogin');
-    var csrfToken     = '{{ csrf_token() }}';
-    var pinLoginUrl   = '{{ url_for("auth.pin_login") }}';
+    var isMobile = window.innerWidth < 992;
+    var hasPin   = localStorage.getItem('monetra_pin') === '1';
 
-    // Mostrar el bloque PIN
-    if (pinFallback) pinFallback.style.display = '';
+    function showPinView() {
+        if (passwordView) passwordView.style.display = 'none';
+        if (pinView)      pinView.style.display = '';
+        if (pinLoginInput) pinLoginInput.focus();
+    }
 
-    if (btnPinLogin && pinLoginInput) {
-        // Solo dígitos
+    function showPasswordView() {
+        if (pinView)         pinView.style.display = 'none';
+        if (passwordView)    passwordView.style.display = '';
+        if (switchToPinLink) switchToPinLink.style.display = '';
+    }
+
+    // En móvil con PIN configurado: mostrar vista PIN directamente
+    if (isMobile && hasPin) {
+        showPinView();
+    }
+
+    // Toggle: vista PIN → vista contraseña
+    if (switchToPassword) {
+        switchToPassword.addEventListener('click', function (e) {
+            e.preventDefault();
+            showPasswordView();
+        });
+    }
+
+    // Toggle: vista contraseña → vista PIN
+    if (switchToPin) {
+        switchToPin.addEventListener('click', function (e) {
+            e.preventDefault();
+            showPinView();
+        });
+    }
+
+    // Input: solo dígitos, sin revelar longitud máxima
+    if (pinLoginInput) {
         pinLoginInput.addEventListener('input', function () {
-            pinLoginInput.value = pinLoginInput.value.replace(/\D/g, '').slice(0, 8);
+            pinLoginInput.value = pinLoginInput.value.replace(/\D/g, '');
             if (pinLoginError) pinLoginError.classList.add('d-none');
         });
+        // Enviar con Enter
+        pinLoginInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && btnPinLogin && !btnPinLogin.disabled) btnPinLogin.click();
+        });
+    }
 
+    if (btnPinLogin && pinLoginInput) {
         btnPinLogin.addEventListener('click', function () {
             var pin = pinLoginInput.value;
-            if (pin.length !== 8) {
-                if (pinLoginError) { pinLoginError.textContent = '{{ _("El PIN debe tener 8 dígitos.") }}'; pinLoginError.classList.remove('d-none'); }
-                return;
-            }
+            if (!pin) return;
             btnPinLogin.disabled = true;
             btnPinLogin.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>{{ _("Verificando...") }}';
             if (pinLoginError) pinLoginError.classList.add('d-none');
@@ -135,6 +180,14 @@
                 if (res.data.ok) {
                     window.location.href = res.data.redirect;
                 } else {
+                    // pin_unavailable: device is no longer authorized (expired, revoked,
+                    // or PIN was disabled). Clear the localStorage hint and fall back to
+                    // the password view so the user isn't stuck on a broken PIN screen.
+                    if (res.data.pin_unavailable) {
+                        localStorage.removeItem('monetra_pin');
+                        showPasswordView();
+                        return;
+                    }
                     throw new Error(res.data.error || '{{ _("PIN incorrecto.") }}');
                 }
             })
