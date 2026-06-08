@@ -252,6 +252,8 @@ docker load -i monetra-release-arm64.tar
 | `FLASK_TESTING` | No | `true` activa modo testing (default: `false`) |
 | `MAX_CONTENT_UPLOAD_MB` | No | Tamaño máximo de archivos subidos en MB (default: `15`) |
 | `MAX_RESTORE_SQL_MB` | No | Tamaño máximo del archivo SQL de restauración en MB (default: `500`) |
+| `SESSION_COOKIE_SECURE` | No | `true` → cookies solo por HTTPS (reverse proxy con TLS). `false` → HTTP plano. Default: `true` en producción, `false` en debug |
+| `SESSION_INACTIVITY_TIMEOUT` | No | Segundos de inactividad antes de cerrar sesión automáticamente (default: `900` — 15 min) |
 
 Generar valores seguros:
 ```bash
@@ -273,9 +275,19 @@ SECRET_KEY=
 FIELD_ENCRYPTION_KEY=
 JWT_SECRET_KEY=
 
+# Seguridad de sesión (opcional)
+# false → HTTP plano (sin TLS). true → solo HTTPS (con reverse proxy).
+# install.sh establece false por defecto; cámbialo a true al activar HTTPS.
+SESSION_COOKIE_SECURE=false
+# Segundos de inactividad antes de cerrar sesión automáticamente (default: 900 = 15 min)
+# SESSION_INACTIVITY_TIMEOUT=900
+
+# API REST — orígenes CORS permitidos (default: '*')
+# CORS_ORIGINS=*
+
 # Backup (opcional, defaults razonables)
-MAX_CONTENT_UPLOAD_MB=15
-MAX_RESTORE_SQL_MB=500
+# MAX_CONTENT_UPLOAD_MB=15
+# MAX_RESTORE_SQL_MB=500
 ```
 
 ---

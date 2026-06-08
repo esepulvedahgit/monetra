@@ -10,7 +10,7 @@
 
 <div class="modal-body py-4">
     <p class="mb-3 fw-semibold" style="color: var(--monetra-text);">
-        {{ _('Nueva novedad: registra gastos desde una foto con el Escáner IA.') }}
+        {{ _('Dos grandes novedades: registra gastos desde una foto con el Escáner IA y entra a Monetra con un PIN rápido en el móvil.') }}
     </p>
 
     <ul class="list-unstyled mb-3 ps-1" style="color: var(--monetra-text-soft); line-height: 1.9;">
@@ -18,6 +18,11 @@
             <i class="bi bi-camera-fill me-2" style="color: #F472B6;"></i>
             <strong>{{ _('Escáner IA de recibos') }}</strong>
             {{ _('— Toca el ícono de cámara en la barra superior, fotografía tu recibo y la IA extrae monto, categoría y fecha para crear la transacción en segundos. Configúralo en Configuración de Cuenta → Escáner IA.') }}
+        </li>
+        <li class="mb-2">
+            <i class="bi bi-lock-fill me-2" style="color: #34D399;"></i>
+            <strong>{{ _('PIN de acceso rápido') }}</strong>
+            {{ _('— Inicia sesión en el móvil con un PIN de 8 dígitos vinculado a tu dispositivo, sin necesidad de escribir tu contraseña. Requiere verificación en dos pasos (MFA) activa. Actívalo en Configuración de Cuenta → PIN de acceso rápido.') }}
         </li>
         <li class="mb-2">
             <i class="bi bi-bar-chart-line-fill me-2" style="color: #A78BFA;"></i>
@@ -33,7 +38,7 @@
             {{ _('¿Por dónde empezar?') }}
         </div>
         <div class="small">
-            {{ _('Ve a Configuración de Cuenta para activar el Escáner IA (necesitas una clave de API de OpenAI u Ollama).') }}
+            {{ _('Ve a Configuración de Cuenta para activar el Escáner IA (necesitas una clave de API de OpenAI u Ollama) y, si ya tienes MFA, configura tu PIN de acceso rápido.') }}
         </div>
     </div>
 </div>
