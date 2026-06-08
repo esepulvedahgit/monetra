@@ -473,8 +473,8 @@ Depende de la pestaña. Movimientos, Categorías, Presupuestos, Dashboard y Base
 **¿El escáner siempre extrae bien los datos?**
 Depende de la calidad de la imagen y el modelo de IA configurado. Imágenes claras, bien encuadradas y con buena iluminación dan mejores resultados. Siempre puedes revisar y corregir los datos extraídos en el paso de revisión antes de guardar la transacción.
 
-**¿Puedo usar Face ID si tengo 2FA activado?**
-Sí. El login biométrico (FIDO2) reemplaza el flujo completo de autenticación — no necesitas ingresar contraseña ni código TOTP. La verificación biométrica incluye la confirmación de identidad del usuario por diseño del estándar.
+**¿Puedo usar el PIN si tengo 2FA activado?**
+Sí. Al ingresar con PIN y tener 2FA activo, serás redirigido a la pantalla de verificación TOTP. Deberás ingresar tu código de autenticador como de costumbre.
 
 ---
 
@@ -511,35 +511,31 @@ Ve a **Configuración → Escáner IA** y completa:
 
 ---
 
-## 14. Autenticación biométrica
+## 14. PIN de acceso rápido
 
-Inicia sesión en Monetra usando Face ID o huella dactilar, sin necesidad de escribir tu email ni contraseña. Disponible solo en dispositivos móviles que soporten biometría.
+El PIN de acceso rápido es un método de login opt-in vinculado al dispositivo donde fue activado. Solo aparece en móvil (pantalla menor a 992 px). No es una credencial portátil: si cambias de dispositivo o borras las cookies deberás reactivarlo desde Configuración.
 
-> **Seguridad:** tecnología estándar FIDO2 / WebAuthn. Monetra nunca almacena tus datos biométricos — la verificación la realiza exclusivamente tu dispositivo.
+> **Nota:** el PIN no reemplaza tu contraseña. La necesitas para activarlo y eliminarlo. Es un acceso conveniente para el mismo dispositivo, no una alternativa de seguridad.
 
-### Activar (primera vez)
+### Activar el PIN
 
 1. Inicia sesión con tu email y contraseña desde tu dispositivo móvil.
-2. Ve a **Configuración → Seguridad → Autenticación biométrica**.
-3. Pulsa **Registrar este dispositivo**.
-4. Confirma tu contraseña actual cuando se solicite.
-5. El dispositivo pedirá Face ID o huella para crear la passkey.
+2. Ve a **Configuración → Seguridad → PIN de acceso rápido**.
+3. Confirma tu contraseña actual cuando se solicite.
+4. Elige un PIN de 8 dígitos (no puede ser secuencia ni todos iguales).
+5. Pulsa **Guardar PIN**.
 
-Una vez registrado, la próxima vez que entres a la página de login desde ese dispositivo verás el botón **Ingresar con Face ID / Huella**.
+La próxima vez que abras la pantalla de login en ese dispositivo, aparecerá el campo de PIN automáticamente.
 
-### Login biométrico
+### Ingresar con PIN
 
-1. Abre la página de login desde tu móvil registrado.
-2. Pulsa **Ingresar con Face ID / Huella** (no necesitas escribir tu email).
-3. El dispositivo muestra la passkey guardada — confirma con Face ID o huella.
-4. Accedes directamente al dashboard.
+1. Abre la página de login desde el móvil donde activaste el PIN.
+2. Escribe tu PIN de 8 dígitos en el campo que aparece.
+3. Pulsa **Ingresar con PIN**.
+4. Si tienes 2FA activo, serás redirigido a la verificación TOTP como de costumbre.
 
-### Cambiar de dispositivo
+### Eliminar el PIN
 
-Ve a Configuración → Seguridad → "Cambiar dispositivo". Se pedirá tu contraseña, luego registras el nuevo dispositivo con biometría. Solo puede haber un dispositivo registrado a la vez.
+Ve a Configuración → Seguridad → PIN de acceso rápido y pulsa **Eliminar**. Se pedirá tu contraseña para confirmar. El PIN y todos los dispositivos autorizados quedan revocados.
 
-### Eliminar
-
-Pulsa "Eliminar" en la sección de biometría. Se pedirá tu contraseña para confirmar. El botón biométrico desaparecerá del login.
-
-> **Importante:** si cambias de dispositivo o restableces tu teléfono, deberás eliminar la passkey antigua y volver a registrar el nuevo dispositivo. Siempre podrás iniciar sesión con tu contraseña.
+> **Importante:** la autorización del dispositivo expira a los 90 días de inactividad. Si el PIN expiró en ese dispositivo, deberás reactivarlo desde Configuración. Siempre podrás iniciar sesión con tu contraseña.

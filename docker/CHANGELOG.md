@@ -10,11 +10,12 @@
 - API key del proveedor cifrada con Fernet en `UserAIConfig`
 - Nuevo modelo `UserAIConfig` con proveedor, modelo, URL base y token cifrado
 
-### Autenticación biométrica (WebAuthn)
-- Registro e inicio de sesión con Face ID, huella dactilar o Windows Hello
-- Implementado con python-webauthn 2.1.0
-- Solo se almacena la clave pública (`UserWebAuthnCredential`); la biometría permanece en el dispositivo
-- Nuevas variables de entorno: `WEBAUTHN_RP_ID`, `WEBAUTHN_RP_NAME`, `WEBAUTHN_ORIGIN`
+### PIN de acceso rápido
+- Login opt-in vinculado al dispositivo desde móvil (pantalla < 992 px) con PIN de 8 dígitos
+- El PIN se activa desde Configuración → Seguridad; requiere confirmar contraseña actual
+- Token sha256 almacenado en cookie httpOnly (`monetra_pin_device`); la app solo guarda el hash
+- Bloqueo automático tras 5 intentos fallidos (15 min); la autorización expira a los 90 días
+- Modelo `UserPinDevice`; no reemplaza la contraseña ni el segundo factor (2FA/TOTP)
 
 ### Panel de analítica en Dashboard Global
 - Accesible en `/analytics/dashboard` — salud financiera, proyección de cierre y alertas

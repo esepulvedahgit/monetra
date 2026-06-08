@@ -2,18 +2,6 @@
 import secrets
 
 
-def _require_https_origin(env_var: str, default: str) -> str:
-    value = os.environ.get(env_var, default)
-    # localhost is a secure context per the WebAuthn spec — allow http:// for local installs
-    is_localhost = value.startswith('http://localhost') or value.startswith('http://127.0.0.1')
-    if os.environ.get('FLASK_DEBUG', '0') == '0' and not value.startswith('https://') and not is_localhost:
-        raise RuntimeError(
-            f"'{env_var}' debe comenzar con https:// en producción. "
-            f"Valor actual: '{value}'. Agrégala al archivo docker/.env."
-        )
-    return value
-
-
 def _require_key(env_var: str, fallback_in_debug: bool = True) -> str:
     value = os.environ.get(env_var)
     if value:
@@ -45,11 +33,6 @@ class Config:
 
     # Default 15 MB; raise MAX_CONTENT_UPLOAD_MB in docker/.env to restore large databases.
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_UPLOAD_MB', '15')) * 1024 * 1024
-
-    # WebAuthn / Passkeys — MUST match deployment domain in production
-    WEBAUTHN_RP_ID   = os.environ.get('WEBAUTHN_RP_ID',   'localhost')
-    WEBAUTHN_RP_NAME = os.environ.get('WEBAUTHN_RP_NAME', 'Monetra')
-    WEBAUTHN_ORIGIN  = _require_https_origin('WEBAUTHN_ORIGIN', 'http://localhost:5000')
 
     JWT_SECRET_KEY = _require_key('JWT_SECRET_KEY')
     JWT_ACCESS_TOKEN_EXPIRES = 900        # 15 min

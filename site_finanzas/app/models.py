@@ -29,7 +29,7 @@ class User(db.Model, UserMixin):
     help_mode_enabled = db.Column(db.Boolean, nullable=False, default=True)
     mfa_enabled = db.Column(db.Boolean, nullable=False, default=False)
     mfa_secret_encrypted = db.Column(db.LargeBinary, nullable=True)
-    # PIN de respaldo (fallback contextual de Face ID, ligado al dispositivo vía cookie)
+    # PIN de acceso rápido (ligado al dispositivo vía cookie httpOnly)
     pin_hash = db.Column(db.String(256), nullable=True)
     pin_failed_attempts = db.Column(db.Integer, nullable=False, default=0)
     pin_locked_until = db.Column(db.DateTime, nullable=True)
@@ -91,37 +91,9 @@ class User(db.Model, UserMixin):
         return f'<User {self.username}>'
 
 
-class UserWebAuthnCredential(db.Model):
-    """Stores WebAuthn passkeys for a user (Face ID / fingerprint / hardware key).
-
-    A user may have multiple credentials — e.g. phone + laptop + hardware key — so
-    that if one authenticator is unavailable another can be used as fallback.
-    """
-    __tablename__ = 'user_webauthn_credentials'
-
-    id            = db.Column(db.Integer, primary_key=True)
-    user_id       = db.Column(db.Integer, db.ForeignKey('users.id'), index=True, nullable=False)
-    credential_id = db.Column(db.String(512), unique=True, nullable=False)  # base64url string — MySQL can't index BLOB without prefix length
-    public_key    = db.Column(db.LargeBinary(2048), nullable=False)
-    sign_count    = db.Column(db.Integer, default=0, nullable=False)
-    device_name   = db.Column(db.String(100), nullable=True)
-    created_at    = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-
-    user = db.relationship(
-        'User',
-        backref=db.backref(
-            'webauthn_credentials',
-            cascade='all, delete-orphan',
-            order_by='UserWebAuthnCredential.created_at',
-        ),
-    )
-
-    def __repr__(self):
-        return f'<UserWebAuthnCredential user_id={self.user_id} device={self.device_name!r}>'
-
 
 class UserPinDevice(db.Model):
-    """A device authorized to use the backup PIN (fallback when Face ID fails).
+    """A device authorized to use the PIN de acceso rápido.
 
     The raw device token lives only in an httpOnly cookie on the device; the DB
     stores just its SHA-256 hash, so a DB leak does not expose usable cookies.

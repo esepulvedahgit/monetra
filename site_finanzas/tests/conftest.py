@@ -30,9 +30,6 @@ class TestConfig:
     BABEL_SUPPORTED_LOCALES = ['es', 'en']
     BABEL_TRANSLATION_DIRECTORIES = 'translations'
     MAX_CONTENT_LENGTH = 15 * 1024 * 1024
-    WEBAUTHN_RP_ID = 'localhost'
-    WEBAUTHN_RP_NAME = 'Monetra'
-    WEBAUTHN_ORIGIN = 'http://localhost:5000'
     CORS_ORIGINS = ['*']
     RATELIMIT_ENABLED = False
 

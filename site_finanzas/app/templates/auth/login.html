@@ -52,37 +52,27 @@
             <a href="{{ url_for('auth.forgot_password') }}" style="font-size: 0.88rem; color: var(--monetra-text-soft);">{{ _('¿Olvidaste tu contraseña?') }}</a>
         </div>
 
-        <!-- Biometric login — shown only on mobile if user has a registered passkey -->
-        <div id="webauthnSection" style="display:none;">
+        <!-- PIN de acceso rápido — se muestra directamente si el dispositivo tiene PIN configurado -->
+        <div id="pinFallback" style="display:none;">
             <div class="d-flex align-items-center gap-2 my-3">
                 <hr class="flex-grow-1 m-0">
                 <span style="font-size:0.78rem; color:var(--monetra-text-muted); white-space:nowrap;">{{ _('o') }}</span>
                 <hr class="flex-grow-1 m-0">
             </div>
-            <button type="button" id="btnBiometric"
+            <p class="small mb-2 text-center" style="color:var(--monetra-text-muted,#B0BEC5);">
+                {{ _('Ingresa tu PIN de acceso rápido') }}
+            </p>
+            <input type="password" id="pinLoginInput"
+                   inputmode="numeric" pattern="\d*" maxlength="8"
+                   class="form-control form-control-sm text-center mb-2"
+                   placeholder="{{ _('PIN de 8 dígitos') }}"
+                   style="letter-spacing:0.3em; font-size:1.1rem;">
+            <button type="button" id="btnPinLogin"
                     class="btn w-100 py-2 fw-semibold"
                     style="background:var(--monetra-primary,#00C896); color:#0a1628; border:none; font-size:0.95rem;">
-                <i class="bi bi-fingerprint me-2"></i>{{ _('Ingresar con Face ID / Huella') }}
+                <i class="bi bi-lock me-2"></i>{{ _('Ingresar con PIN') }}
             </button>
-            <div id="biometricError" class="mt-2 alert alert-danger d-none small py-2" role="alert"></div>
-
-            <!-- PIN de acceso rápido — se muestra directamente si el dispositivo tiene PIN configurado -->
-            <div id="pinFallback" style="display:none;" class="mt-3">
-                <p class="small mb-2 text-center" style="color:var(--monetra-text-muted,#B0BEC5);">
-                    {{ _('Ingresa tu PIN de acceso rápido') }}
-                </p>
-                <input type="password" id="pinLoginInput"
-                       inputmode="numeric" pattern="\d*" maxlength="8"
-                       class="form-control form-control-sm text-center mb-2"
-                       placeholder="{{ _('PIN de 8 dígitos') }}"
-                       style="letter-spacing:0.3em; font-size:1.1rem;">
-                <button type="button" id="btnPinLogin"
-                        class="btn w-100 py-2 fw-semibold"
-                        style="background:var(--monetra-primary,#00C896); color:#0a1628; border:none; font-size:0.95rem;">
-                    <i class="bi bi-lock me-2"></i>{{ _('Ingresar con PIN') }}
-                </button>
-                <div id="pinLoginError" class="mt-2 alert alert-danger d-none small py-2" role="alert"></div>
-            </div>
+            <div id="pinLoginError" class="mt-2 alert alert-danger d-none small py-2" role="alert"></div>
         </div>
 
         <hr class="my-4">
@@ -102,116 +92,23 @@
 (function () {
     'use strict';
 
-    // Only activate on mobile. Show biometric button if device has a passkey,
-    // show PIN block directly if device has a PIN configured (opt-in quick access).
+    // Only activate on mobile. Show PIN block if this device has a PIN configured.
     if (window.innerWidth >= 992) return;
-    var hasPasskey = localStorage.getItem('monetra_passkey') === '1' && !!window.PublicKeyCredential;
-    var hasPin     = localStorage.getItem('monetra_pin') === '1';
-    if (!hasPasskey && !hasPin) return;
+    var hasPin = localStorage.getItem('monetra_pin') === '1';
+    if (!hasPin) return;
 
-    var webauthnSection = document.getElementById('webauthnSection');
-    var btnBiometric    = document.getElementById('btnBiometric');
-    var biometricError  = document.getElementById('biometricError');
-    var pinFallback     = document.getElementById('pinFallback');
-    var pinLoginInput   = document.getElementById('pinLoginInput');
-    var pinLoginError   = document.getElementById('pinLoginError');
-    var btnPinLogin     = document.getElementById('btnPinLogin');
-    var csrfToken       = '{{ csrf_token() }}';
-    var beginUrl        = '{{ url_for("auth.webauthn_login_begin") }}';
-    var completeUrl     = '{{ url_for("auth.webauthn_login_complete") }}';
-    var pinLoginUrl     = '{{ url_for("auth.pin_login") }}';
+    var pinFallback   = document.getElementById('pinFallback');
+    var pinLoginInput = document.getElementById('pinLoginInput');
+    var pinLoginError = document.getElementById('pinLoginError');
+    var btnPinLogin   = document.getElementById('btnPinLogin');
+    var csrfToken     = '{{ csrf_token() }}';
+    var pinLoginUrl   = '{{ url_for("auth.pin_login") }}';
 
-    // Show the section container
-    if (webauthnSection) webauthnSection.style.display = '';
-    // Biometric button: only if passkey is available on this device
-    if (!hasPasskey && btnBiometric) btnBiometric.style.display = 'none';
-    // PIN block: show directly if this device has a PIN configured
-    if (hasPin && pinFallback) pinFallback.style.display = '';
+    // Mostrar el bloque PIN
+    if (pinFallback) pinFallback.style.display = '';
 
-    function showBiometricError(msg) {
-        if (!biometricError) return;
-        biometricError.textContent = msg;
-        biometricError.classList.remove('d-none');
-    }
-
-    function hideBiometricError() {
-        if (biometricError) biometricError.classList.add('d-none');
-    }
-
-    // Biometric login — usernameless / discoverable credentials flow.
-    // No email needed: the browser presents all passkeys for this domain and the
-    // user picks one. The server identifies the user from the returned credential_id.
-    if (btnBiometric) {
-        btnBiometric.addEventListener('click', function () {
-            hideBiometricError();
-
-            btnBiometric.disabled = true;
-            btnBiometric.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>{{ _("Verificando...") }}';
-
-            // 1. Get challenge from server (no email required)
-            fetch(beginUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-                body: '{}',
-            })
-                .then(function (r) {
-                    if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || '{{ _("Error al iniciar biometría.") }}'); });
-                    return r.json();
-                })
-                .then(function (serverOptions) {
-                    // Build explicit publicKey options — pass only recognized fields to avoid
-                    // browser DOMException on unknown properties.
-                    var publicKey = {
-                        challenge:        _b64urlToBuffer(serverOptions.challenge),
-                        userVerification: serverOptions.userVerification || 'required',
-                    };
-                    if (serverOptions.rpId)   publicKey.rpId   = serverOptions.rpId;
-                    if (serverOptions.timeout) publicKey.timeout = serverOptions.timeout;
-                    // No allowCredentials → browser shows all passkeys for this domain
-                    return navigator.credentials.get({ publicKey: publicKey });
-                })
-                .then(function (assertion) {
-                    // 2. Send assertion to server
-                    var body = {
-                        id:       assertion.id,
-                        rawId:    _bufferToB64url(assertion.rawId),
-                        type:     assertion.type,
-                        response: {
-                            authenticatorData: _bufferToB64url(assertion.response.authenticatorData),
-                            clientDataJSON:    _bufferToB64url(assertion.response.clientDataJSON),
-                            signature:         _bufferToB64url(assertion.response.signature),
-                            userHandle:        assertion.response.userHandle ? _bufferToB64url(assertion.response.userHandle) : null,
-                        },
-                    };
-                    return fetch(completeUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-                        body: JSON.stringify(body),
-                    });
-                })
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                    if (data.ok) {
-                        window.location.href = data.redirect;
-                    } else {
-                        throw new Error(data.error || '{{ _("Error al verificar la biometría. Usa tu contraseña.") }}');
-                    }
-                })
-                .catch(function (err) {
-                    btnBiometric.disabled = false;
-                    btnBiometric.innerHTML = '<i class="bi bi-fingerprint me-2"></i>{{ _("Ingresar con Face ID / Huella") }}';
-                    if (err && err.name === 'NotAllowedError') {
-                        showBiometricError('{{ _("Autenticación cancelada.") }}');
-                    } else {
-                        showBiometricError((err && err.message) || '{{ _("Error al verificar la biometría. Usa tu contraseña.") }}');
-                    }
-                });
-        });
-    }
-
-    // PIN de acceso rápido — disponible directamente si el dispositivo lo tiene configurado
     if (btnPinLogin && pinLoginInput) {
-        // Digit-only enforcement
+        // Solo dígitos
         pinLoginInput.addEventListener('input', function () {
             pinLoginInput.value = pinLoginInput.value.replace(/\D/g, '').slice(0, 8);
             if (pinLoginError) pinLoginError.classList.add('d-none');
@@ -250,21 +147,6 @@
                 }
             });
         });
-    }
-
-    // Base64url helpers — strip existing padding before re-padding to avoid double-padding errors.
-    function _b64urlToBuffer(b64url) {
-        var s = b64url.replace(/-/g, '+').replace(/_/g, '/').replace(/=/g, '');
-        while (s.length % 4) s += '=';
-        var bin = atob(s), buf = new Uint8Array(bin.length);
-        for (var i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
-        return buf.buffer;
-    }
-
-    function _bufferToB64url(buf) {
-        var bytes = new Uint8Array(buf), str = '';
-        for (var i = 0; i < bytes.length; i++) str += String.fromCharCode(bytes[i]);
-        return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     }
 
 })();

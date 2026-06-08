@@ -23,7 +23,6 @@ header()  { echo -e "\n${BOLD}${CYAN}=== $* ===${RESET}"; }
 REPO_URL="${REPO_URL:-https://github.com/esepulvedahgit/monetra.git}"
 MONETRA_BRANCH="${MONETRA_BRANCH:-main}"
 FRESH_ENV=false   # se actualiza a true en write_env si se genera un .env nuevo
-DOMAIN=""         # dominio ingresado por el usuario (vacío = localhost)
 
 # ── PASO 1: Dependencias ─────────────────────────────────────────────────────
 require_deps() {
@@ -48,35 +47,12 @@ require_deps() {
     ok "git, openssl, curl, Docker ($COMPOSE_CMD) — todo ok"
 }
 
-# ── PASO 2: Preguntar dominio ─────────────────────────────────────────────────
-# Lee desde /dev/tty para que funcione tanto con 'bash install.sh'
-# como con 'curl ... | bash' (donde stdin está ocupado por el pipe).
-ask_domain() {
-    header "Configuración de dominio (WebAuthn / biometría)"
-    echo -e "  Si tienes un dominio (ej: ${CYAN}miapp.com${RESET}), ingrésalo para pre-configurar"
-    echo -e "  la autenticación biométrica. La app levanta igual aunque el dominio"
-    echo -e "  aún no tenga SSL — podrás activar la biometría cuando tengas HTTPS."
-    echo -e "  Deja en blanco para usar ${CYAN}localhost${RESET}.\n"
-    printf "  Dominio (Enter para localhost): "
-    read -r DOMAIN </dev/tty || DOMAIN=""
-    DOMAIN="${DOMAIN// /}"   # strip spaces
-
-    if [ -n "$DOMAIN" ]; then
-        # Quitar protocolo si el usuario lo incluyó por error
-        DOMAIN="${DOMAIN#https://}"
-        DOMAIN="${DOMAIN#http://}"
-        DOMAIN="${DOMAIN%/}"
-        ok "Dominio configurado: $DOMAIN  (WebAuthn origin: https://$DOMAIN)"
-    else
-        ok "Sin dominio — usando localhost."
-    fi
-}
-
-# ── PASO 3: Descargar / localizar el repo ────────────────────────────────────
+# ── PASO 2: Descargar / localizar el repo ────────────────────────────────────
 REPO_DIR=""
 
 fetch_repo() {
     header "Localizando repositorio"
+
 
     if [ -f "site_finanzas/Dockerfile" ]; then
         REPO_DIR="."
@@ -120,15 +96,6 @@ write_env() {
     JWT_SECRET_KEY=$(gen_hex 32)
     FIELD_ENCRYPTION_KEY=$(gen_fernet)
 
-    # WEBAUTHN_ORIGIN siempre https://; sin puerto.
-    # Si el usuario no ingresó dominio, queda el placeholder https://midominio.com
-    local rp_id="${DOMAIN:-midominio.com}"
-    WEBAUTHN_BLOCK="# === WebAuthn / biometría ===
-# tu url — reemplaza por tu dominio real antes de activar la biometría
-WEBAUTHN_RP_ID=${rp_id}
-WEBAUTHN_RP_NAME=Monetra
-WEBAUTHN_ORIGIN=https://${rp_id}"
-
     cat > "$ENV_FILE" <<EOF
 # === Base de datos (auto-generado por install.sh) ===
 DB_NAME=monetra
@@ -140,8 +107,6 @@ MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
 SECRET_KEY=${SECRET_KEY}
 FIELD_ENCRYPTION_KEY=${FIELD_ENCRYPTION_KEY}
 JWT_SECRET_KEY=${JWT_SECRET_KEY}
-
-${WEBAUTHN_BLOCK}
 
 # === Límites backup/restore (admin) ===
 MAX_CONTENT_UPLOAD_MB=15
@@ -211,7 +176,6 @@ wait_ready() {
 # ── PASO 9: Resumen final ────────────────────────────────────────────────────
 summary() {
     local access_url="http://localhost:8085"
-    local rp_id="${DOMAIN:-midominio.com}"
 
     echo ""
     echo -e "${BOLD}${GREEN}╔══════════════════════════════════════════════════════════╗${RESET}"
@@ -219,7 +183,6 @@ summary() {
     echo -e "${BOLD}${GREEN}╚══════════════════════════════════════════════════════════╝${RESET}"
     echo ""
     echo -e "  ${BOLD}URL local:${RESET}     $access_url"
-    echo -e "  ${BOLD}WebAuthn:${RESET}      https://$rp_id  (requiere SSL + reverse proxy)"
     echo -e "  ${BOLD}Configuración:${RESET} $REPO_DIR/docker/.env"
     echo ""
     echo -e "  ${YELLOW}Primer acceso:${RESET} ve a $access_url/register"
@@ -239,7 +202,6 @@ main() {
     echo ""
 
     require_deps
-    ask_domain
     fetch_repo
     write_env
     build_image

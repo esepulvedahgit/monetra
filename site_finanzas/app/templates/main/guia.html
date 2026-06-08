@@ -31,7 +31,7 @@
                     <a class="nav-link sidebar-link py-2 px-3 small" href="#s11">11. {{ _('Configuración') }}</a>
                     <a class="nav-link sidebar-link py-2 px-3 small" href="#s12">12. {{ _('Panel de analítica') }}</a>
                     <a class="nav-link sidebar-link py-2 px-3 small" href="#s13">13. {{ _('Escáner IA') }}</a>
-                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s14">14. {{ _('Autenticación biométrica') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s14">14. {{ _('PIN de acceso rápido') }}</a>
                     <a class="nav-link sidebar-link py-2 px-3 small" href="#s15">15. {{ _('Preguntas frecuentes') }}</a>
                 </nav>
             </div>
@@ -400,8 +400,8 @@
                 <div class="col-md-6">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h6 class="fw-semibold"><i class="bi bi-fingerprint me-1 text-primary"></i>{{ _('Autenticación biométrica') }}</h6>
-                            <p class="small text-muted mb-0">{{ _('Registra tu dispositivo móvil para iniciar sesión con Face ID o huella dactilar. Solo disponible en móvil. Registrar, cambiar y eliminar requieren confirmar tu contraseña actual.') }}</p>
+                            <h6 class="fw-semibold"><i class="bi bi-lock me-1 text-primary"></i>{{ _('PIN de acceso rápido') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Acceso rápido desde móvil con un PIN de 8 dígitos vinculado al dispositivo actual. Solo visible en pantallas pequeñas. Requiere confirmar tu contraseña para activarlo o eliminarlo.') }}</p>
                         </div>
                     </div>
                 </div>
@@ -505,45 +505,41 @@
             </table>
         </section>
 
-        {# 14. Autenticación biométrica #}
+        {# 14. PIN de acceso rápido #}
         <section id="s14" class="guia-section mb-5">
             <h4 class="fw-bold mb-3 border-bottom pb-2">
-                <i class="bi bi-fingerprint text-primary me-2"></i>14. {{ _('Autenticación biométrica') }}
+                <i class="bi bi-lock text-primary me-2"></i>14. {{ _('PIN de acceso rápido') }}
             </h4>
-            <p class="text-muted">{{ _('Inicia sesión en Monetra usando Face ID o huella dactilar, sin necesidad de escribir tu email ni contraseña. Disponible solo en dispositivos móviles que soporten biometría.') }}</p>
+            <p class="text-muted">{{ _('El PIN de acceso rápido es un método de login opt-in vinculado al dispositivo donde fue activado. Solo aparece en móvil (pantalla menor a 992 px). No es una credencial portátil: si cambias de dispositivo o borras las cookies deberás reactivarlo desde Configuración.') }}</p>
 
             <div class="alert alert-info small py-2">
-                <i class="bi bi-shield-check me-1"></i>
-                {{ _('Tecnología estándar FIDO2 / WebAuthn. Monetra nunca almacena tus datos biométricos — la verificación la realiza exclusivamente tu dispositivo.') }}
+                <i class="bi bi-info-circle me-1"></i>
+                {{ _('El PIN no reemplaza tu contraseña. La necesitas para activarlo y eliminarlo. Es un acceso conveniente para el mismo dispositivo, no una alternativa de seguridad.') }}
             </div>
 
-            <h6 class="fw-semibold mt-3">{{ _('Activar (primera vez)') }}</h6>
+            <h6 class="fw-semibold mt-3">{{ _('Activar el PIN') }}</h6>
             <ol class="text-muted small">
-                <li>{{ _('Inicia sesión con tu email y contraseña desde tu dispositivo móvil.') }}</li>
-                <li>{{ _('Ve a') }} <strong>{{ _('Configuración → Seguridad → Autenticación biométrica') }}</strong>.</li>
-                <li>{{ _('Pulsa') }} <strong>{{ _('Registrar este dispositivo') }}</strong>.</li>
-                <li>{{ _('Confirma tu contraseña actual cuando se solicite.') }}</li>
-                <li>{{ _('El dispositivo pedirá Face ID o huella para crear la passkey.') }}</li>
+                <li>{{ _('Inicia sesión con email y contraseña desde tu móvil.') }}</li>
+                <li>{{ _('Ve a') }} <strong>{{ _('Configuración → Seguridad → PIN de acceso rápido') }}</strong>.</li>
+                <li>{{ _('Ingresa tu contraseña actual para confirmar.') }}</li>
+                <li>{{ _('Elige un PIN de 8 dígitos (no puede ser secuencia ni todos iguales).') }}</li>
+                <li>{{ _('El dispositivo queda registrado automáticamente.') }}</li>
             </ol>
-            <p class="text-muted small">{{ _('Una vez registrado, la próxima vez que entres a la página de login desde ese dispositivo verás el botón') }} <strong>{{ _('Ingresar con Face ID / Huella') }}</strong>.</p>
+            <p class="text-muted small">{{ _('La próxima vez que abras la pantalla de login en ese dispositivo, aparecerá el campo de PIN automáticamente.') }}</p>
 
-            <h6 class="fw-semibold mt-3">{{ _('Login biométrico') }}</h6>
+            <h6 class="fw-semibold mt-3">{{ _('Ingresar con PIN') }}</h6>
             <ol class="text-muted small">
-                <li>{{ _('Abre la página de login desde tu móvil registrado.') }}</li>
-                <li>{{ _('Pulsa') }} <strong>{{ _('Ingresar con Face ID / Huella') }}</strong> {{ _('(no necesitas escribir tu email).') }}</li>
-                <li>{{ _('El dispositivo muestra la passkey guardada — confirma con Face ID o huella.') }}</li>
-                <li>{{ _('Accedes directamente al dashboard.') }}</li>
+                <li>{{ _('Abre la página de login desde el móvil donde activaste el PIN.') }}</li>
+                <li>{{ _('Escribe tu PIN de 8 dígitos en el campo que aparece.') }}</li>
+                <li>{{ _('Pulsa') }} <strong>{{ _('Ingresar con PIN') }}</strong>.</li>
             </ol>
 
-            <h6 class="fw-semibold mt-3">{{ _('Cambiar de dispositivo') }}</h6>
-            <p class="text-muted small">{{ _('Ve a Configuración → Seguridad → "Cambiar dispositivo". Se pedirá tu contraseña, luego registras el nuevo dispositivo con biometría. Solo puede haber un dispositivo registrado a la vez.') }}</p>
-
-            <h6 class="fw-semibold mt-3">{{ _('Eliminar') }}</h6>
-            <p class="text-muted small">{{ _('Pulsa "Eliminar" en la sección de biometría. Se pedirá tu contraseña para confirmar. El botón biométrico desaparecerá del login.') }}</p>
+            <h6 class="fw-semibold mt-3">{{ _('Eliminar el PIN') }}</h6>
+            <p class="text-muted small">{{ _('Ve a Configuración → Seguridad → PIN de acceso rápido y pulsa Eliminar. Se pedirá tu contraseña para confirmar. El PIN y todos los dispositivos autorizados quedan revocados.') }}</p>
 
             <div class="alert alert-warning small py-2">
                 <i class="bi bi-exclamation-triangle me-1"></i>
-                {{ _('Si cambias de dispositivo o restableces tu teléfono, deberás eliminar la passkey antigua y volver a registrar el nuevo dispositivo. Siempre podrás iniciar sesión con tu contraseña.') }}
+                {{ _('La autorización del dispositivo expira a los 90 días de inactividad. Si el PIN expiró en ese dispositivo, deberás reactivarlo desde Configuración. Siempre podrás iniciar sesión con tu contraseña.') }}
             </div>
         </section>
 
@@ -639,8 +635,8 @@
                 <div class="col-md-6">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h6 class="fw-semibold mb-2"><i class="bi bi-fingerprint me-1 text-primary"></i>{{ _('¿Puedo usar Face ID si tengo 2FA activado?') }}</h6>
-                            <p class="small text-muted mb-0">{{ _('Sí. El login biométrico (FIDO2) reemplaza el flujo completo de autenticación — no necesitas ingresar contraseña ni código TOTP. La verificación biométrica ya incluye la confirmación de identidad del usuario por diseño del estándar.') }}</p>
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-lock me-1 text-primary"></i>{{ _('¿Puedo usar el PIN si tengo 2FA activado?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Sí. Al ingresar con PIN y tener 2FA activo, serás redirigido a la pantalla de verificación TOTP. Deberás ingresar tu código de autenticador como de costumbre.') }}</p>
                         </div>
                     </div>
                 </div>

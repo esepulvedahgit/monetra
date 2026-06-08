@@ -1,5 +1,5 @@
 ﻿from app import create_app, db
-from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, EmailActivationToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget, UserAIConfig, ApiToken, UserWebAuthnCredential, UserPinDevice  # noqa: F401
+from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, EmailActivationToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget, UserAIConfig, ApiToken, UserPinDevice  # noqa: F401
 from sqlalchemy import inspect, text
 
 app = create_app()
@@ -337,46 +337,12 @@ with app.app_context():
             db.session.commit()
             print("Color de categoría 'Scanner' actualizado.")
 
-    # ── user_webauthn_credentials: drop UNIQUE on user_id (1 → N credentials) ──
-    # Installations created after this migration already get the correct schema via
-    # db.create_all() above; this block handles existing DBs that still have the old
-    # UNIQUE constraint on user_id.
-    #
-    # Strategy: add a plain non-unique index on user_id first (MySQL refuses to drop a
-    # UNIQUE key if a FK depends on it unless an equivalent index already exists), then
-    # drop the unique constraint.
+    # ── user_webauthn_credentials: drop table (biometría retirada) ─────────────
     if 'user_webauthn_credentials' in inspect(db.engine).get_table_names():
-        wa_constraints = {uc['name'] for uc in inspect(db.engine).get_unique_constraints('user_webauthn_credentials')}
-        # MySQL may name the constraint differently; detect by inspecting column uniqueness too
-        wa_indexes = {idx['name']: idx for idx in inspect(db.engine).get_indexes('user_webauthn_credentials')}
-        user_id_unique_idx = next(
-            (name for name, idx in wa_indexes.items()
-             if idx.get('unique') and idx.get('column_names') == ['user_id']),
-            None
-        )
-        # Also check explicit unique constraints list
-        if user_id_unique_idx is None:
-            user_id_unique_idx = next((name for name in wa_constraints if 'user_id' in name), None)
-        if user_id_unique_idx:
-            with db.engine.connect() as conn:
-                # Add plain index so FK stays satisfied after dropping the unique one
-                existing_plain = any(
-                    not idx.get('unique') and idx.get('column_names') == ['user_id']
-                    for idx in wa_indexes.values()
-                )
-                if not existing_plain:
-                    conn.execute(text(
-                        "ALTER TABLE user_webauthn_credentials ADD INDEX ix_wa_creds_user_id (user_id)"
-                    ))
-                    conn.commit()
-                    print("Índice ix_wa_creds_user_id creado en user_webauthn_credentials.")
-                conn.execute(text(
-                    f"ALTER TABLE user_webauthn_credentials DROP INDEX `{user_id_unique_idx}`"
-                ))
-                conn.commit()
-                print(f"Restricción UNIQUE '{user_id_unique_idx}' eliminada de user_webauthn_credentials (soporte múltiples credenciales por usuario).")
-        else:
-            print("user_webauthn_credentials ya permite múltiples credenciales por usuario.")
+        with db.engine.connect() as conn:
+            conn.execute(text("DROP TABLE user_webauthn_credentials"))
+            conn.commit()
+        print("Tabla user_webauthn_credentials eliminada (biometría retirada).")
 
     # ── user_pin_devices: table created by db.create_all() via the model. ──────
     if 'user_pin_devices' in inspect(db.engine).get_table_names():

@@ -4,7 +4,7 @@ Covers:
 - GET /admin/users/    : access control (non-admin, admin-not-first, first-admin OK)
 - POST /suspend        : toggle, self-protection, first-admin protection, email alert
 - POST /delete         : wrong password, correct password, cascades, first-admin protection
-- last_login_at        : set by login(), mfa_verify(), pin_login(), webauthn path skipped (no browser)
+- last_login_at        : set by login(), mfa_verify(), pin_login()
 - is_suspended         : login() rejects suspended users; before_request forces logout
 """
 from datetime import datetime, timedelta
