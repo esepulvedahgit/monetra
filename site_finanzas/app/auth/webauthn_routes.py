@@ -134,11 +134,15 @@ def webauthn_login_complete():
             current_app.logger.warning('WebAuthn auth verification failed: %s', exc)
         return jsonify({'error': 'Error al verificar la biometría. Intenta de nuevo.'}), 400
 
-    # Update sign count (anti-replay)
+    # Update sign count (anti-replay) — must persist regardless of account state
     credential.sign_count = verification.new_sign_count
     db.session.commit()
 
-    login_user(user)
+    if not login_user(user):
+        return jsonify({'error': 'Tu cuenta está suspendida. Contacta al administrador.'}), 403
+    user.last_login_at = datetime.now(timezone.utc)
+    db.session.commit()
+    session['_login_at'] = datetime.now(timezone.utc).isoformat()
     return jsonify({'ok': True, 'redirect': url_for('main.dashboard')})
 
 

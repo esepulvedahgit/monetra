@@ -121,6 +121,14 @@ with app.app_context():
             conn.execute(text("ALTER TABLE users ADD COLUMN pin_locked_until DATETIME NULL"))
             conn.commit()
             print("Columna pin_locked_until agregada a users.")
+        if 'last_login_at' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN last_login_at DATETIME NULL"))
+            conn.commit()
+            print("Columna last_login_at agregada a users.")
+        if 'is_suspended' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN is_suspended TINYINT(1) NOT NULL DEFAULT 0"))
+            conn.commit()
+            print("Columna is_suspended agregada a users.")
 
         # El primer usuario que se registre en /register queda como admin automáticamente.
 

@@ -5289,6 +5289,165 @@ msgstr ""
 msgid "PIN incorrecto."
 msgstr ""
 
+# ── Admin user management ──
+#: app/admin/routes.py app/templates/admin/users.html
+msgid "Gestión de usuarios"
+msgstr ""
+
+#: app/admin/routes.py app/templates/admin/users.html
+msgid "Usuarios"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Usuarios registrados"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Administrador"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Volver a Configurar"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Usuario"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Correo"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Rol"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Estado"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Creado"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Último ingreso"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Acciones"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Tú"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Admin principal"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Admin"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Activo"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Suspendido"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Nunca"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Suspender"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Reactivar"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Eliminar"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Eliminar usuario"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "¿Eliminar permanentemente a"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid ""
+"Esta acción es irreversible. Se borrarán todas las transacciones, "
+"presupuestos y datos asociados a esta cuenta."
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Confirma tu contraseña de administrador"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Cancelar"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Eliminar definitivamente"
+msgstr ""
+
+#: app/admin/routes.py
+msgid "No puedes suspender tu propia cuenta."
+msgstr ""
+
+#: app/admin/routes.py
+msgid "El administrador principal no puede ser suspendido."
+msgstr ""
+
+#: app/admin/routes.py
+msgid "tu cuenta fue suspendida por el administrador"
+msgstr ""
+
+#: app/admin/routes.py
+msgid "tu cuenta fue reactivada por el administrador"
+msgstr ""
+
+#: app/admin/routes.py
+msgid "Usuario %(name)s suspendido."
+msgstr ""
+
+#: app/admin/routes.py
+msgid "Usuario %(name)s reactivado."
+msgstr ""
+
+#: app/admin/routes.py
+msgid "No puedes eliminar tu propia cuenta."
+msgstr ""
+
+#: app/admin/routes.py
+msgid "El administrador principal no puede ser eliminado."
+msgstr ""
+
+#: app/admin/routes.py
+msgid "Contraseña incorrecta. El usuario no fue eliminado."
+msgstr ""
+
+#: app/admin/routes.py
+msgid "tu cuenta fue eliminada por el administrador"
+msgstr ""
+
+#: app/admin/routes.py
+msgid "Usuario %(name)s eliminado permanentemente."
+msgstr ""
+
+#: app/auth/routes.py
+msgid "Tu cuenta ha sido suspendida. Contacta al administrador."
+msgstr ""
+
 #~ msgid ""
 #~ "Si el correo existe y tiene "
 #~ "recuperación configurada, recibirás instrucciones"

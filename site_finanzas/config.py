@@ -55,3 +55,14 @@ class Config:
     JWT_ACCESS_TOKEN_EXPIRES = 900        # 15 min
     JWT_REFRESH_TOKEN_EXPIRES = 2592000   # 30 días
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',')
+
+    # Session and remember-me cookie hardening.
+    # SECURE is off in dev/test (FLASK_DEBUG=1) so the HTTP test client keeps
+    # the session cookie; in production (FLASK_DEBUG=0) it is enforced.
+    _in_production = os.environ.get('FLASK_DEBUG', '0') == '0'
+    SESSION_COOKIE_HTTPONLY  = True
+    SESSION_COOKIE_SAMESITE  = 'Lax'
+    SESSION_COOKIE_SECURE    = _in_production
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SAMESITE = 'Lax'
+    REMEMBER_COOKIE_SECURE   = _in_production

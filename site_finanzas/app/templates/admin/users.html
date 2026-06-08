@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 1100px;">
+
+    {# ── Header ────────────────────────────────────────────────────── #}
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+             style="width:46px; height:46px; background:rgba(0,200,150,0.12); border:1px solid rgba(0,200,150,0.25);">
+            <i class="bi bi-people" style="font-size:1.3rem; color:var(--monetra-primary,#00C896);"></i>
+        </div>
+        <div>
+            <h4 class="mb-0 fw-bold" style="color:var(--monetra-text,#E2E8F0);">
+                {{ _('Gestión de usuarios') }}
+            </h4>
+            <span class="badge text-bg-warning fw-semibold" style="font-size:.72rem; letter-spacing:.04em;">
+                {{ _('Administrador') }}
+            </span>
+        </div>
+        <a href="{{ url_for('main.configurar') }}"
+           class="btn btn-outline-secondary btn-sm ms-auto">
+            <i class="bi bi-arrow-left me-1"></i>{{ _('Volver a Configurar') }}
+        </a>
+    </div>
+
+    {# ── Flash messages ─────────────────────────────────────────────── #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show py-2" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    {# ── User table ─────────────────────────────────────────────────── #}
+    <div class="card shadow-sm">
+        <div class="card-header fw-semibold d-flex align-items-center gap-2 py-3">
+            <i class="bi bi-people text-primary"></i>
+            <span style="color:var(--monetra-primary,#00C896); text-transform:uppercase;
+                         letter-spacing:.05em; font-size:.85rem;">
+                {{ _('Usuarios registrados') }}
+            </span>
+            <span class="badge text-bg-secondary ms-auto">{{ users | length }}</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size:.9rem;">
+                    <thead>
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.07);">
+                            <th class="ps-4 py-3">{{ _('Usuario') }}</th>
+                            <th class="py-3">{{ _('Correo') }}</th>
+                            <th class="py-3">{{ _('Rol') }}</th>
+                            <th class="py-3">{{ _('Estado') }}</th>
+                            <th class="py-3">{{ _('Creado') }}</th>
+                            <th class="py-3">{{ _('Último ingreso') }}</th>
+                            <th class="py-3 text-end pe-4">{{ _('Acciones') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        {% set is_self = (user.id == current_user.id) %}
+                        {% set is_protected = user.is_first_admin %}
+                        <tr>
+                            {# Username #}
+                            <td class="ps-4 fw-semibold" style="color:var(--monetra-text,#E2E8F0);">
+                                <i class="bi bi-person-circle me-1 opacity-50"></i>
+                                {{ user.username }}
+                                {% if is_self %}
+                                <span class="badge text-bg-info ms-1" style="font-size:.68rem;">{{ _('Tú') }}</span>
+                                {% endif %}
+                            </td>
+
+                            {# Email #}
+                            <td style="color:var(--monetra-text-soft,#94A3B8); font-size:.85rem;">
+                                {{ user.email }}
+                            </td>
+
+                            {# Role #}
+                            <td>
+                                {% if user.is_first_admin %}
+                                <span class="badge text-bg-warning">{{ _('Admin principal') }}</span>
+                                {% elif user.is_admin %}
+                                <span class="badge text-bg-primary">{{ _('Admin') }}</span>
+                                {% else %}
+                                <span class="badge text-bg-secondary">{{ _('Usuario') }}</span>
+                                {% endif %}
+                            </td>
+
+                            {# Status #}
+                            <td>
+                                {% if user.is_suspended %}
+                                <span class="badge text-bg-danger">
+                                    <i class="bi bi-pause-circle me-1"></i>{{ _('Suspendido') }}
+                                </span>
+                                {% else %}
+                                <span class="badge text-bg-success">
+                                    <i class="bi bi-check-circle me-1"></i>{{ _('Activo') }}
+                                </span>
+                                {% endif %}
+                            </td>
+
+                            {# Created at #}
+                            <td style="color:var(--monetra-text-muted,#718096); font-size:.83rem; white-space:nowrap;">
+                                {% if user.created_at %}
+                                    {{ user.created_at.strftime('%d/%m/%Y') }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+
+                            {# Last login #}
+                            <td style="color:var(--monetra-text-muted,#718096); font-size:.83rem; white-space:nowrap;">
+                                {% if user.last_login_at %}
+                                    {{ user.last_login_at.strftime('%d/%m/%Y %H:%M') }}
+                                {% else %}
+                                    <span class="text-muted fst-italic">{{ _('Nunca') }}</span>
+                                {% endif %}
+                            </td>
+
+                            {# Actions #}
+                            <td class="text-end pe-4">
+                                {% if is_protected or is_self %}
+                                <span class="text-muted small fst-italic">—</span>
+                                {% else %}
+                                <div class="d-flex gap-2 justify-content-end">
+                                    {# Suspend / Reactivate #}
+                                    <form method="POST"
+                                          action="{{ url_for('admin.suspend', user_id=user.id) }}"
+                                          style="display:inline;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        {% if user.is_suspended %}
+                                        <button type="submit"
+                                                class="btn btn-outline-success btn-sm py-1"
+                                                title="{{ _('Reactivar') }}">
+                                            <i class="bi bi-play-circle me-1"></i>{{ _('Reactivar') }}
+                                        </button>
+                                        {% else %}
+                                        <button type="submit"
+                                                class="btn btn-outline-warning btn-sm py-1"
+                                                title="{{ _('Suspender') }}">
+                                            <i class="bi bi-pause-circle me-1"></i>{{ _('Suspender') }}
+                                        </button>
+                                        {% endif %}
+                                    </form>
+
+                                    {# Delete — opens modal #}
+                                    <button type="button"
+                                            class="btn btn-outline-danger btn-sm py-1"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteModal{{ user.id }}"
+                                            title="{{ _('Eliminar') }}">
+                                        <i class="bi bi-trash3 me-1"></i>{{ _('Eliminar') }}
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{# ── Delete confirmation modals (one per user) ─────────────────────── #}
+{% for user in users %}
+{% set is_protected = user.is_first_admin or (user.id == current_user.id) %}
+{% if not is_protected %}
+<div class="modal fade" id="deleteModal{{ user.id }}" tabindex="-1"
+     aria-labelledby="deleteModalLabel{{ user.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-danger" style="border-bottom:1px solid rgba(239,68,68,0.3);">
+                <h5 class="modal-title text-danger" id="deleteModalLabel{{ user.id }}">
+                    <i class="bi bi-exclamation-triangle me-2"></i>{{ _('Eliminar usuario') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">
+                    {{ _('¿Eliminar permanentemente a') }}
+                    <strong>{{ user.username }}</strong>
+                    ({{ user.email }})?
+                </p>
+                <p class="small text-danger mb-3">
+                    <i class="bi bi-exclamation-circle me-1"></i>
+                    {{ _('Esta acción es irreversible. Se borrarán todas las transacciones, presupuestos y datos asociados a esta cuenta.') }}
+                </p>
+                <form method="POST"
+                      action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+                      id="deleteForm{{ user.id }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <label for="adminPassword{{ user.id }}" class="form-label fw-semibold">
+                        {{ _('Confirma tu contraseña de administrador') }}
+                    </label>
+                    <input type="password"
+                           id="adminPassword{{ user.id }}"
+                           name="password"
+                           class="form-control"
+                           placeholder="••••••••"
+                           autocomplete="current-password"
+                           required>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid rgba(255,255,255,0.07);">
+                <button type="button" class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+                <button type="submit"
+                        form="deleteForm{{ user.id }}"
+                        class="btn btn-danger fw-semibold">
+                    <i class="bi bi-trash3 me-1"></i>{{ _('Eliminar definitivamente') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+
+{% endblock %}

@@ -250,6 +250,61 @@ class TestPinLogin:
         assert data.get('ok') is True
         assert 'mfa' in data.get('redirect', '').lower()
 
+    def test_unverified_email_does_not_desync_device(self, app, pin_user_id):
+        """Regression for bug A1: gate rejection must NOT rotate the device token.
+
+        Before the fix, pin_login rotated the token (committed) before checking
+        email_verified, so the 403 response had no Set-Cookie → browser kept the
+        old token while DB only had the new hash → device permanently unusable.
+        """
+        with app.app_context():
+            u = db.session.get(User, pin_user_id)
+            u.email_verified = False
+            db.session.commit()
+
+        c = app.test_client()
+        _plant_device_cookie(c, _KNOWN_RAW_TOKEN)
+        r = c.post(LOGIN_URL, json={'pin': VALID_PIN}, content_type='application/json')
+        assert r.status_code == 403
+        assert 'activada' in r.get_json().get('error', '')
+
+        # Restore email_verified — the same original cookie must still work
+        with app.app_context():
+            u = db.session.get(User, pin_user_id)
+            u.email_verified = True
+            db.session.commit()
+
+        c2 = app.test_client()
+        _plant_device_cookie(c2, _KNOWN_RAW_TOKEN)
+        r2 = c2.post(LOGIN_URL, json={'pin': VALID_PIN}, content_type='application/json')
+        assert r2.status_code == 200, 'Device should still be valid after email-unverified rejection'
+        assert r2.get_json().get('ok') is True
+
+    def test_suspended_user_pin_rejected_device_reusable(self, app, pin_user_id):
+        """Suspended user gets explicit 403; device token must NOT rotate."""
+        with app.app_context():
+            u = db.session.get(User, pin_user_id)
+            u.is_suspended = True
+            db.session.commit()
+
+        c = app.test_client()
+        _plant_device_cookie(c, _KNOWN_RAW_TOKEN)
+        r = c.post(LOGIN_URL, json={'pin': VALID_PIN}, content_type='application/json')
+        assert r.status_code == 403
+        assert 'suspendida' in r.get_json().get('error', '')
+
+        # Reactivate — the same original cookie must still work
+        with app.app_context():
+            u = db.session.get(User, pin_user_id)
+            u.is_suspended = False
+            db.session.commit()
+
+        c2 = app.test_client()
+        _plant_device_cookie(c2, _KNOWN_RAW_TOKEN)
+        r2 = c2.post(LOGIN_URL, json={'pin': VALID_PIN}, content_type='application/json')
+        assert r2.status_code == 200, 'Device should still be valid after suspension rejection'
+        assert r2.get_json().get('ok') is True
+
 
 # ---------------------------------------------------------------------------
 # POST /pin/delete

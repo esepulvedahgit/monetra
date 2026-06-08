@@ -86,6 +86,7 @@ def _audit(event_type, description=None, user_id=None):
         db.session.commit()
     except Exception:
         db.session.rollback()
+        current_app.logger.error('Audit log failed for %s', event_type, exc_info=True)
 
 
 def _is_valid_pin(pin: str) -> bool:
@@ -181,13 +182,14 @@ def pin_delete():
 @limiter.limit("5 per minute")
 def pin_login():
     # 1. Identify the device from the cookie
+    _generic_403 = 'No se pudo iniciar sesión con PIN. Usa tu contraseña.'
     raw_token = request.cookies.get(COOKIE_NAME, '')
     if not raw_token:
-        return jsonify({'error': 'PIN no disponible en este dispositivo.'}), 403
+        return jsonify({'error': _generic_403}), 403
 
     device = UserPinDevice.query.filter_by(token_hash=_hash_token(raw_token)).first()
     if not device:
-        return jsonify({'error': 'PIN no disponible en este dispositivo.'}), 403
+        return jsonify({'error': _generic_403}), 403
 
     # 2. Expiry check (absolute)
     expires_at = device.expires_at
@@ -202,7 +204,7 @@ def pin_login():
 
     user = device.user
     if not user or not user.has_pin:
-        return jsonify({'error': 'PIN no disponible en este dispositivo.'}), 403
+        return jsonify({'error': _generic_403}), 403
 
     # 3. Account-level lockout
     if user.pin_is_locked:
@@ -215,32 +217,42 @@ def pin_login():
         user.pin_failed_attempts = (user.pin_failed_attempts or 0) + 1
         if user.pin_failed_attempts >= MAX_FAILS:
             user.pin_locked_until = _utcnow() + timedelta(minutes=LOCK_MINUTES)
+            try:
+                send_security_alert_email(user, "bloqueó el PIN tras varios intentos fallidos")
+            except Exception:
+                pass
         db.session.commit()
         _audit(ev.AUTH_LOGIN_FAIL, description=f'{user.email} (PIN)')
-        return jsonify({'error': 'PIN incorrecto.'}), 403
+        return jsonify({'error': _generic_403}), 403
 
-    # 5. Success — reset counters, rotate the device token
+    # 5. Gates that can abort — BEFORE mutating device state (same pattern as password login),
+    #    so a rejected attempt never rotates the token and desyncs the cookie (bug A1).
+    if not user.email_verified:
+        return jsonify({'error': 'Tu cuenta aún no está activada. Revisa tu correo.'}), 403
+    if user.is_suspended:
+        return jsonify({'error': 'Tu cuenta está suspendida. Contacta al administrador.'}), 403
+
+    # 6. Reset counters + rotate device token (device timestamps stay naive for consistency with pin_set).
     user.pin_failed_attempts = 0
     user.pin_locked_until = None
     device.last_used_at = _utcnow()
     new_token = secrets.token_urlsafe(32)
     device.token_hash = _hash_token(new_token)   # rotation (expires_at unchanged)
-    db.session.commit()
 
-    # 6. Same post-auth checks as the password login flow
-    if not user.email_verified:
-        return jsonify({'error': 'Tu cuenta aún no está activada. Revisa tu correo.'}), 403
-
+    # 7. MFA path: login and last_login_at are completed in mfa_verify.
     if user.mfa_enabled:
+        db.session.commit()
         session['mfa_pending'] = {'user_id': user.id, 'remember': False}
         resp = jsonify({'ok': True, 'redirect': url_for('auth.mfa_verify')})
         _set_device_cookie(resp, new_token)
         return resp
 
+    # 8. Complete login. last_login_at tz-aware, only after login_user, same as other paths.
     login_user(user)
+    user.last_login_at = datetime.now(timezone.utc)
+    db.session.commit()
     session['_login_at'] = datetime.now(timezone.utc).isoformat()
     _audit(ev.AUTH_LOGIN_SUCCESS, description=f'{user.email} (PIN)', user_id=user.id)
-
     resp = jsonify({'ok': True, 'redirect': url_for('main.dashboard')})
     _set_device_cookie(resp, new_token)
     return resp

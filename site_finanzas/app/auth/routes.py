@@ -158,9 +158,13 @@ def login():
                     'Revisa tu correo o solicita un nuevo enlace de activación.'
                 ), 'warning')
                 return redirect(url_for('auth.verify_pending', email=user.email))
+            if user.is_suspended:
+                flash(_('Tu cuenta ha sido suspendida. Contacta al administrador.'), 'danger')
+                return redirect(url_for('auth.login'))
             if user.mfa_enabled:
                 session['mfa_pending'] = {'user_id': user.id, 'remember': form.remember.data}
                 return redirect(url_for('auth.mfa_verify'))
+            user.last_login_at = datetime.now(timezone.utc)
             login_user(user, remember=form.remember.data)
             session['_login_at'] = datetime.now(timezone.utc).isoformat()
             _audit_commit(ev.AUTH_LOGIN_SUCCESS, description=user.email, user_id=user.id)
@@ -187,7 +191,10 @@ def mfa_verify():
             totp = pyotp.TOTP(secret)
             if totp.verify(form.code.data):
                 session.pop('mfa_pending', None)
-                login_user(user, remember=pending.get('remember', False))
+                if not login_user(user, remember=pending.get('remember', False)):
+                    flash(_('Tu cuenta ha sido suspendida. Contacta al administrador.'), 'danger')
+                    return redirect(url_for('auth.login'))
+                user.last_login_at = datetime.now(timezone.utc)
                 session['_login_at'] = datetime.now(timezone.utc).isoformat()
                 _audit_commit(ev.AUTH_LOGIN_SUCCESS, description=f'{user.email} (MFA)', user_id=user.id)
                 flash(_('¡Bienvenido, %(username)s!', username=user.username), 'success')

@@ -37,10 +37,17 @@ class User(db.Model, UserMixin):
     insights_panel_enabled = db.Column(db.Boolean, nullable=False, default=False)
     email_verified = db.Column(db.Boolean, nullable=False, default=False)
     email_verified_at = db.Column(db.DateTime, nullable=True)
+    last_login_at = db.Column(db.DateTime, nullable=True)
+    is_suspended = db.Column(db.Boolean, nullable=False, default=False)
 
     @property
     def is_admin(self):
         return self.role == 'admin'
+
+    @property
+    def is_active(self):
+        """Override Flask-Login's UserMixin.is_active so login_user() rejects suspended accounts."""
+        return not self.is_suspended
 
     transactions = db.relationship('Transaction', backref='user', lazy=True,
                                    cascade='all, delete-orphan')
@@ -524,7 +531,7 @@ class ApiToken(db.Model):
     created_at   = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     last_used_at = db.Column(db.DateTime, nullable=True)
 
-    user = db.relationship('User', backref=db.backref('api_token', uselist=False))
+    user = db.relationship('User', backref=db.backref('api_token', uselist=False, cascade='all, delete-orphan'))
 
     def __repr__(self):
         return f'<ApiToken {self.prefix}•••• user={self.user_id}>'

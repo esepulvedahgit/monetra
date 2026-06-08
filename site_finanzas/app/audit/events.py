@@ -26,10 +26,13 @@ CONFIG_SMTP          = 'config.smtp'
 CONFIG_REGISTRATION  = 'config.registration'
 
 # Admin events
-ADMIN_DEMO_LOAD  = 'admin.demo_load'
-ADMIN_DEMO_RESET = 'admin.demo_reset'
-ADMIN_DB_EXPORT  = 'admin.db_export'
-ADMIN_DB_RESTORE = 'admin.db_restore'
+ADMIN_DEMO_LOAD         = 'admin.demo_load'
+ADMIN_DEMO_RESET        = 'admin.demo_reset'
+ADMIN_DB_EXPORT         = 'admin.db_export'
+ADMIN_DB_RESTORE        = 'admin.db_restore'
+ADMIN_ACCOUNT_SUSPENDED   = 'admin.account_suspended'
+ADMIN_ACCOUNT_REACTIVATED = 'admin.account_reactivated'
+ADMIN_ACCOUNT_DELETED     = 'admin.account_deleted'
 
 
 # Map prefix → display label + pastel color

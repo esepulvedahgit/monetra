@@ -166,9 +166,12 @@ def create_app(config_class=Config):
             from app.scheduler import init_scheduler
             init_scheduler(app)
 
+    from app.admin import admin_bp
+    app.register_blueprint(admin_bp)
+
     @app.before_request
     def _enforce_session_validity():
-        """Invalidate web sessions created before a DB restore.
+        """Invalidate web sessions created before a DB restore, and force-logout suspended users.
 
         After a restore, backup/routes.py sets app_config.sessions_valid_after = now().
         Any session cookie missing _login_at or stamped before that threshold is
@@ -178,6 +181,11 @@ def create_app(config_class=Config):
         try:
             if not current_user.is_authenticated:
                 return
+            # Force-logout suspended users even if they already have an active session
+            if getattr(current_user, 'is_suspended', False):
+                logout_user()
+                session.clear()
+                return redirect(url_for('auth.login'))
             from app.models import AppConfig
             config = AppConfig.get()
             valid_after = getattr(config, 'sessions_valid_after', None)

@@ -193,11 +193,17 @@
                     </button>
                 </form>
                 <hr class="my-3" style="border-color:rgba(255,255,255,0.07);">
-                <a href="{{ url_for('audit.index') }}" target="_blank" rel="noopener noreferrer"
-                   class="btn btn-outline-secondary w-100 py-2 fw-semibold">
-                    <i class="bi bi-shield-check me-1"></i>{{ _('Registro de Auditoría') }}
-                    <i class="bi bi-box-arrow-up-right ms-1" style="font-size:0.8rem; opacity:0.6;"></i>
-                </a>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('admin.index') }}"
+                       class="btn btn-outline-secondary w-100 py-2 fw-semibold">
+                        <i class="bi bi-people me-1"></i>{{ _('Usuarios') }}
+                    </a>
+                    <a href="{{ url_for('audit.index') }}" target="_blank" rel="noopener noreferrer"
+                       class="btn btn-outline-secondary w-100 py-2 fw-semibold">
+                        <i class="bi bi-shield-check me-1"></i>{{ _('Registro de Auditoría') }}
+                        <i class="bi bi-box-arrow-up-right ms-1" style="font-size:0.8rem; opacity:0.6;"></i>
+                    </a>
+                </div>
 
                 {# ── Backup / Restore ──────────────────────────────── #}
                 <hr class="my-3" style="border-color:rgba(255,255,255,0.07);">
