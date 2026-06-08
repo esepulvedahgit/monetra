@@ -108,9 +108,21 @@ SECRET_KEY=${SECRET_KEY}
 FIELD_ENCRYPTION_KEY=${FIELD_ENCRYPTION_KEY}
 JWT_SECRET_KEY=${JWT_SECRET_KEY}
 
+# === Seguridad de sesión ===
+# Por defecto el despliegue es HTTP plano (sin TLS). Las cookies Secure solo
+# viajan por HTTPS; se desactivan aquí para que el login funcione por http://.
+# Si pones Monetra detrás de HTTPS (reverse proxy con TLS), cámbialo a true.
+SESSION_COOKIE_SECURE=false
+
 # === Límites backup/restore (admin) ===
 MAX_CONTENT_UPLOAD_MB=15
 MAX_RESTORE_SQL_MB=500
+
+# === Opcionales avanzados ===
+# Tiempo de inactividad antes de cerrar sesión automáticamente (segundos).
+# SESSION_INACTIVITY_TIMEOUT=900
+# Orígenes CORS permitidos (separados por coma). Default: '*'
+# CORS_ORIGINS=*
 EOF
 
     chmod 600 "$ENV_FILE"
@@ -187,6 +199,10 @@ summary() {
     echo ""
     echo -e "  ${YELLOW}Primer acceso:${RESET} ve a $access_url/register"
     echo -e "  El primer usuario que se registre quedará como administrador."
+    echo ""
+    echo -e "  ${YELLOW}HTTPS:${RESET} si pones Monetra detrás de un reverse proxy con TLS,"
+    echo -e "  cambia ${BOLD}SESSION_COOKIE_SECURE=false${RESET} a ${BOLD}true${RESET} en $REPO_DIR/docker/.env"
+    echo -e "  y reinicia los contenedores."
     echo ""
     echo -e "  ${CYAN}Comandos útiles:${RESET}"
     echo -e "    Logs:   $COMPOSE_CMD -f $REPO_DIR/docker/docker-compose.prod.yml logs -f"

@@ -40,14 +40,25 @@ class Config:
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',')
 
     # Session and remember-me cookie hardening.
-    # SECURE is off in dev/test (FLASK_DEBUG=1) so the HTTP test client keeps
-    # the session cookie; in production (FLASK_DEBUG=0) it is enforced.
+    # By default, Secure cookies are enabled in production (FLASK_DEBUG=0) and
+    # disabled in dev/test (FLASK_DEBUG=1) so the HTTP test client keeps the cookie.
+    # For HTTP-only deploys (no TLS reverse proxy) set SESSION_COOKIE_SECURE=false
+    # in docker/.env so browsers send cookies over plain HTTP.
+    # For HTTPS deploys behind a reverse proxy, leave it at the default (true in prod).
     _in_production = os.environ.get('FLASK_DEBUG', '0') == '0'
+
+    def _bool_env(name, default):
+        raw = os.environ.get(name)
+        if raw is None or raw == '':
+            return default
+        return raw.strip().lower() in ('1', 'true', 'yes', 'on')
+
+    _secure_cookies = _bool_env('SESSION_COOKIE_SECURE', _in_production)
     SESSION_COOKIE_HTTPONLY  = True
     SESSION_COOKIE_SAMESITE  = 'Lax'
-    SESSION_COOKIE_SECURE    = _in_production
+    SESSION_COOKIE_SECURE    = _secure_cookies
     REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_SAMESITE = 'Lax'
-    REMEMBER_COOKIE_SECURE   = _in_production
+    REMEMBER_COOKIE_SECURE   = _secure_cookies
     # Inactivity timeout (seconds). Override with SESSION_INACTIVITY_TIMEOUT env var.
     SESSION_INACTIVITY_TIMEOUT = int(os.environ.get('SESSION_INACTIVITY_TIMEOUT', 900))  # 15 min
