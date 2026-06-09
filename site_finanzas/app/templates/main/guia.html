@@ -275,6 +275,14 @@
                 <strong>{{ _('Importante') }}:</strong> {{ _('Las recurrentes') }} <strong>{{ _('no pueden eliminarse') }}</strong> {{ _('una vez creadas. Para detenerlas usa el botón') }} <strong>{{ _('Finalizar hoy') }}</strong> {{ _('o establece una fecha de término.') }}
             </div>
 
+            <h6 class="fw-semibold mt-3">{{ _('Editar el monto u otros datos') }}</h6>
+            <p class="text-muted">{{ _('Si editas una recurrente y cambias el monto, el nuevo valor se aplica a todas las transacciones de ese año, incluidas las pasadas.') }}</p>
+            <div class="alert alert-info small py-2">
+                <i class="bi bi-lightbulb me-1"></i>
+                <strong>{{ _('¿Quieres que el cambio aplique solo desde este mes en adelante?') }}</strong>
+                {{ _('No edites la recurrente actual: finalízala con el botón') }} <strong>{{ _('Finalizar hoy') }}</strong> {{ _('y crea una nueva con el monto actualizado. Así el historial pasado conserva el monto anterior y el nuevo valor rige hacia adelante. Al crear la nueva, marca la casilla del mes actual si quieres incluir también este mes.') }}
+            </div>
+
             <h6 class="fw-semibold mt-3">{{ _('Finalizar una recurrente') }}</h6>
             <p class="text-muted">{{ _('El botón') }} <strong>{{ _('Finalizar hoy') }}</strong> {{ _('(ícono de stop) establece la fecha de término como hoy y desactiva la recurrente. Las transacciones ya generadas permanecen en tu historial.') }}</p>
 
