@@ -1402,20 +1402,21 @@ def meta_completar(goal_id):
 @main.route('/recurrentes')
 @login_required
 def recurrentes():
-    year, month = _get_period()
-    period_start = date(year, month, 1)
-    period_end = date(year, month, calendar.monthrange(year, month)[1])
+    year = _get_period()[0]
     all_items = RecurringTransaction.query.filter(
         RecurringTransaction.user_id == current_user.id,
         extract('year', RecurringTransaction.created_at) == year,
     ).order_by(RecurringTransaction.is_active.desc(), RecurringTransaction.type, RecurringTransaction.description).all()
 
-    def _vigente(r):
-        start = r.created_at.date() if r.created_at else date(year, 1, 1)
-        return start <= period_end and not (r.end_date and r.end_date < period_start)
+    today = date.today()
 
-    items       = [r for r in all_items if _vigente(r)]
-    finalizadas = [r for r in all_items if not _vigente(r)]
+    def _finalizada(r):
+        # Una recurrente se considera finalizada si está inactiva o si su
+        # fecha de término ya pasó. Las finalizadas se muestran aparte.
+        return (not r.is_active) or (r.end_date is not None and r.end_date < today)
+
+    items       = [r for r in all_items if not _finalizada(r)]
+    finalizadas = [r for r in all_items if _finalizada(r)]
 
     active_vigentes = [r for r in items if r.is_active]
     total_expense = float(sum(r.amount for r in active_vigentes if r.type == 'expense'))
