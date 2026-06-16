@@ -178,4 +178,5 @@ class AIConfigForm(FlaskForm):
     base_url = StringField(_l('URL base (solo OpenAI-compatible personalizado)'),
                            validators=[Optional(), Length(max=255)])
     api_token = PasswordField(_l('Token API'), validators=[Optional()])
+    shared_globally = BooleanField(_l('Compartir mi IA con las demás cuentas'))
     submit_ai = SubmitField(_l('Guardar configuración de escáner'))

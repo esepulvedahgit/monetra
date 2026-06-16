@@ -5327,6 +5327,158 @@ msgstr ""
 msgid "No se puede eliminar: la categoría tiene movimientos asociados."
 msgstr ""
 
+#: app/templates/main/guia.html
+msgid "Bot de Telegram"
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "Permite registrar gastos enviando una foto de recibo o un mensaje de texto desde Telegram. La IA extrae los datos y el bot los muestra para confirmar antes de guardar. Requiere que el administrador de la instancia configure un bot."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "Para el administrador (una sola vez)"
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "Crear el bot en Telegram hablando con @BotFather y obtener el token."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "Definir las variables de entorno en el servidor:"
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "token entregado por @BotFather."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "cadena aleatoria para validar que los mensajes vienen de Telegram."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "Reiniciar la aplicación. Monetra registra el webhook automáticamente al iniciar."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "Si el administrador no configuró el bot, la sección Telegram en Configuración aparece deshabilitada. Debe definir"
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "en el servidor para habilitarla."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "Para el usuario final"
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "Configuración → Telegram"
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "y pulsar \"Activar\"."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "Pulsar el enlace generado: abre el chat del bot con el código de vinculación ya cargado."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "En el chat, pulsar \"Iniciar\". El bot confirma que la cuenta está vinculada."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "Enviar una foto de recibo o texto (ej. \"Café 3.50\") para registrar un gasto."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "El bot muestra los datos extraídos con botones ✅ Confirmar / ✏️ Editar / ❌ Cancelar antes de guardar la transacción."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "Desvincular"
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "En Configuración → Telegram, pulsar el botón \"Desvincular\". Elimina el vínculo y los gastos pendientes de confirmación."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "las imágenes se envían al proveedor de IA propio de cada usuario (el mismo configurado en el Escáner IA). Monetra no las almacena. Cada conversación de Telegram es privada e independiente."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "El código de vinculación es de un solo uso y expira en 10 minutos. Si expira, genera uno nuevo desde Configuración → Telegram."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Registra gastos enviando fotos de recibos o texto directamente desde Telegram."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Esta función no está disponible en esta instancia."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Para habilitarla, define"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "en las variables de entorno del servidor."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Contacta al administrador para habilitarla."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Cuenta vinculada"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Desde"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Desvincular Telegram"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Activar Telegram"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Pulsa el enlace para abrir el bot en Telegram:"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Abrir en Telegram"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Pulsa \"Iniciar\" en el chat. El código expira en 10 minutos."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "El código expira en"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "minutos."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Error al generar el código."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Error de conexión."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "¿Desvincular tu cuenta de Telegram?"
+msgstr ""
+
 #~ msgid ""
 #~ "Si el correo existe y tiene "
 #~ "recuperación configurada, recibirás instrucciones"

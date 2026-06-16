@@ -62,3 +62,8 @@ class Config:
     REMEMBER_COOKIE_SECURE   = _secure_cookies
     # Inactivity timeout (seconds). Override with SESSION_INACTIVITY_TIMEOUT env var.
     SESSION_INACTIVITY_TIMEOUT = int(os.environ.get('SESSION_INACTIVITY_TIMEOUT', 900))  # 15 min
+
+    # Telegram Bot (optional — feature is disabled if not set)
+    TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+    TELEGRAM_WEBHOOK_SECRET = os.environ.get('TELEGRAM_WEBHOOK_SECRET')
+    TELEGRAM_BOT_USERNAME = os.environ.get('TELEGRAM_BOT_USERNAME', '')

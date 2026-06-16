@@ -18,6 +18,11 @@ services:
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-true}
       MAX_CONTENT_UPLOAD_MB: ${MAX_CONTENT_UPLOAD_MB:-15}
       MAX_RESTORE_SQL_MB: ${MAX_RESTORE_SQL_MB:-500}
+      # Telegram Bot (opcional — omitir o dejar vacío deshabilita la feature)
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
+      SERVER_URL: ${SERVER_URL:-}
     depends_on:
       mysql:
         condition: service_healthy

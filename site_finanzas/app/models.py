@@ -245,6 +245,7 @@ class UserAIConfig(db.Model):
     base_url = db.Column(db.String(255), nullable=True)  # custom endpoint for OpenAI-compatible providers
     api_token_encrypted = db.Column(db.LargeBinary, nullable=True)
     enabled = db.Column(db.Boolean, nullable=False, default=False)
+    shared_globally = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
                            onupdate=lambda: datetime.now(timezone.utc))
@@ -521,3 +522,64 @@ class ApiToken(db.Model):
 
     def __repr__(self):
         return f'<ApiToken {self.prefix}•••• user={self.user_id}>'
+
+
+class TelegramLink(db.Model):
+    """Vinculación entre un usuario de Monetra y un chat de Telegram."""
+    __tablename__ = 'telegram_links'
+
+    id               = db.Column(db.Integer, primary_key=True)
+    user_id          = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
+    chat_id          = db.Column(db.BigInteger, unique=True, nullable=False)
+    enabled          = db.Column(db.Boolean, nullable=False, default=True)
+    usd_enabled      = db.Column(db.Boolean, nullable=False, default=False)
+    pending_type     = db.Column(db.String(10), nullable=True)          # 'principal' | 'usd' | None
+    state_updated_at = db.Column(db.DateTime, nullable=True)            # TTL del pending_type
+    created_at       = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    linked_at        = db.Column(db.DateTime, nullable=True)
+
+    user = db.relationship('User', backref=db.backref('telegram_link', uselist=False,
+                                                       cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<TelegramLink user={self.user_id} chat={self.chat_id}>'
+
+
+class TelegramLinkCode(db.Model):
+    """Código de un solo uso para vincular una cuenta de Monetra con un chat de Telegram."""
+    __tablename__ = 'telegram_link_codes'
+
+    id         = db.Column(db.Integer, primary_key=True)
+    user_id    = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    code_hash  = db.Column(db.String(64), nullable=False, index=True)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    used_at    = db.Column(db.DateTime, nullable=True)
+
+    user = db.relationship('User', backref=db.backref('telegram_link_codes', lazy=True,
+                                                       cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<TelegramLinkCode user={self.user_id} used={self.used_at is not None}>'
+
+
+class TelegramPendingTx(db.Model):
+    """Transacción pendiente de confirmación enviada por el bot de Telegram."""
+    __tablename__ = 'telegram_pending_txs'
+
+    id          = db.Column(db.Integer, primary_key=True)
+    chat_id     = db.Column(db.BigInteger, nullable=False, index=True)
+    user_id     = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    amount      = db.Column(db.Numeric(12, 2), nullable=True)
+    description = db.Column(db.String(500), nullable=True)
+    merchant    = db.Column(db.String(200), nullable=True)
+    tx_date     = db.Column(db.Date, nullable=True)
+    currency    = db.Column(db.String(10), nullable=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True)
+    tx_type     = db.Column(db.String(10), nullable=False, default='principal')  # 'principal' | 'usd'
+    created_at  = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship('User', backref=db.backref('telegram_pending_txs', lazy=True,
+                                                       cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<TelegramPendingTx chat={self.chat_id} amount={self.amount}>'

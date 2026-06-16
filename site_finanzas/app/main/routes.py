@@ -1637,6 +1637,8 @@ def configurar():
             ai_config.base_url = ai_form.base_url.data or None
             if ai_form.api_token.data:
                 ai_config.api_token_encrypted = encrypt_ai_token(ai_form.api_token.data)
+            if current_user.is_first_admin:
+                ai_config.shared_globally = ai_form.shared_globally.data
             db.session.commit()
             flash(_('Configuración del escáner IA guardada.'), 'success')
             return redirect(url_for('main.configurar'))
@@ -1682,17 +1684,25 @@ def configurar():
         ai_form.provider.data = ai_config.provider or 'openai'
         ai_form.model.data = ai_config.model
         ai_form.base_url.data = ai_config.base_url
+        ai_form.shared_globally.data = ai_config.shared_globally
         # Never repopulate api_token (PasswordField — never shown)
 
     admin_smtp_available = False
+    admin_ai_available = False
     if not current_user.is_first_admin:
         admin = User.query.filter_by(is_first_admin=True).first()
         if (admin and admin.email_config and admin.email_config.smtp_enabled
                 and admin.email_config.smtp_password_encrypted):
             admin_smtp_available = True
+        if (admin and admin.ai_config and admin.ai_config.shared_globally
+                and admin.ai_config.api_token_encrypted):
+            admin_ai_available = True
 
     countries_json = json.dumps(_country_map)
     api_tok = ApiToken.query.filter_by(user_id=current_user.id).first()
+    from app.models import TelegramLink
+    telegram_bot_configured = bool(current_app.config.get('TELEGRAM_BOT_TOKEN'))
+    telegram_link = TelegramLink.query.filter_by(user_id=current_user.id, enabled=True).first()
     return render_template('main/configurar.html',
                            form=form,
                            smtp_form=smtp_form,
@@ -1701,6 +1711,7 @@ def configurar():
                            pwd_form=ChangePasswordForm(),
                            email_config=email_config,
                            admin_smtp_available=admin_smtp_available,
+                           admin_ai_available=admin_ai_available,
                            countries_json=countries_json,
                            app_config=app_config,
                            api_token_active=api_tok is not None,
@@ -1708,6 +1719,8 @@ def configurar():
                            api_token_created_at=api_tok.created_at if api_tok else None,
                            api_token_last_used_at=api_tok.last_used_at if api_tok else None,
                            has_pin=current_user.has_pin,
+                           telegram_bot_configured=telegram_bot_configured,
+                           telegram_link=telegram_link,
                            title=_('Configurar Cuenta'))
 
 

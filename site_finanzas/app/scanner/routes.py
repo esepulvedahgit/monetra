@@ -1,91 +1,13 @@
-import io
-
 from flask import current_app, request, jsonify
 from flask_login import login_required, current_user
 from flask_babel import gettext as _
 
 from app import limiter
 from app.scanner import scanner_bp
+from app.scanner.image_utils import validate_and_normalize_image
 from app.scanner.providers import extract_receipt, test_connection
 from app.models import Category, UserAIConfig  # noqa: F401 — UserAIConfig imported for type clarity
-from app.email_service import decrypt_ai_token
-
-# ---------------------------------------------------------------------------
-# Allowed image magic-byte signatures
-# ---------------------------------------------------------------------------
-_MAGIC = {
-    b'\xff\xd8\xff':                   'image/jpeg',
-    b'\x89PNG\r\n\x1a\n':             'image/png',
-    # WebP: 'RIFF????WEBP' — validated separately below
-    # HEIC/HEIF: ISO Base Media File Format — 'ftyp' box at offset 4
-}
-_ALLOWED_MIMES = frozenset({
-    'image/jpeg', 'image/png', 'image/webp',
-    'image/heic', 'image/heif',
-})
-
-
-def _detect_mime(header: bytes) -> str | None:
-    """Return MIME type from first 12 bytes, or None if unrecognised."""
-    if header[:3] == b'\xff\xd8\xff':
-        return 'image/jpeg'
-    if header[:8] == b'\x89PNG\r\n\x1a\n':
-        return 'image/png'
-    if header[:4] == b'RIFF' and header[8:12] == b'WEBP':
-        return 'image/webp'
-    if len(header) >= 12 and header[4:8] == b'ftyp':
-        return 'image/heic'
-    return None
-
-
-def _validate_and_normalize_image(image_file):
-    """Read, validate by magic bytes, convert HEIC→JPEG if needed.
-
-    Returns (image_bytes: bytes, mime_type: str).
-    Raises ValueError with a human-readable message on invalid input.
-    The uploaded filename is intentionally ignored.
-    """
-    raw = image_file.read()
-    if not raw:
-        raise ValueError(_('La imagen está vacía.'))
-
-    header = raw[:12]
-    detected = _detect_mime(header)
-
-    if detected is None:
-        raise ValueError(_(
-            'Formato no compatible. Usa PNG, JPG, WEBP o HEIC.'
-        ))
-
-    # Normalise all formats to JPEG before sending to AI providers.
-    # PNG screenshots can be 3-7 MB; JPEG at 88% quality is ~200-500 KB,
-    # which avoids payload-size failures and timeouts on provider APIs.
-    try:
-        from PIL import Image
-
-        if detected in ('image/heic', 'image/heif'):
-            import pillow_heif
-            heif_file = pillow_heif.open_heif(raw)
-            pil_img = Image.frombytes(heif_file.mode, heif_file.size, heif_file.data, 'raw')
-        else:
-            pil_img = Image.open(io.BytesIO(raw))
-
-        # Convert palette/transparency modes that JPEG cannot encode
-        if pil_img.mode in ('RGBA', 'LA', 'P'):
-            pil_img = pil_img.convert('RGB')
-        elif pil_img.mode != 'RGB':
-            pil_img = pil_img.convert('RGB')
-
-        buf = io.BytesIO()
-        pil_img.save(buf, format='JPEG', quality=92, optimize=True)
-        return buf.getvalue(), 'image/jpeg'
-
-    except Exception as exc:
-        if detected in ('image/heic', 'image/heif'):
-            raise ValueError(_('No se pudo procesar el archivo HEIC. Asegúrate de que no esté dañado.'))
-        # Fallback: send raw bytes with detected MIME (JPEG already correct).
-        current_app.logger.warning('PIL normalization failed for %s, sending raw: %s', detected, exc)
-        return raw, detected
+from app.email_service import decrypt_ai_token, resolve_ai_config
 
 
 @scanner_bp.route('/scanner/test', methods=['POST'], endpoint='test')
@@ -128,9 +50,9 @@ def scanner_test():
 @login_required
 def scanner_extract():
     """Extract receipt data from an uploaded image using the user's AI config."""
-    # --- Validate AI config ---
-    ai_config = getattr(current_user, 'ai_config', None)
-    if not ai_config or not ai_config.enabled:
+    # --- Validate AI config (propia o del admin compartida) ---
+    ai_config = resolve_ai_config(current_user)
+    if not ai_config:
         return jsonify({'error': _('Escáner no configurado. Ve a Configuración → Escáner IA.')}), 400
 
     # --- Validate and normalise uploaded file ---
@@ -139,7 +61,7 @@ def scanner_extract():
         return jsonify({'error': _('No se proporcionó una imagen.')}), 400
 
     try:
-        image_bytes, mime_type = _validate_and_normalize_image(image_file)
+        image_bytes, mime_type = validate_and_normalize_image(image_file)
     except ValueError as exc:
         return jsonify({'error': str(exc)}), 400
 

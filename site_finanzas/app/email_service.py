@@ -57,6 +57,34 @@ def decrypt_ai_token(encrypted_token: bytes) -> str:
         return ""
 
 
+def resolve_ai_config(user):
+    """Devuelve el UserAIConfig efectivo para escanear recibos, o None.
+
+    Orden de resolución:
+      1. Config propia del usuario si está enabled y tiene token guardado.
+      2. Config del primer admin si shared_globally=True y tiene token,
+         PERO solo cuando el usuario tiene email verificado y no está suspendido
+         (control de costos: cada escaneo consume cuota del proveedor del admin).
+    """
+    from app.models import User as _User
+
+    own = getattr(user, 'ai_config', None)
+    if own and own.enabled and own.api_token_encrypted:
+        return own
+
+    # Fallback compartido: solo cuentas verificadas y activas
+    if not getattr(user, 'email_verified', False) or getattr(user, 'is_suspended', False):
+        return None
+
+    admin = _User.query.filter_by(is_first_admin=True).first()
+    if admin and admin.id != user.id:
+        admin_cfg = admin.ai_config
+        if admin_cfg and admin_cfg.shared_globally and admin_cfg.api_token_encrypted:
+            return admin_cfg
+
+    return None
+
+
 def _open_and_send(config, msg):
     """Abre la conexión SMTP, envía el mensaje y garantiza el cierre del socket."""
     password = decrypt_smtp_password(config.smtp_password_encrypted)
