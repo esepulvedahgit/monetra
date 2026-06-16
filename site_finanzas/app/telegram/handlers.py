@@ -5,7 +5,7 @@ import re
 from datetime import datetime, timezone, timedelta, date as _date
 from decimal import Decimal, InvalidOperation
 
-from flask import current_app
+from flask import current_app, request as flask_request
 
 from app import db
 from app.audit.events import TELEGRAM_LINK, TELEGRAM_UNLINK, TELEGRAM_TX_CREATE
@@ -34,6 +34,10 @@ _USD_LOCALE = 'en_US'
 _USD_CODE   = 'USD'
 _USD_SYMBOL = 'US$'
 
+# #2 — Límites de validación de montos
+_AMOUNT_TOKEN_MAX_LEN = 20           # ningún monto legítimo supera 20 caracteres
+_AMOUNT_MAX_VALUE = Decimal('9999999999.99')  # máximo para Numeric(12,2)
+
 
 def _parse_amount_for_tx(token: str, tx_type: str, user) -> Decimal:
     """Parsea un monto respetando la convención de la moneda del tipo de transacción.
@@ -61,11 +65,7 @@ def _lang_of(user) -> str | None:
 # ── Estado conversacional ─────────────────────────────────────────────────────
 
 def _state_active(link: TelegramLink) -> bool:
-    """Devuelve True si hay un pending_type activo con TTL < 1h.
-
-    Si el estado expiró lo limpia y persiste (sin commit: el llamador hace commit
-    junto a sus propios cambios o simplemente no lo necesita para el flujo de control).
-    """
+    """Devuelve True si hay un pending_type activo con TTL < 1h."""
     if not link.pending_type:
         return False
     if link.state_updated_at is None:
@@ -93,7 +93,7 @@ def _usd_default_category(user_id: int) -> UsdCategory:
     if not cat:
         cat = UsdCategory(user_id=user_id, name='Telegram', color=_USD_CATEGORY_COLOR)
         db.session.add(cat)
-        db.session.flush()   # genera cat.id antes del commit del llamador
+        db.session.flush()
     return cat
 
 
@@ -118,6 +118,10 @@ def _handle_message(msg: dict) -> None:
     if not chat_id:
         return
 
+    # #4 — Solo chats privados; en grupos cualquier miembro podría escribir gastos
+    if msg.get('chat', {}).get('type') != 'private':
+        return
+
     text = msg.get('text', '').strip()
 
     # /start <code>
@@ -139,8 +143,7 @@ def _handle_message(msg: dict) -> None:
     # ── Modo USD activo: pedir tipo antes de recibir el gasto ────────────────
     if link.usd_enabled:
         if not _state_active(link):
-            # Sin estado → preguntar tipo de transacción
-            db.session.commit()  # persistir limpieza de estado expirado si ocurrió
+            db.session.commit()
             name = html.escape(user.username) if user else ''
             buttons = [[
                 {'text': t('btn_type_principal', lang), 'callback_data': 'settype:principal'},
@@ -148,18 +151,15 @@ def _handle_message(msg: dict) -> None:
             ]]
             send_message_with_buttons(chat_id, t('ask_type', lang).format(name=name), buttons)
             return
-        # Estado activo → procesar el gasto con el tipo elegido
         tx_type = link.pending_type
     else:
         tx_type = 'principal'
 
-    # Photo message
     photos = msg.get('photo')
     if photos:
         _handle_photo(chat_id, link.user_id, photos, lang, tx_type, link)
         return
 
-    # Text message (expense entry)
     if text:
         _handle_text(chat_id, link.user_id, text, lang, tx_type, link)
         return
@@ -168,7 +168,6 @@ def _handle_message(msg: dict) -> None:
 # ── /start handler (linking) ──────────────────────────────────────────────────
 
 def _handle_start(chat_id: int, code: str) -> None:
-    # Already linked?
     existing = TelegramLink.query.filter_by(chat_id=chat_id, enabled=True).first()
     if existing:
         user = User.query.get(existing.user_id)
@@ -195,10 +194,8 @@ def _handle_start(chat_id: int, code: str) -> None:
         send_message(chat_id, t('code_invalid'))
         return
 
-    # Consume code
     link_code.used_at = now
 
-    # Create or update link
     tg_link = TelegramLink.query.filter_by(user_id=link_code.user_id).first()
     if tg_link:
         tg_link.chat_id = chat_id
@@ -213,7 +210,9 @@ def _handle_start(chat_id: int, code: str) -> None:
         )
         db.session.add(tg_link)
 
-    log_event(TELEGRAM_LINK, user_id=link_code.user_id, description=f"chat_id={chat_id}")
+    # #8 — Incluir IP en el evento de vinculación (request disponible en el contexto del webhook)
+    log_event(TELEGRAM_LINK, user_id=link_code.user_id,
+              description=f"chat_id={chat_id}", request=flask_request)
     db.session.commit()
 
     user = User.query.get(link_code.user_id)
@@ -238,7 +237,6 @@ def _handle_photo(
         send_message(chat_id, t('ai_not_configured', lang))
         return
 
-    # Take the largest photo (last in the list has highest resolution)
     best = max(photos, key=lambda p: p.get('file_size', 0))
     file_id = best.get('file_id')
     if not file_id:
@@ -250,7 +248,6 @@ def _handle_photo(
         send_message(chat_id, t('extract_error', lang))
         return
 
-    # Validate + normalize
     try:
         from app.scanner.image_utils import validate_and_normalize_image
         image_bytes, mime_type = validate_and_normalize_image(image_bytes)
@@ -263,7 +260,6 @@ def _handle_photo(
         send_message(chat_id, t('extract_error', lang))
         return
 
-    # Extract with AI
     try:
         from app.scanner.providers import extract_receipt
         result = extract_receipt(ai_config, image_bytes, mime_type)
@@ -282,7 +278,6 @@ def _handle_photo(
 # ── Text handler ──────────────────────────────────────────────────────────────
 
 # Captura números con separadores de miles/decimales (p. ej. 1.670, 1.670,50, 12500).
-# Intencionalmente amplio: el parseo locale-aware de Babel decide el valor real.
 _AMOUNT_RE = re.compile(r'\d+(?:[.,]\d+)*')
 
 
@@ -300,9 +295,13 @@ def _handle_text(
         send_message(chat_id, t('text_parse_help', lang))
         return
 
-    # Último número del mensaje = monto (heurística "descripción monto")
     last_match = matches[-1]
     amount_token = last_match.group(0)
+
+    # #2 — Rechazar tokens numéricos excesivamente largos antes de parsear
+    if len(amount_token) > _AMOUNT_TOKEN_MAX_LEN:
+        send_message(chat_id, t('text_parse_help', lang))
+        return
 
     user = User.query.get(user_id)
     try:
@@ -311,7 +310,11 @@ def _handle_text(
         send_message(chat_id, t('text_parse_help', lang))
         return
 
-    # Descripción: texto sin el token del monto elegido
+    # #2 — Validar magnitud: debe ser positivo y caber en Numeric(12,2)
+    if amount <= 0 or amount > _AMOUNT_MAX_VALUE:
+        send_message(chat_id, t('text_parse_help', lang))
+        return
+
     description = (text[:last_match.start()] + text[last_match.end():]).strip(' -–—,.')
     if not description:
         description = t('default_description', lang)
@@ -336,21 +339,28 @@ def _save_pending_and_confirm(
     tx_type: str,
     link: TelegramLink,
 ) -> None:
-    # Delete previous pending transactions for this chat
     TelegramPendingTx.query.filter_by(chat_id=chat_id).delete()
 
-    # Resolve fallback category (solo para Principal)
     category_id = None
     if tx_type == 'principal':
         fallback_cat = Category.query.filter_by(name='Telegram', user_id=None, type='expense').first()
         category_id = fallback_cat.id if fallback_cat else None
 
     amount = result.get('total')
+
+    # #2 — Validar monto de la ruta de foto/IA antes de persistir
+    if amount is not None:
+        try:
+            amount = Decimal(str(amount))
+            if amount <= 0 or amount > _AMOUNT_MAX_VALUE:
+                amount = None
+        except (InvalidOperation, TypeError):
+            amount = None
+
     description = result.get('description') or result.get('merchant') or t('default_description', lang)
     merchant = result.get('merchant')
     currency = result.get('currency')
 
-    # Parse date
     tx_date = None
     raw_date = result.get('date')
     if raw_date:
@@ -376,7 +386,6 @@ def _save_pending_and_confirm(
     )
     db.session.add(pending)
 
-    # Limpiar estado conversacional — el tipo ya fue capturado en la pendiente
     _clear_state(link)
     db.session.commit()
 
@@ -408,6 +417,10 @@ def _handle_callback(callback: dict) -> None:
     message_id = callback.get('message', {}).get('message_id')
 
     if not chat_id or not data:
+        return
+
+    # #4 — Solo chats privados
+    if callback.get('message', {}).get('chat', {}).get('type') != 'private':
         return
 
     if data.startswith('settype:'):
@@ -445,9 +458,7 @@ def _do_set_type(chat_id: int, message_id: int, callback_id: str, data: str) -> 
     db.session.commit()
 
     answer_callback_query(callback_id)
-    # Quitar botones del mensaje de selección
     edit_message_reply_markup(chat_id, message_id, {})
-    # Invitar a escribir/adjuntar el gasto
     send_message(chat_id, t('prompt_expense', lang))
 
 
@@ -458,8 +469,9 @@ def _do_confirm(chat_id: int, message_id: int, callback_id: str, data: str) -> N
         answer_callback_query(callback_id, t('toast_error'))
         return
 
-    pending = TelegramPendingTx.query.get(pending_id)
-    if not pending or pending.chat_id != chat_id:
+    # #5 — Scoped query: chat_id en el filtro elimina el IDOR estructuralmente
+    pending = TelegramPendingTx.query.filter_by(id=pending_id, chat_id=chat_id).first()
+    if not pending:
         answer_callback_query(callback_id, t('toast_expired'))
         send_message(chat_id, t('pending_expired'))
         return
@@ -491,7 +503,6 @@ def _do_confirm(chat_id: int, message_id: int, callback_id: str, data: str) -> N
     tx_type = pending.tx_type or 'principal'
 
     if tx_type == 'usd':
-        # ── Crear UsdTransaction ──────────────────────────────────────────────
         usd_cat = _usd_default_category(pending.user_id)
         tx_amount = pending.amount or 0
         tx = UsdTransaction(
@@ -502,11 +513,9 @@ def _do_confirm(chat_id: int, message_id: int, callback_id: str, data: str) -> N
             date=pending.tx_date or _date.today(),
         )
         db.session.add(tx)
-        log_event(
-            TELEGRAM_TX_CREATE,
-            user_id=pending.user_id,
-            description=f"usd amount={pending.amount}",
-        )
+        # #8 — Incluir IP en el evento de creación de transacción
+        log_event(TELEGRAM_TX_CREATE, user_id=pending.user_id,
+                  description=f"usd amount={pending.amount}", request=flask_request)
         db.session.delete(pending)
         db.session.commit()
 
@@ -517,7 +526,6 @@ def _do_confirm(chat_id: int, message_id: int, callback_id: str, data: str) -> N
             description=html.escape(tx.description or ''), amount=amount_str
         ))
     else:
-        # ── Crear Transaction (Principal) ─────────────────────────────────────
         tx = Transaction(
             user_id=pending.user_id,
             category_id=pending.category_id,
@@ -527,11 +535,9 @@ def _do_confirm(chat_id: int, message_id: int, callback_id: str, data: str) -> N
             date=pending.tx_date or _date.today(),
         )
         db.session.add(tx)
-        log_event(
-            TELEGRAM_TX_CREATE,
-            user_id=pending.user_id,
-            description=f"amount={pending.amount}",
-        )
+        # #8 — Incluir IP en el evento de creación de transacción
+        log_event(TELEGRAM_TX_CREATE, user_id=pending.user_id,
+                  description=f"amount={pending.amount}", request=flask_request)
         db.session.delete(pending)
         db.session.commit()
 
@@ -550,15 +556,15 @@ def _do_cancel(chat_id: int, message_id: int, callback_id: str, data: str) -> No
         answer_callback_query(callback_id)
         return
 
-    pending = TelegramPendingTx.query.get(pending_id)
-    if pending and pending.chat_id == chat_id:
+    # #5 — Scoped query por chat_id
+    pending = TelegramPendingTx.query.filter_by(id=pending_id, chat_id=chat_id).first()
+    if pending:
         db.session.delete(pending)
 
     link = TelegramLink.query.filter_by(chat_id=chat_id, enabled=True).first()
     user = User.query.get(link.user_id) if link else None
     lang = _lang_of(user)
 
-    # Limpiar estado conversacional al cancelar
     if link:
         _clear_state(link)
 

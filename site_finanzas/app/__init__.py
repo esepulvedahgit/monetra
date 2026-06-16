@@ -121,7 +121,8 @@ def create_app(config_class=Config):
 
     from app.telegram import telegram_bp
     app.register_blueprint(telegram_bp)
-    csrf.exempt(telegram_bp)
+    # #7 — CSRF exento solo en el webhook; generate-code/toggle-usd/unlink conservan protección.
+    # El @csrf.exempt está puesto directamente en el decorador de la vista webhook en routes.py.
 
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e):
@@ -241,6 +242,12 @@ def _setup_telegram_webhook(app):
     server_url = app.config.get('SERVER_NAME') or os.environ.get('SERVER_URL', '')
     if not token or not secret or not server_url:
         return
+    # #3 — Advertir si el secreto es demasiado corto (mín. recomendado: 32 caracteres)
+    if len(secret) < 32:
+        app.logger.warning(
+            "TELEGRAM_WEBHOOK_SECRET tiene menos de 32 caracteres. "
+            "Genera uno más seguro con: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+        )
     with app.app_context():
         try:
             from app.telegram.service import set_webhook

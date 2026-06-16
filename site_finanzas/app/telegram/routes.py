@@ -2,12 +2,14 @@ import hashlib
 import hmac
 import logging
 import secrets
+import time
+from collections import defaultdict, deque
 from datetime import datetime, timezone, timedelta
 
 from flask import current_app, jsonify, request
 from flask_login import current_user, login_required
 
-from app import db, limiter
+from app import csrf, db, limiter
 from app.audit.events import TELEGRAM_LINK, TELEGRAM_UNLINK
 from app.audit.logger import log_event
 from app.models import TelegramLink, TelegramLinkCode, TelegramPendingTx
@@ -17,8 +19,35 @@ from app.telegram.service import _webhook_path
 
 _log = logging.getLogger(__name__)
 
+# #10 — Throttle por chat_id (in-process, para single-worker Gunicorn)
+# Permite hasta 20 mensajes por chat en 60 segundos antes de descartarlos silenciosamente.
+_CHAT_TIMESTAMPS: dict[int, deque] = defaultdict(lambda: deque(maxlen=20))
+_CHAT_RATE_WINDOW = 60
+_CHAT_RATE_LIMIT  = 20
 
+
+def _is_chat_rate_limited(chat_id: int) -> bool:
+    now = time.monotonic()
+    dq = _CHAT_TIMESTAMPS[chat_id]
+    while dq and now - dq[0] > _CHAT_RATE_WINDOW:
+        dq.popleft()
+    if len(dq) >= _CHAT_RATE_LIMIT:
+        return True
+    dq.append(now)
+    return False
+
+
+def _chat_id_from_update(update: dict) -> int | None:
+    if 'message' in update:
+        return update['message'].get('chat', {}).get('id')
+    if 'callback_query' in update:
+        return update['callback_query'].get('message', {}).get('chat', {}).get('id')
+    return None
+
+
+# #7 — CSRF exento solo en el webhook (no en generate-code / toggle-usd / unlink)
 @telegram_bp.route('/telegram/webhook/<webhook_path>', methods=['POST'])
+@csrf.exempt
 @limiter.limit("60 per minute")
 def webhook(webhook_path: str):
     """Receive Telegram updates. Validates secret path + header before dispatching."""
@@ -39,6 +68,12 @@ def webhook(webhook_path: str):
 
     update = request.get_json(silent=True)
     if update:
+        # #10 — Throttle por chat_id antes de procesar
+        chat_id = _chat_id_from_update(update)
+        if chat_id and _is_chat_rate_limited(chat_id):
+            _log.warning("Per-chat rate limit exceeded for chat_id=%s, dropping update", chat_id)
+            return jsonify({'ok': True}), 200  # siempre 200 a Telegram
+
         try:
             process_update(update)
         except Exception as exc:
@@ -69,14 +104,12 @@ def generate_code():
     if not current_app.config.get('TELEGRAM_BOT_TOKEN'):
         return jsonify({'error': 'Bot not configured'}), 503
 
-    # Expire any existing unused codes for this user
     now = datetime.now(timezone.utc)
     TelegramLinkCode.query.filter(
         TelegramLinkCode.user_id == current_user.id,
         TelegramLinkCode.used_at.is_(None),
     ).delete()
 
-    # Generate new code
     raw_code = secrets.token_urlsafe(24)
     code_hash = hashlib.sha256(raw_code.encode()).hexdigest()
     expires_at = now + timedelta(minutes=10)
@@ -88,7 +121,6 @@ def generate_code():
     ))
     db.session.commit()
 
-    # Build deep link — requires TELEGRAM_BOT_USERNAME; returns null if not configured
     bot_username = current_app.config.get('TELEGRAM_BOT_USERNAME', '')
     deep_link = f"https://t.me/{bot_username}?start={raw_code}" if bot_username else None
 
@@ -111,7 +143,6 @@ def toggle_usd():
     enabled = bool(data.get('enabled', False))
     link.usd_enabled = enabled
     if not enabled:
-        # Limpiar estado conversacional al desactivar
         link.pending_type = None
         link.state_updated_at = None
     db.session.commit()
@@ -127,11 +158,7 @@ def unlink():
         return jsonify({'unlinked': False, 'message': 'No linked account'}), 200
 
     chat_id = link.chat_id
-
-    # Delete pending transactions for this chat
     TelegramPendingTx.query.filter_by(chat_id=chat_id).delete()
-
-    # Delete the link
     db.session.delete(link)
 
     log_event(TELEGRAM_UNLINK, user_id=current_user.id, description=f"chat_id={chat_id}", request=request)

@@ -1,12 +1,15 @@
 import hashlib
 import logging
-import os
+import urllib.parse
 
 import requests
 from flask import current_app
 
 _log = logging.getLogger(__name__)
 _BASE = "https://api.telegram.org/bot{token}/{method}"
+
+# Allowed characters in a Telegram file_path (alphanumeric, /, _, -, .)
+_SAFE_PATH_RE = __import__('re').compile(r'^[A-Za-z0-9/_\-\.]+$')
 
 
 def _token() -> str:
@@ -27,6 +30,9 @@ def _api(method: str, **kwargs) -> dict:
         return {}
 
 
+# All send_* functions use parse_mode='HTML'. Every user-controlled value
+# interpolated into message text MUST be wrapped with html.escape() by the caller.
+
 def send_message(chat_id: int, text: str, parse_mode: str = 'HTML') -> None:
     _api('sendMessage', chat_id=chat_id, text=text, parse_mode=parse_mode)
 
@@ -35,7 +41,7 @@ def send_message_with_buttons(chat_id: int, text: str, buttons: list) -> dict:
     """Send a message with inline keyboard buttons.
 
     buttons: list of rows, each row is a list of dicts with 'text' and 'callback_data'.
-    Returns the full API response (needed to get the message_id for edits).
+    All user-supplied strings in 'text' must be html.escape()d by the caller.
     """
     return _api(
         'sendMessage',
@@ -60,7 +66,9 @@ _MAX_DOWNLOAD_BYTES = 20 * 1024 * 1024  # 20 MB
 def download_file(file_id: str) -> bytes | None:
     """Download a Telegram file by file_id. Returns raw bytes or None.
 
-    SSRF protection: only downloads from api.telegram.org.
+    SSRF protection:
+    - file_path validated against an allowlist (alphanumeric, /, _, -, .) before use.
+    - URL host pinned to api.telegram.org; redirects disabled.
     Byte cap: aborts if response exceeds 20 MB.
     """
     token = _token()
@@ -70,7 +78,20 @@ def download_file(file_id: str) -> bytes | None:
     path = (result.get('result') or {}).get('file_path')
     if not path:
         return None
-    url = f"https://api.telegram.org/file/bot{token}/{path}"
+
+    # #1 — Validate file_path before injecting into URL (SSRF / path traversal)
+    if (
+        not isinstance(path, str)
+        or path.startswith('/')
+        or '..' in path
+        or '://' in path
+        or '\\' in path
+        or not _SAFE_PATH_RE.match(path)
+    ):
+        _log.warning("Rejected suspicious file_path from Telegram for file_id=%s", file_id)
+        return None
+
+    url = f"https://api.telegram.org/file/bot{token}/{urllib.parse.quote(path, safe='/_-.')}"
     try:
         resp = requests.get(url, timeout=30, allow_redirects=False, stream=True)
         if resp.status_code != 200:
@@ -108,7 +129,12 @@ def set_webhook(app_url: str, secret: str) -> bool:
         if resp.status_code == 200 and data.get('ok'):
             _log.info("Telegram webhook registered successfully")
             return True
-        _log.warning("Telegram setWebhook failed: status=%s body=%s", resp.status_code, resp.text[:500])
+        # #9 — Log only the API error description, not the full response body
+        _log.warning(
+            "Telegram setWebhook failed: status=%s error=%s",
+            resp.status_code,
+            data.get('description', 'unknown error'),
+        )
         return False
     except Exception as exc:
         _log.warning("Telegram setWebhook error: %s", exc)

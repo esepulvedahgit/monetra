@@ -23,6 +23,18 @@ def init_scheduler(app):
         id='weekly_report',
         replace_existing=True,
     )
+
+    # #6 — Limpiar códigos de vinculación expirados y transacciones pendientes abandonadas
+    scheduler.add_job(
+        func=_telegram_cleanup_job,
+        args=[app],
+        trigger='cron',
+        hour=3,
+        minute=0,
+        id='telegram_cleanup',
+        replace_existing=True,
+    )
+
     scheduler.start()
     logger.info("Scheduler started — weekly report job scheduled every Monday at 10:00 UTC.")
 
@@ -60,3 +72,34 @@ def _weekly_report_job(app):
             executor.map(process, users)
 
         logger.info("Weekly report job finished.")
+
+
+def _telegram_cleanup_job(app):
+    """Elimina códigos de vinculación expirados y transacciones Telegram pendientes > 1h."""
+    with app.app_context():
+        from datetime import datetime, timezone, timedelta
+        from app import db
+        from app.models import TelegramLinkCode, TelegramPendingTx
+
+        now = datetime.now(timezone.utc)
+        cutoff_pending = now - timedelta(hours=1)
+
+        try:
+            deleted_codes = TelegramLinkCode.query.filter(
+                TelegramLinkCode.expires_at < now,
+                TelegramLinkCode.used_at.is_(None),
+            ).delete(synchronize_session=False)
+
+            deleted_pending = TelegramPendingTx.query.filter(
+                TelegramPendingTx.created_at < cutoff_pending,
+            ).delete(synchronize_session=False)
+
+            db.session.commit()
+            if deleted_codes or deleted_pending:
+                logger.info(
+                    "Telegram cleanup: %d expired codes, %d stale pending txs deleted.",
+                    deleted_codes, deleted_pending,
+                )
+        except Exception as exc:
+            db.session.rollback()
+            logger.error("Telegram cleanup job error: %s", exc, exc_info=True)
