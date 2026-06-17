@@ -47,6 +47,10 @@ MESSAGES = {
         'es': "⚠️ Tu cuenta de Monetra no tiene configurado el Escáner IA. Ve a Configuración → Escáner IA para habilitarlo.",
         'en': "⚠️ Your Monetra account doesn't have the AI Scanner configured. Go to Settings → AI Scanner to enable it.",
     },
+    'ai_quota_exceeded': {
+        'es': "⚠️ Has alcanzado el límite diario de escaneos con la IA compartida. Vuelve a intentarlo mañana o activa tu propia clave de IA en Configuración.",
+        'en': "⚠️ You've reached today's limit for shared AI scans. Try again tomorrow or activate your own AI key in Settings.",
+    },
     'extract_error': {
         'es': "⚠️ No pude extraer los datos del recibo. Intenta con una foto más clara o escribe el gasto manualmente.",
         'en': "⚠️ I couldn't extract the receipt data. Try a clearer photo or type the expense manually.",

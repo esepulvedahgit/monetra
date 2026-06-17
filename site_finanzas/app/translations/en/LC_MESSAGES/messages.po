@@ -315,13 +315,9 @@ msgid "Ritmo de gasto alto"
 msgstr "High spending rate"
 
 #: app/insights/messages.py:36
-#, python-brace-format, python-format
-msgid ""
-"Has usado el {budget_used_pct:.0f}% del presupuesto y solo ha "
-"transcurrido el {month_elapsed_pct:.0f}% del mes."
-msgstr ""
-"You have used {budget_used_pct:.0f}% of the budget and only "
-"{month_elapsed_pct:.0f}% of the month has passed."
+#, python-brace-format
+msgid "Presupuesto ejecutado: {budget_used_pct:.0f}%. Mes transcurrido: {month_elapsed_pct:.0f}%."
+msgstr "Budget used: {budget_used_pct:.0f}%. Month elapsed: {month_elapsed_pct:.0f}%."
 
 #: app/insights/messages.py:37
 msgid ""
@@ -344,13 +340,9 @@ msgid "Vas a superar tu presupuesto"
 msgstr "You will exceed your budget"
 
 #: app/insights/messages.py:42
-#, python-brace-format, python-format
-msgid ""
-"Con el ritmo actual cerrarás el mes en {projected_pct:.0f}% del "
-"presupuesto."
-msgstr ""
-"At the current pace you will close the month at {projected_pct:.0f}% "
-"budget usage."
+#, python-brace-format
+msgid "Con el ritmo actual cerrarás el mes al {projected_pct:.0f}%."
+msgstr "At the current pace, you will close the month at {projected_pct:.0f}%."
 
 #: app/insights/messages.py:43
 msgid ""
@@ -2802,6 +2794,55 @@ msgstr "Open in Telegram"
 #: app/templates/main/configurar.html:670
 msgid "Pulsa \"Iniciar\" en el chat. El código expira en 10 minutos."
 msgstr "Click \"Start\" in the chat. The code expires in 10 minutes."
+
+# ── Bloque unificado Escáner IA · Telegram ──
+#: app/templates/main/configurar.html
+msgid "Escáner IA · Telegram"
+msgstr "AI Scanner · Telegram"
+
+#: app/templates/main/configurar.html
+msgid ""
+"Activa la IA para desbloquear tu bot de Telegram. Luego podrás registrar "
+"transacciones enviando texto o fotos de recibos directamente al bot."
+msgstr ""
+"Activate AI to unlock your Telegram bot. Then you can record transactions "
+"by sending text or receipt photos directly to the bot."
+
+#: app/templates/main/configurar.html
+msgid "Paso 1"
+msgstr "Step 1"
+
+#: app/templates/main/configurar.html
+msgid "Activar IA"
+msgstr "Activate AI"
+
+#: app/templates/main/configurar.html
+msgid "IA disponible"
+msgstr "AI available"
+
+#: app/templates/main/configurar.html
+msgid "Paso 2"
+msgstr "Step 2"
+
+#: app/templates/main/configurar.html
+msgid "Bot vinculado"
+msgstr "Bot linked"
+
+#: app/templates/main/configurar.html
+msgid ""
+"La IA está desactivada; el bot no podrá procesar mensajes hasta "
+"reactivarla."
+msgstr ""
+"AI is disabled; the bot will not be able to process messages until "
+"you reactivate it."
+
+#: app/templates/main/configurar.html
+msgid "Activa la IA (Paso 1) para desbloquear tu bot de Telegram."
+msgstr "Activate AI (Step 1) to unlock your Telegram bot."
+
+#: app/templates/main/configurar.html
+msgid "Primero activa la IA (Paso 1)."
+msgstr "First activate AI (Step 1)."
 
 #: app/templates/main/configurar.html:687
 msgid "Seguridad"

@@ -17,7 +17,7 @@ from app import db, limiter
 from app.main import main
 from app.main.forms import TransactionForm, CategoryForm, BudgetForm, CategoryBudgetForm, ConfigForm, SMTPConfigForm, RecurringTransactionForm, SavingsGoalForm, ChangePasswordForm, CustomBudgetForm, AIConfigForm
 from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal, UserSeenAnnouncement, CustomBudget, UserAIConfig, ApiToken, UserPinDevice
-from app.email_service import encrypt_smtp_password, send_user_email, encrypt_mfa_secret, decrypt_mfa_secret, encrypt_ai_token, send_security_alert_email
+from app.email_service import encrypt_smtp_password, send_user_email, encrypt_mfa_secret, decrypt_mfa_secret, encrypt_ai_token, send_security_alert_email, resolve_ai_config
 
 # (nombre, símbolo, nombre_moneda, código_ISO, locale_babel)
 COUNTRIES_CURRENCIES = [
@@ -1700,6 +1700,7 @@ def configurar():
     from app.models import TelegramLink
     telegram_bot_configured = bool(current_app.config.get('TELEGRAM_BOT_TOKEN'))
     telegram_link = TelegramLink.query.filter_by(user_id=current_user.id, enabled=True).first()
+    ai_available = resolve_ai_config(current_user) is not None
     return render_template('main/configurar.html',
                            form=form,
                            smtp_form=smtp_form,
@@ -1718,6 +1719,7 @@ def configurar():
                            has_pin=current_user.has_pin,
                            telegram_bot_configured=telegram_bot_configured,
                            telegram_link=telegram_link,
+                           ai_available=ai_available,
                            title=_('Configurar Cuenta'))
 
 

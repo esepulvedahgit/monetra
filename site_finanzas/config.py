@@ -67,3 +67,7 @@ class Config:
     TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
     TELEGRAM_WEBHOOK_SECRET = os.environ.get('TELEGRAM_WEBHOOK_SECRET')
     TELEGRAM_BOT_USERNAME = os.environ.get('TELEGRAM_BOT_USERNAME', '')
+
+    # Cuota diaria máxima de escaneos IA por usuario cuando usan la clave compartida del admin.
+    # Sube o baja este valor con AI_SHARED_DAILY_LIMIT en .env.
+    AI_SHARED_DAILY_LIMIT = int(os.environ.get('AI_SHARED_DAILY_LIMIT', '25'))

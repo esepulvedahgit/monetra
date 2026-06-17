@@ -297,10 +297,8 @@ msgid "Ritmo de gasto alto"
 msgstr ""
 
 #: app/insights/messages.py:36
-#, python-brace-format, python-format
-msgid ""
-"Has usado el {budget_used_pct:.0f}% del presupuesto y solo ha "
-"transcurrido el {month_elapsed_pct:.0f}% del mes."
+#, python-brace-format
+msgid "Presupuesto ejecutado: {budget_used_pct:.0f}%. Mes transcurrido: {month_elapsed_pct:.0f}%."
 msgstr ""
 
 #: app/insights/messages.py:37
@@ -320,10 +318,8 @@ msgid "Vas a superar tu presupuesto"
 msgstr ""
 
 #: app/insights/messages.py:42
-#, python-brace-format, python-format
-msgid ""
-"Con el ritmo actual cerrarás el mes en {projected_pct:.0f}% del "
-"presupuesto."
+#, python-brace-format
+msgid "Con el ritmo actual cerrarás el mes al {projected_pct:.0f}%."
 msgstr ""
 
 #: app/insights/messages.py:43
@@ -2667,6 +2663,51 @@ msgstr ""
 
 #: app/templates/main/configurar.html:670
 msgid "Pulsa \"Iniciar\" en el chat. El código expira en 10 minutos."
+msgstr ""
+
+# ── Bloque unificado Escáner IA · Telegram ──
+#: app/templates/main/configurar.html
+msgid "Escáner IA · Telegram"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid ""
+"Activa la IA para desbloquear tu bot de Telegram. Luego podrás registrar "
+"transacciones enviando texto o fotos de recibos directamente al bot."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Paso 1"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Activar IA"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "IA disponible"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Paso 2"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Bot vinculado"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid ""
+"La IA está desactivada; el bot no podrá procesar mensajes hasta "
+"reactivarla."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Activa la IA (Paso 1) para desbloquear tu bot de Telegram."
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Primero activa la IA (Paso 1)."
 msgstr ""
 
 #: app/templates/main/configurar.html:687

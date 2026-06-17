@@ -40,6 +40,9 @@ class User(db.Model, UserMixin):
     email_verified_at = db.Column(db.DateTime, nullable=True)
     last_login_at = db.Column(db.DateTime, nullable=True)
     is_suspended = db.Column(db.Boolean, nullable=False, default=False)
+    # Cuota diaria de escaneos IA sobre la clave compartida del admin
+    shared_ai_scans_date  = db.Column(db.Date, nullable=True)
+    shared_ai_scans_count = db.Column(db.Integer, nullable=False, default=0)
 
     @property
     def is_admin(self):

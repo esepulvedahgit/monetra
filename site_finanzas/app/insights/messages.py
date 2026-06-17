@@ -33,13 +33,13 @@ TEMPLATES: dict[AlertType, dict[Severity, dict[str, str]]] = {
         },
         Severity.WARNING: {
             'title':              _l('Ritmo de gasto alto'),
-            'message':            _l('Has usado el {budget_used_pct:.0f}% del presupuesto y solo ha transcurrido el {month_elapsed_pct:.0f}% del mes.'),
+            'message':            _l('Presupuesto ejecutado: {budget_used_pct:.0f}%. Mes transcurrido: {month_elapsed_pct:.0f}%.'),
             'explanation':        _l('Tu ritmo actual de gasto indica que podrías superar el presupuesto antes del cierre mensual.'),
             'recommended_action': _l('Revisa gastos variables o ajusta el presupuesto si este patrón es recurrente.'),
         },
         Severity.CRITICAL: {
             'title':              _l('Vas a superar tu presupuesto'),
-            'message':            _l('Con el ritmo actual cerrarás el mes en {projected_pct:.0f}% del presupuesto.'),
+            'message':            _l('Con el ritmo actual cerrarás el mes al {projected_pct:.0f}%.'),
             'explanation':        _l('La diferencia entre el avance del mes y el consumo del presupuesto es significativa.'),
             'recommended_action': _l('Reduce gastos no esenciales o reasigna presupuesto entre categorías.'),
         },
