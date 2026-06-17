@@ -34,6 +34,10 @@ ADMIN_ACCOUNT_SUSPENDED   = 'admin.account_suspended'
 ADMIN_ACCOUNT_REACTIVATED = 'admin.account_reactivated'
 ADMIN_ACCOUNT_DELETED     = 'admin.account_deleted'
 
+# Telegram events
+TELEGRAM_LINK    = 'telegram.link'
+TELEGRAM_UNLINK  = 'telegram.unlink'
+TELEGRAM_TX_CREATE = 'telegram.tx_create'
 
 # Map prefix → display label + pastel color
 CATEGORY_META = {
@@ -41,6 +45,7 @@ CATEGORY_META = {
     'app':    {'label': 'Errores App',   'color': 'rgba(252,165,165,0.25)', 'border': '#FCA5A5'},
     'config': {'label': 'Configuración', 'color': 'rgba(252,211,77,0.25)',  'border': '#FCD34D'},
     'admin':  {'label': 'Admin',         'color': 'rgba(196,181,253,0.25)', 'border': '#C4B5FD'},
+    'telegram': {'label': 'Telegram', 'color': 'rgba(0,136,204,0.20)', 'border': '#0088CC'},
 }
 
 

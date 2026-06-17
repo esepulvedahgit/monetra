@@ -71,23 +71,15 @@ def create_app(config_class=Config):
 
     @app.template_filter('money')
     def money_filter(amount):
-        try:
-            value = float(amount)
-        except (TypeError, ValueError):
-            return str(amount)
+        from app.money import format_money
         if current_user.is_authenticated:
-            code = current_user.currency_code or 'USD'
-            locale = current_user.currency_locale or 'es'
-            symbol = current_user.currency_symbol or '$'
-        else:
-            code, locale, symbol = 'USD', 'en_US', '$'
-        try:
-            from babel.numbers import format_decimal, get_currency_precision
-            decimals = get_currency_precision(code)
-            fmt = '#,##0' + ('.' + '0' * decimals if decimals > 0 else '')
-            return symbol + format_decimal(value, fmt, locale=locale)
-        except Exception:
-            return f"{symbol}{value:.2f}"
+            return format_money(
+                amount,
+                code=current_user.currency_code or 'USD',
+                locale=current_user.currency_locale or 'es',
+                symbol=current_user.currency_symbol or '$',
+            )
+        return format_money(amount, code='USD', locale='en_US', symbol='$')
 
     @app.context_processor
     def inject_get_locale():
@@ -121,11 +113,13 @@ def create_app(config_class=Config):
     from app.analytics import analytics_bp
     app.register_blueprint(analytics_bp)
 
-    from app.scanner import scanner_bp
-    app.register_blueprint(scanner_bp)
-
     from app.backup import backup_bp
     app.register_blueprint(backup_bp)
+
+    from app.telegram import telegram_bp
+    app.register_blueprint(telegram_bp)
+    # #7 — CSRF exento solo en el webhook; generate-code/toggle-usd/unlink conservan protección.
+    # El @csrf.exempt está puesto directamente en el decorador de la vista webhook en routes.py.
 
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e):
@@ -171,6 +165,8 @@ def create_app(config_class=Config):
         if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
             from app.scheduler import init_scheduler
             init_scheduler(app)
+            # Auto-register Telegram webhook if configured
+            _setup_telegram_webhook(app)
 
     from app.admin import admin_bp
     app.register_blueprint(admin_bp)
@@ -233,3 +229,27 @@ def create_app(config_class=Config):
             pass
 
     return app
+
+
+def _setup_telegram_webhook(app):
+    """Register the Telegram webhook if TELEGRAM_BOT_TOKEN is configured."""
+    import os
+    token = app.config.get('TELEGRAM_BOT_TOKEN')
+    secret = app.config.get('TELEGRAM_WEBHOOK_SECRET')
+    server_url = app.config.get('SERVER_NAME') or os.environ.get('SERVER_URL', '')
+    if not token or not secret or not server_url:
+        return
+    # #3 — Advertir si el secreto es demasiado corto (mín. recomendado: 32 caracteres)
+    if len(secret) < 32:
+        app.logger.warning(
+            "TELEGRAM_WEBHOOK_SECRET tiene menos de 32 caracteres. "
+            "Genera uno más seguro con: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+        )
+    with app.app_context():
+        try:
+            from app.telegram.service import set_webhook
+            if not server_url.startswith('http'):
+                server_url = f"https://{server_url}"
+            set_webhook(server_url, secret)
+        except Exception as exc:
+            app.logger.warning("Telegram webhook setup failed: %s", exc)

@@ -466,6 +466,24 @@
                     </span>
                 </div>
 
+                <!-- Shared AI notice (non-admin only) -->
+                {% if not current_user.is_first_admin %}
+                <div class="rounded p-3 mb-4 small"
+                     style="background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.18);">
+                    <div class="fw-semibold mb-1" style="color:#00C896;">
+                        <i class="bi bi-info-circle-fill me-1"></i>{{ _('Clave de IA compartida') }}
+                    </div>
+                    <ul class="mb-0 ps-3" style="color:#B0BEC5; line-height:1.7;">
+                        <li>{{ _('Si configuras tu propia IA, se usará tu clave.') }}</li>
+                        {% if admin_ai_available %}
+                        <li>{{ _('Si no la configuras, el escáner usará automáticamente la clave del administrador.') }}</li>
+                        {% else %}
+                        <li>{{ _('Si no la configuras y el administrador no comparte su clave, el escáner no estará disponible.') }}</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                {% endif %}
+
                 <form method="POST" action="{{ url_for('main.configurar') }}" novalidate>
                     {{ ai_form.hidden_tag() }}
 
@@ -474,6 +492,17 @@
                         {{ ai_form.enabled(class="form-check-input", id="aiEnabled") }}
                         {{ ai_form.enabled.label(class="form-check-label fw-semibold", for="aiEnabled") }}
                     </div>
+
+                    <!-- Admin-only: share key with other accounts -->
+                    {% if current_user.is_admin and current_user.is_first_admin %}
+                    <div class="form-check form-switch mb-4">
+                        {{ ai_form.shared_globally(class="form-check-input", id="aiShared") }}
+                        {{ ai_form.shared_globally.label(class="form-check-label fw-semibold", for="aiShared") }}
+                        <div class="form-text" style="font-size:0.7rem;">
+                            {{ _('Si lo activas, las cuentas verificadas que no tengan su propia IA configurada podrán usar tu clave para escanear recibos. Cada escaneo consume tu cuota del proveedor.') }}
+                        </div>
+                    </div>
+                    {% endif %}
 
                     <div id="aiFields" class="{% if not ai_form.enabled.data %}d-none{% endif %}">
                         <div class="row g-3">
@@ -555,6 +584,97 @@
                         <span id="aiTestResult" class="small ms-1"></span>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Bloque Telegram -->
+        <div class="card shadow-sm mt-4 mb-4">
+            <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                <i class="bi bi-telegram text-primary"></i>
+                <span style="color:var(--monetra-primary,#00C896); text-transform:uppercase; letter-spacing:.05em; font-size:.85rem;">
+                    Telegram
+                </span>
+            </div>
+            <div class="card-body p-4">
+                <p class="small mb-3" style="color: var(--monetra-text-muted, #B0BEC5);">
+                    {{ _('Registra gastos enviando fotos de recibos o texto directamente desde Telegram.') }}
+                </p>
+
+                {% if not telegram_bot_configured %}
+                {# Bot no configurado por el admin #}
+                <div class="rounded p-3 small" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);">
+                    <i class="bi bi-slash-circle me-1" style="color:#B0BEC5;"></i>
+                    <span style="color:#B0BEC5;">
+                        {{ _('Esta función no está disponible en esta instancia.') }}
+                        {% if current_user.is_admin %}
+                        <br><span class="mt-1 d-inline-block">
+                            <i class="bi bi-info-circle me-1" style="color:#F2C94C;"></i>
+                            {{ _('Para habilitarla, define') }} <code>TELEGRAM_BOT_TOKEN</code> {{ _('y') }} <code>TELEGRAM_WEBHOOK_SECRET</code> {{ _('en las variables de entorno del servidor.') }}
+                        </span>
+                        {% else %}
+                        {{ _('Contacta al administrador para habilitarla.') }}
+                        {% endif %}
+                    </span>
+                </div>
+
+                {% elif telegram_link %}
+                {# Bot configurado + cuenta vinculada #}
+                <div id="tgLinkedBlock">
+                    <div class="d-flex align-items-center gap-2 p-3 rounded mb-3"
+                         style="background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.2);">
+                        <i class="bi bi-check-circle-fill" style="color:var(--monetra-primary,#00C896);"></i>
+                        <div>
+                            <div class="fw-semibold small" style="color:var(--monetra-text,#E0E0E0);">{{ _('Cuenta vinculada') }}</div>
+                            {% if telegram_link.linked_at %}
+                            <div class="small" style="color:#B0BEC5;">{{ _('Desde') }}: {{ telegram_link.linked_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {# ── Casilla modo USD ─────────────────────────────────────── #}
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch"
+                               id="tgUsdToggle"
+                               {% if telegram_link.usd_enabled %}checked{% endif %}
+                               onchange="tgToggleUsd(this)">
+                        <label class="form-check-label small" for="tgUsdToggle"
+                               style="color:var(--monetra-text-muted,#B0BEC5);">
+                            {{ _('Registrar también transacciones en dólares (USD)') }}
+                        </label>
+                    </div>
+                    <div id="tgUsdError" class="text-danger small mb-2 d-none"></div>
+
+                    <button type="button" class="btn btn-outline-danger btn-sm fw-semibold" onclick="tgUnlink()">
+                        <i class="bi bi-telegram me-1"></i>{{ _('Desvincular Telegram') }}
+                    </button>
+                </div>
+
+                {% else %}
+                {# Bot configurado + cuenta NO vinculada #}
+                <div id="tgUnlinkedBlock">
+                    <button type="button" class="btn btn-primary btn-sm fw-semibold" onclick="tgActivate()">
+                        <i class="bi bi-telegram me-1"></i>{{ _('Activar Telegram') }}
+                    </button>
+                    <div id="tgLinkBox" class="d-none mt-3">
+                        <div class="rounded p-3 small" style="background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.2);">
+                            <p class="mb-2 fw-semibold" style="color:var(--monetra-text,#E0E0E0);">
+                                <i class="bi bi-1-circle me-1" style="color:var(--monetra-primary,#00C896);"></i>
+                                {{ _('Pulsa el enlace para abrir el bot en Telegram:') }}
+                            </p>
+                            <a id="tgDeepLink" href="#" target="_blank" class="btn btn-sm fw-semibold mb-2"
+                               style="background:var(--monetra-primary,#00C896); color:#000;">
+                                <i class="bi bi-telegram me-1"></i>{{ _('Abrir en Telegram') }}
+                            </a>
+                            <p class="mb-0 mt-2" style="color:#B0BEC5;">
+                                <i class="bi bi-2-circle me-1" style="color:var(--monetra-primary,#00C896);"></i>
+                                {{ _('Pulsa "Iniciar" en el chat. El código expira en 10 minutos.') }}
+                            </p>
+                            <p id="tgExpireNote" class="mt-2 mb-0 small" style="color:#F2C94C;"></p>
+                        </div>
+                    </div>
+                    <div id="tgError" class="text-danger small mt-2 d-none"></div>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -1456,7 +1576,7 @@
                 var tokenEl = document.getElementById('aiApiToken');
                 fd.append('api_token', (aiHasSavedToken && !aiChangingToken) ? '' : (tokenEl ? tokenEl.value : ''));
 
-                fetch('{{ url_for("scanner.test") }}', {
+                fetch('{{ url_for("main.test_ai_connection") }}', {
                     method: 'POST',
                     headers: csrfToken ? {'X-CSRFToken': csrfToken} : {},
                     body: fd,
@@ -1619,6 +1739,77 @@
             });
         }
     })();
+    </script>
+
+    <script>
+// ── Telegram ──────────────────────────────────────────────────────────────
+
+function tgActivate() {
+    var btn = document.querySelector('[onclick="tgActivate()"]');
+    if (btn) { btn.disabled = true; btn.textContent = '...'; }
+    fetch('{{ url_for("telegram.generate_code") }}', {
+        method: 'POST',
+        headers: {'X-CSRFToken': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '{{ csrf_token() }}'}
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.deep_link) {
+            document.getElementById('tgDeepLink').href = data.deep_link;
+            document.getElementById('tgLinkBox').classList.remove('d-none');
+            var expMin = data.expires_in_minutes || 10;
+            document.getElementById('tgExpireNote').textContent = '{{ _("El código expira en") }} ' + expMin + ' {{ _("minutos.") }}';
+        } else {
+            document.getElementById('tgError').textContent = data.error || '{{ _("Error al generar el código.") }}';
+            document.getElementById('tgError').classList.remove('d-none');
+        }
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-telegram me-1"></i>{{ _("Activar Telegram") }}'; }
+    })
+    .catch(function() {
+        document.getElementById('tgError').textContent = '{{ _("Error de conexión.") }}';
+        document.getElementById('tgError').classList.remove('d-none');
+        if (btn) { btn.disabled = false; }
+    });
+}
+
+function tgToggleUsd(el) {
+    var errBox = document.getElementById('tgUsdError');
+    errBox.classList.add('d-none');
+    fetch('{{ url_for("telegram.toggle_usd") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({enabled: el.checked})
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (typeof data.usd_enabled !== 'undefined') {
+            el.checked = data.usd_enabled;
+        } else {
+            el.checked = !el.checked; // revertir
+            errBox.textContent = data.error || '{{ _("Error al guardar la configuración.") }}';
+            errBox.classList.remove('d-none');
+        }
+    })
+    .catch(function() {
+        el.checked = !el.checked; // revertir
+        errBox.textContent = '{{ _("Error de conexión.") }}';
+        errBox.classList.remove('d-none');
+    });
+}
+
+function tgUnlink() {
+    if (!confirm('{{ _("¿Desvincular tu cuenta de Telegram?") }}')) return;
+    fetch('{{ url_for("telegram.unlink") }}', {
+        method: 'POST',
+        headers: {'X-CSRFToken': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '{{ csrf_token() }}'}
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.unlinked) { location.reload(); }
+    });
+}
     </script>
 
     {% if current_user.is_admin and current_user.is_first_admin %}

@@ -1,10 +1,10 @@
-"""Tests for app/scanner/providers.py — SSRF validation, vision-error detection, test_connection."""
+"""Tests for app/telegram/providers.py — SSRF validation, vision-error detection, test_connection."""
 import json
 import types
 import unittest
 from unittest.mock import MagicMock, patch
 
-from app.scanner.providers import (
+from app.telegram.providers import (
     _check_http_error,
     _parse_json_response,
     _validate_base_url,
@@ -218,7 +218,7 @@ class TestTestConnection(unittest.TestCase):
             ai_test_connection("openai", "gpt-4o", "http://localhost/v1", "tok")
         self.assertIn("no permitida", str(ctx.exception))
 
-    @patch("app.scanner.providers.requests.post")
+    @patch("app.telegram.providers.requests.post")
     def test_openai_ok(self, mock_post):
         mock_post.return_value = _make_ok_response(
             {"choices": [{"message": {"content": "OK"}}]}
@@ -228,7 +228,7 @@ class TestTestConnection(unittest.TestCase):
         url_called = mock_post.call_args[0][0]
         self.assertIn("api.openai.com", url_called)
 
-    @patch("app.scanner.providers.requests.post")
+    @patch("app.telegram.providers.requests.post")
     def test_deepseek_uses_deepseek_base_url(self, mock_post):
         mock_post.return_value = _make_ok_response(
             {"choices": [{"message": {"content": "OK"}}]}
@@ -237,7 +237,7 @@ class TestTestConnection(unittest.TestCase):
         url_called = mock_post.call_args[0][0]
         self.assertIn("deepseek.com", url_called)
 
-    @patch("app.scanner.providers.requests.post")
+    @patch("app.telegram.providers.requests.post")
     def test_openai_custom_base_url(self, mock_post):
         mock_post.return_value = _make_ok_response(
             {"choices": [{"message": {"content": "OK"}}]}
@@ -246,7 +246,7 @@ class TestTestConnection(unittest.TestCase):
         url_called = mock_post.call_args[0][0]
         self.assertIn("my-proxy.example.com", url_called)
 
-    @patch("app.scanner.providers.requests.post")
+    @patch("app.telegram.providers.requests.post")
     def test_anthropic_ok(self, mock_post):
         mock_post.return_value = _make_ok_response(
             {"content": [{"text": "OK"}], "id": "msg_01"}
@@ -255,7 +255,7 @@ class TestTestConnection(unittest.TestCase):
         url_called = mock_post.call_args[0][0]
         self.assertIn("anthropic.com", url_called)
 
-    @patch("app.scanner.providers.requests.post")
+    @patch("app.telegram.providers.requests.post")
     def test_gemini_ok(self, mock_post):
         mock_post.return_value = _make_ok_response(
             {"candidates": [{"content": {"parts": [{"text": "OK"}]}}]}
@@ -264,7 +264,7 @@ class TestTestConnection(unittest.TestCase):
         url_called = mock_post.call_args[0][0]
         self.assertIn("generativelanguage.googleapis.com", url_called)
 
-    @patch("app.scanner.providers.requests.post")
+    @patch("app.telegram.providers.requests.post")
     def test_http_401_raises(self, mock_post):
         resp = MagicMock()
         resp.status_code = 401
@@ -274,7 +274,7 @@ class TestTestConnection(unittest.TestCase):
             ai_test_connection("openai", "gpt-4o", "", "bad-token")
         self.assertIn("401", str(ctx.exception))
 
-    @patch("app.scanner.providers.requests.post")
+    @patch("app.telegram.providers.requests.post")
     def test_timeout_raises_readable(self, mock_post):
         import requests as req_mod
         mock_post.side_effect = req_mod.Timeout()

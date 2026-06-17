@@ -13,7 +13,7 @@ from flask_login import login_required, current_user, logout_user
 from flask_babel import gettext as _, get_locale
 from sqlalchemy import extract, func
 
-from app import db
+from app import db, limiter
 from app.main import main
 from app.main.forms import TransactionForm, CategoryForm, BudgetForm, CategoryBudgetForm, ConfigForm, SMTPConfigForm, RecurringTransactionForm, SavingsGoalForm, ChangePasswordForm, CustomBudgetForm, AIConfigForm
 from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal, UserSeenAnnouncement, CustomBudget, UserAIConfig, ApiToken, UserPinDevice
@@ -208,7 +208,6 @@ def inject_period():
         from app.demo_data.service import get_demo_years
         demo_years = get_demo_years(current_user.id)
 
-        _ai_cfg = getattr(current_user, 'ai_config', None)
         return dict(
             sel_year=year,
             sel_month=month,
@@ -224,8 +223,6 @@ def inject_period():
             help_mode_enabled=bool(current_user.help_mode_enabled),
             demo_years=demo_years,
             is_demo_year=(year in demo_years),
-            scan_categories=_user_categories(),
-            scanner_enabled=bool(_ai_cfg and _ai_cfg.enabled),
         )
     return {}
 
@@ -1637,6 +1634,8 @@ def configurar():
             ai_config.base_url = ai_form.base_url.data or None
             if ai_form.api_token.data:
                 ai_config.api_token_encrypted = encrypt_ai_token(ai_form.api_token.data)
+            if current_user.is_first_admin:
+                ai_config.shared_globally = ai_form.shared_globally.data
             db.session.commit()
             flash(_('Configuración del escáner IA guardada.'), 'success')
             return redirect(url_for('main.configurar'))
@@ -1682,17 +1681,25 @@ def configurar():
         ai_form.provider.data = ai_config.provider or 'openai'
         ai_form.model.data = ai_config.model
         ai_form.base_url.data = ai_config.base_url
+        ai_form.shared_globally.data = ai_config.shared_globally
         # Never repopulate api_token (PasswordField — never shown)
 
     admin_smtp_available = False
+    admin_ai_available = False
     if not current_user.is_first_admin:
         admin = User.query.filter_by(is_first_admin=True).first()
         if (admin and admin.email_config and admin.email_config.smtp_enabled
                 and admin.email_config.smtp_password_encrypted):
             admin_smtp_available = True
+        if (admin and admin.ai_config and admin.ai_config.shared_globally
+                and admin.ai_config.api_token_encrypted):
+            admin_ai_available = True
 
     countries_json = json.dumps(_country_map)
     api_tok = ApiToken.query.filter_by(user_id=current_user.id).first()
+    from app.models import TelegramLink
+    telegram_bot_configured = bool(current_app.config.get('TELEGRAM_BOT_TOKEN'))
+    telegram_link = TelegramLink.query.filter_by(user_id=current_user.id, enabled=True).first()
     return render_template('main/configurar.html',
                            form=form,
                            smtp_form=smtp_form,
@@ -1701,6 +1708,7 @@ def configurar():
                            pwd_form=ChangePasswordForm(),
                            email_config=email_config,
                            admin_smtp_available=admin_smtp_available,
+                           admin_ai_available=admin_ai_available,
                            countries_json=countries_json,
                            app_config=app_config,
                            api_token_active=api_tok is not None,
@@ -1708,6 +1716,8 @@ def configurar():
                            api_token_created_at=api_tok.created_at if api_tok else None,
                            api_token_last_used_at=api_tok.last_used_at if api_tok else None,
                            has_pin=current_user.has_pin,
+                           telegram_bot_configured=telegram_bot_configured,
+                           telegram_link=telegram_link,
                            title=_('Configurar Cuenta'))
 
 
@@ -1789,6 +1799,44 @@ def onboarding_dismiss():
     current_user.has_seen_onboarding = True
     db.session.commit()
     return jsonify({'ok': True})
+
+
+@main.route('/configurar/test-ai', methods=['POST'])
+@limiter.limit("10 per minute", methods=['POST'])
+@login_required
+def test_ai_connection():
+    """Test AI provider connection with a lightweight text-only call."""
+    from app.telegram.providers import test_connection as _test_connection
+    from app.email_service import decrypt_ai_token
+
+    provider = (request.form.get('provider') or '').strip()
+    model = (request.form.get('model') or '').strip()
+    base_url = (request.form.get('base_url') or '').strip()
+    api_token_raw = (request.form.get('api_token') or '').strip()
+
+    if not provider:
+        return jsonify({'ok': False, 'message': _('Selecciona un proveedor.')}), 200
+
+    ai_config = getattr(current_user, 'ai_config', None)
+    has_saved = bool(ai_config and ai_config.api_token_encrypted)
+
+    if has_saved:
+        # Always use the stored token — never accept a raw token from the form
+        # when one is already saved. Prevents using this endpoint as an oracle
+        # to validate third-party API keys.
+        token = decrypt_ai_token(ai_config.api_token_encrypted)
+    elif api_token_raw:
+        # First-time setup: no saved token yet, accept the field value
+        token = api_token_raw
+    else:
+        token = ''
+
+    try:
+        _test_connection(provider, model, base_url, token)
+    except ValueError as exc:
+        return jsonify({'ok': False, 'message': str(exc)}), 200
+
+    return jsonify({'ok': True, 'message': _('Conexión válida. Token y modelo correctos.')}), 200
 
 
 @main.route('/configurar/generate-api-token', methods=['POST'])

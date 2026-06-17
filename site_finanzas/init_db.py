@@ -1,5 +1,5 @@
 ﻿from app import create_app, db
-from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, EmailActivationToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget, UserAIConfig, ApiToken, UserPinDevice  # noqa: F401
+from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, EmailActivationToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget, UserAIConfig, ApiToken, UserPinDevice, TelegramLink, TelegramLinkCode, TelegramPendingTx  # noqa: F401
 from sqlalchemy import inspect, text
 
 app = create_app()
@@ -327,6 +327,14 @@ with app.app_context():
     # ── user_ai_config: table created by db.create_all() via the model. ───────
     if 'user_ai_config' in inspect(db.engine).get_table_names():
         print("Tabla user_ai_config verificada.")
+        ai_cfg_cols = [c['name'] for c in inspect(db.engine).get_columns('user_ai_config')]
+        with db.engine.connect() as conn:
+            if 'shared_globally' not in ai_cfg_cols:
+                conn.execute(text(
+                    "ALTER TABLE user_ai_config ADD COLUMN shared_globally TINYINT(1) NOT NULL DEFAULT 0"
+                ))
+                conn.commit()
+                print("Columna shared_globally agregada a user_ai_config.")
 
     # ── Default 'Scanner' category (global, fallback for receipt scanning) ────
     if not Category.query.filter_by(user_id=None, name='Scanner').first():
@@ -334,12 +342,17 @@ with app.app_context():
         db.session.commit()
         print("Categoría global 'Scanner' creada.")
     else:
-        # Ensure color is set if missing
         scanner_cat = Category.query.filter_by(user_id=None, name='Scanner').first()
         if scanner_cat and not scanner_cat.color:
             scanner_cat.color = '#06B6D4'
             db.session.commit()
             print("Color de categoría 'Scanner' actualizado.")
+
+    # ── Default 'Telegram' category (global, fallback for Telegram bot transactions) ──
+    if not Category.query.filter_by(user_id=None, name='Telegram').first():
+        db.session.add(Category(name='Telegram', type='expense', user_id=None, color='#2AABEE'))
+        db.session.commit()
+        print("Categoría global 'Telegram' creada.")
 
     # ── user_webauthn_credentials: drop table (biometría retirada) ─────────────
     if 'user_webauthn_credentials' in inspect(db.engine).get_table_names():
@@ -351,3 +364,40 @@ with app.app_context():
     # ── user_pin_devices: table created by db.create_all() via the model. ──────
     if 'user_pin_devices' in inspect(db.engine).get_table_names():
         print("Tabla user_pin_devices verificada.")
+
+    # ── Telegram tables: created by db.create_all() via the models ────────────
+    for tbl in ('telegram_links', 'telegram_link_codes', 'telegram_pending_txs'):
+        if tbl in inspect(db.engine).get_table_names():
+            print(f"Tabla {tbl} verificada.")
+        else:
+            print(f"Tabla {tbl} será creada por db.create_all().")
+
+    tg_link_cols = [c['name'] for c in inspect(db.engine).get_columns('telegram_links')]
+    with db.engine.connect() as conn:
+        if 'usd_enabled' not in tg_link_cols:
+            conn.execute(text(
+                "ALTER TABLE telegram_links ADD COLUMN usd_enabled TINYINT(1) NOT NULL DEFAULT 0"
+            ))
+            conn.commit()
+            print("Columna usd_enabled agregada a telegram_links.")
+        if 'pending_type' not in tg_link_cols:
+            conn.execute(text(
+                "ALTER TABLE telegram_links ADD COLUMN pending_type VARCHAR(10) NULL"
+            ))
+            conn.commit()
+            print("Columna pending_type agregada a telegram_links.")
+        if 'state_updated_at' not in tg_link_cols:
+            conn.execute(text(
+                "ALTER TABLE telegram_links ADD COLUMN state_updated_at DATETIME NULL"
+            ))
+            conn.commit()
+            print("Columna state_updated_at agregada a telegram_links.")
+
+    tg_pending_cols = [c['name'] for c in inspect(db.engine).get_columns('telegram_pending_txs')]
+    with db.engine.connect() as conn:
+        if 'tx_type' not in tg_pending_cols:
+            conn.execute(text(
+                "ALTER TABLE telegram_pending_txs ADD COLUMN tx_type VARCHAR(10) NOT NULL DEFAULT 'principal'"
+            ))
+            conn.commit()
+            print("Columna tx_type agregada a telegram_pending_txs.")
