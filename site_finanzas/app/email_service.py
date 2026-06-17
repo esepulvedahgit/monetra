@@ -2,6 +2,7 @@ import os
 import smtplib
 import socket
 import ssl
+from datetime import date, timezone
 from email.message import EmailMessage
 from cryptography.fernet import Fernet
 
@@ -83,6 +84,35 @@ def resolve_ai_config(user):
             return admin_cfg
 
     return None
+
+
+def consume_shared_ai_quota(user) -> bool:
+    """Consume one scan from the user's daily shared-AI quota.
+
+    Returns True when the scan is allowed and the counter was incremented.
+    Returns False when the user has already reached the daily limit.
+
+    Should only be called when the user is consuming the admin's shared key
+    (not their own). The daily limit is read from the Flask app config key
+    AI_SHARED_DAILY_LIMIT (default 25).
+    """
+    from flask import current_app
+    from app import db
+
+    limit: int = current_app.config.get('AI_SHARED_DAILY_LIMIT', 25)
+    today = date.today()  # server-local date (UTC in production)
+
+    if user.shared_ai_scans_date != today:
+        # New day — reset counter
+        user.shared_ai_scans_date = today
+        user.shared_ai_scans_count = 0
+
+    if user.shared_ai_scans_count >= limit:
+        return False
+
+    user.shared_ai_scans_count += 1
+    db.session.commit()
+    return True
 
 
 def _open_and_send(config, msg):

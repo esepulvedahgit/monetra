@@ -133,6 +133,14 @@ with app.app_context():
             conn.execute(text("ALTER TABLE users ADD COLUMN is_suspended TINYINT(1) NOT NULL DEFAULT 0"))
             conn.commit()
             print("Columna is_suspended agregada a users.")
+        if 'shared_ai_scans_date' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN shared_ai_scans_date DATE NULL"))
+            conn.commit()
+            print("Columna shared_ai_scans_date agregada a users.")
+        if 'shared_ai_scans_count' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN shared_ai_scans_count INT NOT NULL DEFAULT 0"))
+            conn.commit()
+            print("Columna shared_ai_scans_count agregada a users.")
 
         # El primer usuario que se registre en /register queda como admin automáticamente.
 
@@ -335,18 +343,6 @@ with app.app_context():
                 ))
                 conn.commit()
                 print("Columna shared_globally agregada a user_ai_config.")
-
-    # ── Default 'Scanner' category (global, fallback for receipt scanning) ────
-    if not Category.query.filter_by(user_id=None, name='Scanner').first():
-        db.session.add(Category(name='Scanner', type='expense', user_id=None, color='#06B6D4'))
-        db.session.commit()
-        print("Categoría global 'Scanner' creada.")
-    else:
-        scanner_cat = Category.query.filter_by(user_id=None, name='Scanner').first()
-        if scanner_cat and not scanner_cat.color:
-            scanner_cat.color = '#06B6D4'
-            db.session.commit()
-            print("Color de categoría 'Scanner' actualizado.")
 
     # ── Default 'Telegram' category (global, fallback for Telegram bot transactions) ──
     if not Category.query.filter_by(user_id=None, name='Telegram').first():

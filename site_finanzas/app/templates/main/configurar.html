@@ -444,237 +444,278 @@
             </div>
         </div>
 
-        <!-- Bloque Escáner IA -->
+        <!-- Bloque unificado: Escáner IA + Telegram (2 pasos) -->
         <div class="card shadow-sm mt-4 mb-4">
             <div class="card-header fw-semibold d-flex align-items-center gap-2">
-                <i class="bi bi-camera text-primary"></i>
+                <i class="bi bi-robot text-primary"></i>
                 <span style="color:var(--monetra-primary,#00C896); text-transform:uppercase; letter-spacing:.05em; font-size:.85rem;">
-                    {{ _('Escáner IA') }}
+                    {{ _('Escáner IA · Telegram') }}
                 </span>
             </div>
             <div class="card-body p-4">
-                <p class="small mb-3" style="color: var(--monetra-text-muted, #B0BEC5);">
-                    {{ _('Usa la cámara de tu dispositivo para fotografiar un recibo. La IA extrae el monto y los productos automáticamente.') }}
+                <p class="small mb-4" style="color: var(--monetra-text-muted, #B0BEC5);">
+                    {{ _('Activa la IA para desbloquear tu bot de Telegram. Luego podrás registrar transacciones enviando texto o fotos de recibos directamente al bot.') }}
                 </p>
 
-                <!-- Privacy notice -->
-                <div class="rounded p-3 mb-4 small"
-                     style="background:rgba(242,201,76,0.07); border:1px solid rgba(242,201,76,0.25);">
-                    <i class="bi bi-shield-exclamation me-1" style="color:#F2C94C;"></i>
-                    <span style="color:#B0BEC5;">
-                        {{ _('La imagen del recibo se envía al proveedor de IA que configures. No se almacena en Monetra.') }}
-                    </span>
-                </div>
-
-                <!-- Shared AI notice (non-admin only) -->
-                {% if not current_user.is_first_admin %}
-                <div class="rounded p-3 mb-4 small"
-                     style="background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.18);">
-                    <div class="fw-semibold mb-1" style="color:#00C896;">
-                        <i class="bi bi-info-circle-fill me-1"></i>{{ _('Clave de IA compartida') }}
-                    </div>
-                    <ul class="mb-0 ps-3" style="color:#B0BEC5; line-height:1.7;">
-                        <li>{{ _('Si configuras tu propia IA, se usará tu clave.') }}</li>
-                        {% if admin_ai_available %}
-                        <li>{{ _('Si no la configuras, el escáner usará automáticamente la clave del administrador.') }}</li>
-                        {% else %}
-                        <li>{{ _('Si no la configuras y el administrador no comparte su clave, el escáner no estará disponible.') }}</li>
+                <!-- ── Paso 1: Activar IA ────────────────────────────────────── -->
+                <div class="mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="badge rounded-pill fw-semibold"
+                              style="background:var(--monetra-primary,#00C896); color:#000; font-size:.7rem;">
+                            {{ _('Paso 1') }}
+                        </span>
+                        <span class="fw-semibold small" style="color:var(--monetra-text,#E0E0E0);">
+                            {{ _('Activar IA') }}
+                        </span>
+                        {% if ai_available %}
+                        <i class="bi bi-check-circle-fill ms-1" style="color:var(--monetra-primary,#00C896); font-size:.85rem;"
+                           title="{{ _('IA disponible') }}"></i>
                         {% endif %}
-                    </ul>
-                </div>
-                {% endif %}
-
-                <form method="POST" action="{{ url_for('main.configurar') }}" novalidate>
-                    {{ ai_form.hidden_tag() }}
-
-                    <!-- Enable toggle -->
-                    <div class="form-check form-switch mb-4">
-                        {{ ai_form.enabled(class="form-check-input", id="aiEnabled") }}
-                        {{ ai_form.enabled.label(class="form-check-label fw-semibold", for="aiEnabled") }}
                     </div>
 
-                    <!-- Admin-only: share key with other accounts -->
-                    {% if current_user.is_admin and current_user.is_first_admin %}
-                    <div class="form-check form-switch mb-4">
-                        {{ ai_form.shared_globally(class="form-check-input", id="aiShared") }}
-                        {{ ai_form.shared_globally.label(class="form-check-label fw-semibold", for="aiShared") }}
-                        <div class="form-text" style="font-size:0.7rem;">
-                            {{ _('Si lo activas, las cuentas verificadas que no tengan su propia IA configurada podrán usar tu clave para escanear recibos. Cada escaneo consume tu cuota del proveedor.') }}
+                    <!-- Privacy notice -->
+                    <div class="rounded p-3 mb-4 small"
+                         style="background:rgba(242,201,76,0.07); border:1px solid rgba(242,201,76,0.25);">
+                        <i class="bi bi-shield-exclamation me-1" style="color:#F2C94C;"></i>
+                        <span style="color:#B0BEC5;">
+                            {{ _('La imagen del recibo se envía al proveedor de IA que configures. No se almacena en Monetra.') }}
+                        </span>
+                    </div>
+
+                    <!-- Shared AI notice (non-admin only) -->
+                    {% if not current_user.is_first_admin %}
+                    <div class="rounded p-3 mb-4 small"
+                         style="background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.18);">
+                        <div class="fw-semibold mb-1" style="color:#00C896;">
+                            <i class="bi bi-info-circle-fill me-1"></i>{{ _('Clave de IA compartida') }}
                         </div>
+                        <ul class="mb-0 ps-3" style="color:#B0BEC5; line-height:1.7;">
+                            <li>{{ _('Si configuras tu propia IA, se usará tu clave.') }}</li>
+                            {% if admin_ai_available %}
+                            <li>{{ _('Si no la configuras, el escáner usará automáticamente la clave del administrador.') }}</li>
+                            {% else %}
+                            <li>{{ _('Si no la configuras y el administrador no comparte su clave, el escáner no estará disponible.') }}</li>
+                            {% endif %}
+                        </ul>
                     </div>
                     {% endif %}
 
-                    <div id="aiFields" class="{% if not ai_form.enabled.data %}d-none{% endif %}">
-                        <div class="row g-3">
-                            <!-- Provider -->
-                            <div class="col-md-6">
-                                {{ ai_form.provider.label(class="form-label small mb-1") }}
-                                {{ ai_form.provider(class="form-select form-select-sm" + (" is-invalid" if ai_form.provider.errors else ""), id="aiProvider") }}
-                                {% for e in ai_form.provider.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
-                            </div>
-                            <!-- Model -->
-                            <div class="col-md-6">
-                                {{ ai_form.model.label(class="form-label small mb-1") }}
-                                {{ ai_form.model(class="form-control form-control-sm" + (" is-invalid" if ai_form.model.errors else ""), id="aiModel", placeholder=_('ej. gpt-4o')) }}
-                                <div class="form-text" id="aiModelHint" style="font-size:0.7rem;"></div>
-                                <div class="form-text" style="font-size:0.7rem; color:var(--monetra-text-muted,#B0BEC5);">
-                                    <i class="bi bi-info-circle me-1"></i>{{ _('El modelo debe soportar imágenes (multimodal). Ej: gpt-4o, claude-3-5-sonnet, gemini-1.5-flash.') }}
-                                </div>
-                                {% for e in ai_form.model.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
-                            </div>
-                            <!-- Base URL (conditional: OpenAI-compatible only) -->
-                            <div class="col-12" id="aiBaseUrlRow" style="display:none;">
-                                {{ ai_form.base_url.label(class="form-label small mb-1") }}
-                                {{ ai_form.base_url(class="form-control form-control-sm" + (" is-invalid" if ai_form.base_url.errors else ""), id="aiBaseUrl", placeholder=_('https://api.openai.com/v1  (dejar vacío para usar el default)')) }}
-                                <div class="form-text" style="font-size:0.7rem;">{{ _('Solo para proveedores compatibles con OpenAI (OpenAI, DeepSeek, OpenRouter). Dejar vacío usa la URL oficial.') }}</div>
-                                {% for e in ai_form.base_url.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
-                            </div>
-                            <!-- API Token -->
-                            <div class="col-12">
-                                {{ ai_form.api_token.label(class="form-label small mb-1") }}
+                    <form method="POST" action="{{ url_for('main.configurar') }}" novalidate>
+                        {{ ai_form.hidden_tag() }}
 
-                                {% if ai_config and ai_config.api_token_encrypted %}
-                                <!-- Estado B: token guardado — indicador enmascarado -->
-                                <div id="aiTokenSavedBlock">
-                                    <div class="d-flex align-items-center gap-2 p-2 rounded"
-                                         style="background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.2);">
-                                        <i class="bi bi-key" style="color:var(--monetra-primary,#00C896);"></i>
-                                        <span class="font-monospace small" style="color:var(--monetra-text,#E0E0E0);">••••••••••••••••</span>
-                                        <button type="button" id="aiTokenChangeBtn"
-                                                class="btn btn-link btn-sm p-0 ms-auto"
-                                                style="color:var(--monetra-text-muted,#B0BEC5); font-size:0.78rem; text-decoration:none;">
-                                            <i class="bi bi-pencil me-1"></i>{{ _('Cambiar') }}
-                                        </button>
-                                    </div>
-                                    <div class="form-text mt-1" style="font-size:0.7rem;">
-                                        {{ _('Token guardado. Usa "Probar conexión" para verificarlo o "Cambiar" para reemplazarlo.') }}
-                                    </div>
-                                </div>
-                                <!-- Estado C: modo cambio — campo + cancelar -->
-                                <div id="aiTokenChangeBlock" class="d-none">
-                                    {{ ai_form.api_token(class="form-control form-control-sm", id="aiApiToken", placeholder="sk-...") }}
-                                    <div class="d-flex align-items-center gap-2 mt-1">
-                                        <div class="form-text m-0" style="font-size:0.7rem;">
-                                            {{ _('Ingresa el nuevo token y guarda. Deja vacío para conservar el actual.') }}
-                                        </div>
-                                        <button type="button" id="aiTokenCancelBtn"
-                                                class="btn btn-link btn-sm p-0 ms-auto text-nowrap"
-                                                style="color:var(--monetra-text-muted,#B0BEC5); font-size:0.78rem; text-decoration:none;">
-                                            <i class="bi bi-x me-1"></i>{{ _('Cancelar') }}
-                                        </button>
-                                    </div>
-                                </div>
-                                {% else %}
-                                <!-- Estado A: sin token — campo normal -->
-                                {{ ai_form.api_token(class="form-control form-control-sm" + (" is-invalid" if ai_form.api_token.errors else ""), id="aiApiToken", placeholder="sk-...") }}
-                                <div class="form-text" style="font-size:0.7rem;">
-                                    {{ _('Tu token de API del proveedor seleccionado. Se guarda cifrado.') }}
-                                </div>
-                                {% endif %}
-                                {% for e in ai_form.api_token.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                        <!-- Enable toggle -->
+                        <div class="form-check form-switch mb-4">
+                            {{ ai_form.enabled(class="form-check-input", id="aiEnabled") }}
+                            {{ ai_form.enabled.label(class="form-check-label fw-semibold", for="aiEnabled") }}
+                        </div>
+
+                        <!-- Admin-only: share key with other accounts -->
+                        {% if current_user.is_admin and current_user.is_first_admin %}
+                        <div class="form-check form-switch mb-4">
+                            {{ ai_form.shared_globally(class="form-check-input", id="aiShared") }}
+                            {{ ai_form.shared_globally.label(class="form-check-label fw-semibold", for="aiShared") }}
+                            <div class="form-text" style="font-size:0.7rem;">
+                                {{ _('Si lo activas, las cuentas verificadas que no tengan su propia IA configurada podrán usar tu clave para escanear recibos. Cada escaneo consume tu cuota del proveedor.') }}
                             </div>
                         </div>
-                    </div>
-
-                    <div class="mt-3 d-flex align-items-center gap-2 flex-wrap">
-                        {{ ai_form.submit_ai(class="btn btn-primary btn-sm fw-semibold") }}
-                        <button type="button" id="aiTestBtn" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-wifi me-1"></i>{{ _('Probar conexión') }}
-                        </button>
-                        <span id="aiTestResult" class="small ms-1"></span>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Bloque Telegram -->
-        <div class="card shadow-sm mt-4 mb-4">
-            <div class="card-header fw-semibold d-flex align-items-center gap-2">
-                <i class="bi bi-telegram text-primary"></i>
-                <span style="color:var(--monetra-primary,#00C896); text-transform:uppercase; letter-spacing:.05em; font-size:.85rem;">
-                    Telegram
-                </span>
-            </div>
-            <div class="card-body p-4">
-                <p class="small mb-3" style="color: var(--monetra-text-muted, #B0BEC5);">
-                    {{ _('Registra gastos enviando fotos de recibos o texto directamente desde Telegram.') }}
-                </p>
-
-                {% if not telegram_bot_configured %}
-                {# Bot no configurado por el admin #}
-                <div class="rounded p-3 small" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);">
-                    <i class="bi bi-slash-circle me-1" style="color:#B0BEC5;"></i>
-                    <span style="color:#B0BEC5;">
-                        {{ _('Esta función no está disponible en esta instancia.') }}
-                        {% if current_user.is_admin %}
-                        <br><span class="mt-1 d-inline-block">
-                            <i class="bi bi-info-circle me-1" style="color:#F2C94C;"></i>
-                            {{ _('Para habilitarla, define') }} <code>TELEGRAM_BOT_TOKEN</code> {{ _('y') }} <code>TELEGRAM_WEBHOOK_SECRET</code> {{ _('en las variables de entorno del servidor.') }}
-                        </span>
-                        {% else %}
-                        {{ _('Contacta al administrador para habilitarla.') }}
                         {% endif %}
-                    </span>
+
+                        <div id="aiFields" class="{% if not ai_form.enabled.data %}d-none{% endif %}">
+                            <div class="row g-3">
+                                <!-- Provider -->
+                                <div class="col-md-6">
+                                    {{ ai_form.provider.label(class="form-label small mb-1") }}
+                                    {{ ai_form.provider(class="form-select form-select-sm" + (" is-invalid" if ai_form.provider.errors else ""), id="aiProvider") }}
+                                    {% for e in ai_form.provider.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                                </div>
+                                <!-- Model -->
+                                <div class="col-md-6">
+                                    {{ ai_form.model.label(class="form-label small mb-1") }}
+                                    {{ ai_form.model(class="form-control form-control-sm" + (" is-invalid" if ai_form.model.errors else ""), id="aiModel", placeholder=_('ej. gpt-4o')) }}
+                                    <div class="form-text" id="aiModelHint" style="font-size:0.7rem;"></div>
+                                    <div class="form-text" style="font-size:0.7rem; color:var(--monetra-text-muted,#B0BEC5);">
+                                        <i class="bi bi-info-circle me-1"></i>{{ _('El modelo debe soportar imágenes (multimodal). Ej: gpt-4o, claude-3-5-sonnet, gemini-1.5-flash.') }}
+                                    </div>
+                                    {% for e in ai_form.model.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                                </div>
+                                <!-- Base URL (conditional: OpenAI-compatible only) -->
+                                <div class="col-12" id="aiBaseUrlRow" style="display:none;">
+                                    {{ ai_form.base_url.label(class="form-label small mb-1") }}
+                                    {{ ai_form.base_url(class="form-control form-control-sm" + (" is-invalid" if ai_form.base_url.errors else ""), id="aiBaseUrl", placeholder=_('https://api.openai.com/v1  (dejar vacío para usar el default)')) }}
+                                    <div class="form-text" style="font-size:0.7rem;">{{ _('Solo para proveedores compatibles con OpenAI (OpenAI, DeepSeek, OpenRouter). Dejar vacío usa la URL oficial.') }}</div>
+                                    {% for e in ai_form.base_url.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                                </div>
+                                <!-- API Token -->
+                                <div class="col-12">
+                                    {{ ai_form.api_token.label(class="form-label small mb-1") }}
+
+                                    {% if ai_config and ai_config.api_token_encrypted %}
+                                    <!-- Estado B: token guardado — indicador enmascarado -->
+                                    <div id="aiTokenSavedBlock">
+                                        <div class="d-flex align-items-center gap-2 p-2 rounded"
+                                             style="background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.2);">
+                                            <i class="bi bi-key" style="color:var(--monetra-primary,#00C896);"></i>
+                                            <span class="font-monospace small" style="color:var(--monetra-text,#E0E0E0);">••••••••••••••••</span>
+                                            <button type="button" id="aiTokenChangeBtn"
+                                                    class="btn btn-link btn-sm p-0 ms-auto"
+                                                    style="color:var(--monetra-text-muted,#B0BEC5); font-size:0.78rem; text-decoration:none;">
+                                                <i class="bi bi-pencil me-1"></i>{{ _('Cambiar') }}
+                                            </button>
+                                        </div>
+                                        <div class="form-text mt-1" style="font-size:0.7rem;">
+                                            {{ _('Token guardado. Usa "Probar conexión" para verificarlo o "Cambiar" para reemplazarlo.') }}
+                                        </div>
+                                    </div>
+                                    <!-- Estado C: modo cambio — campo + cancelar -->
+                                    <div id="aiTokenChangeBlock" class="d-none">
+                                        {{ ai_form.api_token(class="form-control form-control-sm", id="aiApiToken", placeholder="sk-...") }}
+                                        <div class="d-flex align-items-center gap-2 mt-1">
+                                            <div class="form-text m-0" style="font-size:0.7rem;">
+                                                {{ _('Ingresa el nuevo token y guarda. Deja vacío para conservar el actual.') }}
+                                            </div>
+                                            <button type="button" id="aiTokenCancelBtn"
+                                                    class="btn btn-link btn-sm p-0 ms-auto text-nowrap"
+                                                    style="color:var(--monetra-text-muted,#B0BEC5); font-size:0.78rem; text-decoration:none;">
+                                                <i class="bi bi-x me-1"></i>{{ _('Cancelar') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <!-- Estado A: sin token — campo normal -->
+                                    {{ ai_form.api_token(class="form-control form-control-sm" + (" is-invalid" if ai_form.api_token.errors else ""), id="aiApiToken", placeholder="sk-...") }}
+                                    <div class="form-text" style="font-size:0.7rem;">
+                                        {{ _('Tu token de API del proveedor seleccionado. Se guarda cifrado.') }}
+                                    </div>
+                                    {% endif %}
+                                    {% for e in ai_form.api_token.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 d-flex align-items-center gap-2 flex-wrap">
+                            {{ ai_form.submit_ai(class="btn btn-primary btn-sm fw-semibold") }}
+                            <button type="button" id="aiTestBtn" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-wifi me-1"></i>{{ _('Probar conexión') }}
+                            </button>
+                            <span id="aiTestResult" class="small ms-1"></span>
+                        </div>
+                    </form>
                 </div>
 
-                {% elif telegram_link %}
-                {# Bot configurado + cuenta vinculada #}
-                <div id="tgLinkedBlock">
-                    <div class="d-flex align-items-center gap-2 p-3 rounded mb-3"
-                         style="background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.2);">
-                        <i class="bi bi-check-circle-fill" style="color:var(--monetra-primary,#00C896);"></i>
-                        <div>
-                            <div class="fw-semibold small" style="color:var(--monetra-text,#E0E0E0);">{{ _('Cuenta vinculada') }}</div>
-                            {% if telegram_link.linked_at %}
-                            <div class="small" style="color:#B0BEC5;">{{ _('Desde') }}: {{ telegram_link.linked_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                <!-- ── Separador ─────────────────────────────────────────────── -->
+                <hr style="border-color:rgba(255,255,255,0.08); margin: 1.5rem 0;">
+
+                <!-- ── Paso 2: Activar Telegram ──────────────────────────────── -->
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="badge rounded-pill fw-semibold"
+                              style="background:{% if ai_available %}var(--monetra-primary,#00C896){% else %}rgba(255,255,255,0.12){% endif %}; color:{% if ai_available %}#000{% else %}#B0BEC5{% endif %}; font-size:.7rem;">
+                            {{ _('Paso 2') }}
+                        </span>
+                        <span class="fw-semibold small" style="color:{% if ai_available %}var(--monetra-text,#E0E0E0){% else %}#B0BEC5{% endif %};">
+                            {{ _('Activar Telegram') }}
+                        </span>
+                        {% if telegram_link %}
+                        <i class="bi bi-check-circle-fill ms-1" style="color:var(--monetra-primary,#00C896); font-size:.85rem;"
+                           title="{{ _('Bot vinculado') }}"></i>
+                        {% endif %}
+                    </div>
+
+                    {% if not telegram_bot_configured %}
+                    {# Bot no configurado por el admin #}
+                    <div class="rounded p-3 small" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);">
+                        <i class="bi bi-slash-circle me-1" style="color:#B0BEC5;"></i>
+                        <span style="color:#B0BEC5;">
+                            {{ _('Esta función no está disponible en esta instancia.') }}
+                            {% if current_user.is_admin %}
+                            <br><span class="mt-1 d-inline-block">
+                                <i class="bi bi-info-circle me-1" style="color:#F2C94C;"></i>
+                                {{ _('Para habilitarla, define') }} <code>TELEGRAM_BOT_TOKEN</code> {{ _('y') }} <code>TELEGRAM_WEBHOOK_SECRET</code> {{ _('en las variables de entorno del servidor.') }}
+                            </span>
+                            {% else %}
+                            {{ _('Contacta al administrador para habilitarla.') }}
                             {% endif %}
+                        </span>
+                    </div>
+
+                    {% elif telegram_link %}
+                    {# Bot configurado + cuenta vinculada #}
+                    <div id="tgLinkedBlock">
+                        {% if not ai_available %}
+                        <div class="rounded p-3 mb-3 small"
+                             style="background:rgba(242,201,76,0.07); border:1px solid rgba(242,201,76,0.25);">
+                            <i class="bi bi-exclamation-triangle me-1" style="color:#F2C94C;"></i>
+                            <span style="color:#B0BEC5;">
+                                {{ _('La IA está desactivada; el bot no podrá procesar mensajes hasta reactivarla.') }}
+                            </span>
                         </div>
-                    </div>
-
-                    {# ── Casilla modo USD ─────────────────────────────────────── #}
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" role="switch"
-                               id="tgUsdToggle"
-                               {% if telegram_link.usd_enabled %}checked{% endif %}
-                               onchange="tgToggleUsd(this)">
-                        <label class="form-check-label small" for="tgUsdToggle"
-                               style="color:var(--monetra-text-muted,#B0BEC5);">
-                            {{ _('Registrar también transacciones en dólares (USD)') }}
-                        </label>
-                    </div>
-                    <div id="tgUsdError" class="text-danger small mb-2 d-none"></div>
-
-                    <button type="button" class="btn btn-outline-danger btn-sm fw-semibold" onclick="tgUnlink()">
-                        <i class="bi bi-telegram me-1"></i>{{ _('Desvincular Telegram') }}
-                    </button>
-                </div>
-
-                {% else %}
-                {# Bot configurado + cuenta NO vinculada #}
-                <div id="tgUnlinkedBlock">
-                    <button type="button" class="btn btn-primary btn-sm fw-semibold" onclick="tgActivate()">
-                        <i class="bi bi-telegram me-1"></i>{{ _('Activar Telegram') }}
-                    </button>
-                    <div id="tgLinkBox" class="d-none mt-3">
-                        <div class="rounded p-3 small" style="background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.2);">
-                            <p class="mb-2 fw-semibold" style="color:var(--monetra-text,#E0E0E0);">
-                                <i class="bi bi-1-circle me-1" style="color:var(--monetra-primary,#00C896);"></i>
-                                {{ _('Pulsa el enlace para abrir el bot en Telegram:') }}
-                            </p>
-                            <a id="tgDeepLink" href="#" target="_blank" class="btn btn-sm fw-semibold mb-2"
-                               style="background:var(--monetra-primary,#00C896); color:#000;">
-                                <i class="bi bi-telegram me-1"></i>{{ _('Abrir en Telegram') }}
-                            </a>
-                            <p class="mb-0 mt-2" style="color:#B0BEC5;">
-                                <i class="bi bi-2-circle me-1" style="color:var(--monetra-primary,#00C896);"></i>
-                                {{ _('Pulsa "Iniciar" en el chat. El código expira en 10 minutos.') }}
-                            </p>
-                            <p id="tgExpireNote" class="mt-2 mb-0 small" style="color:#F2C94C;"></p>
+                        {% endif %}
+                        <div class="d-flex align-items-center gap-2 p-3 rounded mb-3"
+                             style="background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.2);">
+                            <i class="bi bi-check-circle-fill" style="color:var(--monetra-primary,#00C896);"></i>
+                            <div>
+                                <div class="fw-semibold small" style="color:var(--monetra-text,#E0E0E0);">{{ _('Cuenta vinculada') }}</div>
+                                {% if telegram_link.linked_at %}
+                                <div class="small" style="color:#B0BEC5;">{{ _('Desde') }}: {{ telegram_link.linked_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                                {% endif %}
+                            </div>
                         </div>
+
+                        {# ── Casilla modo USD ─────────────────────────────────────── #}
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch"
+                                   id="tgUsdToggle"
+                                   {% if telegram_link.usd_enabled %}checked{% endif %}
+                                   onchange="tgToggleUsd(this)">
+                            <label class="form-check-label small" for="tgUsdToggle"
+                                   style="color:var(--monetra-text-muted,#B0BEC5);">
+                                {{ _('Registrar también transacciones en dólares (USD)') }}
+                            </label>
+                        </div>
+                        <div id="tgUsdError" class="text-danger small mb-2 d-none"></div>
+
+                        <button type="button" class="btn btn-outline-danger btn-sm fw-semibold" onclick="tgUnlink()">
+                            <i class="bi bi-telegram me-1"></i>{{ _('Desvincular Telegram') }}
+                        </button>
                     </div>
-                    <div id="tgError" class="text-danger small mt-2 d-none"></div>
+
+                    {% elif not ai_available %}
+                    {# Bot configurado pero IA no disponible → Paso 2 bloqueado #}
+                    <div class="rounded p-3 small d-flex align-items-start gap-2"
+                         style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);">
+                        <i class="bi bi-lock flex-shrink-0 mt-1" style="color:#B0BEC5;"></i>
+                        <span style="color:#B0BEC5;">
+                            {{ _('Activa la IA (Paso 1) para desbloquear tu bot de Telegram.') }}
+                        </span>
+                    </div>
+
+                    {% else %}
+                    {# Bot configurado + IA disponible + cuenta NO vinculada #}
+                    <div id="tgUnlinkedBlock">
+                        <button type="button" class="btn btn-primary btn-sm fw-semibold" onclick="tgActivate()">
+                            <i class="bi bi-telegram me-1"></i>{{ _('Activar Telegram') }}
+                        </button>
+                        <div id="tgLinkBox" class="d-none mt-3">
+                            <div class="rounded p-3 small" style="background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.2);">
+                                <p class="mb-2 fw-semibold" style="color:var(--monetra-text,#E0E0E0);">
+                                    <i class="bi bi-1-circle me-1" style="color:var(--monetra-primary,#00C896);"></i>
+                                    {{ _('Pulsa el enlace para abrir el bot en Telegram:') }}
+                                </p>
+                                <a id="tgDeepLink" href="#" target="_blank" class="btn btn-sm fw-semibold mb-2"
+                                   style="background:var(--monetra-primary,#00C896); color:#000;">
+                                    <i class="bi bi-telegram me-1"></i>{{ _('Abrir en Telegram') }}
+                                </a>
+                                <p class="mb-0 mt-2" style="color:#B0BEC5;">
+                                    <i class="bi bi-2-circle me-1" style="color:var(--monetra-primary,#00C896);"></i>
+                                    {{ _('Pulsa "Iniciar" en el chat. El código expira en 10 minutos.') }}
+                                </p>
+                                <p id="tgExpireNote" class="mt-2 mb-0 small" style="color:#F2C94C;"></p>
+                            </div>
+                        </div>
+                        <div id="tgError" class="text-danger small mt-2 d-none"></div>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
 
@@ -1751,9 +1792,15 @@ function tgActivate() {
         method: 'POST',
         headers: {'X-CSRFToken': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '{{ csrf_token() }}'}
     })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        if (data.deep_link) {
+    .then(function(r) {
+        return r.json().then(function(data) { return {status: r.status, data: data}; });
+    })
+    .then(function(res) {
+        var data = res.data;
+        if (res.status === 403 && data.error === 'ai_required') {
+            document.getElementById('tgError').textContent = '{{ _("Primero activa la IA (Paso 1).") }}';
+            document.getElementById('tgError').classList.remove('d-none');
+        } else if (data.deep_link) {
             document.getElementById('tgDeepLink').href = data.deep_link;
             document.getElementById('tgLinkBox').classList.remove('d-none');
             var expMin = data.expires_in_minutes || 10;

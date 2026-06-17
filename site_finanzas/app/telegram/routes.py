@@ -104,6 +104,10 @@ def generate_code():
     if not current_app.config.get('TELEGRAM_BOT_TOKEN'):
         return jsonify({'error': 'Bot not configured'}), 503
 
+    from app.email_service import resolve_ai_config
+    if resolve_ai_config(current_user) is None:
+        return jsonify({'error': 'ai_required'}), 403
+
     now = datetime.now(timezone.utc)
     TelegramLinkCode.query.filter(
         TelegramLinkCode.user_id == current_user.id,

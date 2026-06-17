@@ -230,11 +230,19 @@ def _handle_photo(
     tx_type: str,
     link: TelegramLink,
 ) -> None:
-    from app.email_service import resolve_ai_config
+    from app.email_service import resolve_ai_config, consume_shared_ai_quota
     _tg_user = User.query.get(user_id)
     ai_config = resolve_ai_config(_tg_user) if _tg_user else None
     if not ai_config:
         send_message(chat_id, t('ai_not_configured', lang))
+        return
+
+    # Cuota diaria anti-abuso: solo aplica cuando se usa la clave compartida del admin.
+    # ai_config.user_id es el dueño de la configuración; si difiere del usuario que envía
+    # la foto, se está usando la clave compartida → verificar/decrementar cuota.
+    _is_shared_key = getattr(ai_config, 'user_id', None) != user_id
+    if _is_shared_key and not consume_shared_ai_quota(_tg_user):
+        send_message(chat_id, t('ai_quota_exceeded', lang))
         return
 
     best = max(photos, key=lambda p: p.get('file_size', 0))

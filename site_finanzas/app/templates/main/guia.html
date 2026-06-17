@@ -30,10 +30,10 @@
                     <a class="nav-link sidebar-link py-2 px-3 small" href="#s10">10. {{ _('Exportar a Excel') }}</a>
                     <a class="nav-link sidebar-link py-2 px-3 small" href="#s11">11. {{ _('Configuración') }}</a>
                     <a class="nav-link sidebar-link py-2 px-3 small" href="#s12">12. {{ _('Panel de analítica') }}</a>
-                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s13">13. {{ _('Escáner IA') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s13">13. {{ _('IA · Telegram') }}</a>
                     <a class="nav-link sidebar-link py-2 px-3 small" href="#s14">14. {{ _('PIN de acceso rápido') }}</a>
-                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s15">15. {{ _('Preguntas frecuentes') }}</a>
-                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s16">16. {{ _('Bot de Telegram') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s15">15. {{ _('Bot de Telegram') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s16">16. {{ _('Preguntas frecuentes') }}</a>
                 </nav>
             </div>
         </div>
@@ -401,8 +401,8 @@
                 <div class="col-md-6">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h6 class="fw-semibold"><i class="bi bi-camera me-1 text-primary"></i>{{ _('Escáner IA') }}</h6>
-                            <p class="small text-muted mb-0">{{ _('Configura el proveedor de IA para el escáner de recibos: elige proveedor (OpenAI, Anthropic, Gemini, DeepSeek, OpenRouter), modelo multimodal, URL base opcional y token de API. Usa "Probar conexión" antes de guardar.') }}</p>
+                            <h6 class="fw-semibold"><i class="bi bi-robot me-1 text-primary"></i>{{ _('IA · Telegram') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Dos pasos: primero activa la IA (proveedor, modelo multimodal y token de API — usa "Probar conexión" antes de guardar); luego activa el bot de Telegram para enviar gastos por chat. Telegram solo se puede vincular cuando la IA está activa.') }}</p>
                         </div>
                     </div>
                 </div>
@@ -470,48 +470,53 @@
             </table>
         </section>
 
-        {# 13. Escáner IA #}
+        {# 13. IA · Telegram #}
         <section id="s13" class="guia-section mb-5">
             <h4 class="fw-bold mb-3 border-bottom pb-2">
-                <i class="bi bi-camera text-primary me-2"></i>13. {{ _('Escáner IA') }}
+                <i class="bi bi-robot text-primary me-2"></i>13. {{ _('IA · Telegram') }}
             </h4>
-            <p class="text-muted">{{ _('El escáner usa inteligencia artificial para leer una foto o captura de pantalla de un recibo y extraer automáticamente el monto, la descripción y el comercio. Requiere configurar un proveedor de IA en Configuración → Escáner IA.') }}</p>
+            <p class="text-muted">{{ _('La IA de Monetra lee fotos de recibos y extrae monto, descripción y comercio automáticamente. El canal de acceso es el bot de Telegram: envías la foto o el texto por chat y el bot confirma antes de guardar. La IA debe estar activa para poder vincular Telegram.') }}</p>
 
-            <h6 class="fw-semibold mt-3">{{ _('Cómo acceder') }}</h6>
-            <ul class="text-muted small">
-                <li><strong>{{ _('Botón "Escanear recibo"') }}</strong> — {{ _('visible en la barra de herramientas de la sección Movimientos.') }}</li>
-                <li><strong>{{ _('Botón flotante (FAB)') }}</strong> — {{ _('ícono de cámara que aparece en la esquina inferior derecha en dispositivos móviles (modo responsive) cuando el escáner está configurado y activo.') }}</li>
-            </ul>
-
-            <h6 class="fw-semibold mt-3">{{ _('Flujo de uso') }}</h6>
-            <ol class="text-muted small">
-                <li><strong>{{ _('Elegir modo') }}</strong>: {{ _('selecciona') }} <em>{{ _('Cámara') }}</em> {{ _('(acceso directo a la cámara del dispositivo) o') }} <em>{{ _('Subir imagen') }}</em> {{ _('(arrastra o selecciona un archivo).') }}</li>
-                <li><strong>{{ _('Capturar o subir') }}</strong>: {{ _('toma la foto o sube el archivo. Formatos soportados: JPEG, PNG, WebP, HEIC.') }}</li>
-                <li><strong>{{ _('Revisar') }}</strong>: {{ _('la IA extrae monto, descripción y comercio. Puedes editar cualquier dato antes de continuar.') }}</li>
-                <li><strong>{{ _('Guardar') }}</strong>: {{ _('se crea la transacción en el mes activo con los datos revisados.') }}</li>
-            </ol>
-
-            <div class="alert alert-secondary small py-2 mt-2">
-                <i class="bi bi-shield-exclamation me-1" style="color:#F2C94C;"></i>
-                <strong>{{ _('Privacidad') }}:</strong> {{ _('la imagen se envía al proveedor de IA que hayas configurado. Monetra nunca almacena la imagen — se procesa en memoria y se descarta.') }}
-            </div>
-
-            <div class="alert alert-warning small py-2">
-                <i class="bi bi-exclamation-triangle me-1"></i>
-                {{ _('Imágenes borrosas, con poca luz o con texto muy pequeño pueden producir resultados incorrectos. Revisa siempre los datos en el paso de revisión antes de guardar.') }}
-            </div>
-
-            <h6 class="fw-semibold mt-3">{{ _('Configuración del proveedor') }}</h6>
-            <p class="text-muted">{{ _('Ve a') }} <strong>{{ _('Configuración → Escáner IA') }}</strong> {{ _('y completa:') }}</p>
+            <h6 class="fw-semibold mt-3">{{ _('Paso 1 — Activar la IA') }}</h6>
+            <p class="text-muted">{{ _('Ve a') }} <strong>{{ _('Configuración → IA · Telegram → Paso 1') }}</strong> {{ _('y completa estos campos:') }}</p>
             <table class="table table-sm table-bordered small">
                 <thead class="table-dark"><tr><th>{{ _('Campo') }}</th><th>{{ _('Descripción') }}</th></tr></thead>
                 <tbody>
                     <tr><td>{{ _('Proveedor') }}</td><td>{{ _('OpenAI, Anthropic, Gemini, DeepSeek u OpenRouter') }}</td></tr>
                     <tr><td>{{ _('Modelo') }}</td><td>{{ _('Debe soportar imágenes (multimodal). Ej: gpt-4o, claude-3-5-sonnet, gemini-1.5-flash') }}</td></tr>
-                    <tr><td>{{ _('URL base') }}</td><td>{{ _('Opcional. Solo para proveedores compatibles con OpenAI (DeepSeek, OpenRouter). Dejar vacío usa la URL oficial.') }}</td></tr>
-                    <tr><td>{{ _('Token de API') }}</td><td>{{ _('Tu clave del proveedor. Se guarda cifrada. Usa "Probar conexión" para verificarla antes de guardar.') }}</td></tr>
+                    <tr><td>{{ _('URL base') }}</td><td>{{ _('Opcional. Solo para proveedores compatibles con OpenAI. Dejar vacío usa la URL oficial del proveedor.') }}</td></tr>
+                    <tr><td>{{ _('Token de API') }}</td><td>{{ _('Tu clave del proveedor. Se guarda cifrada. Usa "Probar conexión" antes de guardar.') }}</td></tr>
                 </tbody>
             </table>
+            <div class="alert alert-info small py-2">
+                <i class="bi bi-info-circle me-1"></i>
+                {{ _('Si el administrador de la instancia habilitó la IA compartida, verás la sección IA activa aunque no hayas configurado un token propio. En ese caso puedes pasar directamente al Paso 2.') }}
+            </div>
+
+            <h6 class="fw-semibold mt-3">{{ _('Paso 2 — Vincular Telegram') }}</h6>
+            <ol class="text-muted small">
+                <li>{{ _('Con la IA activa, pulsa') }} <strong>{{ _('Activar') }}</strong> {{ _('en la sección Telegram.') }}</li>
+                <li>{{ _('Se genera un enlace de vinculación de un solo uso (válido 10 min). Ábrelo desde tu móvil.') }}</li>
+                <li>{{ _('En el chat del bot, pulsa') }} <strong>{{ _('Iniciar') }}</strong>. {{ _('El bot confirma que tu cuenta quedó vinculada.') }}</li>
+            </ol>
+
+            <h6 class="fw-semibold mt-3">{{ _('Cómo registrar gastos desde Telegram') }}</h6>
+            <ol class="text-muted small">
+                <li><strong>{{ _('Foto de recibo') }}</strong> — {{ _('envía la imagen. La IA extrae monto, descripción y comercio automáticamente.') }}</li>
+                <li><strong>{{ _('Texto libre') }}</strong> — {{ _('escribe algo como "Café 3.50" o "3.50 café". Monetra interpreta el monto y la descripción.') }}</li>
+                <li>{{ _('El bot muestra los datos extraídos con tres botones:') }} <strong>✅ {{ _('Confirmar') }}</strong> / <strong>✏️ {{ _('Editar') }}</strong> / <strong>❌ {{ _('Cancelar') }}</strong>.</li>
+                <li>{{ _('Al confirmar, la transacción se guarda en el mes activo con categoría') }} <strong>Telegram</strong>.</li>
+            </ol>
+
+            <div class="alert alert-secondary small py-2 mt-2">
+                <i class="bi bi-shield-exclamation me-1" style="color:#F2C94C;"></i>
+                <strong>{{ _('Privacidad') }}:</strong> {{ _('las imágenes se envían al proveedor de IA configurado (el tuyo o el del admin). Monetra nunca las almacena — se procesan en memoria y se descartan.') }}
+            </div>
+
+            <div class="alert alert-warning small py-2">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                {{ _('Fotos borrosas, con poca luz o con texto muy pequeño pueden producir datos incorrectos. Usa el botón Editar antes de confirmar si algo no luce bien.') }}
+            </div>
         </section>
 
         {# 14. PIN de acceso rápido #}
@@ -552,19 +557,74 @@
             </div>
         </section>
 
-        {# 15. FAQ #}
+        {# 15. Bot de Telegram #}
         <section id="s15" class="guia-section mb-5">
             <h4 class="fw-bold mb-3 border-bottom pb-2">
-                <i class="bi bi-question-circle text-primary me-2"></i>15. {{ _('Preguntas frecuentes') }}
+                <i class="bi bi-telegram text-primary me-2"></i>15. {{ _('Bot de Telegram') }}
+            </h4>
+            <p class="text-muted">{{ _('El bot de Telegram es el canal principal para registrar gastos con IA. Envías una foto de recibo o un texto y el bot extrae los datos y los muestra para que confirmes antes de guardar. Requiere que el administrador de la instancia configure un bot.') }}</p>
+
+            <h6 class="fw-semibold mt-3">{{ _('Para el administrador (una sola vez)') }}</h6>
+            <ol class="text-muted small">
+                <li>{{ _('Crear el bot en Telegram hablando con @BotFather y obtener el token.') }}</li>
+                <li>{{ _('Definir las variables de entorno en el servidor:') }}
+                    <ul class="mt-1">
+                        <li><code>TELEGRAM_BOT_TOKEN</code> — {{ _('token entregado por @BotFather.') }}</li>
+                        <li><code>TELEGRAM_WEBHOOK_SECRET</code> — {{ _('cadena aleatoria para validar que los mensajes vienen de Telegram.') }}</li>
+                        <li><code>TELEGRAM_BOT_USERNAME</code> — {{ _('username del bot (sin @). Necesario para generar el enlace de vinculación.') }}</li>
+                    </ul>
+                </li>
+                <li>{{ _('Reiniciar la aplicación. Monetra registra el webhook automáticamente al iniciar.') }}</li>
+                <li>{{ _('(Opcional) Activa la IA compartida en') }} <strong>{{ _('Configuración → IA · Telegram') }}</strong> {{ _('para que los usuarios sin clave propia también puedan usar el bot.') }}</li>
+            </ol>
+
+            <div class="alert alert-secondary small py-2">
+                <i class="bi bi-info-circle me-1"></i>
+                {{ _('Si el administrador no configuró el bot, la sección Telegram en Configuración aparece deshabilitada. Debe definir') }} <code>TELEGRAM_BOT_TOKEN</code> {{ _('en el servidor para habilitarla.') }}
+            </div>
+
+            <h6 class="fw-semibold mt-3">{{ _('Para el usuario final') }}</h6>
+            <ol class="text-muted small">
+                <li>{{ _('Asegúrate de tener la IA activa (propia o compartida por el admin). Ver sección 13.') }}</li>
+                <li>{{ _('Ve a') }} <strong>{{ _('Configuración → IA · Telegram → Paso 2') }}</strong> {{ _('y pulsa "Activar".') }}</li>
+                <li>{{ _('Abre el enlace generado desde tu móvil: lleva directamente al chat del bot con el código ya cargado.') }}</li>
+                <li>{{ _('En el chat, pulsa "Iniciar". El bot confirma que tu cuenta quedó vinculada.') }}</li>
+                <li>{{ _('Ya puedes enviar fotos de recibos o mensajes de texto para registrar gastos.') }}</li>
+            </ol>
+
+            <h6 class="fw-semibold mt-3">{{ _('Formatos que acepta el bot') }}</h6>
+            <table class="table table-sm table-bordered small">
+                <thead class="table-dark"><tr><th>{{ _('Formato') }}</th><th>{{ _('Ejemplo') }}</th><th>{{ _('Resultado') }}</th></tr></thead>
+                <tbody>
+                    <tr><td>{{ _('Foto de recibo') }}</td><td>{{ _('(imagen JPEG, PNG, WebP, HEIC)') }}</td><td>{{ _('IA extrae monto, descripción y comercio') }}</td></tr>
+                    <tr><td>{{ _('Texto: descripción + monto') }}</td><td>Café 3.50</td><td>{{ _('Gasto de 3.50 con descripción "Café"') }}</td></tr>
+                    <tr><td>{{ _('Texto: monto + descripción') }}</td><td>3.50 café</td><td>{{ _('Gasto de 3.50 con descripción "café"') }}</td></tr>
+                </tbody>
+            </table>
+
+            <h6 class="fw-semibold mt-3">{{ _('Desvincular') }}</h6>
+            <p class="text-muted small">{{ _('En Configuración → IA · Telegram, pulsa "Desvincular". Elimina el vínculo y borra cualquier transacción pendiente de confirmación.') }}</p>
+
+            <div class="alert alert-info small py-2">
+                <i class="bi bi-info-circle me-1"></i>
+                {{ _('El código de vinculación es de un solo uso y expira en 10 minutos. Si expira, genera uno nuevo desde Configuración.') }}
+            </div>
+        </section>
+
+        {# 16. Preguntas frecuentes #}
+        <section id="s16" class="guia-section mb-5">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-question-circle text-primary me-2"></i>16. {{ _('Preguntas frecuentes') }}
             </h4>
 
             <div class="row g-3">
 
+                {# ── Telegram + IA ── #}
                 <div class="col-md-6">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h6 class="fw-semibold mb-2"><i class="bi bi-tags me-1 text-primary"></i>{{ _('¿Por qué no puedo eliminar una categoría?') }}</h6>
-                            <p class="small text-muted mb-0">{{ _('Porque tiene registros asociados: transacciones, recurrentes o presupuestos. Primero elimina o reasigna esos registros, luego podrás eliminar la categoría. El sistema te indicará exactamente cuántos registros la bloquean.') }}</p>
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-robot me-1 text-primary"></i>{{ _('¿Necesito mi propia clave de IA para usar el bot?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('No necesariamente. Si el administrador de la instancia activó la IA compartida, puedes vincular Telegram y usar el bot sin configurar un token propio. Si la IA compartida no está disponible, deberás configurar tu propio proveedor en Configuración → IA · Telegram.') }}</p>
                         </div>
                     </div>
                 </div>
@@ -572,8 +632,72 @@
                 <div class="col-md-6">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h6 class="fw-semibold mb-2"><i class="bi bi-lock me-1 text-primary"></i>{{ _('¿Por qué no puedo editar un registro de Demo?') }}</h6>
-                            <p class="small text-muted mb-0">{{ _('Los registros de demostración son de solo lectura. Puedes crear tus propios registros en paralelo o resetear los datos demo desde el panel de administración.') }}</p>
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-telegram me-1 text-primary"></i>{{ _('¿Qué categoría se asigna a las transacciones del bot?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Todas las transacciones creadas desde el bot de Telegram se asignan automáticamente a la categoría "Telegram". Puedes cambiarla manualmente desde la sección Movimientos si necesitas reclasificarla.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-chat-text me-1 text-primary"></i>{{ _('¿Puedo registrar gastos en texto sin foto?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Sí. Escribe "descripción monto" o "monto descripción" y el bot lo interpreta directamente sin necesitar IA. Ejemplos válidos: "Supermercado 45.90", "12000 transporte", "Netflix 15.99".') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-image me-1 text-primary"></i>{{ _('¿La IA siempre extrae bien los datos del recibo?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Depende de la calidad de la imagen y el modelo configurado. Fotos nítidas, bien encuadradas y con buena iluminación dan mejores resultados. El bot siempre te muestra los datos antes de confirmar — usa el botón Editar si algo no luce bien.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-link-45deg me-1 text-primary"></i>{{ _('¿Qué pasa si el código de vinculación expira?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('El código dura 10 minutos y es de un solo uso. Si expiró, ve a Configuración → IA · Telegram y genera uno nuevo pulsando "Activar" de nuevo. El proceso toma segundos.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-cpu me-1 text-primary"></i>{{ _('¿Qué proveedor de IA me recomiendas para el bot?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Para fotos de recibos necesitas un modelo multimodal. Algunas opciones probadas: gpt-4o (OpenAI), claude-3-5-sonnet o claude-3-haiku (Anthropic), gemini-1.5-flash (Google, opción económica). Usa "Probar conexión" en Configuración antes de guardar.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-speedometer2 me-1 text-primary"></i>{{ _('¿Cuántas fotos puedo enviar con la IA compartida?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Cuando usas la clave de IA del administrador, existe un límite diario de escaneos por usuario (por defecto 25 por día). Si lo alcanzas, el bot te avisará y podrás seguir enviando texto o esperar al día siguiente. Con tu propia clave de IA no hay límite aplicado por Monetra.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-shield-lock me-1 text-primary"></i>{{ _('¿Las fotos que envío al bot son privadas?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Monetra no almacena las imágenes: se procesan en memoria y se descartan tras la extracción. La imagen sí se envía al proveedor de IA configurado (OpenAI, Anthropic, etc.) — consulta su política de privacidad si tienes dudas.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {# ── General ── #}
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-tags me-1 text-primary"></i>{{ _('¿Por qué no puedo eliminar una categoría?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Porque tiene registros asociados: transacciones, recurrentes o presupuestos. Primero elimina o reasigna esos registros, luego podrás eliminar la categoría. El sistema te indicará exactamente cuántos registros la bloquean.') }}</p>
                         </div>
                     </div>
                 </div>
@@ -635,8 +759,8 @@
                 <div class="col-md-6">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h6 class="fw-semibold mb-2"><i class="bi bi-camera me-1 text-primary"></i>{{ _('¿El escáner siempre extrae bien los datos?') }}</h6>
-                            <p class="small text-muted mb-0">{{ _('Depende de la calidad de la imagen y el modelo de IA configurado. Imágenes claras, bien encuadradas y con buena iluminación dan mejores resultados. Siempre puedes revisar y corregir los datos extraídos antes de guardar la transacción.') }}</p>
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-lock me-1 text-primary"></i>{{ _('¿Puedo usar el PIN si tengo 2FA activado?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Sí. Al ingresar con PIN y tener 2FA activo, serás redirigido a la pantalla de verificación TOTP. Deberás ingresar tu código de autenticador como de costumbre.') }}</p>
                         </div>
                     </div>
                 </div>
@@ -644,60 +768,13 @@
                 <div class="col-md-6">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h6 class="fw-semibold mb-2"><i class="bi bi-lock me-1 text-primary"></i>{{ _('¿Puedo usar el PIN si tengo 2FA activado?') }}</h6>
-                            <p class="small text-muted mb-0">{{ _('Sí. Al ingresar con PIN y tener 2FA activo, serás redirigido a la pantalla de verificación TOTP. Deberás ingresar tu código de autenticador como de costumbre.') }}</p>
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-lock me-1 text-primary"></i>{{ _('¿Por qué no puedo editar un registro de Demo?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('Los registros de demostración son de solo lectura. Puedes crear tus propios registros en paralelo o resetear los datos demo desde el panel de administración.') }}</p>
                         </div>
                     </div>
                 </div>
 
             </div>{# /row #}
-        </section>
-
-        {# 16. Bot de Telegram #}
-        <section id="s16" class="guia-section mb-5">
-            <h4 class="fw-bold mb-3 border-bottom pb-2">
-                <i class="bi bi-telegram text-primary me-2"></i>16. {{ _('Bot de Telegram') }}
-            </h4>
-            <p class="text-muted">{{ _('Permite registrar gastos enviando una foto de recibo o un mensaje de texto desde Telegram. La IA extrae los datos y el bot los muestra para confirmar antes de guardar. Requiere que el administrador de la instancia configure un bot.') }}</p>
-
-            <h6 class="fw-semibold mt-3">{{ _('Para el administrador (una sola vez)') }}</h6>
-            <ol class="text-muted small">
-                <li>{{ _('Crear el bot en Telegram hablando con @BotFather y obtener el token.') }}</li>
-                <li>{{ _('Definir las variables de entorno en el servidor:') }}
-                    <ul class="mt-1">
-                        <li><code>TELEGRAM_BOT_TOKEN</code> — {{ _('token entregado por @BotFather.') }}</li>
-                        <li><code>TELEGRAM_WEBHOOK_SECRET</code> — {{ _('cadena aleatoria para validar que los mensajes vienen de Telegram.') }}</li>
-                    </ul>
-                </li>
-                <li>{{ _('Reiniciar la aplicación. Monetra registra el webhook automáticamente al iniciar.') }}</li>
-            </ol>
-
-            <div class="alert alert-secondary small py-2">
-                <i class="bi bi-info-circle me-1"></i>
-                {{ _('Si el administrador no configuró el bot, la sección Telegram en Configuración aparece deshabilitada. Debe definir') }} <code>TELEGRAM_BOT_TOKEN</code> {{ _('en el servidor para habilitarla.') }}
-            </div>
-
-            <h6 class="fw-semibold mt-3">{{ _('Para el usuario final') }}</h6>
-            <ol class="text-muted small">
-                <li>{{ _('Ve a') }} <strong>{{ _('Configuración → Telegram') }}</strong> {{ _('y pulsar "Activar".') }}</li>
-                <li>{{ _('Pulsar el enlace generado: abre el chat del bot con el código de vinculación ya cargado.') }}</li>
-                <li>{{ _('En el chat, pulsar "Iniciar". El bot confirma que la cuenta está vinculada.') }}</li>
-                <li>{{ _('Enviar una foto de recibo o texto (ej. "Café 3.50") para registrar un gasto.') }}</li>
-                <li>{{ _('El bot muestra los datos extraídos con botones ✅ Confirmar / ✏️ Editar / ❌ Cancelar antes de guardar la transacción.') }}</li>
-            </ol>
-
-            <h6 class="fw-semibold mt-3">{{ _('Desvincular') }}</h6>
-            <p class="text-muted small">{{ _('En Configuración → Telegram, pulsar el botón "Desvincular". Elimina el vínculo y los gastos pendientes de confirmación.') }}</p>
-
-            <div class="alert alert-secondary small py-2">
-                <i class="bi bi-shield-exclamation me-1" style="color:#F2C94C;"></i>
-                <strong>{{ _('Privacidad') }}:</strong> {{ _('las imágenes se envían al proveedor de IA propio de cada usuario (el mismo configurado en el Escáner IA). Monetra no las almacena. Cada conversación de Telegram es privada e independiente.') }}
-            </div>
-
-            <div class="alert alert-info small py-2">
-                <i class="bi bi-info-circle me-1"></i>
-                {{ _('El código de vinculación es de un solo uso y expira en 10 minutos. Si expira, genera uno nuevo desde Configuración → Telegram.') }}
-            </div>
         </section>
 
         <div class="text-center text-muted small py-3 border-top">

@@ -48,6 +48,14 @@ class TestParseJsonResponse(unittest.TestCase):
         self.assertIn("vuelve a intentarlo", str(ctx.exception))
         self.assertNotIn("JSON", str(ctx.exception))
 
+    def test_unparseable_does_not_leak_model_output(self):
+        """#4 security fix: raw model output must never appear in the ValueError message."""
+        sensitive = "SECRET_INTERNAL_PROMPT_LEAK"
+        text = f"No es JSON. {sensitive}"
+        with self.assertRaises(ValueError) as ctx:
+            _parse_json_response(text)
+        self.assertNotIn(sensitive, str(ctx.exception))
+
 
 # ---------------------------------------------------------------------------
 # _validate_base_url
@@ -129,6 +137,35 @@ class TestValidateBaseUrl(unittest.TestCase):
     def test_public_ip_allowed(self):
         # Public IP — should NOT raise
         _validate_base_url("https://8.8.8.8/v1")
+
+    # --- _validate_base_url returns first safe IP (for future pinning) ---
+
+    def test_returns_ip_string_for_literal_public_ip(self):
+        """#1: _validate_base_url should return the IP as a string for a literal public IP."""
+        result = _validate_base_url("https://8.8.8.8/v1")
+        self.assertIsInstance(result, str)
+        self.assertEqual(result, "8.8.8.8")
+
+    @patch("app.telegram.providers.socket.getaddrinfo")
+    def test_blocks_dns_resolved_private_ip(self, mock_dns):
+        """#1: Must raise if DNS resolves to a private (RFC-1918) address — DNS rebinding attack."""
+        # Simulate a hostname that resolves to a private IP
+        mock_dns.return_value = [
+            (None, None, None, None, ("192.168.1.100", 0)),
+        ]
+        with self.assertRaises(ValueError) as ctx:
+            _validate_base_url("https://evil-rebinding.example.com/v1")
+        self.assertIn("no permitida", str(ctx.exception))
+
+    @patch("app.telegram.providers.socket.getaddrinfo")
+    def test_returns_safe_ip_when_dns_resolves_public(self, mock_dns):
+        """#1: _validate_base_url returns the first safe IP when DNS resolves to public."""
+        # 1.1.1.1 is Cloudflare DNS — a genuine public IP, not reserved/private.
+        mock_dns.return_value = [
+            (None, None, None, None, ("1.1.1.1", 0)),
+        ]
+        result = _validate_base_url("https://my-proxy.example.com/v1")
+        self.assertEqual(result, "1.1.1.1")
 
 
 # ---------------------------------------------------------------------------

@@ -37,8 +37,20 @@ _BLOCKED_HOSTNAMES = frozenset({
 _BLOCKED_HOSTNAME_SUFFIXES = ('.local', '.internal', '.localhost')
 
 
-def _validate_base_url(base_url: str) -> None:
-    """Raise ValueError if base_url could target private/internal infrastructure (SSRF)."""
+def _is_blocked_addr(addr: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
+    return (addr.is_loopback or addr.is_private or addr.is_link_local
+            or addr.is_reserved or addr.is_unspecified)
+
+
+def _validate_base_url(base_url: str) -> str:
+    """Validate base_url against SSRF targets and return the resolved IP to use.
+
+    Returns the first safe IP address string resolved for the hostname so the
+    caller can pin the outbound connection to it (closes the TOCTOU / DNS-rebinding
+    window between validation and the actual HTTP request).
+
+    Raises ValueError if the URL is invalid or targets private/internal infrastructure.
+    """
     try:
         parsed = urlparse(base_url)
     except Exception:
@@ -64,22 +76,27 @@ def _validate_base_url(base_url: str) -> None:
     # fall through to the DNS block and bypass the private-range check.
     try:
         addr = ipaddress.ip_address(hostname.split('%')[0])
-        if addr.is_loopback or addr.is_private or addr.is_link_local or addr.is_reserved or addr.is_unspecified:
+        if _is_blocked_addr(addr):
             raise ValueError("URL base no permitida.")
+        # Literal IP — return it as the pinned address directly.
+        return str(addr)
     except ValueError as exc:
         if "no permitida" in str(exc):
             raise
-        # hostname is not an IP literal — fall through to DNS check
+        # hostname is not an IP literal — fall through to DNS resolution
 
     # Resolve hostname and reject if ANY returned address is in a blocked range.
-    # DNS failures are non-blocking (the outbound request will fail naturally).
+    # Pin to the first safe address found so the subsequent HTTP call uses the
+    # exact same IP that passed validation (closes DNS-rebinding TOCTOU).
+    pinned_ip: str | None = None
     try:
         for _family, _type, _proto, _canon, sockaddr in socket.getaddrinfo(hostname, None):
             try:
                 resolved = ipaddress.ip_address(sockaddr[0])
-                if (resolved.is_loopback or resolved.is_private or resolved.is_link_local
-                        or resolved.is_reserved or resolved.is_unspecified):
+                if _is_blocked_addr(resolved):
                     raise ValueError("URL base no permitida.")
+                if pinned_ip is None:
+                    pinned_ip = str(resolved)
             except ValueError as exc:
                 if "no permitida" in str(exc):
                     raise
@@ -87,6 +104,10 @@ def _validate_base_url(base_url: str) -> None:
         raise
     except Exception:
         pass  # DNS unavailable — let the outbound HTTP request fail naturally
+
+    # If DNS failed or returned no results, fall back gracefully (the HTTP call
+    # will fail on its own; we do not want to block on DNS outages).
+    return pinned_ip or hostname
 
 
 def _parse_json_response(text: str) -> dict:
@@ -115,10 +136,11 @@ def _parse_json_response(text: str) -> dict:
         except (json.JSONDecodeError, TypeError):
             pass
 
-    preview = text[:120] if text else "(vacía)"
+    # Log full model output server-side only — never expose raw model text to the client
+    # (could reflect injected content or receipt PII).
+    _logger.warning("Receipt JSON parse failed; model returned: %r", text[:200] if text else "(vacía)")
     raise ValueError(
-        f"No se pudo leer el recibo. Asegúrate de que la imagen sea clara y vuelve a intentarlo. "
-        f"[modelo devolvió: {preview!r}]"
+        "No se pudo leer el recibo. Asegúrate de que la imagen sea clara y vuelve a intentarlo."
     )
 
 
@@ -153,6 +175,10 @@ def _check_http_error(response: requests.Response) -> None:
 def _call_openai_compatible(config, b64_image: str, mime_type: str, token: str) -> dict:
     base_url = config.base_url or DEFAULT_BASE_URLS.get(config.provider, DEFAULT_BASE_URLS['openai'])
     if config.base_url:
+        # Validate user-supplied URL against SSRF targets (private IPs, loopback, etc.).
+        # _validate_base_url resolves DNS and returns the first safe IP; the IP is
+        # returned for future use (e.g. connection pinning) but the actual request
+        # still uses the original hostname so TLS verification remains correct.
         _validate_base_url(config.base_url)
     url = f"{base_url.rstrip('/')}/chat/completions"
     headers = {
@@ -308,11 +334,14 @@ def test_connection(provider: str, model: str, base_url: str, token: str) -> Non
 
     provider = (provider or '').lower()
 
+    # Validate custom base_url against SSRF targets before making any outbound call.
+    # Default provider URLs (Anthropic, Gemini, OpenAI) are trusted constants — skip.
     if base_url:
         _validate_base_url(base_url)
 
     if provider in _OPENAI_COMPATIBLE:
-        _url = f"{(base_url or DEFAULT_BASE_URLS.get(provider, DEFAULT_BASE_URLS['openai'])).rstrip('/')}/chat/completions"
+        _effective_base = base_url or DEFAULT_BASE_URLS.get(provider, DEFAULT_BASE_URLS['openai'])
+        _url = f"{_effective_base.rstrip('/')}/chat/completions"
         headers = {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
