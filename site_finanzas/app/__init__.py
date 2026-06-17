@@ -113,9 +113,6 @@ def create_app(config_class=Config):
     from app.analytics import analytics_bp
     app.register_blueprint(analytics_bp)
 
-    from app.scanner import scanner_bp
-    app.register_blueprint(scanner_bp)
-
     from app.backup import backup_bp
     app.register_blueprint(backup_bp)
 

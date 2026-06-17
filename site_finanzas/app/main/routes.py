@@ -13,7 +13,7 @@ from flask_login import login_required, current_user, logout_user
 from flask_babel import gettext as _, get_locale
 from sqlalchemy import extract, func
 
-from app import db
+from app import db, limiter
 from app.main import main
 from app.main.forms import TransactionForm, CategoryForm, BudgetForm, CategoryBudgetForm, ConfigForm, SMTPConfigForm, RecurringTransactionForm, SavingsGoalForm, ChangePasswordForm, CustomBudgetForm, AIConfigForm
 from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal, UserSeenAnnouncement, CustomBudget, UserAIConfig, ApiToken, UserPinDevice
@@ -208,7 +208,6 @@ def inject_period():
         from app.demo_data.service import get_demo_years
         demo_years = get_demo_years(current_user.id)
 
-        _ai_cfg = getattr(current_user, 'ai_config', None)
         return dict(
             sel_year=year,
             sel_month=month,
@@ -224,8 +223,6 @@ def inject_period():
             help_mode_enabled=bool(current_user.help_mode_enabled),
             demo_years=demo_years,
             is_demo_year=(year in demo_years),
-            scan_categories=_user_categories(),
-            scanner_enabled=bool(_ai_cfg and _ai_cfg.enabled),
         )
     return {}
 
@@ -1802,6 +1799,44 @@ def onboarding_dismiss():
     current_user.has_seen_onboarding = True
     db.session.commit()
     return jsonify({'ok': True})
+
+
+@main.route('/configurar/test-ai', methods=['POST'])
+@limiter.limit("10 per minute", methods=['POST'])
+@login_required
+def test_ai_connection():
+    """Test AI provider connection with a lightweight text-only call."""
+    from app.telegram.providers import test_connection as _test_connection
+    from app.email_service import decrypt_ai_token
+
+    provider = (request.form.get('provider') or '').strip()
+    model = (request.form.get('model') or '').strip()
+    base_url = (request.form.get('base_url') or '').strip()
+    api_token_raw = (request.form.get('api_token') or '').strip()
+
+    if not provider:
+        return jsonify({'ok': False, 'message': _('Selecciona un proveedor.')}), 200
+
+    ai_config = getattr(current_user, 'ai_config', None)
+    has_saved = bool(ai_config and ai_config.api_token_encrypted)
+
+    if has_saved:
+        # Always use the stored token — never accept a raw token from the form
+        # when one is already saved. Prevents using this endpoint as an oracle
+        # to validate third-party API keys.
+        token = decrypt_ai_token(ai_config.api_token_encrypted)
+    elif api_token_raw:
+        # First-time setup: no saved token yet, accept the field value
+        token = api_token_raw
+    else:
+        token = ''
+
+    try:
+        _test_connection(provider, model, base_url, token)
+    except ValueError as exc:
+        return jsonify({'ok': False, 'message': str(exc)}), 200
+
+    return jsonify({'ok': True, 'message': _('Conexión válida. Token y modelo correctos.')}), 200
 
 
 @main.route('/configurar/generate-api-token', methods=['POST'])

@@ -8,11 +8,6 @@
         <span class="text-muted fs-5 fw-normal ms-1">{{ selected_month_name }} {{ sel_year }}</span>
     </h2>
     <div class="d-flex gap-2">
-        <button type="button" class="btn btn-outline-primary" id="btnScanReceipt"
-                data-bs-toggle="modal" data-bs-target="#scannerModal"
-                title="{{ _('Escanear recibo con cámara') }}">
-            <i class="bi bi-camera"></i> <span class="d-none d-sm-inline">{{ _('Escanear recibo') }}</span>
-        </button>
         <a href="{{ url_for('main.add_transaction') }}" class="btn btn-success">
             <i class="bi bi-plus-lg"></i> {{ _('Nuevo Movimiento') }}
         </a>

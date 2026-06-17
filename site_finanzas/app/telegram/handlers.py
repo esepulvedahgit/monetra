@@ -249,7 +249,7 @@ def _handle_photo(
         return
 
     try:
-        from app.scanner.image_utils import validate_and_normalize_image
+        from app.telegram.image_utils import validate_and_normalize_image
         image_bytes, mime_type = validate_and_normalize_image(image_bytes)
     except ValueError as exc:
         _log.warning("Image validation error for chat_id=%s: %s", chat_id, exc)
@@ -261,7 +261,7 @@ def _handle_photo(
         return
 
     try:
-        from app.scanner.providers import extract_receipt
+        from app.telegram.providers import extract_receipt
         result = extract_receipt(ai_config, image_bytes, mime_type)
     except ValueError as exc:
         _log.warning("Receipt extraction error for chat_id=%s: %s", chat_id, exc)

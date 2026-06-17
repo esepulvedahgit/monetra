@@ -21,7 +21,7 @@ import requests
 _logger = logging.getLogger(__name__)
 
 from app.email_service import decrypt_ai_token
-from app.scanner.prompt import RECEIPT_SYSTEM_PROMPT
+from app.telegram.prompt import RECEIPT_SYSTEM_PROMPT
 
 DEFAULT_BASE_URLS = {
     'openai':     'https://api.openai.com/v1',

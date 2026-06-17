@@ -1576,7 +1576,7 @@
                 var tokenEl = document.getElementById('aiApiToken');
                 fd.append('api_token', (aiHasSavedToken && !aiChangingToken) ? '' : (tokenEl ? tokenEl.value : ''));
 
-                fetch('{{ url_for("scanner.test") }}', {
+                fetch('{{ url_for("main.test_ai_connection") }}', {
                     method: 'POST',
                     headers: csrfToken ? {'X-CSRFToken': csrfToken} : {},
                     body: fd,
