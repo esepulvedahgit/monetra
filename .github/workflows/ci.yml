@@ -1,0 +1,57 @@
+yaml
+    name: CI
+
+    on:
+      push:
+        branches: [dev]
+      pull_request:
+        branches: [main]
+
+    jobs:
+      test:
+        runs-on: ubuntu-latest
+
+        services:
+          mysql:
+            image: mysql:8.0
+            env:
+              MYSQL_ROOT_PASSWORD: test_root_pass
+              MYSQL_DATABASE: monetra_test
+              MYSQL_USER: monetra_test
+              MYSQL_PASSWORD: test_pass
+            ports:
+              - 3306:3306
+            options: >-
+              --health-cmd "mysqladmin ping -h localhost -u monetra_test -ptest_pass"
+              --health-interval 10s
+              --health-timeout 5s
+              --health-retries 5
+
+        steps:
+          - uses: actions/checkout@v4
+
+          - name: Set up Python
+            uses: actions/setup-python@v5
+            with:
+              python-version: "3.12"
+
+          - name: Install dependencies
+            working-directory: site_finanzas
+            run: |
+              pip install --upgrade pip
+              pip install -r requirements.txt
+              pip install pytest
+
+          - name: Run tests
+            working-directory: site_finanzas
+            env:
+              DB_HOST: 127.0.0.1
+              DB_PORT: 3306
+              DB_NAME: monetra_test
+              DB_USER: monetra_test
+              DB_PASSWORD: test_pass
+              SECRET_KEY: not-a-real-secret-key-for-ci
+              JWT_SECRET_KEY: not-a-real-jwt-secret-for-ci
+              FIELD_ENCRYPTION_KEY: dGVzdC1rZXktZm9yLWNpLW5vdC1yZWFsLXRlc3Q
+              SESSION_COOKIE_SECURE: "false"
+            run: python -m pytest tests/ -v

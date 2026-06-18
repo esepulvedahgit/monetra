@@ -17,7 +17,7 @@ from app import db, limiter
 from app.main import main
 from app.main.forms import TransactionForm, CategoryForm, BudgetForm, CategoryBudgetForm, ConfigForm, SMTPConfigForm, RecurringTransactionForm, SavingsGoalForm, ChangePasswordForm, CustomBudgetForm, AIConfigForm
 from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal, UserSeenAnnouncement, CustomBudget, UserAIConfig, ApiToken, UserPinDevice
-from app.email_service import encrypt_smtp_password, send_user_email, encrypt_mfa_secret, decrypt_mfa_secret, encrypt_ai_token, send_security_alert_email, resolve_ai_config
+from app.email_service import encrypt_smtp_password, send_user_email, encrypt_mfa_secret, decrypt_mfa_secret, encrypt_ai_token, send_security_alert_email, send_security_alert_email_async, resolve_ai_config
 
 # (nombre, símbolo, nombre_moneda, código_ISO, locale_babel)
 COUNTRIES_CURRENCIES = [
@@ -1883,7 +1883,7 @@ def change_password():
             return redirect(url_for('main.configurar'))
         current_user.set_password(form.new_password.data)
         db.session.commit()
-        send_security_alert_email(current_user, "cambió la contraseña")
+        send_security_alert_email_async(current_user, "cambió la contraseña")
         try:
             from app.audit import events as ev
             from app.audit.logger import log_event
@@ -1965,10 +1965,7 @@ def mfa_disable():
             db.session.commit()
         except Exception:
             db.session.rollback()
-        try:
-            send_security_alert_email(current_user, "desactivó MFA (el PIN fue revocado automáticamente)")
-        except Exception:
-            pass
+        send_security_alert_email_async(current_user, "desactivó MFA (el PIN fue revocado automáticamente)")
     return jsonify({'ok': True})
 
 

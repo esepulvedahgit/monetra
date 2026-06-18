@@ -131,7 +131,7 @@ class TestPinSet:
         assert r.status_code == 403
         assert 'MFA' in r.get_json().get('error', '')
 
-    @patch('app.auth.pin_routes.send_security_alert_email')
+    @patch('app.auth.pin_routes.send_security_alert_email_async')
     def test_set_pin_ok(self, mock_alert, app, pin_user_id):
         c = _force_login(app, pin_user_id)
         r = c.post(SET_URL, json={'password': PIN_PASSWORD, 'pin': VALID_PIN},
@@ -146,7 +146,7 @@ class TestPinSet:
             u = User.query.get(pin_user_id)
             assert u.has_pin
             assert UserPinDevice.query.filter_by(user_id=pin_user_id).count() >= 1
-        # Security alert must have been sent
+        # Security alert must have been dispatched (async)
         mock_alert.assert_called_once()
         assert 'activó' in mock_alert.call_args[0][1]
 
@@ -238,7 +238,8 @@ class TestPinLogin:
             u = User.query.get(pin_user_id)
             assert u.pin_failed_attempts == 1
 
-    def test_lockout_after_5_failures(self, app, pin_user_id):
+    @patch('app.auth.pin_routes.send_security_alert_email_async')
+    def test_lockout_after_5_failures(self, mock_alert, app, pin_user_id):
         c = app.test_client()
         for _ in range(5):
             _plant_device_cookie(c, _KNOWN_RAW_TOKEN)
@@ -377,7 +378,7 @@ class TestPinDelete:
             ))
             db.session.commit()
 
-    @patch('app.auth.pin_routes.send_security_alert_email')
+    @patch('app.auth.pin_routes.send_security_alert_email_async')
     def test_delete_pin_ok(self, mock_alert, app, pin_user_id):
         c = _web_login(app)
         r = c.post(DELETE_URL, json={'password': PIN_PASSWORD},
@@ -388,7 +389,7 @@ class TestPinDelete:
             u = User.query.get(pin_user_id)
             assert not u.has_pin
             assert UserPinDevice.query.filter_by(user_id=pin_user_id).count() == 0
-        # Security alert must have been sent
+        # Security alert must have been dispatched (async)
         mock_alert.assert_called_once()
         assert 'desactivó' in mock_alert.call_args[0][1]
 
@@ -450,7 +451,7 @@ class TestMfaDisableRevokesPin:
 
     @patch('app.main.routes.decrypt_mfa_secret', return_value='JBSWY3DPEHPK3PXP')
     @patch('pyotp.TOTP.verify', return_value=True)
-    @patch('app.main.routes.send_security_alert_email')
+    @patch('app.main.routes.send_security_alert_email_async')
     def test_mfa_disable_revokes_pin(self, mock_alert, mock_verify, mock_decrypt, app, pin_user_id):
         """Disabling MFA clears pin_hash and all UserPinDevice records."""
         c = _force_login(app, pin_user_id)
@@ -468,7 +469,7 @@ class TestMfaDisableRevokesPin:
 
     @patch('app.main.routes.decrypt_mfa_secret', return_value='JBSWY3DPEHPK3PXP')
     @patch('pyotp.TOTP.verify', return_value=True)
-    @patch('app.main.routes.send_security_alert_email')
+    @patch('app.main.routes.send_security_alert_email_async')
     def test_mfa_disable_without_pin_is_ok(self, mock_alert, mock_verify, mock_decrypt, app, pin_user_id):
         """Disabling MFA when there is no PIN should still succeed cleanly."""
         with app.app_context():
@@ -512,7 +513,7 @@ class TestPinLockoutCycles:
             ))
             db.session.commit()
 
-    @patch('app.auth.pin_routes.send_security_alert_email')
+    @patch('app.auth.pin_routes.send_security_alert_email_async')
     def test_repeated_lockout_revokes_pin(self, mock_alert, app, pin_user_id):
         """MAX_LOCK_CYCLES * MAX_FAILS wrong attempts (with inter-cycle resets) revoke the PIN."""
         from app.auth.pin_routes import MAX_FAILS, MAX_LOCK_CYCLES
@@ -544,7 +545,7 @@ class TestPinLockoutCycles:
         assert last_resp.status_code == 403
         assert last_resp.get_json().get('pin_unavailable') is True
 
-    @patch('app.auth.pin_routes.send_security_alert_email')
+    @patch('app.auth.pin_routes.send_security_alert_email_async')
     def test_successful_login_resets_lock_cycles(self, mock_alert, app, pin_user_id):
         """A successful PIN login resets pin_lock_cycles to 0."""
         from app.auth.pin_routes import MAX_FAILS

@@ -1,0 +1,36 @@
+yaml
+    name: Deploy
+
+    on:
+      push:
+        branches: [main]
+
+    jobs:
+      deploy:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+
+          - name: Deploy to VPS
+            uses: appleboy/ssh-action@v1
+            with:
+              host: ${{ secrets.VPS_HOST }}
+              username: ${{ secrets.VPS_USER }}
+              password: ${{ secrets.VPS_PASSWORD }}
+              script_stop: true
+              script: |
+                set -e
+                echo "=== Pull latest code ==="
+                cd /opt/monetra
+                git pull origin main
+
+                echo "=== Build Docker image ==="
+                docker build -t monetra:release site_finanzas/
+
+                echo "=== Restart containers ==="
+                docker compose -f docker/docker-compose.prod.yml --env-file docker/.env up -d
+
+                echo "=== Prune old images ==="
+                docker image prune -f
+
+                echo "=== Done ==="

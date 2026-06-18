@@ -142,7 +142,7 @@ class TestSuspend:
             u.is_suspended = False
             db.session.commit()
 
-    @patch('app.admin.routes.send_security_alert_email')
+    @patch('app.admin.routes.send_security_alert_email_async')
     def test_suspend_ok(self, mock_alert, app, admin_user_id, regular_user_id):
         c = _web_login(app, ADMIN_EMAIL, ADMIN_PASSWORD)
         r = c.post(f'/admin/users/{regular_user_id}/suspend',
@@ -154,7 +154,7 @@ class TestSuspend:
         mock_alert.assert_called_once()
         assert 'suspendida' in mock_alert.call_args[0][1]
 
-    @patch('app.admin.routes.send_security_alert_email')
+    @patch('app.admin.routes.send_security_alert_email_async')
     def test_reactivate_ok(self, mock_alert, app, admin_user_id, regular_user_id):
         # Pre-suspend
         with app.app_context():
