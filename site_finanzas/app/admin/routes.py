@@ -15,7 +15,7 @@ from flask_login import current_user, login_required
 from app import db
 from app.admin import admin_bp
 from app.models import User
-from app.email_service import send_security_alert_email
+from app.email_service import send_security_alert_email, send_security_alert_email_async
 from app.audit.logger import log_event
 from app.audit import events as ev
 
@@ -89,10 +89,7 @@ def suspend(user_id):
     _audit(event_type,
            description=f'{user.email} | by {current_user.email}')
 
-    try:
-        send_security_alert_email(user, action_label)
-    except Exception:
-        pass
+    send_security_alert_email_async(user, action_label)
 
     return redirect(url_for('admin.index'))
 

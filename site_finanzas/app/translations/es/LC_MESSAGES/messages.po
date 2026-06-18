@@ -3102,6 +3102,10 @@ msgstr ""
 msgid "Generando…"
 msgstr ""
 
+#: app/templates/main/configurar.html
+msgid "Guardando…"
+msgstr ""
+
 #: app/templates/main/dashboard.html:6
 msgid "Resumen del mes: ingresos, gastos, balance y comparativa vs. presupuesto."
 msgstr ""

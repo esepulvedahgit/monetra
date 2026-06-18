@@ -24,7 +24,7 @@ from app.auth import auth
 from app.models import User, UserPinDevice
 from app.audit import events as ev
 from app.audit.logger import log_event
-from app.email_service import send_security_alert_email
+from app.email_service import send_security_alert_email, send_security_alert_email_async
 
 
 # ---------------------------------------------------------------------------
@@ -146,7 +146,7 @@ def pin_set():
 
     _audit(ev.AUTH_PIN_ENABLED, description=f'{current_user.email} activó PIN de acceso rápido',
            user_id=current_user.id)
-    send_security_alert_email(current_user, "activó el PIN de acceso rápido")
+    send_security_alert_email_async(current_user, "activó el PIN de acceso rápido")
 
     resp = jsonify({'ok': True})
     _set_device_cookie(resp, raw_token)
@@ -171,7 +171,7 @@ def pin_delete():
 
     _audit(ev.AUTH_PIN_DISABLED, description=f'{current_user.email} desactivó PIN de acceso rápido',
            user_id=current_user.id)
-    send_security_alert_email(current_user, "desactivó el PIN de acceso rápido")
+    send_security_alert_email_async(current_user, "desactivó el PIN de acceso rápido")
 
     resp = jsonify({'ok': True})
     _clear_device_cookie(resp)
@@ -231,20 +231,14 @@ def pin_login():
                 user.disable_pin()
                 db.session.commit()
                 _audit(ev.AUTH_LOGIN_FAIL, description=f'{user.email} (PIN revocado por abuso)')
-                try:
-                    send_security_alert_email(
-                        user, "revocó el PIN de acceso rápido tras múltiples intentos fallidos"
-                    )
-                except Exception:
-                    pass
+                send_security_alert_email_async(
+                    user, "revocó el PIN de acceso rápido tras múltiples intentos fallidos"
+                )
                 resp = jsonify({'error': _generic_403, 'pin_unavailable': True})
                 _clear_device_cookie(resp)
                 return resp, 403
             user.pin_locked_until = _utcnow() + timedelta(minutes=LOCK_MINUTES)
-            try:
-                send_security_alert_email(user, "bloqueó el PIN tras varios intentos fallidos")
-            except Exception:
-                pass
+            send_security_alert_email_async(user, "bloqueó el PIN tras varios intentos fallidos")
         db.session.commit()
         _audit(ev.AUTH_LOGIN_FAIL, description=f'{user.email} (PIN)')
         return jsonify({'error': _generic_403}), 403

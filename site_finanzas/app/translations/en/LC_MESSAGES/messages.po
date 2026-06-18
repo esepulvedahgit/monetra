@@ -3277,6 +3277,10 @@ msgstr "Unlink your Telegram account?"
 msgid "Generando…"
 msgstr "Generating…"
 
+#: app/templates/main/configurar.html
+msgid "Guardando…"
+msgstr "Saving…"
+
 #: app/templates/main/dashboard.html:6
 msgid "Resumen del mes: ingresos, gastos, balance y comparativa vs. presupuesto."
 msgstr "Summary of the month: income, expenses, balance and comparison vs. budget."

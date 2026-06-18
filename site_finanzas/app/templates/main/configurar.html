@@ -1738,7 +1738,9 @@
                     if (pwdError) { pwdError.textContent = '{{ _("Escribe tu contraseña.") }}'; pwdError.classList.remove('d-none'); }
                     return;
                 }
+                var origHtml = btnConfirm.innerHTML;
                 btnConfirm.disabled = true;
+                btnConfirm.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>{{ _("Guardando…") }}';
 
                 var action = pendingAction;
                 var url    = action === 'set' ? setUrl : deleteUrl;
@@ -1755,6 +1757,7 @@
                 .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
                 .then(function (res) {
                     btnConfirm.disabled = false;
+                    btnConfirm.innerHTML = origHtml;
                     hidePwdPanel();
                     if (res.ok && res.data.ok) {
                         if (action === 'set') {
@@ -1769,6 +1772,7 @@
                 })
                 .catch(function (err) {
                     btnConfirm.disabled = false;
+                    btnConfirm.innerHTML = origHtml;
                     var msg = (err && err.message) || '{{ _("Error.") }}';
                     if (msg.indexOf('{{ _("Contraseña incorrecta.") }}') !== -1) {
                         if (pwdError) { pwdError.textContent = '{{ _("Contraseña incorrecta.") }}'; pwdError.classList.remove('d-none'); }

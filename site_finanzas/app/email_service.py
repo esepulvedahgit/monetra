@@ -365,6 +365,30 @@ def send_security_alert_email(user, action_label: str, detail: str = None) -> No
         pass  # Best-effort — never break the caller
 
 
+def send_security_alert_email_async(user, action_label: str, detail: str = None) -> None:
+    """Fires send_security_alert_email in a daemon thread so the request is not blocked.
+
+    Uses the same pattern as send_report_now in main/routes.py:
+    - Captures app and user_id before the thread starts (safe across request contexts).
+    - Re-fetches the User inside app_context() to avoid detached-instance errors.
+    - The underlying call is already best-effort (never raises), so the thread is fire-and-forget.
+    """
+    import threading
+    from flask import current_app
+
+    app = current_app._get_current_object()
+    user_id = user.id
+
+    def _run():
+        from app.models import User
+        with app.app_context():
+            u = User.query.get(user_id)
+            if u is not None:
+                send_security_alert_email(u, action_label, detail)
+
+    threading.Thread(target=_run, daemon=True).start()
+
+
 def send_weekly_report(user, excel_bytes: bytes, filename: str):
     """
     Sends the weekly Excel report to the user.
