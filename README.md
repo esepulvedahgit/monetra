@@ -1,5 +1,6 @@
 # Monetra
 
+[![CI](https://github.com/esepulvedahgit/monetra/actions/workflows/ci.yml/badge.svg)](https://github.com/esepulvedahgit/monetra/actions/workflows/ci.yml)
 ![Version](https://img.shields.io/badge/version-2.5-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12-blue?logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/flask-3.0-lightgrey?logo=flask&logoColor=white)
