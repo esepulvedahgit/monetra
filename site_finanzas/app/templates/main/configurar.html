@@ -444,7 +444,7 @@
             </div>
         </div>
 
-        <!-- Bloque unificado: Escáner IA + Telegram (2 pasos) -->
+        <!-- Bloque unificado: IA + Telegram (2 pasos) -->
         <div class="card shadow-sm mt-4 mb-4">
             <div class="card-header fw-semibold d-flex align-items-center gap-2">
                 <i class="bi bi-robot text-primary"></i>
@@ -492,9 +492,9 @@
                         <ul class="mb-0 ps-3" style="color:#B0BEC5; line-height:1.7;">
                             <li>{{ _('Si configuras tu propia IA, se usará tu clave.') }}</li>
                             {% if admin_ai_available %}
-                            <li>{{ _('Si no la configuras, el escáner usará automáticamente la clave del administrador.') }}</li>
+                            <li>{{ _('Si no la configuras, se usará automáticamente la clave del administrador.') }}</li>
                             {% else %}
-                            <li>{{ _('Si no la configuras y el administrador no comparte su clave, el escáner no estará disponible.') }}</li>
+                            <li>{{ _('Si no la configuras y el administrador no comparte su clave, la IA no estará disponible.') }}</li>
                             {% endif %}
                         </ul>
                     </div>
@@ -515,7 +515,7 @@
                             {{ ai_form.shared_globally(class="form-check-input", id="aiShared") }}
                             {{ ai_form.shared_globally.label(class="form-check-label fw-semibold", for="aiShared") }}
                             <div class="form-text" style="font-size:0.7rem;">
-                                {{ _('Si lo activas, las cuentas verificadas que no tengan su propia IA configurada podrán usar tu clave para escanear recibos. Cada escaneo consume tu cuota del proveedor.') }}
+                                {{ _('Si lo activas, las cuentas verificadas que no tengan su propia IA configurada podrán usar tu clave para procesar recibos. Cada consulta consume tu cuota del proveedor.') }}
                             </div>
                         </div>
                         {% endif %}
