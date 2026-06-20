@@ -1631,7 +1631,15 @@ def configurar():
             ai_config.enabled = ai_form.enabled.data
             ai_config.provider = ai_form.provider.data
             ai_config.model = ai_form.model.data or None
-            ai_config.base_url = ai_form.base_url.data or None
+            from app.telegram.providers import _OPENAI_COMPATIBLE as _AI_OPENAI_COMPAT
+            # base_url only applies to OpenAI-compatible providers; clear it for
+            # Anthropic and Gemini so a stale value is not persisted in the DB.
+            _provider_key = (ai_form.provider.data or '').lower()
+            ai_config.base_url = (
+                (ai_form.base_url.data or None)
+                if _provider_key in _AI_OPENAI_COMPAT
+                else None
+            )
             if ai_form.api_token.data:
                 ai_config.api_token_encrypted = encrypt_ai_token(ai_form.api_token.data)
             if current_user.is_first_admin:

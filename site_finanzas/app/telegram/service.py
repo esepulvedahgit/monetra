@@ -110,6 +110,11 @@ def download_file(file_id: str) -> bytes | None:
     return None
 
 
+def get_me() -> dict:
+    """Return the bot's 'result' dict from getMe, or {} on error."""
+    return _api('getMe').get('result') or {}
+
+
 def set_webhook(app_url: str, secret: str) -> bool:
     """Register the webhook with Telegram. Returns True on success."""
     token = _token()
