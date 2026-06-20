@@ -900,8 +900,8 @@ msgid "La contraseña es obligatoria porque no hay una guardada."
 msgstr "Password is required because none is currently saved."
 
 #: app/main/forms.py:168
-msgid "Activar escáner IA"
-msgstr "Activate AI scanner"
+msgid "Activar IA"
+msgstr "Activate AI"
 
 #: app/main/forms.py:169 app/templates/main/guia.html:509
 msgid "Proveedor"
@@ -924,8 +924,8 @@ msgid "Compartir mi IA con las demás cuentas"
 msgstr ""
 
 #: app/main/forms.py:182
-msgid "Guardar configuración de escáner"
-msgstr "Save scanner settings"
+msgid "Guardar configuración de API"
+msgstr "Save API settings"
 
 #: app/main/routes.py:244
 msgid "Este registro es de demostración y no puede modificarse."
@@ -2795,10 +2795,10 @@ msgstr "Open in Telegram"
 msgid "Pulsa \"Iniciar\" en el chat. El código expira en 10 minutos."
 msgstr "Click \"Start\" in the chat. The code expires in 10 minutes."
 
-# ── Bloque unificado Escáner IA · Telegram ──
+# ── Bloque unificado Telegram · IA ──
 #: app/templates/main/configurar.html
-msgid "Escáner IA · Telegram"
-msgstr "AI Scanner · Telegram"
+msgid "Telegram · IA"
+msgstr "Telegram · AI"
 
 #: app/templates/main/configurar.html
 msgid ""

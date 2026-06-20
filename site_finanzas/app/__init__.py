@@ -247,9 +247,14 @@ def _setup_telegram_webhook(app):
         )
     with app.app_context():
         try:
-            from app.telegram.service import set_webhook
+            from app.telegram.service import set_webhook, get_me
             if not server_url.startswith('http'):
                 server_url = f"https://{server_url}"
+            # Derive the authoritative bot username from the token so the deep
+            # link works even if TELEGRAM_BOT_USERNAME is missing or wrong in .env.
+            me = get_me()
+            if me.get('username'):
+                app.config['TELEGRAM_BOT_USERNAME'] = me['username']
             set_webhook(server_url, secret)
         except Exception as exc:
             app.logger.warning("Telegram webhook setup failed: %s", exc)

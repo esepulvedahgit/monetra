@@ -449,7 +449,7 @@
             <div class="card-header fw-semibold d-flex align-items-center gap-2">
                 <i class="bi bi-robot text-primary"></i>
                 <span style="color:var(--monetra-primary,#00C896); text-transform:uppercase; letter-spacing:.05em; font-size:.85rem;">
-                    {{ _('Escáner IA · Telegram') }}
+                    {{ _('Telegram · IA') }}
                 </span>
             </div>
             <div class="card-body p-4">
@@ -1576,7 +1576,14 @@
             if (!aiProvider) return;
             var p = aiProvider.value;
             if (aiBaseUrlRow) {
-                aiBaseUrlRow.style.display = OPENAI_COMPAT.includes(p) ? '' : 'none';
+                if (OPENAI_COMPAT.includes(p)) {
+                    aiBaseUrlRow.style.display = '';
+                } else {
+                    aiBaseUrlRow.style.display = 'none';
+                    // Clear stale value so it is never sent for non-OpenAI providers.
+                    var _baseUrlInput = document.getElementById('aiBaseUrl');
+                    if (_baseUrlInput) _baseUrlInput.value = '';
+                }
             }
             if (aiModelHint) {
                 var suggestion = AI_MODEL_SUGGESTIONS[p];
@@ -1610,7 +1617,10 @@
                 fd.append('provider', aiProvider ? aiProvider.value : '');
                 fd.append('model', aiModel ? aiModel.value : '');
                 var baseUrlEl = document.getElementById('aiBaseUrl');
-                fd.append('base_url', baseUrlEl ? baseUrlEl.value : '');
+                // Only send base_url for OpenAI-compatible providers; Gemini and
+                // Anthropic always use their own fixed endpoints.
+                var _providerVal = aiProvider ? aiProvider.value : '';
+                fd.append('base_url', (baseUrlEl && OPENAI_COMPAT.includes(_providerVal)) ? baseUrlEl.value : '');
 
                 // State B (saved token, not changing): send empty — backend uses saved token.
                 // State A (no saved token): send field value for first-time setup.
@@ -1809,6 +1819,7 @@ function tgActivate() {
             document.getElementById('tgLinkBox').classList.remove('d-none');
             var expMin = data.expires_in_minutes || 10;
             document.getElementById('tgExpireNote').textContent = '{{ _("El código expira en") }} ' + expMin + ' {{ _("minutos.") }}';
+            tgStartPolling(expMin);
         } else {
             document.getElementById('tgError').textContent = data.error || '{{ _("Error al generar el código.") }}';
             document.getElementById('tgError').classList.remove('d-none');
@@ -1860,6 +1871,29 @@ function tgUnlink() {
     .then(function(data) {
         if (data.unlinked) { location.reload(); }
     });
+}
+
+var tgPollTimer = null;
+
+function tgStartPolling(expMin) {
+    if (tgPollTimer) return;
+    var deadline = Date.now() + (expMin || 10) * 60 * 1000;
+    tgPollTimer = setInterval(function () {
+        if (Date.now() > deadline) { tgStopPolling(); return; }
+        fetch('{{ url_for("telegram.status") }}', { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data && data.linked) {
+                    tgStopPolling();
+                    location.reload();
+                }
+            })
+            .catch(function () { /* reintenta en el próximo tick */ });
+    }, 3000);
+}
+
+function tgStopPolling() {
+    if (tgPollTimer) { clearInterval(tgPollTimer); tgPollTimer = null; }
 }
     </script>
 

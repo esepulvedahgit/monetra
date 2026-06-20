@@ -840,7 +840,7 @@ msgid "La contraseña es obligatoria porque no hay una guardada."
 msgstr ""
 
 #: app/main/forms.py:168
-msgid "Activar escáner IA"
+msgid "Activar IA"
 msgstr ""
 
 #: app/main/forms.py:169 app/templates/main/guia.html:509
@@ -864,7 +864,7 @@ msgid "Compartir mi IA con las demás cuentas"
 msgstr ""
 
 #: app/main/forms.py:182
-msgid "Guardar configuración de escáner"
+msgid "Guardar configuración de API"
 msgstr ""
 
 #: app/main/routes.py:244
@@ -2665,9 +2665,9 @@ msgstr ""
 msgid "Pulsa \"Iniciar\" en el chat. El código expira en 10 minutos."
 msgstr ""
 
-# ── Bloque unificado Escáner IA · Telegram ──
+# ── Bloque unificado Telegram · IA ──
 #: app/templates/main/configurar.html
-msgid "Escáner IA · Telegram"
+msgid "Telegram · IA"
 msgstr ""
 
 #: app/templates/main/configurar.html

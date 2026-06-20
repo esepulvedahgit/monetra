@@ -125,7 +125,8 @@ def generate_code():
     ))
     db.session.commit()
 
-    bot_username = current_app.config.get('TELEGRAM_BOT_USERNAME', '')
+    # Strip whitespace and a leading '@' to tolerate common mis-configuration.
+    bot_username = (current_app.config.get('TELEGRAM_BOT_USERNAME') or '').strip().lstrip('@')
     deep_link = f"https://t.me/{bot_username}?start={raw_code}" if bot_username else None
 
     return jsonify({

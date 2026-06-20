@@ -165,7 +165,7 @@ class SMTPConfigForm(FlaskForm):
 
 class AIConfigForm(FlaskForm):
     """Configuration form for the AI receipt scanner provider."""
-    enabled = BooleanField(_l('Activar escáner IA'))
+    enabled = BooleanField(_l('Activar IA'))
     provider = SelectField(_l('Proveedor'), choices=[
         ('openai',      'OpenAI'),
         ('deepseek',    'DeepSeek'),
@@ -179,4 +179,4 @@ class AIConfigForm(FlaskForm):
                            validators=[Optional(), Length(max=255)])
     api_token = PasswordField(_l('Token API'), validators=[Optional()])
     shared_globally = BooleanField(_l('Compartir mi IA con las demás cuentas'))
-    submit_ai = SubmitField(_l('Guardar configuración de escáner'))
+    submit_ai = SubmitField(_l('Guardar configuración de API'))

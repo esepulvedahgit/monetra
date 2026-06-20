@@ -302,6 +302,28 @@ class TestTestConnection(unittest.TestCase):
         self.assertIn("generativelanguage.googleapis.com", url_called)
 
     @patch("app.telegram.providers.requests.post")
+    def test_gemini_ignores_stale_base_url(self, mock_post):
+        """Regression: a leftover base_url (without scheme) must not break Gemini tests."""
+        mock_post.return_value = _make_ok_response(
+            {"candidates": [{"content": {"parts": [{"text": "OK"}]}}]}
+        )
+        # Simulates a user who had an OpenAI-compatible provider before switching
+        # to Gemini — the field may still hold a bare hostname or any other value.
+        ai_test_connection("gemini", "gemini-1.5-flash", "monetra.hgrey.net", "AIza-test")
+        url_called = mock_post.call_args[0][0]
+        self.assertIn("generativelanguage.googleapis.com", url_called)
+
+    @patch("app.telegram.providers.requests.post")
+    def test_anthropic_ignores_stale_base_url(self, mock_post):
+        """Regression: a leftover base_url must not break Anthropic tests either."""
+        mock_post.return_value = _make_ok_response(
+            {"content": [{"text": "OK"}], "id": "msg_01"}
+        )
+        ai_test_connection("anthropic", "claude-3-5-sonnet-20241022", "monetra.hgrey.net", "sk-ant-test")
+        url_called = mock_post.call_args[0][0]
+        self.assertIn("anthropic.com", url_called)
+
+    @patch("app.telegram.providers.requests.post")
     def test_http_401_raises(self, mock_post):
         resp = MagicMock()
         resp.status_code = 401

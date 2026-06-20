@@ -335,8 +335,10 @@ def test_connection(provider: str, model: str, base_url: str, token: str) -> Non
     provider = (provider or '').lower()
 
     # Validate custom base_url against SSRF targets before making any outbound call.
-    # Default provider URLs (Anthropic, Gemini, OpenAI) are trusted constants — skip.
-    if base_url:
+    # Only OpenAI-compatible providers accept a custom base_url; Anthropic and Gemini
+    # always use their own hardcoded endpoints — ignore (and skip validation for) any
+    # base_url supplied for those providers so a stale field value cannot break the test.
+    if base_url and provider in _OPENAI_COMPATIBLE:
         _validate_base_url(base_url)
 
     if provider in _OPENAI_COMPATIBLE:
