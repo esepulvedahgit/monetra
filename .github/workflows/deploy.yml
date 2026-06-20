@@ -9,19 +9,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Deploy to VPSrun: |
+
+      - name: Deploy to VPS
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASSWORD }}
           port: 2222
+          script_stop: true
           script: |
-            set -e
             cd /opt/monetra
             git pull origin main
-            docker buildx build --platform linux/arm64 -t monetra:release-arm64 --load ../site_finanzas
-            docker compose -f docker/docker-compose.prod.yml --env-file docker/.env up -d
+            docker compose -f docker/docker-compose.prod.yml --env-file docker/.env up -d --build
             docker image prune -f
 
 
