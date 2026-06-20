@@ -9,8 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Deploy to VPS
+      - name: Deploy to VPSrun: |
+        ssh -o StrictHostKeyChecking=accept-new -p 2222 -i ${{ secrets.SSH_KEY }} user@pi-home.ddns.net "comando"
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -24,3 +24,5 @@ jobs:
             docker buildx build --platform linux/arm64 -t monetra:release-arm64 --load ../site_finanzas
             docker compose -f docker/docker-compose.prod.yml --env-file docker/.env up -d
             docker image prune -f
+
+
