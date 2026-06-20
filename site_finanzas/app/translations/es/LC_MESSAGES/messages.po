@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Monetra 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-20 14:14-0400\n"
+"POT-Creation-Date: 2026-06-20 14:58-0400\n"
 "PO-Revision-Date: 2025-01-01 00:00+0000\n"
 "Last-Translator: \n"
 "Language: es\n"
@@ -669,10 +669,10 @@ msgstr ""
 #: app/templates/main/budget.html:337 app/templates/main/budget.html:407
 #: app/templates/main/configurar.html:290
 #: app/templates/main/configurar.html:372
-#: app/templates/main/configurar.html:579
-#: app/templates/main/configurar.html:825
-#: app/templates/main/configurar.html:901
-#: app/templates/main/configurar.html:927 app/templates/main/guia.html:507
+#: app/templates/main/configurar.html:593
+#: app/templates/main/configurar.html:839
+#: app/templates/main/configurar.html:915
+#: app/templates/main/configurar.html:941 app/templates/main/guia.html:507
 #: app/templates/main/meta_form.html:66 app/templates/main/metas.html:195
 #: app/templates/main/recurrente_form.html:140
 #: app/templates/main/recurrentes.html:220
@@ -828,7 +828,7 @@ msgid "Estado"
 msgstr ""
 
 #: app/templates/admin/users.html:57 app/templates/main/configurar.html:406
-#: app/templates/main/configurar.html:1418
+#: app/templates/main/configurar.html:1432
 #: app/templates/main/recurrentes.html:69
 #: app/templates/main/recurrentes.html:158
 msgid "Creado"
@@ -860,13 +860,13 @@ msgid "Suspendido"
 msgstr ""
 
 #: app/templates/admin/users.html:100 app/templates/main/configurar.html:392
-#: app/templates/main/configurar.html:737
-#: app/templates/main/configurar.html:767
+#: app/templates/main/configurar.html:751
+#: app/templates/main/configurar.html:781
 msgid "Activo"
 msgstr ""
 
 #: app/templates/admin/users.html:119 app/templates/main/configurar.html:408
-#: app/templates/main/configurar.html:1418
+#: app/templates/main/configurar.html:1432
 msgid "Nunca"
 msgstr ""
 
@@ -1802,7 +1802,7 @@ msgid "Si está desactivado, nadie podrá crear cuentas nuevas."
 msgstr ""
 
 #: app/templates/main/configurar.html:192
-#: app/templates/main/configurar.html:1085 app/templates/main/guia.html:152
+#: app/templates/main/configurar.html:1099 app/templates/main/guia.html:152
 #: app/templates/usd/dashboard.html:293 app/templates/usd/dashboard.html:339
 msgid "Guardar"
 msgstr ""
@@ -1877,7 +1877,7 @@ msgid "Las contraseñas no coinciden."
 msgstr ""
 
 #: app/templates/main/configurar.html:293
-#: app/templates/main/configurar.html:1938
+#: app/templates/main/configurar.html:1952
 msgid "Descargar respaldo"
 msgstr ""
 
@@ -1926,7 +1926,7 @@ msgid ""
 msgstr ""
 
 #: app/templates/main/configurar.html:408
-#: app/templates/main/configurar.html:1418
+#: app/templates/main/configurar.html:1432
 msgid "Último uso"
 msgstr ""
 
@@ -1983,407 +1983,415 @@ msgstr ""
 msgid "Clave de IA compartida"
 msgstr ""
 
-#: app/templates/main/configurar.html:493
+#: app/templates/main/configurar.html:497
+msgid "El administrador está compartiendo su IA"
+msgstr ""
+
+#: app/templates/main/configurar.html:503
+msgid "El administrador no comparte su IA"
+msgstr ""
+
+#: app/templates/main/configurar.html:507
 msgid "Si configuras tu propia IA, se usará tu clave."
 msgstr ""
 
-#: app/templates/main/configurar.html:495
-msgid "Si no la configuras, se usará automáticamente la clave del administrador."
-msgstr ""
-
-#: app/templates/main/configurar.html:497
+#: app/templates/main/configurar.html:509
 msgid ""
-"Si no la configuras y el administrador no comparte su clave, la IA no "
-"estará disponible."
+"Si no la configuras, se usará automáticamente la clave del administrador "
+"y podrás activar Telegram."
 msgstr ""
 
-#: app/templates/main/configurar.html:518
+#: app/templates/main/configurar.html:511
+msgid "Si no la configuras, no podrás activar Telegram."
+msgstr ""
+
+#: app/templates/main/configurar.html:532
 msgid ""
 "Si lo activas, las cuentas verificadas que no tengan su propia IA "
 "configurada podrán usar tu clave para procesar recibos. Cada consulta "
 "consume tu cuota del proveedor."
 msgstr ""
 
-#: app/templates/main/configurar.html:534
+#: app/templates/main/configurar.html:548
 msgid "ej. gpt-4o"
 msgstr ""
 
-#: app/templates/main/configurar.html:537
+#: app/templates/main/configurar.html:551
 msgid ""
 "El modelo debe soportar imágenes (multimodal). Ej: gpt-4o, "
 "claude-3-5-sonnet, gemini-1.5-flash."
 msgstr ""
 
-#: app/templates/main/configurar.html:544
+#: app/templates/main/configurar.html:558
 msgid "https://api.openai.com/v1  (dejar vacío para usar el default)"
 msgstr ""
 
-#: app/templates/main/configurar.html:545
+#: app/templates/main/configurar.html:559
 msgid ""
 "Solo para proveedores compatibles con OpenAI (OpenAI, DeepSeek, "
 "OpenRouter). Dejar vacío usa la URL oficial."
 msgstr ""
 
-#: app/templates/main/configurar.html:562
+#: app/templates/main/configurar.html:576
 msgid "Cambiar"
 msgstr ""
 
-#: app/templates/main/configurar.html:566
+#: app/templates/main/configurar.html:580
 msgid ""
 "Token guardado. Usa \"Probar conexión\" para verificarlo o \"Cambiar\" "
 "para reemplazarlo."
 msgstr ""
 
-#: app/templates/main/configurar.html:574
+#: app/templates/main/configurar.html:588
 msgid "Ingresa el nuevo token y guarda. Deja vacío para conservar el actual."
 msgstr ""
 
-#: app/templates/main/configurar.html:587
+#: app/templates/main/configurar.html:601
 msgid "Tu token de API del proveedor seleccionado. Se guarda cifrado."
 msgstr ""
 
-#: app/templates/main/configurar.html:598
+#: app/templates/main/configurar.html:612
 msgid "Probar conexión"
 msgstr ""
 
-#: app/templates/main/configurar.html:613
+#: app/templates/main/configurar.html:627
 msgid "Paso 2"
 msgstr ""
 
-#: app/templates/main/configurar.html:616
-#: app/templates/main/configurar.html:696
-#: app/templates/main/configurar.html:1827
+#: app/templates/main/configurar.html:630
+#: app/templates/main/configurar.html:710
+#: app/templates/main/configurar.html:1841
 msgid "Activar Telegram"
 msgstr ""
 
-#: app/templates/main/configurar.html:620
+#: app/templates/main/configurar.html:634
 msgid "Bot vinculado"
 msgstr ""
 
-#: app/templates/main/configurar.html:629
+#: app/templates/main/configurar.html:643
 msgid "Esta función no está disponible en esta instancia."
 msgstr ""
 
-#: app/templates/main/configurar.html:633
+#: app/templates/main/configurar.html:647
 msgid "Para habilitarla, define"
 msgstr ""
 
-#: app/templates/main/configurar.html:633
+#: app/templates/main/configurar.html:647
 msgid "y"
 msgstr ""
 
-#: app/templates/main/configurar.html:633
+#: app/templates/main/configurar.html:647
 msgid "en las variables de entorno del servidor."
 msgstr ""
 
-#: app/templates/main/configurar.html:636
+#: app/templates/main/configurar.html:650
 msgid "Contacta al administrador para habilitarla."
 msgstr ""
 
-#: app/templates/main/configurar.html:649
+#: app/templates/main/configurar.html:663
 msgid ""
 "La IA está desactivada; el bot no podrá procesar mensajes hasta "
 "reactivarla."
 msgstr ""
 
-#: app/templates/main/configurar.html:657
+#: app/templates/main/configurar.html:671
 msgid "Cuenta vinculada"
 msgstr ""
 
-#: app/templates/main/configurar.html:659
+#: app/templates/main/configurar.html:673
 #: app/templates/main/global_dashboard.html:24
 msgid "Desde"
 msgstr ""
 
-#: app/templates/main/configurar.html:672
+#: app/templates/main/configurar.html:686
 msgid "Registrar también transacciones en dólares (USD)"
 msgstr ""
 
-#: app/templates/main/configurar.html:678
+#: app/templates/main/configurar.html:692
 msgid "Desvincular Telegram"
 msgstr ""
 
-#: app/templates/main/configurar.html:688
+#: app/templates/main/configurar.html:702
 msgid "Activa la IA (Paso 1) para desbloquear tu bot de Telegram."
 msgstr ""
 
-#: app/templates/main/configurar.html:702
+#: app/templates/main/configurar.html:716
 msgid "Pulsa el enlace para abrir el bot en Telegram:"
 msgstr ""
 
-#: app/templates/main/configurar.html:706
+#: app/templates/main/configurar.html:720
 msgid "Abrir en Telegram"
 msgstr ""
 
-#: app/templates/main/configurar.html:710
+#: app/templates/main/configurar.html:724
 msgid "Pulsa \"Iniciar\" en el chat. El código expira en 10 minutos."
 msgstr ""
 
-#: app/templates/main/configurar.html:728
+#: app/templates/main/configurar.html:742
 msgid "Seguridad"
 msgstr ""
 
-#: app/templates/main/configurar.html:735
+#: app/templates/main/configurar.html:749
 msgid "Autenticación en dos pasos (MFA)"
 msgstr ""
 
-#: app/templates/main/configurar.html:740
-#: app/templates/main/configurar.html:769
+#: app/templates/main/configurar.html:754
+#: app/templates/main/configurar.html:783
 msgid "Inactivo"
 msgstr ""
 
-#: app/templates/main/configurar.html:744
+#: app/templates/main/configurar.html:758
 msgid ""
 "Protege tu cuenta con un código adicional generado por Google "
 "Authenticator, Authy u otra\n"
 "                    aplicación TOTP."
 msgstr ""
 
-#: app/templates/main/configurar.html:750
-#: app/templates/main/configurar.html:916
+#: app/templates/main/configurar.html:764
+#: app/templates/main/configurar.html:930
 msgid "Desactivar MFA"
 msgstr ""
 
-#: app/templates/main/configurar.html:754
+#: app/templates/main/configurar.html:768
 msgid "Activar MFA"
 msgstr ""
 
-#: app/templates/main/configurar.html:765 app/templates/main/guia.html:34
+#: app/templates/main/configurar.html:779 app/templates/main/guia.html:34
 #: app/templates/main/guia.html:412 app/templates/main/guia.html:525
 #: app/templates/partials/announcements/v2_5.html:24
 msgid "PIN de acceso rápido"
 msgstr ""
 
-#: app/templates/main/configurar.html:773
+#: app/templates/main/configurar.html:787
 msgid ""
 "Inicia sesión en este dispositivo con un PIN de 8 dígitos. Más rápido "
 "pero menos seguro que tu contraseña — úsalo bajo tu propio criterio. "
 "Disponible solo en el móvil."
 msgstr ""
 
-#: app/templates/main/configurar.html:784
+#: app/templates/main/configurar.html:798
 msgid "PIN de 8 dígitos"
 msgstr ""
 
-#: app/templates/main/configurar.html:791
+#: app/templates/main/configurar.html:805
 msgid "Confirmar PIN"
 msgstr ""
 
-#: app/templates/main/configurar.html:795
+#: app/templates/main/configurar.html:809
 msgid "Los PIN no coinciden."
 msgstr ""
 
-#: app/templates/main/configurar.html:798
+#: app/templates/main/configurar.html:812
 msgid "Cambiar PIN"
 msgstr ""
 
-#: app/templates/main/configurar.html:798
+#: app/templates/main/configurar.html:812
 msgid "Configurar PIN"
 msgstr ""
 
-#: app/templates/main/configurar.html:802
+#: app/templates/main/configurar.html:816
 msgid "Eliminar PIN"
 msgstr ""
 
-#: app/templates/main/configurar.html:813
+#: app/templates/main/configurar.html:827
 msgid "Confirma tu contraseña para continuar."
 msgstr ""
 
-#: app/templates/main/configurar.html:818
+#: app/templates/main/configurar.html:832
 msgid "Tu contraseña actual"
 msgstr ""
 
-#: app/templates/main/configurar.html:822
+#: app/templates/main/configurar.html:836
 msgid "Continuar"
 msgstr ""
 
-#: app/templates/main/configurar.html:836
+#: app/templates/main/configurar.html:850
 msgid ""
 "Activa la verificación en dos pasos (MFA) para poder usar el PIN de "
 "acceso rápido."
 msgstr ""
 
-#: app/templates/main/configurar.html:846
+#: app/templates/main/configurar.html:860
 msgid "Cambiar Contraseña"
 msgstr ""
 
-#: app/templates/main/configurar.html:848
+#: app/templates/main/configurar.html:862
 msgid "Al guardar se cerrará la sesión automáticamente."
 msgstr ""
 
-#: app/templates/main/configurar.html:861
+#: app/templates/main/configurar.html:875
 msgid "Mín. 10 caracteres, mayúscula, minúscula, número y carácter especial."
 msgstr ""
 
-#: app/templates/main/configurar.html:879
+#: app/templates/main/configurar.html:893
 msgid ""
 "Activar\n"
 "                            autenticación en dos pasos"
 msgstr ""
 
-#: app/templates/main/configurar.html:884
+#: app/templates/main/configurar.html:898
 msgid ""
 "Escanea este código QR con tu aplicación autenticadora y\n"
 "                            luego ingresa el código de 6 dígitos para "
 "confirmar."
 msgstr ""
 
-#: app/templates/main/configurar.html:889
+#: app/templates/main/configurar.html:903
 msgid "¿No puedes escanear? Ingresa esta clave manualmente:"
 msgstr ""
 
-#: app/templates/main/configurar.html:894
+#: app/templates/main/configurar.html:908
 msgid "Código de verificación"
 msgstr ""
 
-#: app/templates/main/configurar.html:904
+#: app/templates/main/configurar.html:918
 msgid "Confirmar y activar"
 msgstr ""
 
-#: app/templates/main/configurar.html:920
+#: app/templates/main/configurar.html:934
 msgid ""
 "Ingresa el código actual de tu aplicación autenticadora\n"
 "                            para desactivar la protección."
 msgstr ""
 
-#: app/templates/main/configurar.html:930
+#: app/templates/main/configurar.html:944
 msgid "Desactivar"
 msgstr ""
 
-#: app/templates/main/configurar.html:940
+#: app/templates/main/configurar.html:954
 msgid ""
 "Configuración de correo\n"
 "                    (SMTP)"
 msgstr ""
 
-#: app/templates/main/configurar.html:942
+#: app/templates/main/configurar.html:956
 msgid ""
 "Permite enviar correos desde tu propia cuenta, como recordatorios\n"
 "                    o recuperación de contraseña."
 msgstr ""
 
-#: app/templates/main/configurar.html:949
+#: app/templates/main/configurar.html:963
 msgid "¿Cómo funciona la recuperación de contraseña?"
 msgstr ""
 
-#: app/templates/main/configurar.html:953
+#: app/templates/main/configurar.html:967
 msgid ""
 "Si activas tu propio SMTP, tus correos de recuperación se enviarán desde "
 "tu cuenta."
 msgstr ""
 
-#: app/templates/main/configurar.html:955
+#: app/templates/main/configurar.html:969
 msgid ""
 "Si no lo activas, el sistema usará automáticamente el\n"
 "                            SMTP del administrador para enviarte el "
 "correo (sin necesidad de que configures nada)."
 msgstr ""
 
-#: app/templates/main/configurar.html:957
+#: app/templates/main/configurar.html:971
 msgid ""
 "Si no lo activas y el administrador no tiene SMTP configurado, la\n"
 "                            recuperación por correo no estará disponible."
 msgstr ""
 
-#: app/templates/main/configurar.html:978
+#: app/templates/main/configurar.html:992
 msgid "ej. smtp.gmail.com"
 msgstr ""
 
-#: app/templates/main/configurar.html:1002
+#: app/templates/main/configurar.html:1016
 msgid "Contraseña guardada — deja en blanco para conservarla"
 msgstr ""
 
-#: app/templates/main/configurar.html:1008
+#: app/templates/main/configurar.html:1022
 msgid "Usa contraseñas de aplicación si es Gmail."
 msgstr ""
 
-#: app/templates/main/configurar.html:1039
+#: app/templates/main/configurar.html:1053
 msgid "SSL → puerto 465 · TLS (STARTTLS) → puerto 587. Solo activa uno a la vez."
 msgstr ""
 
-#: app/templates/main/configurar.html:1055
+#: app/templates/main/configurar.html:1069
 #, python-format
 msgid "Enviar correo de prueba a %(email)s"
 msgstr ""
 
-#: app/templates/main/configurar.html:1059
+#: app/templates/main/configurar.html:1073
 msgid "Utilizará los ajustes guardados."
 msgstr ""
 
-#: app/templates/main/configurar.html:1068
+#: app/templates/main/configurar.html:1082
 msgid "Reporte semanal por email"
 msgstr ""
 
-#: app/templates/main/configurar.html:1071
+#: app/templates/main/configurar.html:1085
 msgid ""
 "Recibe tu resumen Excel todos los lunes a las 10:00 AM (UTC). Incluye "
 "únicamente el mes en curso."
 msgstr ""
 
-#: app/templates/main/configurar.html:1081
+#: app/templates/main/configurar.html:1095
 msgid "Activar reporte semanal"
 msgstr ""
 
-#: app/templates/main/configurar.html:1095
+#: app/templates/main/configurar.html:1109
 msgid "Enviar ahora"
 msgstr ""
 
-#: app/templates/main/configurar.html:1098
+#: app/templates/main/configurar.html:1112
 msgid "Genera y envía el Excel del mes en curso a"
 msgstr ""
 
-#: app/templates/main/configurar.html:1106
+#: app/templates/main/configurar.html:1120
 msgid ""
 "Para enviar reportes necesitas configurar un SMTP (propio o del "
 "administrador)."
 msgstr ""
 
-#: app/templates/main/configurar.html:1113
+#: app/templates/main/configurar.html:1127
 msgid "Recuperación activa — SMTP propio"
 msgstr ""
 
-#: app/templates/main/configurar.html:1117
+#: app/templates/main/configurar.html:1131
 msgid "Recuperación activa — vía administrador"
 msgstr ""
 
-#: app/templates/main/configurar.html:1121
+#: app/templates/main/configurar.html:1135
 msgid "Recuperación por correo: no disponible"
 msgstr ""
 
-#: app/templates/main/configurar.html:1133
+#: app/templates/main/configurar.html:1147
 msgid "Ayuda Progresiva"
 msgstr ""
 
-#: app/templates/main/configurar.html:1138
+#: app/templates/main/configurar.html:1152
 msgid ""
 "Cuando está activa, los formularios muestran íconos de ayuda con "
 "explicaciones contextuales\n"
 "                    sobre cada campo."
 msgstr ""
 
-#: app/templates/main/configurar.html:1147
+#: app/templates/main/configurar.html:1161
 msgid "Mostrar íconos de ayuda en formularios"
 msgstr ""
 
-#: app/templates/main/configurar.html:1159 app/templates/main/guia.html:372
+#: app/templates/main/configurar.html:1173 app/templates/main/guia.html:372
 msgid "Panel de Insights"
 msgstr ""
 
-#: app/templates/main/configurar.html:1164
+#: app/templates/main/configurar.html:1178
 msgid ""
 "Muestra Salud financiera, Proyección de cierre y Alertas en el dashboard "
 "mensual."
 msgstr ""
 
-#: app/templates/main/configurar.html:1173
+#: app/templates/main/configurar.html:1187
 msgid "Activar panel de insights"
 msgstr ""
 
-#: app/templates/main/configurar.html:1183
+#: app/templates/main/configurar.html:1197
 msgid "Datos Demo"
 msgstr ""
 
-#: app/templates/main/configurar.html:1188
+#: app/templates/main/configurar.html:1202
 msgid ""
 "Carga transacciones de ejemplo para explorar los dashboards sin ingresar "
 "datos reales. Puedes\n"
@@ -2391,139 +2399,139 @@ msgid ""
 "datos."
 msgstr ""
 
-#: app/templates/main/configurar.html:1196 app/templates/main/guia.html:25
+#: app/templates/main/configurar.html:1210 app/templates/main/guia.html:25
 #: app/templates/main/guia.html:144
 msgid "Transacciones"
 msgstr ""
 
-#: app/templates/main/configurar.html:1200
+#: app/templates/main/configurar.html:1214
 msgid "Total gastos"
 msgstr ""
 
-#: app/templates/main/configurar.html:1204 app/templates/main/guia.html:314
+#: app/templates/main/configurar.html:1218 app/templates/main/guia.html:314
 #: app/templates/main/guia.html:315 app/templates/main/guia.html:316
 #: app/templates/main/guia.html:317 app/templates/main/guia.html:318
 #: app/templates/main/guia.html:321
 msgid "Período"
 msgstr ""
 
-#: app/templates/main/configurar.html:1211
-#: app/templates/main/configurar.html:1291
+#: app/templates/main/configurar.html:1225
+#: app/templates/main/configurar.html:1305
 msgid "Cargar demo"
 msgstr ""
 
-#: app/templates/main/configurar.html:1214
+#: app/templates/main/configurar.html:1228
 msgid "Resetear demo"
 msgstr ""
 
-#: app/templates/main/configurar.html:1288
+#: app/templates/main/configurar.html:1302
 msgid "Cargado"
 msgstr ""
 
-#: app/templates/main/configurar.html:1289
+#: app/templates/main/configurar.html:1303
 msgid "No cargado"
 msgstr ""
 
-#: app/templates/main/configurar.html:1290
+#: app/templates/main/configurar.html:1304
 msgid "Cargando…"
 msgstr ""
 
-#: app/templates/main/configurar.html:1292
-#: app/templates/main/configurar.html:1646
-#: app/templates/main/configurar.html:1830
-#: app/templates/main/configurar.html:1859
+#: app/templates/main/configurar.html:1306
+#: app/templates/main/configurar.html:1660
+#: app/templates/main/configurar.html:1844
+#: app/templates/main/configurar.html:1873
 msgid "Error de conexión."
 msgstr ""
 
-#: app/templates/main/configurar.html:1293
+#: app/templates/main/configurar.html:1307
 msgid "Se cargarán datos demo y se cerrará tu sesión. ¿Continuar?"
 msgstr ""
 
-#: app/templates/main/configurar.html:1294
+#: app/templates/main/configurar.html:1308
 msgid ""
 "¿Eliminar todos los datos demo? Se cerrará tu sesión. Esta acción no se "
 "puede deshacer."
 msgstr ""
 
-#: app/templates/main/configurar.html:1295
+#: app/templates/main/configurar.html:1309
 msgid "Cerrando sesión…"
 msgstr ""
 
-#: app/templates/main/configurar.html:1425
+#: app/templates/main/configurar.html:1439
 msgid "Error al generar el token."
 msgstr ""
 
-#: app/templates/main/configurar.html:1433
+#: app/templates/main/configurar.html:1447
 msgid ""
 "¿Seguro que quieres revocar el token? Los agentes que lo usen perderán "
 "acceso."
 msgstr ""
 
-#: app/templates/main/configurar.html:1441
+#: app/templates/main/configurar.html:1455
 msgid "Error al revocar el token."
 msgstr ""
 
-#: app/templates/main/configurar.html:1482
+#: app/templates/main/configurar.html:1496
 msgid "Error al generar el QR."
 msgstr ""
 
-#: app/templates/main/configurar.html:1494
-#: app/templates/main/configurar.html:1507
-#: app/templates/main/configurar.html:1780
-#: app/templates/main/configurar.html:1786 app/templates/main/metas.html:296
+#: app/templates/main/configurar.html:1508
+#: app/templates/main/configurar.html:1521
+#: app/templates/main/configurar.html:1794
+#: app/templates/main/configurar.html:1800 app/templates/main/metas.html:296
 msgid "Error."
 msgstr ""
 
-#: app/templates/main/configurar.html:1591
+#: app/templates/main/configurar.html:1605
 msgid "Modelo recomendado: "
 msgstr ""
 
-#: app/templates/main/configurar.html:1606
+#: app/templates/main/configurar.html:1620
 msgid "Guarda el nuevo token primero para probarlo."
 msgstr ""
 
-#: app/templates/main/configurar.html:1725
+#: app/templates/main/configurar.html:1739
 msgid "El PIN debe tener exactamente 8 dígitos."
 msgstr ""
 
-#: app/templates/main/configurar.html:1748
+#: app/templates/main/configurar.html:1762
 msgid "Escribe tu contraseña."
 msgstr ""
 
-#: app/templates/main/configurar.html:1753
+#: app/templates/main/configurar.html:1767
 msgid "Guardando…"
 msgstr ""
 
-#: app/templates/main/configurar.html:1787
-#: app/templates/main/configurar.html:1788
+#: app/templates/main/configurar.html:1801
+#: app/templates/main/configurar.html:1802
 msgid "Contraseña incorrecta."
 msgstr ""
 
-#: app/templates/main/configurar.html:1815
+#: app/templates/main/configurar.html:1829
 msgid "Primero activa la IA (Paso 1)."
 msgstr ""
 
-#: app/templates/main/configurar.html:1821
+#: app/templates/main/configurar.html:1835
 msgid "El código expira en"
 msgstr ""
 
-#: app/templates/main/configurar.html:1821
+#: app/templates/main/configurar.html:1835
 msgid "minutos."
 msgstr ""
 
-#: app/templates/main/configurar.html:1824
+#: app/templates/main/configurar.html:1838
 msgid "Error al generar el código."
 msgstr ""
 
-#: app/templates/main/configurar.html:1853
+#: app/templates/main/configurar.html:1867
 msgid "Error al guardar la configuración."
 msgstr ""
 
-#: app/templates/main/configurar.html:1865
+#: app/templates/main/configurar.html:1879
 msgid "¿Desvincular tu cuenta de Telegram?"
 msgstr ""
 
-#: app/templates/main/configurar.html:1934
+#: app/templates/main/configurar.html:1948
 msgid "Generando…"
 msgstr ""
 
@@ -5716,5 +5724,16 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "Presupuesto mensual USD"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Si no la configuras, se usará "
+#~ "automáticamente la clave del administrador."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Si no la configuras y el "
+#~ "administrador no comparte su clave, la"
+#~ " IA no estará disponible."
 #~ msgstr ""
 
