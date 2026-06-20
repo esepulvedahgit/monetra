@@ -1645,7 +1645,7 @@ def configurar():
             if current_user.is_first_admin:
                 ai_config.shared_globally = ai_form.shared_globally.data
             db.session.commit()
-            flash(_('Configuración del escáner IA guardada.'), 'success')
+            flash(_('Configuración de IA guardada.'), 'success')
             return redirect(url_for('main.configurar'))
 
     elif 'submit_admin' in request.form:
