@@ -194,7 +194,7 @@ def make_backup(password: str) -> bytes:
         'format': 'monetra-backup/1',
         'db_name': os.environ.get('DB_NAME', ''),
         'created_at': datetime.now(timezone.utc).isoformat(),
-        'app_version': '2.5',
+        'app_version': '2.6',
     }
     manifest_bytes = json.dumps(manifest, ensure_ascii=False).encode('utf-8')
     header = struct.pack('>I', len(manifest_bytes)) + manifest_bytes

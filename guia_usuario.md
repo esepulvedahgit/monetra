@@ -1,4 +1,4 @@
-# Guía de Usuario — Monetra v2.3
+# Guía de Usuario — Monetra v2.6
 
 Monetra es una aplicación de finanzas personales que te permite registrar ingresos y gastos, establecer presupuestos, definir metas de ahorro, automatizar movimientos recurrentes y exportar tus datos en Excel. Esta guía explica cómo funciona cada sección y cómo sacarle el máximo provecho.
 

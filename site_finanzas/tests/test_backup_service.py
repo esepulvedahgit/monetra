@@ -135,7 +135,7 @@ def _craft_blob(db_name='test_db', fmt='monetra-backup/1',
         'format': fmt,
         'db_name': db_name,
         'created_at': '2026-01-01T00:00:00+00:00',
-        'app_version': '2.5',
+        'app_version': '2.6',
     }
     manifest_bytes = json.dumps(manifest).encode()
     header = struct.pack('>I', len(manifest_bytes)) + manifest_bytes

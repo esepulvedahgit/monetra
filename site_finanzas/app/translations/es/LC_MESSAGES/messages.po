@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Monetra 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-20 14:58-0400\n"
+"POT-Creation-Date: 2026-06-20 23:03-0400\n"
 "PO-Revision-Date: 2025-01-01 00:00+0000\n"
 "Last-Translator: \n"
 "Language: es\n"
@@ -13,6 +13,10 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
+
+#: app/__init__.py:56
+msgid "Por favor inicia sesión para acceder."
+msgstr ""
 
 #: app/__init__.py:127
 msgid "La solicitud expiró. Por favor intenta de nuevo."
@@ -112,12 +116,67 @@ msgstr ""
 msgid "La contraseña debe incluir al menos un carácter especial."
 msgstr ""
 
+# ── Auth forms ──
+#: app/auth/forms.py:24 app/templates/admin/users.html:53
+#: app/templates/admin/users.html:88
+msgid "Usuario"
+msgstr ""
+
+#: app/auth/forms.py:25 app/auth/forms.py:43 app/auth/forms.py:55
+msgid "Email"
+msgstr ""
+
+#: app/auth/forms.py:26 app/auth/forms.py:44
+msgid "Contraseña"
+msgstr ""
+
+#: app/auth/forms.py:28 app/auth/forms.py:62
+msgid "Confirmar Contraseña"
+msgstr ""
+
+#: app/auth/forms.py:29 app/auth/forms.py:63 app/main/forms.py:124
+#: app/templates/main/configurar.html:284
+msgid "Las contraseñas no coinciden."
+msgstr ""
+
+#: app/auth/forms.py:31
+msgid "Registrarse"
+msgstr ""
+
 #: app/auth/forms.py:35
 msgid "Ese nombre de usuario ya está en uso."
 msgstr ""
 
 #: app/auth/forms.py:39
 msgid "Ese email ya está registrado."
+msgstr ""
+
+#: app/auth/forms.py:45
+msgid "Recordarme"
+msgstr ""
+
+#: app/auth/forms.py:46 app/auth/routes.py:175
+msgid "Iniciar Sesión"
+msgstr ""
+
+#: app/auth/forms.py:50 app/templates/main/configurar.html:908
+msgid "Código de verificación"
+msgstr ""
+
+#: app/auth/forms.py:51
+msgid "Verificar"
+msgstr ""
+
+#: app/auth/forms.py:56
+msgid "Enviar Enlace de Recuperación"
+msgstr ""
+
+#: app/auth/forms.py:60
+msgid "Nueva Contraseña"
+msgstr ""
+
+#: app/auth/forms.py:65 app/auth/routes.py:304
+msgid "Restablecer Contraseña"
 msgstr ""
 
 #: app/auth/routes.py:50 app/auth/routes.py:85
@@ -176,10 +235,6 @@ msgstr ""
 msgid "Email o contraseña incorrectos."
 msgstr ""
 
-#: app/auth/routes.py:175
-msgid "Iniciar Sesión"
-msgstr ""
-
 #: app/auth/routes.py:203
 msgid "Código incorrecto. Inténtalo de nuevo."
 msgstr ""
@@ -214,12 +269,561 @@ msgstr ""
 msgid "Tu contraseña ha sido actualizada exitosamente."
 msgstr ""
 
-#: app/auth/routes.py:304
-msgid "Restablecer Contraseña"
+#: app/insights/messages.py:29
+msgid "Presupuesto en observación"
+msgstr ""
+
+#: app/insights/messages.py:30
+msgid ""
+"Monetra aún está aprendiendo de tus primeros meses. Por ahora toma este "
+"ritmo de gasto como una referencia inicial."
+msgstr ""
+
+#: app/insights/messages.py:31
+msgid ""
+"Con poco historial, una proyección puede cambiar bastante a medida que "
+"registres más movimientos."
+msgstr ""
+
+#: app/insights/messages.py:32
+msgid ""
+"Sigue registrando tus gastos y revisa si este ritmo se repite durante los"
+" próximos meses."
+msgstr ""
+
+#: app/insights/messages.py:35
+msgid "Ritmo de gasto alto"
+msgstr ""
+
+#: app/insights/messages.py:36
+#, python-brace-format
+msgid ""
+"Presupuesto ejecutado: {budget_used_pct:.0f}%. Mes transcurrido: "
+"{month_elapsed_pct:.0f}%."
+msgstr ""
+
+#: app/insights/messages.py:37
+msgid ""
+"Tu ritmo actual de gasto indica que podrías superar el presupuesto antes "
+"del cierre mensual."
+msgstr ""
+
+#: app/insights/messages.py:38
+msgid ""
+"Revisa gastos variables o ajusta el presupuesto si este patrón es "
+"recurrente."
+msgstr ""
+
+#: app/insights/messages.py:41
+msgid "Vas a superar tu presupuesto"
+msgstr ""
+
+#: app/insights/messages.py:42
+#, python-brace-format
+msgid "Con el ritmo actual cerrarás el mes al {projected_pct:.0f}%."
+msgstr ""
+
+#: app/insights/messages.py:43
+msgid ""
+"La diferencia entre el avance del mes y el consumo del presupuesto es "
+"significativa."
+msgstr ""
+
+#: app/insights/messages.py:44
+msgid "Reduce gastos no esenciales o reasigna presupuesto entre categorías."
+msgstr ""
+
+#: app/insights/messages.py:50
+msgid "Posible déficit este mes"
+msgstr ""
+
+#: app/insights/messages.py:51
+msgid "Con los datos actuales podrías cerrar el mes con balance negativo."
+msgstr ""
+
+#: app/insights/messages.py:52
+msgid ""
+"Monetra todavía está aprendiendo de tu comportamiento. Esta proyección es"
+" una orientación inicial, no una conclusión definitiva."
+msgstr ""
+
+#: app/insights/messages.py:53
+msgid ""
+"Revisa tus próximos gastos e ingresos esperados antes de hacer ajustes "
+"fuertes."
+msgstr ""
+
+#: app/insights/messages.py:56
+msgid "Riesgo de déficit mensual"
+msgstr ""
+
+#: app/insights/messages.py:57
+msgid "Con el ritmo actual podrías cerrar el mes con balance negativo."
+msgstr ""
+
+#: app/insights/messages.py:58
+msgid "Los gastos proyectados superan a los ingresos proyectados del periodo."
+msgstr ""
+
+#: app/insights/messages.py:59
+msgid "Revisa gastos no esenciales, pagos recurrentes y compromisos pendientes."
+msgstr ""
+
+#: app/insights/messages.py:65
+#, python-brace-format
+msgid "Aumento en {category_name}"
+msgstr ""
+
+#: app/insights/messages.py:66
+#, python-brace-format
+msgid ""
+"Este mes llevas {current:.0f}, frente a un promedio histórico de "
+"{baseline:.0f}."
+msgstr ""
+
+#: app/insights/messages.py:67
+msgid "El gasto en esta categoría está al menos un 50% por encima del promedio."
+msgstr ""
+
+#: app/insights/messages.py:68
+msgid ""
+"Revisa los movimientos de la categoría para confirmar si el aumento es "
+"esperado."
+msgstr ""
+
+#: app/insights/messages.py:71
+#, python-brace-format
+msgid "Aumento fuerte en {category_name}"
+msgstr ""
+
+#: app/insights/messages.py:72
+#, python-brace-format
+msgid "Este mes llevas {current:.0f}, el doble o más del promedio histórico."
+msgstr ""
+
+#: app/insights/messages.py:73
+msgid "La desviación es muy superior al patrón habitual de esta categoría."
+msgstr ""
+
+#: app/insights/messages.py:74
+msgid "Verifica si hay cargos duplicados, suscripciones nuevas o gastos atípicos."
+msgstr ""
+
+#: app/insights/messages.py:80
+msgid "Movimiento para revisar"
+msgstr ""
+
+#: app/insights/messages.py:81
+#, python-brace-format
+msgid ""
+"Una transacción de {value:.0f} en {category_name} destaca frente a los "
+"datos disponibles."
+msgstr ""
+
+#: app/insights/messages.py:82
+msgid ""
+"Como aún hay poco historial, Monetra lo muestra como una revisión "
+"sugerida y no como una alerta fuerte."
+msgstr ""
+
+#: app/insights/messages.py:83
+msgid "Confirma que el monto y la categoría sean correctos."
+msgstr ""
+
+#: app/insights/messages.py:86
+msgid "Transacción inusual detectada"
+msgstr ""
+
+#: app/insights/messages.py:87
+#, python-brace-format
+msgid ""
+"Una transacción de {value:.0f} en {category_name} se aleja del patrón "
+"habitual."
+msgstr ""
+
+#: app/insights/messages.py:88
+msgid ""
+"El monto está significativamente por encima del rango típico de la "
+"categoría."
+msgstr ""
+
+#: app/insights/messages.py:89
+msgid "Confirma que la transacción es correcta y que la categoría es la adecuada."
+msgstr ""
+
+#: app/insights/messages.py:95
+msgid "Ahorro en observación"
+msgstr ""
+
+#: app/insights/messages.py:96
+#, python-brace-format
+msgid ""
+"Tu tasa de ahorro este mes es de {savings_rate_pct:.1f}%. Monetra "
+"necesita más meses para saber si esto es habitual."
+msgstr ""
+
+#: app/insights/messages.py:97
+msgid ""
+"Durante los primeros meses, el ahorro puede variar mucho por gastos de "
+"inicio, compras puntuales o ingresos aún no registrados."
+msgstr ""
+
+#: app/insights/messages.py:98
+msgid ""
+"Sigue registrando movimientos. Si este patrón se repite, Monetra te "
+"avisará con mayor seguridad."
+msgstr ""
+
+#: app/insights/messages.py:101
+msgid "Tasa de ahorro baja"
+msgstr ""
+
+#: app/insights/messages.py:102
+#, python-brace-format
+msgid "Tu tasa de ahorro este mes es de {savings_rate_pct:.1f}%."
+msgstr ""
+
+#: app/insights/messages.py:103
+msgid "Una tasa de ahorro saludable suele estar por encima del 10%."
+msgstr ""
+
+#: app/insights/messages.py:104
+msgid "Considera revisar gastos variables o establecer una meta de ahorro fija."
+msgstr ""
+
+#: app/insights/messages.py:107
+msgid "Sin capacidad de ahorro"
+msgstr ""
+
+#: app/insights/messages.py:108
+#, python-brace-format
+msgid "Este mes tu balance no permite ahorro (tasa: {savings_rate_pct:.1f}%)."
+msgstr ""
+
+#: app/insights/messages.py:109
+msgid "Los ingresos no superan a los gastos en margen suficiente."
+msgstr ""
+
+#: app/insights/messages.py:110
+msgid "Prioriza reducir gastos recurrentes o revisa fuentes de ingreso."
+msgstr ""
+
+#: app/insights/messages.py:116
+msgid "Meta de ahorro en riesgo"
+msgstr ""
+
+#: app/insights/messages.py:117
+#, python-brace-format
+msgid "La meta \"{goal_name}\" requiere ahorrar {monthly_required:.0f} al mes."
+msgstr ""
+
+#: app/insights/messages.py:118
+msgid ""
+"Tu capacidad de ahorro proyectada no alcanza el ritmo necesario para "
+"cumplirla a tiempo."
+msgstr ""
+
+#: app/insights/messages.py:119
+msgid ""
+"Ajusta el plazo, reduce el objetivo o define un aporte recurrente para "
+"esta meta."
+msgstr ""
+
+#: app/insights/messages.py:122
+msgid "Meta de ahorro vencida"
+msgstr ""
+
+#: app/insights/messages.py:123
+#, python-brace-format
+msgid "La meta \"{goal_name}\" tiene {remaining:.0f} pendiente y ya venció."
+msgstr ""
+
+#: app/insights/messages.py:124
+msgid "El objetivo no se alcanzó antes de la fecha definida."
+msgstr ""
+
+#: app/insights/messages.py:125
+msgid "Actualiza la fecha objetivo o cierra la meta si ya no aplica."
+msgstr ""
+
+#: app/insights/messages.py:131
+msgid "Tendencia de gasto al alza"
+msgstr ""
+
+#: app/insights/messages.py:132
+msgid ""
+"Tus gastos mensuales muestran una tendencia creciente en los últimos "
+"meses."
+msgstr ""
+
+#: app/insights/messages.py:133
+msgid "La pendiente positiva sostenida indica un cambio de patrón."
+msgstr ""
+
+#: app/insights/messages.py:134
+msgid "Revisa qué categorías están creciendo más rápido que el resto."
+msgstr ""
+
+#: app/insights/messages.py:140
+msgid "Posible movimiento duplicado"
+msgstr ""
+
+#: app/insights/messages.py:141
+#, python-brace-format
+msgid "Se detectó una transacción muy similar a otra reciente en {category_name}."
+msgstr ""
+
+#: app/insights/messages.py:142
+msgid ""
+"Mismo monto, misma categoría y fecha cercana sugieren un posible "
+"duplicado."
+msgstr ""
+
+#: app/insights/messages.py:143
+msgid "Verifica el detalle y elimínalo si corresponde."
+msgstr ""
+
+#: app/insights/messages.py:149
+msgid "Configuración inicial pendiente"
+msgstr ""
+
+#: app/insights/messages.py:150
+msgid ""
+"Hay elementos básicos sin configurar que mejoran la precisión del "
+"análisis."
+msgstr ""
+
+#: app/insights/messages.py:151
+msgid ""
+"Monetra usa el presupuesto y los gastos recurrentes como base de las "
+"proyecciones. Sin ellos, las estimaciones son menos precisas."
+msgstr ""
+
+#: app/insights/messages.py:152
+msgid ""
+"Define un presupuesto mensual y registra tus gastos fijos recurrentes "
+"(arriendo, servicios, suscripciones)."
+msgstr ""
+
+#: app/main/forms.py:28
+msgid "País"
+msgstr ""
+
+#: app/main/forms.py:29
+msgid "Símbolo de Moneda"
+msgstr ""
+
+#: app/main/forms.py:31
+msgid "Valor del dólar (1 USD = ?)"
+msgstr ""
+
+#: app/main/forms.py:33
+msgid "Guardar Configuración"
+msgstr ""
+
+#: app/main/forms.py:37 app/main/forms.py:50 app/main/forms.py:83
+#: app/templates/main/guia.html:151 app/templates/main/guia.html:268
+#: app/templates/main/recurrentes.html:64
+#: app/templates/main/recurrentes.html:154
+#: app/templates/main/transactions.html:22
+#: app/templates/main/transactions.html:76
+msgid "Tipo"
+msgstr ""
+
+#: app/main/forms.py:38 app/main/forms.py:51 app/main/forms.py:84
+#: app/main/routes.py:590 app/main/routes.py:643 app/main/routes.py:722
+#: app/templates/main/guia.html:55 app/templates/main/recurrentes.html:81
+#: app/templates/main/recurrentes.html:169
+#: app/templates/main/transactions.html:92
+msgid "Gasto"
+msgstr ""
+
+#: app/main/forms.py:38 app/main/forms.py:51 app/main/forms.py:84
+#: app/main/routes.py:590 app/main/routes.py:643 app/main/routes.py:722
+#: app/templates/main/guia.html:54 app/templates/main/recurrentes.html:79
+#: app/templates/main/recurrentes.html:167
+#: app/templates/main/transactions.html:90
+msgid "Ingreso"
+msgstr ""
+
+#: app/main/forms.py:40 app/main/forms.py:86 app/main/forms.py:104
+#: app/templates/analytics/consolidated.html:118
+#: app/templates/main/dashboard.html:182 app/templates/main/guia.html:151
+#: app/templates/main/recurrentes.html:67
+#: app/templates/main/recurrentes.html:157
+#: app/templates/main/transactions.html:80 app/templates/usd/dashboard.html:217
+#: app/templates/usd/dashboard.html:325
+msgid "Monto"
+msgstr ""
+
+#: app/main/forms.py:42 app/main/forms.py:65 app/main/forms.py:88
+#: app/templates/analytics/consolidated.html:116
+#: app/templates/main/dashboard.html:181 app/templates/main/guia.html:151
+#: app/templates/main/recurrentes.html:65
+#: app/templates/main/recurrentes.html:155
+#: app/templates/main/transactions.html:30
+#: app/templates/main/transactions.html:77 app/templates/usd/dashboard.html:215
+#: app/templates/usd/dashboard.html:317 app/usd/forms.py:13
+msgid "Categoría"
+msgstr ""
+
+#: app/main/forms.py:43 app/main/forms.py:78 app/main/forms.py:89
+#: app/templates/main/dashboard.html:180 app/templates/main/guia.html:101
+#: app/templates/main/guia.html:151 app/templates/main/guia.html:216
+#: app/templates/main/guia.html:237 app/templates/main/guia.html:243
+#: app/templates/main/guia.html:464 app/templates/main/guia.html:483
+#: app/templates/main/recurrentes.html:63
+#: app/templates/main/recurrentes.html:153
+#: app/templates/main/transactions.html:78 app/templates/usd/dashboard.html:216
+#: app/templates/usd/dashboard.html:332 app/usd/forms.py:17
+msgid "Descripción"
+msgstr ""
+
+#: app/main/forms.py:44 app/templates/analytics/consolidated.html:115
+#: app/templates/main/dashboard.html:179 app/templates/main/guia.html:151
+#: app/templates/main/transactions.html:75 app/templates/usd/dashboard.html:214
+#: app/templates/usd/dashboard.html:313 app/usd/forms.py:12
+msgid "Fecha"
+msgstr ""
+
+#: app/main/forms.py:45 app/main/forms.py:68 app/main/forms.py:79
+#: app/main/forms.py:95 app/main/forms.py:108
+#: app/templates/main/configurar.html:192
+#: app/templates/main/configurar.html:1099 app/templates/main/guia.html:152
+#: app/templates/usd/dashboard.html:293 app/templates/usd/dashboard.html:339
+msgid "Guardar"
+msgstr ""
+
+#: app/main/forms.py:49 app/templates/main/guia.html:239 app/usd/forms.py:8
+msgid "Nombre"
+msgstr ""
+
+#: app/main/forms.py:53
+msgid "Crear Categoría"
+msgstr ""
+
+#: app/main/forms.py:58 app/templates/main/guia.html:76
+msgid "Mes"
+msgstr ""
+
+#: app/main/forms.py:59
+msgid "Monto Presupuesto"
+msgstr ""
+
+#: app/main/forms.py:61
+msgid "Guardar Presupuesto"
+msgstr ""
+
+#: app/main/forms.py:66
+msgid "Límite mensual"
+msgstr ""
+
+#: app/main/forms.py:72
+msgid "Nombre de la meta"
+msgstr ""
+
+#: app/main/forms.py:73 app/templates/main/guia.html:240
+msgid "Monto objetivo"
+msgstr ""
+
+#: app/main/forms.py:75
+msgid "Monto inicial ahorrado"
+msgstr ""
+
+#: app/main/forms.py:77 app/templates/main/guia.html:242
+msgid "Fecha objetivo"
+msgstr ""
+
+#: app/main/forms.py:90 app/templates/main/guia.html:269
+msgid "Día del mes"
+msgstr ""
+
+#: app/main/forms.py:93 app/templates/main/guia.html:270
+msgid "Fecha de término"
+msgstr ""
+
+#: app/main/forms.py:94 app/templates/main/recurrentes.html:96
+msgid "Activa"
 msgstr ""
 
 #: app/main/forms.py:99
 msgid "La fecha de término no puede ser anterior al día de hoy."
+msgstr ""
+
+#: app/main/forms.py:103
+msgid "Nombre del presupuesto"
+msgstr ""
+
+#: app/main/forms.py:106
+msgid "Fecha inicio"
+msgstr ""
+
+#: app/main/forms.py:107
+msgid "Fecha término"
+msgstr ""
+
+#: app/main/forms.py:113
+msgid "La fecha de término debe ser posterior al inicio."
+msgstr ""
+
+#: app/main/forms.py:115 app/main/routes.py:1104
+msgid "El presupuesto personalizado debe estar dentro del mismo mes."
+msgstr ""
+
+#: app/main/forms.py:119
+msgid "Contraseña actual"
+msgstr ""
+
+#: app/main/forms.py:120
+msgid "Nueva contraseña"
+msgstr ""
+
+#: app/main/forms.py:122
+msgid "Confirmar nueva contraseña"
+msgstr ""
+
+#: app/main/forms.py:125 app/templates/main/configurar.html:860
+msgid "Cambiar Contraseña"
+msgstr ""
+
+#: app/main/forms.py:129
+msgid "Usar mi propio SMTP"
+msgstr ""
+
+#: app/main/forms.py:130
+msgid "Servidor SMTP"
+msgstr ""
+
+#: app/main/forms.py:131
+msgid "Puerto SMTP"
+msgstr ""
+
+#: app/main/forms.py:132
+msgid "Usuario SMTP"
+msgstr ""
+
+#: app/main/forms.py:133
+msgid "Contraseña SMTP"
+msgstr ""
+
+#: app/main/forms.py:134
+msgid "Usar TLS"
+msgstr ""
+
+#: app/main/forms.py:135
+msgid "Usar SSL"
+msgstr ""
+
+#: app/main/forms.py:136
+msgid "Email Remitente"
+msgstr ""
+
+#: app/main/forms.py:137
+msgid "Nombre Remitente"
+msgstr ""
+
+#: app/main/forms.py:138
+msgid "Guardar Configuración SMTP"
 msgstr ""
 
 #: app/main/forms.py:146 app/main/forms.py:147
@@ -232,6 +836,34 @@ msgstr ""
 
 #: app/main/forms.py:155
 msgid "La contraseña es obligatoria porque no hay una guardada."
+msgstr ""
+
+#: app/main/forms.py:168 app/templates/main/configurar.html:468
+msgid "Activar IA"
+msgstr ""
+
+#: app/main/forms.py:169 app/templates/main/guia.html:485
+msgid "Proveedor"
+msgstr ""
+
+#: app/main/forms.py:176
+msgid "Modelo (ej. gpt-4o, claude-3-5-sonnet-20241022)"
+msgstr ""
+
+#: app/main/forms.py:178
+msgid "URL base (solo OpenAI-compatible personalizado)"
+msgstr ""
+
+#: app/main/forms.py:180 app/templates/main/configurar.html:389
+msgid "Token API"
+msgstr ""
+
+#: app/main/forms.py:181
+msgid "Compartir mi IA con las demás cuentas"
+msgstr ""
+
+#: app/main/forms.py:182
+msgid "Guardar configuración de API"
 msgstr ""
 
 #: app/main/routes.py:244
@@ -267,20 +899,6 @@ msgstr ""
 #: app/main/routes.py:394
 #, python-format
 msgid "Año %(year)s eliminado junto con todos sus movimientos y presupuestos."
-msgstr ""
-
-#: app/main/routes.py:590 app/main/routes.py:643 app/main/routes.py:722
-#: app/templates/main/guia.html:55 app/templates/main/recurrentes.html:81
-#: app/templates/main/recurrentes.html:169
-#: app/templates/main/transactions.html:92
-msgid "Gasto"
-msgstr ""
-
-#: app/main/routes.py:590 app/main/routes.py:643 app/main/routes.py:722
-#: app/templates/main/guia.html:54 app/templates/main/recurrentes.html:79
-#: app/templates/main/recurrentes.html:167
-#: app/templates/main/transactions.html:90
-msgid "Ingreso"
 msgstr ""
 
 #: app/main/routes.py:601 app/main/routes.py:650
@@ -377,10 +995,6 @@ msgstr ""
 
 #: app/main/routes.py:1100
 msgid "La fecha de inicio no puede ser anterior a hoy."
-msgstr ""
-
-#: app/main/routes.py:1104
-msgid "El presupuesto personalizado debe estar dentro del mismo mes."
 msgstr ""
 
 #: app/main/routes.py:1119 app/templates/main/budget.html:362
@@ -760,6 +1374,7 @@ msgstr ""
 #: app/templates/partials/announcements/v2_2.html:8
 #: app/templates/partials/announcements/v2_3.html:8
 #: app/templates/partials/announcements/v2_5.html:8
+#: app/templates/partials/announcements/v2_6.html:8
 #: app/templates/usd/dashboard.html:282 app/templates/usd/dashboard.html:308
 msgid "Cerrar"
 msgstr ""
@@ -807,11 +1422,6 @@ msgstr ""
 
 #: app/templates/admin/users.html:44
 msgid "Usuarios registrados"
-msgstr ""
-
-# ── Auth forms ──
-#: app/templates/admin/users.html:53 app/templates/admin/users.html:88
-msgid "Usuario"
 msgstr ""
 
 #: app/templates/admin/users.html:54
@@ -949,35 +1559,9 @@ msgstr ""
 msgid "Movimientos del mes"
 msgstr ""
 
-#: app/templates/analytics/consolidated.html:115
-#: app/templates/main/dashboard.html:179 app/templates/main/guia.html:151
-#: app/templates/main/transactions.html:75 app/templates/usd/dashboard.html:214
-#: app/templates/usd/dashboard.html:313
-msgid "Fecha"
-msgstr ""
-
-#: app/templates/analytics/consolidated.html:116
-#: app/templates/main/dashboard.html:181 app/templates/main/guia.html:151
-#: app/templates/main/recurrentes.html:65
-#: app/templates/main/recurrentes.html:155
-#: app/templates/main/transactions.html:30
-#: app/templates/main/transactions.html:77 app/templates/usd/dashboard.html:215
-#: app/templates/usd/dashboard.html:317
-msgid "Categoría"
-msgstr ""
-
 #: app/templates/analytics/consolidated.html:117
 #: app/templates/main/transactions.html:79
 msgid "Origen"
-msgstr ""
-
-#: app/templates/analytics/consolidated.html:118
-#: app/templates/main/dashboard.html:182 app/templates/main/guia.html:151
-#: app/templates/main/recurrentes.html:67
-#: app/templates/main/recurrentes.html:157
-#: app/templates/main/transactions.html:80 app/templates/usd/dashboard.html:217
-#: app/templates/usd/dashboard.html:325
-msgid "Monto"
 msgstr ""
 
 #: app/templates/analytics/consolidated.html:161
@@ -1724,6 +2308,7 @@ msgstr ""
 #: app/templates/partials/announcements/v2_2.html:56
 #: app/templates/partials/announcements/v2_3.html:56
 #: app/templates/partials/announcements/v2_5.html:51
+#: app/templates/partials/announcements/v2_6.html:51
 msgid "Entendido"
 msgstr ""
 
@@ -1801,12 +2386,6 @@ msgstr ""
 msgid "Si está desactivado, nadie podrá crear cuentas nuevas."
 msgstr ""
 
-#: app/templates/main/configurar.html:192
-#: app/templates/main/configurar.html:1099 app/templates/main/guia.html:152
-#: app/templates/usd/dashboard.html:293 app/templates/usd/dashboard.html:339
-msgid "Guardar"
-msgstr ""
-
 #: app/templates/main/configurar.html:199
 msgid "Usuarios"
 msgstr ""
@@ -1872,10 +2451,6 @@ msgstr ""
 msgid "Confirmar contraseña"
 msgstr ""
 
-#: app/templates/main/configurar.html:284
-msgid "Las contraseñas no coinciden."
-msgstr ""
-
 #: app/templates/main/configurar.html:293
 #: app/templates/main/configurar.html:1952
 msgid "Descargar respaldo"
@@ -1912,10 +2487,6 @@ msgstr ""
 
 #: app/templates/main/configurar.html:375
 msgid "Restaurar ahora"
-msgstr ""
-
-#: app/templates/main/configurar.html:389
-msgid "Token API"
 msgstr ""
 
 #: app/templates/main/configurar.html:396
@@ -1963,10 +2534,6 @@ msgstr ""
 
 #: app/templates/main/configurar.html:465
 msgid "Paso 1"
-msgstr ""
-
-#: app/templates/main/configurar.html:468
-msgid "Activar IA"
 msgstr ""
 
 #: app/templates/main/configurar.html:472
@@ -2211,10 +2778,6 @@ msgid ""
 "acceso rápido."
 msgstr ""
 
-#: app/templates/main/configurar.html:860
-msgid "Cambiar Contraseña"
-msgstr ""
-
 #: app/templates/main/configurar.html:862
 msgid "Al guardar se cerrará la sesión automáticamente."
 msgstr ""
@@ -2238,10 +2801,6 @@ msgstr ""
 
 #: app/templates/main/configurar.html:903
 msgid "¿No puedes escanear? Ingresa esta clave manualmente:"
-msgstr ""
-
-#: app/templates/main/configurar.html:908
-msgid "Código de verificación"
 msgstr ""
 
 #: app/templates/main/configurar.html:918
@@ -2601,17 +3160,6 @@ msgstr ""
 msgid "Nuevo"
 msgstr ""
 
-#: app/templates/main/dashboard.html:180 app/templates/main/guia.html:101
-#: app/templates/main/guia.html:151 app/templates/main/guia.html:216
-#: app/templates/main/guia.html:237 app/templates/main/guia.html:243
-#: app/templates/main/guia.html:464 app/templates/main/guia.html:483
-#: app/templates/main/recurrentes.html:63
-#: app/templates/main/recurrentes.html:153
-#: app/templates/main/transactions.html:78 app/templates/usd/dashboard.html:216
-#: app/templates/usd/dashboard.html:332
-msgid "Descripción"
-msgstr ""
-
 #: app/templates/main/dashboard.html:202
 msgid "Sin movimientos registrados."
 msgstr ""
@@ -2740,6 +3288,7 @@ msgstr ""
 #: app/templates/main/guia.html:32 app/templates/main/guia.html:111
 #: app/templates/main/guia.html:423
 #: app/templates/partials/announcements/v2_5.html:29
+#: app/templates/partials/announcements/v2_6.html:29
 msgid "Panel de analítica"
 msgstr ""
 
@@ -2749,6 +3298,7 @@ msgid "IA · Telegram"
 msgstr ""
 
 #: app/templates/main/guia.html:35 app/templates/main/guia.html:563
+#: app/templates/partials/announcements/v2_6.html:24
 msgid "Bot de Telegram"
 msgstr ""
 
@@ -2803,10 +3353,6 @@ msgstr ""
 
 #: app/templates/main/guia.html:75
 msgid "selecciona el año de trabajo (ej. 2026)."
-msgstr ""
-
-#: app/templates/main/guia.html:76
-msgid "Mes"
 msgstr ""
 
 #: app/templates/main/guia.html:76
@@ -2989,14 +3535,6 @@ msgstr ""
 msgid "Selecciona"
 msgstr ""
 
-#: app/templates/main/guia.html:151 app/templates/main/guia.html:268
-#: app/templates/main/recurrentes.html:64
-#: app/templates/main/recurrentes.html:154
-#: app/templates/main/transactions.html:22
-#: app/templates/main/transactions.html:76
-msgid "Tipo"
-msgstr ""
-
 #: app/templates/main/guia.html:151
 msgid "Gasto o Ingreso"
 msgstr ""
@@ -3176,15 +3714,7 @@ msgid "Campo"
 msgstr ""
 
 #: app/templates/main/guia.html:239
-msgid "Nombre"
-msgstr ""
-
-#: app/templates/main/guia.html:239
 msgid "Identificador de la meta (máx. 100 caracteres)"
-msgstr ""
-
-#: app/templates/main/guia.html:240
-msgid "Monto objetivo"
 msgstr ""
 
 #: app/templates/main/guia.html:240
@@ -3197,10 +3727,6 @@ msgstr ""
 
 #: app/templates/main/guia.html:241
 msgid "Cuánto llevas acumulado (empieza en 0)"
-msgstr ""
-
-#: app/templates/main/guia.html:242
-msgid "Fecha objetivo"
 msgstr ""
 
 #: app/templates/main/guia.html:242
@@ -3259,17 +3785,9 @@ msgid "Gasto o Ingreso."
 msgstr ""
 
 #: app/templates/main/guia.html:269
-msgid "Día del mes"
-msgstr ""
-
-#: app/templates/main/guia.html:269
 msgid ""
 "entre 1 y 28. Se recomienda máximo 28 para que funcione igual en todos "
 "los meses, incluido febrero."
-msgstr ""
-
-#: app/templates/main/guia.html:270
-msgid "Fecha de término"
 msgstr ""
 
 #: app/templates/main/guia.html:270
@@ -3657,10 +4175,6 @@ msgstr ""
 
 #: app/templates/main/guia.html:481
 msgid "y completa estos campos:"
-msgstr ""
-
-#: app/templates/main/guia.html:485
-msgid "Proveedor"
 msgstr ""
 
 #: app/templates/main/guia.html:485
@@ -4421,10 +4935,6 @@ msgstr ""
 msgid "Hasta:"
 msgstr ""
 
-#: app/templates/main/recurrentes.html:96
-msgid "Activa"
-msgstr ""
-
 #: app/templates/main/recurrentes.html:98
 msgid "Inactiva"
 msgstr ""
@@ -4927,12 +5437,14 @@ msgstr ""
 #: app/templates/partials/announcements/v2_2.html:59
 #: app/templates/partials/announcements/v2_3.html:59
 #: app/templates/partials/announcements/v2_5.html:54
+#: app/templates/partials/announcements/v2_6.html:54
 msgid "Ver guía"
 msgstr ""
 
 #: app/templates/partials/announcements/v2_2.html:62
 #: app/templates/partials/announcements/v2_3.html:62
 #: app/templates/partials/announcements/v2_5.html:57
+#: app/templates/partials/announcements/v2_6.html:57
 msgid "Ir a Configuración"
 msgstr ""
 
@@ -4966,12 +5478,14 @@ msgid ""
 msgstr ""
 
 #: app/templates/partials/announcements/v2_5.html:30
+#: app/templates/partials/announcements/v2_6.html:30
 msgid ""
 "— Salud financiera, proyección de cierre del mes y alertas inteligentes, "
 "disponibles en el Dashboard Global → Analítica."
 msgstr ""
 
 #: app/templates/partials/announcements/v2_5.html:38
+#: app/templates/partials/announcements/v2_6.html:38
 msgid "¿Por dónde empezar?"
 msgstr ""
 
@@ -4981,6 +5495,56 @@ msgid ""
 "clave de API de OpenAI u Ollama) y, si ya tienes MFA, configura tu PIN de"
 " acceso rápido."
 msgstr ""
+
+#: app/templates/partials/announcements/v2_6.html:5
+msgid "¡Monetra 2.6 ya está aquí!"
+msgstr "¡Monetra 2.6 ya está aquí!"
+
+#: app/templates/partials/announcements/v2_6.html:13
+msgid ""
+"Ahora registras tus gastos por chat: activa la IA y vincula el Bot de "
+"Telegram para enviar texto o una foto de tu recibo, y Monetra los guarda "
+"por ti."
+msgstr ""
+"Ahora registras tus gastos por chat: activa la IA y vincula el Bot de "
+"Telegram para enviar texto o una foto de tu recibo, y Monetra los guarda "
+"por ti."
+
+#: app/templates/partials/announcements/v2_6.html:19
+msgid "Integración de IA"
+msgstr "Integración de IA"
+
+#: app/templates/partials/announcements/v2_6.html:20
+msgid ""
+"— Conecta tu proveedor de IA (OpenAI, Ollama u otros) y Monetra leerá el "
+"texto o la foto de tu recibo para extraer el monto, la descripción y el "
+"comercio de forma automática. Configúralo en Configuración de Cuenta → IA"
+" · Telegram (Paso 1)."
+msgstr ""
+"— Conecta tu proveedor de IA (OpenAI, Ollama u otros) y Monetra leerá el "
+"texto o la foto de tu recibo para extraer el monto, la descripción y el "
+"comercio de forma automática. Configúralo en Configuración de Cuenta → IA"
+" · Telegram (Paso 1)."
+
+#: app/templates/partials/announcements/v2_6.html:25
+msgid ""
+"— Vincula tu cuenta y registra gastos enviando un mensaje o una foto de "
+"recibo al bot. Confirmas el importe, categoría y fecha antes de guardar. "
+"Requiere la IA activa (Paso 2 en Configuración de Cuenta → IA · "
+"Telegram)."
+msgstr ""
+"— Vincula tu cuenta y registra gastos enviando un mensaje o una foto de "
+"recibo al bot. Confirmas el importe, categoría y fecha antes de guardar. "
+"Requiere la IA activa (Paso 2 en Configuración de Cuenta → IA · "
+"Telegram)."
+
+#: app/templates/partials/announcements/v2_6.html:41
+msgid ""
+"Ve a Configuración de Cuenta → IA · Telegram: activa la IA (Paso 1) y "
+"luego vincula el Bot de Telegram (Paso 2) para registrar gastos por chat."
+msgstr ""
+"Ve a Configuración de Cuenta → IA · Telegram: activa la IA (Paso 1) y "
+"luego vincula el Bot de Telegram (Paso 2) para registrar gastos por chat."
 
 #: app/templates/usd/dashboard.html:24
 msgid "Editar presupuesto"
@@ -5050,6 +5614,14 @@ msgstr ""
 
 #: app/templates/usd/dashboard.html:306
 msgid "Editar movimiento"
+msgstr ""
+
+#: app/usd/forms.py:14
+msgid "Monto USD"
+msgstr ""
+
+#: app/usd/forms.py:21
+msgid "Presupuesto mensual USD"
 msgstr ""
 
 #: app/usd/routes.py:151
