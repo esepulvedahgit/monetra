@@ -1,5 +1,29 @@
 # Monetra - Changelog
 
+## v2.6
+
+### IA · Telegram — registro de gastos por chat
+- Integración de IA con proveedores OpenAI, Ollama, Anthropic, Gemini, DeepSeek y OpenRouter
+- La IA extrae monto, descripción y comercio desde texto o foto de recibo enviados al bot
+- Bot de Telegram vinculado a la cuenta del usuario; requiere IA activa (Paso 1) para activarse
+- Registro de gastos por chat: el bot confirma importe, categoría y fecha antes de guardar
+- Tarjeta de configuración unificada "IA · Telegram" en Configuración de Cuenta
+- Derivación automática del username del bot desde la API de Telegram (`getMe`) al iniciar la app
+- Normalización defensiva del username en la generación del deep link
+
+### Seguridad
+- Protección SSRF en validación de `base_url` del proveedor de IA
+- Sanitización de respuestas JSON del modelo para evitar filtración de prompts internos
+- Token de API del proveedor cifrado con Fernet en `UserAIConfig`
+
+### Correcciones y mejoras
+- Renombrado "Escáner IA" → "IA · Telegram" en etiquetas, títulos y traducciones
+- Eliminado acceso por cámara/escáner desde la barra superior (reemplazado por bot)
+- Columna Origen en exportación Excel para distinguir transacciones recurrentes vs. manuales
+- Variables de entorno `SESSION_COOKIE_SECURE` y `SESSION_INACTIVITY_TIMEOUT` documentadas
+
+---
+
 ## v2.5
 
 ### Escáner IA de recibos

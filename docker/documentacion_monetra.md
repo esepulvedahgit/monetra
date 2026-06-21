@@ -1,6 +1,6 @@
 # Monetra — Documentación de Funcionamiento
 
-> Versión actual: **2.5**
+> Versión actual: **2.6**
 
 ## 1. Visión General
 

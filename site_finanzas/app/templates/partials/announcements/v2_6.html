@@ -1,0 +1,59 @@
+<div class="modal-header"
+     style="background: linear-gradient(135deg, #0088CC 0%, var(--monetra-primary, #00C896) 100%); color: #fff;">
+    <h5 class="modal-title fw-bold">
+        <i class="bi bi-stars me-2"></i>
+        {{ _('¡Monetra 2.6 ya está aquí!') }}
+    </h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+            aria-label="{{ _('Cerrar') }}"></button>
+</div>
+
+<div class="modal-body py-4">
+    <p class="mb-3 fw-semibold" style="color: var(--monetra-text);">
+        {{ _('Ahora registras tus gastos por chat: activa la IA y vincula el Bot de Telegram para enviar texto o una foto de tu recibo, y Monetra los guarda por ti.') }}
+    </p>
+
+    <ul class="list-unstyled mb-3 ps-1" style="color: var(--monetra-text-soft); line-height: 1.9;">
+        <li class="mb-2">
+            <i class="bi bi-robot me-2" style="color: #A78BFA;"></i>
+            <strong>{{ _('Integración de IA') }}</strong>
+            {{ _('— Conecta tu proveedor de IA (OpenAI, Ollama u otros) y Monetra leerá el texto o la foto de tu recibo para extraer el monto, la descripción y el comercio de forma automática. Configúralo en Configuración de Cuenta → IA · Telegram (Paso 1).') }}
+        </li>
+        <li class="mb-2">
+            <i class="bi bi-telegram me-2" style="color: #29B6F6;"></i>
+            <strong>{{ _('Bot de Telegram') }}</strong>
+            {{ _('— Vincula tu cuenta y registra gastos enviando un mensaje o una foto de recibo al bot. Confirmas el importe, categoría y fecha antes de guardar. Requiere la IA activa (Paso 2 en Configuración de Cuenta → IA · Telegram).') }}
+        </li>
+        <li class="mb-2">
+            <i class="bi bi-bar-chart-line-fill me-2" style="color: #34D399;"></i>
+            <strong>{{ _('Panel de analítica') }}</strong>
+            {{ _('— Salud financiera, proyección de cierre del mes y alertas inteligentes, disponibles en el Dashboard Global → Analítica.') }}
+        </li>
+    </ul>
+
+    <div class="p-3 rounded"
+         style="background: rgba(41,182,246,0.10); border: 1px solid rgba(41,182,246,0.25); color: var(--monetra-text-soft);">
+        <div class="fw-semibold mb-1" style="color: var(--monetra-text);">
+            <i class="bi bi-lightbulb me-1" style="color:#29B6F6;"></i>
+            {{ _('¿Por dónde empezar?') }}
+        </div>
+        <div class="small">
+            {{ _('Ve a Configuración de Cuenta → IA · Telegram: activa la IA (Paso 1) y luego vincula el Bot de Telegram (Paso 2) para registrar gastos por chat.') }}
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer" style="border-top: 1px solid var(--card-border);">
+    <span class="text-muted small me-auto">
+        <i class="bi bi-code-slash me-1"></i>v2.6
+    </span>
+    <button type="button" class="btn btn-outline-secondary fw-semibold px-3" data-bs-dismiss="modal">
+        {{ _('Entendido') }}
+    </button>
+    <a href="{{ url_for('main.ayuda') }}" class="btn btn-outline-primary fw-semibold px-3">
+        <i class="bi bi-journal-text me-1"></i>{{ _('Ver guía') }}
+    </a>
+    <a href="{{ url_for('main.configurar') }}" class="btn btn-primary fw-semibold px-4">
+        {{ _('Ir a Configuración') }}
+    </a>
+</div>
