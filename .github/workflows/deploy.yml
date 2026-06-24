@@ -21,7 +21,8 @@ jobs:
           script: |
             cd /opt/monetra
             git pull origin main
-            docker compose -f docker/docker-compose.prod.yml --env-file docker/.env up -d --build
+            docker build -t monetra:release -f docker/Dockerfile .
+            docker compose -f docker/docker-compose.prod.yml --env-file docker/.env up -d
             docker image prune -f
 
 
