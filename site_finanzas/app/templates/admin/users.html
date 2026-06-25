@@ -45,6 +45,16 @@
             </span>
             <span class="badge text-bg-secondary ms-auto">{{ users | length }}</span>
         </div>
+        <div class="px-3 pt-3 pb-2">
+            <div class="d-flex align-items-start gap-2 small rounded p-2"
+                 style="background:rgba(0,200,150,0.06); border:1px solid rgba(0,200,150,0.18);">
+                <i class="bi bi-info-circle-fill mt-1 flex-shrink-0" style="color:#00C896;"></i>
+                <span style="color:#B0BEC5;">
+                    {{ _('El acceso a la IA solo tiene efecto si el administrador tiene activado "Compartir mi IA" en') }}
+                    <a href="{{ url_for('main.configurar') }}" style="color:#00C896;">{{ _('Configuración') }}</a>.
+                </span>
+            </div>
+        </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" style="font-size:.9rem;">
@@ -54,6 +64,7 @@
                             <th class="py-3">{{ _('Correo') }}</th>
                             <th class="py-3">{{ _('Rol') }}</th>
                             <th class="py-3">{{ _('Estado') }}</th>
+                            <th class="py-3">{{ _('Acceso IA') }}</th>
                             <th class="py-3">{{ _('Creado') }}</th>
                             <th class="py-3">{{ _('Último ingreso') }}</th>
                             <th class="py-3 text-end pe-4">{{ _('Acciones') }}</th>
@@ -99,6 +110,45 @@
                                 <span class="badge text-bg-success">
                                     <i class="bi bi-check-circle me-1"></i>{{ _('Activo') }}
                                 </span>
+                                {% endif %}
+                            </td>
+
+                            {# AI Access #}
+                            <td>
+                                {% if is_protected or is_self %}
+                                <span class="text-muted small fst-italic">—</span>
+                                {% else %}
+                                <div class="d-flex flex-column align-items-start gap-1">
+                                    {% if user.ai_access_granted %}
+                                    <span class="badge text-bg-success">
+                                        <i class="bi bi-cpu me-1"></i>{{ _('Habilitado') }}
+                                    </span>
+                                    {% else %}
+                                    <span class="badge text-bg-secondary">
+                                        <i class="bi bi-cpu me-1"></i>{{ _('Sin acceso') }}
+                                    </span>
+                                    {% endif %}
+                                    <form method="POST"
+                                          action="{{ url_for('admin.toggle_ai', user_id=user.id) }}"
+                                          style="display:inline;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        {% if user.ai_access_granted %}
+                                        <button type="submit"
+                                                class="btn btn-link btn-sm p-0"
+                                                style="font-size:.75rem; color:#B0BEC5; text-decoration:none;"
+                                                title="{{ _('Revocar acceso a IA') }}">
+                                            <i class="bi bi-x-circle me-1"></i>{{ _('Revocar') }}
+                                        </button>
+                                        {% else %}
+                                        <button type="submit"
+                                                class="btn btn-link btn-sm p-0"
+                                                style="font-size:.75rem; color:#00C896; text-decoration:none;"
+                                                title="{{ _('Conceder acceso a IA') }}">
+                                            <i class="bi bi-plus-circle me-1"></i>{{ _('Conceder') }}
+                                        </button>
+                                        {% endif %}
+                                    </form>
+                                </div>
                                 {% endif %}
                             </td>
 

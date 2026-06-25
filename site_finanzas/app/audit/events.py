@@ -33,6 +33,8 @@ ADMIN_DB_RESTORE        = 'admin.db_restore'
 ADMIN_ACCOUNT_SUSPENDED   = 'admin.account_suspended'
 ADMIN_ACCOUNT_REACTIVATED = 'admin.account_reactivated'
 ADMIN_ACCOUNT_DELETED     = 'admin.account_deleted'
+ADMIN_AI_ACCESS_GRANTED   = 'admin.ai_access_granted'
+ADMIN_AI_ACCESS_REVOKED   = 'admin.ai_access_revoked'
 
 # Telegram events
 TELEGRAM_LINK    = 'telegram.link'

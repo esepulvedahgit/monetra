@@ -55,6 +55,11 @@ def decrypt_ai_token(encrypted_token: bytes) -> str:
     try:
         return f.decrypt(encrypted_token).decode('utf-8')
     except Exception:
+        try:
+            from flask import current_app
+            current_app.logger.warning('AI token decryption failed (possible key rotation or corruption)')
+        except Exception:
+            pass
         return ""
 
 
@@ -73,8 +78,10 @@ def resolve_ai_config(user):
     if own and own.enabled and own.api_token_encrypted:
         return own
 
-    # Fallback compartido: solo cuentas verificadas y activas
-    if not getattr(user, 'email_verified', False) or getattr(user, 'is_suspended', False):
+    # Fallback compartido: solo cuentas verificadas, activas y con acceso concedido por el admin
+    if (not getattr(user, 'email_verified', False)
+            or getattr(user, 'is_suspended', False)
+            or not getattr(user, 'ai_access_granted', False)):
         return None
 
     admin = _User.query.filter_by(is_first_admin=True).first()
@@ -95,24 +102,40 @@ def consume_shared_ai_quota(user) -> bool:
     Should only be called when the user is consuming the admin's shared key
     (not their own). The daily limit is read from the Flask app config key
     AI_SHARED_DAILY_LIMIT (default 25).
+
+    Uses atomic SQL UPDATEs to avoid TOCTOU race conditions when multiple
+    Telegram messages arrive concurrently for the same user.
     """
     from flask import current_app
+    from sqlalchemy import or_
     from app import db
+    from app.models import User as _User
 
     limit: int = current_app.config.get('AI_SHARED_DAILY_LIMIT', 25)
     today = date.today()  # server-local date (UTC in production)
 
-    if user.shared_ai_scans_date != today:
-        # New day — reset counter
-        user.shared_ai_scans_date = today
-        user.shared_ai_scans_count = 0
+    # Step 1: reset counter atomically if the day changed or is NULL (first use).
+    # NULL != today evaluates to NULL in SQL (not TRUE), so IS NULL must be explicit.
+    db.session.query(_User).filter(
+        _User.id == user.id,
+        or_(_User.shared_ai_scans_date != today, _User.shared_ai_scans_date.is_(None)),
+    ).update(
+        {'shared_ai_scans_date': today, 'shared_ai_scans_count': 0},
+        synchronize_session=False,
+    )
 
-    if user.shared_ai_scans_count >= limit:
-        return False
-
-    user.shared_ai_scans_count += 1
+    # Step 2: conditional increment — only succeeds while under the limit
+    rows = db.session.query(_User).filter(
+        _User.id == user.id,
+        _User.shared_ai_scans_date == today,
+        _User.shared_ai_scans_count < limit,
+    ).update(
+        {'shared_ai_scans_count': _User.shared_ai_scans_count + 1},
+        synchronize_session=False,
+    )
     db.session.commit()
-    return True
+    db.session.refresh(user)
+    return rows == 1
 
 
 def _open_and_send(config, msg):

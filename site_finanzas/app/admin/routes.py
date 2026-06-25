@@ -95,6 +95,37 @@ def suspend(user_id):
 
 
 # ---------------------------------------------------------------------------
+# POST /admin/users/<id>/toggle-ai  — grant / revoke shared AI access
+# ---------------------------------------------------------------------------
+
+@admin_bp.route('/<int:user_id>/toggle-ai', methods=['POST'])
+@login_required
+def toggle_ai(user_id):
+    _admin_required()
+    user = db.session.get(User, user_id) or abort(404)
+
+    if user.id == current_user.id:
+        flash(_('No puedes modificar el acceso a IA de tu propia cuenta.'), 'danger')
+        return redirect(url_for('admin.index'))
+    if user.is_first_admin:
+        flash(_('El administrador principal gestiona su propio acceso a la IA.'), 'danger')
+        return redirect(url_for('admin.index'))
+
+    user.ai_access_granted = not user.ai_access_granted
+    db.session.commit()
+
+    if user.ai_access_granted:
+        event_type = ev.ADMIN_AI_ACCESS_GRANTED
+        flash(_('Acceso a IA concedido a %(name)s.', name=user.username), 'success')
+    else:
+        event_type = ev.ADMIN_AI_ACCESS_REVOKED
+        flash(_('Acceso a IA revocado a %(name)s.', name=user.username), 'warning')
+
+    _audit(event_type, description=f'target_user_id={user.id} {user.email} | by {current_user.email}')
+    return redirect(url_for('admin.index'))
+
+
+# ---------------------------------------------------------------------------
 # POST /admin/users/<id>/delete  — permanent deletion (requires admin password)
 # ---------------------------------------------------------------------------
 

@@ -43,6 +43,8 @@ class User(db.Model, UserMixin):
     # Cuota diaria de escaneos IA sobre la clave compartida del admin
     shared_ai_scans_date  = db.Column(db.Date, nullable=True)
     shared_ai_scans_count = db.Column(db.Integer, nullable=False, default=0)
+    # Acceso concedido por el admin a la IA compartida (opt-in, por usuario)
+    ai_access_granted = db.Column(db.Boolean, nullable=False, default=False)
 
     @property
     def is_admin(self):

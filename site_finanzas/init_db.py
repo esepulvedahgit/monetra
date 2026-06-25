@@ -141,6 +141,10 @@ with app.app_context():
             conn.execute(text("ALTER TABLE users ADD COLUMN shared_ai_scans_count INT NOT NULL DEFAULT 0"))
             conn.commit()
             print("Columna shared_ai_scans_count agregada a users.")
+        if 'ai_access_granted' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN ai_access_granted TINYINT(1) NOT NULL DEFAULT 0"))
+            conn.commit()
+            print("Columna ai_access_granted agregada a users.")
 
         # El primer usuario que se registre en /register queda como admin automáticamente.
 
