@@ -489,12 +489,18 @@
                         <div class="fw-semibold mb-2" style="color:#00C896;">
                             <i class="bi bi-info-circle-fill me-1"></i>{{ _('Clave de IA compartida') }}
                         </div>
-                        <!-- Badge estado real de compartición -->
-                        {% if admin_ai_available %}
+                        <!-- Badge estado real: refleja acceso efectivo del usuario actual -->
+                        {% if ai_available %}
                         <div class="d-inline-flex align-items-center gap-1 px-2 py-1 rounded mb-3"
                              style="background:rgba(0,200,150,0.15); border:1px solid rgba(0,200,150,0.4); font-size:.78rem;">
                             <i class="bi bi-check-circle-fill" style="color:#00C896;"></i>
-                            <span style="color:#00C896; font-weight:600;">{{ _('El administrador está compartiendo su IA') }}</span>
+                            <span style="color:#00C896; font-weight:600;">{{ _('Tienes acceso a la IA compartida del administrador') }}</span>
+                        </div>
+                        {% elif admin_ai_available %}
+                        <div class="d-inline-flex align-items-center gap-1 px-2 py-1 rounded mb-3"
+                             style="background:rgba(252,211,77,0.10); border:1px solid rgba(252,211,77,0.35); font-size:.78rem;">
+                            <i class="bi bi-lock" style="color:#FCD34D;"></i>
+                            <span style="color:#FCD34D; font-weight:600;">{{ _('El administrador comparte su IA, pero no te ha habilitado el acceso') }}</span>
                         </div>
                         {% else %}
                         <div class="d-inline-flex align-items-center gap-1 px-2 py-1 rounded mb-3"
@@ -505,7 +511,7 @@
                         {% endif %}
                         <ul class="mb-0 ps-3" style="color:#B0BEC5; line-height:1.7;">
                             <li>{{ _('Si configuras tu propia IA, se usará tu clave.') }}</li>
-                            {% if admin_ai_available %}
+                            {% if ai_available %}
                             <li>{{ _('Si no la configuras, se usará automáticamente la clave del administrador y podrás activar Telegram.') }}</li>
                             {% else %}
                             <li>{{ _('Si no la configuras, no podrás activar Telegram.') }}</li>
@@ -529,7 +535,9 @@
                             {{ ai_form.shared_globally(class="form-check-input", id="aiShared") }}
                             {{ ai_form.shared_globally.label(class="form-check-label fw-semibold", for="aiShared") }}
                             <div class="form-text" style="font-size:0.7rem;">
-                                {{ _('Si lo activas, las cuentas verificadas que no tengan su propia IA configurada podrán usar tu clave para procesar recibos. Cada consulta consume tu cuota del proveedor.') }}
+                                {{ _('Activa el acceso compartido a tu clave de IA. Luego, desde') }}
+                                <a href="{{ url_for('admin.index') }}" style="color:var(--monetra-primary,#00C896);">{{ _('Gestión de usuarios') }}</a>,
+                                {{ _('habilita individualmente a qué cuentas les permites usar tu clave. Cada consulta consume tu cuota del proveedor.') }}
                             </div>
                         </div>
                         {% endif %}

@@ -5644,6 +5644,76 @@ msgstr ""
 msgid "No se puede eliminar: la categoría tiene movimientos asociados."
 msgstr ""
 
+#: app/templates/admin/users.html
+msgid "Acceso IA"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Habilitado"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Sin acceso"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Revocar acceso a IA"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Revocar"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Conceder acceso a IA"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid "Conceder"
+msgstr ""
+
+#: app/templates/admin/users.html
+msgid ""
+"El acceso a la IA solo tiene efecto si el administrador tiene activado "
+"\"Compartir mi IA\" en"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Tienes acceso a la IA compartida del administrador"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "El administrador comparte su IA, pero no te ha habilitado el acceso"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid "Activa el acceso compartido a tu clave de IA. Luego, desde"
+msgstr ""
+
+#: app/templates/main/configurar.html
+msgid ""
+", habilita individualmente a qué cuentas les permites usar tu clave. Cada "
+"consulta consume tu cuota del proveedor."
+msgstr ""
+
+#: app/admin/routes.py
+msgid "No puedes modificar el acceso a IA de tu propia cuenta."
+msgstr ""
+
+#: app/admin/routes.py
+msgid "El administrador principal gestiona su propio acceso a la IA."
+msgstr ""
+
+#: app/admin/routes.py
+#, python-format
+msgid "Acceso a IA concedido a %(name)s."
+msgstr ""
+
+#: app/admin/routes.py
+#, python-format
+msgid "Acceso a IA revocado a %(name)s."
+msgstr ""
+
 # ── Login message ──
 #~ msgid "Por favor inicia sesión para acceder."
 #~ msgstr ""

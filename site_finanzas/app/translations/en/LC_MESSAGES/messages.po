@@ -6101,6 +6101,80 @@ msgstr "There is already a category with that name."
 msgid "No se puede eliminar: la categoría tiene movimientos asociados."
 msgstr "Cannot be deleted: the category has associated movements."
 
+#: app/templates/admin/users.html
+msgid "Acceso IA"
+msgstr "AI Access"
+
+#: app/templates/admin/users.html
+msgid "Habilitado"
+msgstr "Enabled"
+
+#: app/templates/admin/users.html
+msgid "Sin acceso"
+msgstr "No access"
+
+#: app/templates/admin/users.html
+msgid "Revocar acceso a IA"
+msgstr "Revoke AI access"
+
+#: app/templates/admin/users.html
+msgid "Revocar"
+msgstr "Revoke"
+
+#: app/templates/admin/users.html
+msgid "Conceder acceso a IA"
+msgstr "Grant AI access"
+
+#: app/templates/admin/users.html
+msgid "Conceder"
+msgstr "Grant"
+
+#: app/templates/admin/users.html
+msgid ""
+"El acceso a la IA solo tiene efecto si el administrador tiene activado "
+"\"Compartir mi IA\" en"
+msgstr ""
+"AI access only takes effect if the administrator has enabled "
+"\"Share my AI\" in"
+
+#: app/templates/main/configurar.html
+msgid "Tienes acceso a la IA compartida del administrador"
+msgstr "You have access to the administrator's shared AI"
+
+#: app/templates/main/configurar.html
+msgid "El administrador comparte su IA, pero no te ha habilitado el acceso"
+msgstr "The administrator shares their AI, but has not enabled access for you"
+
+#: app/templates/main/configurar.html
+msgid "Activa el acceso compartido a tu clave de IA. Luego, desde"
+msgstr "Enable shared access to your AI key. Then, from"
+
+#: app/templates/main/configurar.html
+msgid ""
+", habilita individualmente a qué cuentas les permites usar tu clave. Cada "
+"consulta consume tu cuota del proveedor."
+msgstr ""
+", individually enable which accounts can use your key. Each request uses "
+"your provider quota."
+
+#: app/admin/routes.py
+msgid "No puedes modificar el acceso a IA de tu propia cuenta."
+msgstr "You cannot modify AI access for your own account."
+
+#: app/admin/routes.py
+msgid "El administrador principal gestiona su propio acceso a la IA."
+msgstr "The primary administrator manages their own AI access."
+
+#: app/admin/routes.py
+#, python-format
+msgid "Acceso a IA concedido a %(name)s."
+msgstr "AI access granted to %(name)s."
+
+#: app/admin/routes.py
+#, python-format
+msgid "Acceso a IA revocado a %(name)s."
+msgstr "AI access revoked from %(name)s."
+
 # ── Login message ──
 #~ msgid "Por favor inicia sesión para acceder."
 #~ msgstr "Please log in to access this page."
