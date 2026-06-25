@@ -31,19 +31,21 @@ Aplicación web de **finanzas personales** desarrollada en Flask. Permite regist
 - Transacciones recurrentes con generación automática mensual
 - Metas de ahorro con seguimiento de progreso y fecha objetivo
 - **Cuenta en dólares (USD)** con vista consolidada en moneda local
-- **Escáner IA de recibos** — fotografía un ticket y extrae monto, categoría y fecha automáticamente (OpenAI, Anthropic, Gemini, Ollama)
+- **Escáner IA de recibos** — fotografía un ticket y extrae monto, descripción y comercio automáticamente (OpenAI, Anthropic, Gemini, DeepSeek, OpenRouter)
+- **Bot de Telegram** — registra gastos desde el móvil enviando foto de recibo o texto libre; la IA extrae los datos y el bot confirma antes de guardar
+- **IA compartida con control por usuario** — el admin puede compartir su clave de IA y habilitar el acceso individualmente a cada cuenta desde el panel de usuarios
 - **PIN de acceso rápido** — login móvil con PIN de 8 dígitos vinculado al dispositivo (opt-in)
 - **Panel de analítica** — salud financiera, proyección de cierre del mes y alertas inteligentes
 - **Backup y restauración de base de datos** (admin) — export cifrado `.sql.gz` con re-autenticación
 - Exportación a Excel con todas las secciones del período seleccionado (mensual, anual o rango)
 - **Registro de auditoría de seguridad** (admin) — todos los eventos críticos con filtros y API
-- Sistema de temas visuales: Dark, Ocean, Carbon, Dusk, Forest, Pearl, Abyss, Graphite
+- Sistema de temas visuales: Dark, Ocean, Carbon, Dusk, Forest, Pearl, Abyss, Graphite, Enterprise
 - Soporte bilingüe (Español / Inglés)
 - Multi-moneda con 22 países latinoamericanos y europeos
-- API REST completa con autenticación JWT (15 min) y tokens persistentes (365 días)
+- API REST completa con autenticación JWT (15 min) y tokens persistentes (sin expiración, formato `mntr_*`)
 - Autenticación multifactor (TOTP / MFA)
 - Reportes Excel semanales automáticos por correo + envío inmediato desde configuración
-- Gestión de usuarios con roles (admin / user)
+- Gestión de usuarios con roles (admin / user) y control de acceso a IA por cuenta
 - Datos de demostración precargados (3 años, solo admin)
 - Modo ayuda con tooltips por sección
 - Guía de uso integrada
@@ -66,7 +68,7 @@ Aplicación web de **finanzas personales** desarrollada en Flask. Permite regist
 | Scheduler | APScheduler | ≥3.10 |
 | Exportación Excel | xlsxwriter | ≥3.1 |
 | Imágenes (scanner) | Pillow + pillow-heif | — / ≥0.13 |
-| IA proveedores | OpenAI · Anthropic · Gemini · Ollama | API compatible |
+| IA proveedores | OpenAI · Anthropic · Gemini · DeepSeek · OpenRouter | API compatible |
 | CORS | Flask-CORS | 4.0.0 |
 | Frontend | Bootstrap + Chart.js | 5.3 / 4 |
 | Contenedores | Docker + Docker Compose | — |
@@ -82,11 +84,13 @@ monetra/
     app/
       main/           # Vistas web principales (dashboard, transacciones, presupuestos, etc.)
       auth/           # Login, registro, MFA, PIN de acceso rápido, recuperación de contraseña
+      admin/          # Gestión de usuarios — suspender, eliminar, control de acceso a IA (/admin/users)
       api/            # API REST en /api/v1
       export/         # Generador de reportes Excel
       demo_data/      # Carga y reset de datos de demostración
       usd/            # Cuenta en dólares y vista consolidada
       scanner/        # Escáner IA de recibos (/scanner/extract)
+      telegram/       # Bot de Telegram — webhook, handlers, mensajes y vinculación de cuentas
       analytics/      # Salud financiera, proyección y alertas (/analytics)
       insights/       # Motor de análisis financiero (reglas, scoring, señales)
       backup/         # Export/restore de base de datos (/admin/backup)
@@ -255,6 +259,10 @@ docker load -i monetra-release-arm64.tar
 | `MAX_RESTORE_SQL_MB` | No | Tamaño máximo del archivo SQL de restauración en MB (default: `500`) |
 | `SESSION_COOKIE_SECURE` | No | `true` → cookies solo por HTTPS (reverse proxy con TLS). `false` → HTTP plano. Default: `true` en producción, `false` en debug |
 | `SESSION_INACTIVITY_TIMEOUT` | No | Segundos de inactividad antes de cerrar sesión automáticamente (default: `900` — 15 min) |
+| `TELEGRAM_BOT_TOKEN` | No* | Token del bot obtenido de @BotFather. Requerido para habilitar el bot de Telegram. |
+| `TELEGRAM_WEBHOOK_SECRET` | No* | Cadena aleatoria para validar que los mensajes entrantes provienen de Telegram. Requerido con `TELEGRAM_BOT_TOKEN`. |
+| `TELEGRAM_BOT_USERNAME` | No* | Username del bot sin `@` (ej. `mi_bot`). Si se omite, Monetra lo deriva automáticamente al iniciar via la API de Telegram. |
+| `AI_SHARED_DAILY_LIMIT` | No | Máximo de escaneos de IA por usuario por día cuando se usa la clave compartida del admin (default: `25`). |
 
 Generar valores seguros:
 ```bash
@@ -289,6 +297,14 @@ SESSION_COOKIE_SECURE=false
 # Backup (opcional, defaults razonables)
 # MAX_CONTENT_UPLOAD_MB=15
 # MAX_RESTORE_SQL_MB=500
+
+# Bot de Telegram (opcional — si no se definen, la sección Telegram queda deshabilitada)
+# TELEGRAM_BOT_TOKEN=123456789:ABCdef...
+# TELEGRAM_WEBHOOK_SECRET=cadena-aleatoria-segura
+# TELEGRAM_BOT_USERNAME=nombre_del_bot   # opcional: Monetra lo detecta automáticamente
+
+# IA compartida — límite diario de escaneos por usuario sobre la clave del admin (default: 25)
+# AI_SHARED_DAILY_LIMIT=25
 ```
 
 ---
@@ -320,7 +336,7 @@ python run.py
 Disponible en `/api/v1`. Soporta dos métodos de autenticación:
 
 - **JWT de sesión** — token de 15 minutos obtenido en `/api/v1/login` (access + refresh).
-- **Token persistente** — generado desde Configuración → Token API, válido 365 días, formato `mntr_*`.
+- **Token persistente** — generado desde Configuración → Token API, sin fecha de expiración, formato `mntr_*`. Se puede revocar en cualquier momento.
 
 ```bash
 # Obtener token JWT
