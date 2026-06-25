@@ -5714,6 +5714,93 @@ msgstr ""
 msgid "Acceso a IA revocado a %(name)s."
 msgstr ""
 
+#: app/templates/main/guia.html
+msgid "IA compartida por el administrador"
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid ""
+"El administrador puede compartir su clave de IA con usuarios específicos. "
+"El estado se muestra con un badge en la sección IA · Telegram de tu "
+"configuración:"
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "Tienes acceso a la IA compartida"
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid ""
+"el admin activó el acceso compartido y te concedió acceso. Puedes pasar "
+"directamente al Paso 2."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "El admin comparte su IA pero no te ha habilitado el acceso"
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "solicítale al administrador que active tu acceso desde Gestión de usuarios."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "El admin no comparte su IA"
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "deberás configurar tu propio proveedor de IA."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "(Opcional) Comparte tu IA con usuarios específicos:"
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "Compartir mi IA"
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "(interruptor maestro)."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "y activa el toggle"
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid ""
+"para cada cuenta que quieras habilitar. Solo las cuentas habilitadas "
+"podrán usar el bot sin clave propia."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid "¿Necesito mi propia clave de IA para usar el bot?"
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid ""
+"No necesariamente. Si el administrador activó la IA compartida y te "
+"concedió acceso individual desde el panel de Gestión de usuarios, puedes "
+"vincular Telegram sin configurar un token propio. Si la IA compartida no "
+"está disponible o el admin no te habilitó, deberás configurar tu propio "
+"proveedor en Configuración → IA · Telegram."
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid ""
+"El badge dice que el admin comparte su IA pero yo no tengo acceso. "
+"¿Qué hago?"
+msgstr ""
+
+#: app/templates/main/guia.html
+msgid ""
+"El administrador activó la IA compartida (interruptor maestro), pero el "
+"acceso es opt-in: cada usuario debe ser habilitado individualmente. "
+"Solicítale al administrador que active el toggle \"Acceso IA\" junto a "
+"tu cuenta en Gestión de usuarios (/admin/users). Una vez habilitado, el "
+"badge cambiará a verde y podrás vincular Telegram."
+msgstr ""
+
 # ── Login message ──
 #~ msgid "Por favor inicia sesión para acceder."
 #~ msgstr ""

@@ -6175,6 +6175,111 @@ msgstr "AI access granted to %(name)s."
 msgid "Acceso a IA revocado a %(name)s."
 msgstr "AI access revoked from %(name)s."
 
+#: app/templates/main/guia.html
+msgid "IA compartida por el administrador"
+msgstr "AI shared by the administrator"
+
+#: app/templates/main/guia.html
+msgid ""
+"El administrador puede compartir su clave de IA con usuarios específicos. "
+"El estado se muestra con un badge en la sección IA · Telegram de tu "
+"configuración:"
+msgstr ""
+"The administrator can share their AI key with specific users. The status "
+"is shown with a badge in the AI · Telegram section of your settings:"
+
+#: app/templates/main/guia.html
+msgid "Tienes acceso a la IA compartida"
+msgstr "You have access to the shared AI"
+
+#: app/templates/main/guia.html
+msgid ""
+"el admin activó el acceso compartido y te concedió acceso. Puedes pasar "
+"directamente al Paso 2."
+msgstr ""
+"the admin enabled shared access and granted you access. You can skip "
+"directly to Step 2."
+
+#: app/templates/main/guia.html
+msgid "El admin comparte su IA pero no te ha habilitado el acceso"
+msgstr "The admin shares their AI but has not enabled access for you"
+
+#: app/templates/main/guia.html
+msgid "solicítale al administrador que active tu acceso desde Gestión de usuarios."
+msgstr "ask the administrator to enable your access from the User Management panel."
+
+#: app/templates/main/guia.html
+msgid "El admin no comparte su IA"
+msgstr "The admin does not share their AI"
+
+#: app/templates/main/guia.html
+msgid "deberás configurar tu propio proveedor de IA."
+msgstr "you will need to configure your own AI provider."
+
+#: app/templates/main/guia.html
+msgid "(Opcional) Comparte tu IA con usuarios específicos:"
+msgstr "(Optional) Share your AI with specific users:"
+
+#: app/templates/main/guia.html
+msgid "Compartir mi IA"
+msgstr "Share my AI"
+
+#: app/templates/main/guia.html
+msgid "(interruptor maestro)."
+msgstr "(master switch)."
+
+#: app/templates/main/guia.html
+msgid "y activa el toggle"
+msgstr "and enable the toggle"
+
+#: app/templates/main/guia.html
+msgid ""
+"para cada cuenta que quieras habilitar. Solo las cuentas habilitadas "
+"podrán usar el bot sin clave propia."
+msgstr ""
+"for each account you want to enable. Only enabled accounts will be able "
+"to use the bot without their own key."
+
+#: app/templates/main/guia.html
+msgid "¿Necesito mi propia clave de IA para usar el bot?"
+msgstr "Do I need my own AI key to use the bot?"
+
+#: app/templates/main/guia.html
+msgid ""
+"No necesariamente. Si el administrador activó la IA compartida y te "
+"concedió acceso individual desde el panel de Gestión de usuarios, puedes "
+"vincular Telegram sin configurar un token propio. Si la IA compartida no "
+"está disponible o el admin no te habilitó, deberás configurar tu propio "
+"proveedor en Configuración → IA · Telegram."
+msgstr ""
+"Not necessarily. If the administrator enabled shared AI and granted you "
+"individual access from the User Management panel, you can link Telegram "
+"without configuring your own token. If shared AI is unavailable or the "
+"admin has not enabled you, you will need to configure your own provider "
+"in Settings → AI · Telegram."
+
+#: app/templates/main/guia.html
+msgid ""
+"El badge dice que el admin comparte su IA pero yo no tengo acceso. "
+"¿Qué hago?"
+msgstr ""
+"The badge says the admin shares their AI but I don't have access. "
+"What should I do?"
+
+#: app/templates/main/guia.html
+msgid ""
+"El administrador activó la IA compartida (interruptor maestro), pero el "
+"acceso es opt-in: cada usuario debe ser habilitado individualmente. "
+"Solicítale al administrador que active el toggle \"Acceso IA\" junto a "
+"tu cuenta en Gestión de usuarios (/admin/users). Una vez habilitado, el "
+"badge cambiará a verde y podrás vincular Telegram."
+msgstr ""
+"The administrator enabled shared AI (master switch), but access is "
+"opt-in: each user must be individually enabled. Ask the administrator to "
+"enable the \"AI Access\" toggle next to your account in User Management "
+"(/admin/users). Once enabled, the badge will turn green and you can "
+"link Telegram."
+
 # ── Login message ──
 #~ msgid "Por favor inicia sesión para acceder."
 #~ msgstr "Please log in to access this page."

@@ -488,9 +488,14 @@
                     <tr><td>{{ _('Token de API') }}</td><td>{{ _('Tu clave del proveedor. Se guarda cifrada. Usa "Probar conexión" antes de guardar.') }}</td></tr>
                 </tbody>
             </table>
-            <div class="alert alert-info small py-2">
-                <i class="bi bi-info-circle me-1"></i>
-                {{ _('Si el administrador de la instancia habilitó la IA compartida, verás la sección IA activa aunque no hayas configurado un token propio. En ese caso puedes pasar directamente al Paso 2.') }}
+            <div class="rounded p-3 small mb-3" style="background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.18);">
+                <p class="fw-semibold mb-2" style="color:#00C896;"><i class="bi bi-info-circle-fill me-1"></i>{{ _('IA compartida por el administrador') }}</p>
+                <p class="mb-1 text-muted">{{ _('El administrador puede compartir su clave de IA con usuarios específicos. El estado se muestra con un badge en la sección IA · Telegram de tu configuración:') }}</p>
+                <ul class="mb-0 text-muted">
+                    <li><span style="color:#00C896;">✓</span> <strong>{{ _('Tienes acceso a la IA compartida') }}</strong> — {{ _('el admin activó el acceso compartido y te concedió acceso. Puedes pasar directamente al Paso 2.') }}</li>
+                    <li><span style="color:#FCD34D;">⚠</span> <strong>{{ _('El admin comparte su IA pero no te ha habilitado el acceso') }}</strong> — {{ _('solicítale al administrador que active tu acceso desde Gestión de usuarios.') }}</li>
+                    <li><span style="color:#B0BEC5;">✗</span> <strong>{{ _('El admin no comparte su IA') }}</strong> — {{ _('deberás configurar tu propio proveedor de IA.') }}</li>
+                </ul>
             </div>
 
             <h6 class="fw-semibold mt-3">{{ _('Paso 2 — Vincular Telegram') }}</h6>
@@ -575,7 +580,12 @@
                     </ul>
                 </li>
                 <li>{{ _('Reiniciar la aplicación. Monetra registra el webhook automáticamente al iniciar.') }}</li>
-                <li>{{ _('(Opcional) Activa la IA compartida en') }} <strong>{{ _('Configuración → IA · Telegram') }}</strong> {{ _('para que los usuarios sin clave propia también puedan usar el bot.') }}</li>
+                <li>{{ _('(Opcional) Comparte tu IA con usuarios específicos:') }}
+                    <ul class="mt-1">
+                        <li>{{ _('Activa') }} <strong>{{ _('Compartir mi IA') }}</strong> {{ _('en') }} <strong>{{ _('Configuración → IA · Telegram') }}</strong> {{ _('(interruptor maestro).') }}</li>
+                        <li>{{ _('Ve a') }} <strong>{{ _('Gestión de usuarios') }}</strong> {{ _('y activa el toggle') }} <strong>{{ _('Acceso IA') }}</strong> {{ _('para cada cuenta que quieras habilitar. Solo las cuentas habilitadas podrán usar el bot sin clave propia.') }}</li>
+                    </ul>
+                </li>
             </ol>
 
             <div class="alert alert-secondary small py-2">
@@ -624,7 +634,7 @@
                     <div class="card h-100">
                         <div class="card-body">
                             <h6 class="fw-semibold mb-2"><i class="bi bi-robot me-1 text-primary"></i>{{ _('¿Necesito mi propia clave de IA para usar el bot?') }}</h6>
-                            <p class="small text-muted mb-0">{{ _('No necesariamente. Si el administrador de la instancia activó la IA compartida, puedes vincular Telegram y usar el bot sin configurar un token propio. Si la IA compartida no está disponible, deberás configurar tu propio proveedor en Configuración → IA · Telegram.') }}</p>
+                            <p class="small text-muted mb-0">{{ _('No necesariamente. Si el administrador activó la IA compartida y te concedió acceso individual desde el panel de Gestión de usuarios, puedes vincular Telegram sin configurar un token propio. Si la IA compartida no está disponible o el admin no te habilitó, deberás configurar tu propio proveedor en Configuración → IA · Telegram.') }}</p>
                         </div>
                     </div>
                 </div>
@@ -770,6 +780,15 @@
                         <div class="card-body">
                             <h6 class="fw-semibold mb-2"><i class="bi bi-lock me-1 text-primary"></i>{{ _('¿Por qué no puedo editar un registro de Demo?') }}</h6>
                             <p class="small text-muted mb-0">{{ _('Los registros de demostración son de solo lectura. Puedes crear tus propios registros en paralelo o resetear los datos demo desde el panel de administración.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2"><i class="bi bi-cpu me-1 text-primary"></i>{{ _('El badge dice que el admin comparte su IA pero yo no tengo acceso. ¿Qué hago?') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('El administrador activó la IA compartida (interruptor maestro), pero el acceso es opt-in: cada usuario debe ser habilitado individualmente. Solicítale al administrador que active el toggle "Acceso IA" junto a tu cuenta en Gestión de usuarios (/admin/users). Una vez habilitado, el badge cambiará a verde y podrás vincular Telegram.') }}</p>
                         </div>
                     </div>
                 </div>
