@@ -123,6 +123,15 @@ MAX_RESTORE_SQL_MB=500
 # SESSION_INACTIVITY_TIMEOUT=900
 # Orígenes CORS permitidos (separados por coma). Default: '*'
 # CORS_ORIGINS=*
+
+# === Telegram Bot / IA (opcional) ===
+# Habilita captura de gastos por Telegram y escáner IA. Dejar vacío = deshabilitado.
+# TELEGRAM_BOT_TOKEN=
+# TELEGRAM_BOT_USERNAME=
+# TELEGRAM_WEBHOOK_SECRET=
+# SERVER_URL=https://tu-dominio
+# Máximo de escaneos de IA por usuario/día con la clave compartida del admin (default: 25)
+# AI_SHARED_DAILY_LIMIT=25
 EOF
 
     chmod 600 "$ENV_FILE"
