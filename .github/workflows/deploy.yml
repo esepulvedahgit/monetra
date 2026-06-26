@@ -20,7 +20,9 @@ jobs:
           script_stop: true
           script: |
             cd /opt/monetra
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
             docker buildx build --platform linux/arm64 -t monetra:release --load ./site_finanzas
             docker compose -f docker/docker-compose.prod.yml --env-file docker/.env up -d --force-recreate
+            docker image prune -f
             
