@@ -1,11 +1,12 @@
 import logging
-from concurrent.futures import ThreadPoolExecutor
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
 logger = logging.getLogger(__name__)
 
-scheduler = BackgroundScheduler()
+# timezone='UTC' para honrar el texto "10:00 AM (UTC)" que muestra la UI;
+# sin esto APScheduler usaría la TZ local del proceso (tzlocal).
+scheduler = BackgroundScheduler(timezone='UTC')
 
 
 def init_scheduler(app):
@@ -22,6 +23,11 @@ def init_scheduler(app):
         minute=0,
         id='weekly_report',
         replace_existing=True,
+        # Si el proceso está caído/reiniciándose justo a las 10:00 UTC, ejecuta
+        # la corrida perdida al volver (hasta 6h después) en vez de descartarla.
+        # coalesce evita ejecuciones duplicadas si se acumulan varios disparos.
+        misfire_grace_time=6 * 60 * 60,
+        coalesce=True,
     )
 
     # #6 — Limpiar códigos de vinculación expirados y transacciones pendientes abandonadas
@@ -36,7 +42,12 @@ def init_scheduler(app):
     )
 
     scheduler.start()
-    logger.info("Scheduler started — weekly report job scheduled every Monday at 10:00 UTC.")
+    job = scheduler.get_job('weekly_report')
+    next_run = job.next_run_time if job else None
+    logger.info(
+        "Scheduler started — weekly report job scheduled every Monday at 10:00 UTC. "
+        "Next run: %s.", next_run,
+    )
 
 
 def _weekly_report_job(app):
@@ -56,7 +67,11 @@ def _weekly_report_job(app):
 
         logger.info(f"Weekly report job: processing {len(users)} user(s).")
 
-        def process(user):
+        # Procesamiento en serie DENTRO del app_context. En Flask 3 el contexto
+        # vive en contextvars y no lo heredan los hilos de un ThreadPoolExecutor,
+        # así que generar el Excel en hilos worker rompía con "Working outside of
+        # application context" y el reporte nunca se enviaba.
+        for user in users:
             try:
                 buf = build_excel(user, today.year, today.month, today.month)
                 filename = f"monetra_{user.username}_{today.year}_{today.month:02d}.xlsx"
@@ -67,9 +82,6 @@ def _weekly_report_job(app):
                     logger.warning(f"Weekly report failed for {user.username}: {msg}")
             except Exception as e:
                 logger.error(f"Weekly report error for {user.username}: {e}", exc_info=True)
-
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            executor.map(process, users)
 
         logger.info("Weekly report job finished.")
 
