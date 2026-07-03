@@ -71,3 +71,21 @@ class Config:
     # Cuota diaria máxima de escaneos IA por usuario cuando usan la clave compartida del admin.
     # Sube o baja este valor con AI_SHARED_DAILY_LIMIT en .env.
     AI_SHARED_DAILY_LIMIT = int(os.environ.get('AI_SHARED_DAILY_LIMIT', '25'))
+
+    # ── Rate limiting (Flask-Limiter) ──────────────────────────────────────────
+    # Backend donde se guardan los contadores por IP de los límites de
+    # login / registro / recuperación de contraseña.
+    #
+    #   memory://              (default) contadores en el propio proceso. NO se
+    #                          comparten entre workers de gunicorn y se pierden
+    #                          al reiniciar. Suficiente detrás de un WAF/equipo
+    #                          de seguridad o en un único worker (dev).
+    #   redis://redis:6379/0   almacén compartido y persistente entre workers y
+    #                          reinicios. Úsalo cuando la app está EXPUESTA
+    #                          DIRECTAMENTE a internet, para que el límite
+    #                          anti fuerza-bruta sea global y no se multiplique
+    #                          por la cantidad de workers.
+    RATELIMIT_STORAGE_URI = os.environ.get('RATELIMIT_STORAGE_URI', 'memory://')
+    # Si Redis se vuelve inalcanzable, degrada a límite en memoria en vez de
+    # devolver errores 500, para que el login siga funcionando.
+    RATELIMIT_IN_MEMORY_FALLBACK_ENABLED = True

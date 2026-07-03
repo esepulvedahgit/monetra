@@ -23,9 +23,40 @@ services:
       TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-}
       TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
       SERVER_URL: ${SERVER_URL:-}
+      # Backend de rate limiting. Por defecto usa el Redis incluido abajo para
+      # que el límite anti fuerza-bruta del login sea global entre workers.
+      # Cámbialo a memory:// en el .env si la app corre detrás de un WAF/equipo
+      # de seguridad y prefieres no levantar Redis.
+      RATELIMIT_STORAGE_URI: ${RATELIMIT_STORAGE_URI:-redis://redis:6379/0}
     depends_on:
       mysql:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - monetra_net
+
+  redis:
+    image: redis:8.0-alpine
+    container_name: redis_monetra
+    restart: unless-stopped
+    # Solo guarda contadores de rate limiting: sin persistencia. Se limita la
+    # memoria y se expulsan las claves más viejas, de modo que una avalancha de
+    # IPs distintas nunca pueda agotar la RAM del host.
+    command: >
+      redis-server
+      --save ""
+      --appendonly no
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+    # NOTA: no se publica ningún puerto al host — Redis solo es accesible dentro
+    # de la red interna del compose, nunca desde internet.
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
     networks:
       - monetra_net
 

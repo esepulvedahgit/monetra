@@ -24,9 +24,35 @@
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
       MAX_CONTENT_UPLOAD_MB: ${MAX_CONTENT_UPLOAD_MB:-15}
       MAX_RESTORE_SQL_MB: ${MAX_RESTORE_SQL_MB:-500}
+      # Backend de rate limiting — usa el Redis incluido abajo. Cámbialo a
+      # memory:// en el .env si no quieres depender de Redis en local.
+      RATELIMIT_STORAGE_URI: ${RATELIMIT_STORAGE_URI:-redis://redis:6379/0}
     depends_on:
       mysql:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - finanzas_net
+
+  redis:
+    image: redis:8.0-alpine
+    container_name: redis_finanzas
+    restart: unless-stopped
+    # Solo contadores de rate limiting: sin persistencia, memoria acotada y
+    # expulsión LRU. No se publica puerto al host (solo red interna).
+    command: >
+      redis-server
+      --save ""
+      --appendonly no
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
     networks:
       - finanzas_net
 
