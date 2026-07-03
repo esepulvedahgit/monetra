@@ -112,7 +112,7 @@ def _is_valid_pin(pin: str) -> bool:
 
 @auth.route('/pin/set', methods=['POST'])
 @login_required
-@limiter.limit("10 per minute")
+@limiter.limit(lambda: current_app.config.get('PIN_SET_RATE_LIMIT', '10 per minute'))
 def pin_set():
     data = request.get_json(silent=True) or {}
     password = data.get('password', '')
@@ -159,7 +159,7 @@ def pin_set():
 
 @auth.route('/pin/delete', methods=['POST'])
 @login_required
-@limiter.limit("10 per minute")
+@limiter.limit(lambda: current_app.config.get('PIN_DELETE_RATE_LIMIT', '10 per minute'))
 def pin_delete():
     data = request.get_json(silent=True) or {}
     password = data.get('password', '')
@@ -183,7 +183,7 @@ def pin_delete():
 # ---------------------------------------------------------------------------
 
 @auth.route('/pin/login', methods=['POST'])
-@limiter.limit("5 per minute")
+@limiter.limit(lambda: current_app.config.get('PIN_LOGIN_RATE_LIMIT', '5 per minute'))
 def pin_login():
     # 1. Identify the device from the cookie
     # pin_unavailable=True tells the client to clear its localStorage hint and

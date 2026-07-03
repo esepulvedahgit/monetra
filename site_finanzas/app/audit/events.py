@@ -15,6 +15,7 @@ AUTH_EMAIL_VERIFY        = 'auth.email_verify'
 AUTH_EMAIL_RESEND        = 'auth.email_resend'
 AUTH_PIN_ENABLED         = 'auth.pin_enabled'
 AUTH_PIN_DISABLED        = 'auth.pin_disabled'
+AUTH_ACCOUNT_LOCKED      = 'auth.account_locked'
 
 # Application events
 APP_ERROR_500    = 'app.error_500'

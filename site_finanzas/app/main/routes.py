@@ -1807,7 +1807,7 @@ def onboarding_dismiss():
 
 
 @main.route('/configurar/test-ai', methods=['POST'])
-@limiter.limit("10 per minute", methods=['POST'])
+@limiter.limit(lambda: current_app.config.get('AI_TEST_CONNECTION_RATE_LIMIT', '10 per minute'), methods=['POST'])
 @login_required
 def test_ai_connection():
     """Test AI provider connection with a lightweight text-only call."""

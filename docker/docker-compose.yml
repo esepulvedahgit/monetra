@@ -27,6 +27,26 @@
       # Backend de rate limiting — usa el Redis incluido abajo. Cámbialo a
       # memory:// en el .env si no quieres depender de Redis en local.
       RATELIMIT_STORAGE_URI: ${RATELIMIT_STORAGE_URI:-redis://redis:6379/0}
+      # Valores de cada rate limit — sintaxis Flask-Limiter "N per <unidad>".
+      # Cambia aquí (o en .env) y reinicia el contenedor para aplicar.
+      LOGIN_RATE_LIMIT: ${LOGIN_RATE_LIMIT:-5 per minute}
+      API_LOGIN_RATE_LIMIT: ${API_LOGIN_RATE_LIMIT:-5 per minute}
+      MFA_VERIFY_RATE_LIMIT: ${MFA_VERIFY_RATE_LIMIT:-5 per minute}
+      REGISTER_RATE_LIMIT: ${REGISTER_RATE_LIMIT:-5 per minute}
+      RESEND_ACTIVATION_RATE_LIMIT: ${RESEND_ACTIVATION_RATE_LIMIT:-3 per 15 minute}
+      FORGOT_PASSWORD_RATE_LIMIT: ${FORGOT_PASSWORD_RATE_LIMIT:-3 per 15 minute}
+      RESET_PASSWORD_RATE_LIMIT: ${RESET_PASSWORD_RATE_LIMIT:-5 per 15 minute}
+      PIN_SET_RATE_LIMIT: ${PIN_SET_RATE_LIMIT:-10 per minute}
+      PIN_DELETE_RATE_LIMIT: ${PIN_DELETE_RATE_LIMIT:-10 per minute}
+      PIN_LOGIN_RATE_LIMIT: ${PIN_LOGIN_RATE_LIMIT:-5 per minute}
+      BACKUP_EXPORT_RATE_LIMIT: ${BACKUP_EXPORT_RATE_LIMIT:-5 per hour}
+      BACKUP_RESTORE_RATE_LIMIT: ${BACKUP_RESTORE_RATE_LIMIT:-5 per hour}
+      AI_TEST_CONNECTION_RATE_LIMIT: ${AI_TEST_CONNECTION_RATE_LIMIT:-10 per minute}
+      TELEGRAM_WEBHOOK_RATE_LIMIT: ${TELEGRAM_WEBHOOK_RATE_LIMIT:-60 per minute}
+      TELEGRAM_LINK_CODE_RATE_LIMIT: ${TELEGRAM_LINK_CODE_RATE_LIMIT:-5 per 10 minute}
+      # Lockout de cuenta por fuerza bruta en login (password + MFA).
+      LOGIN_MAX_FAILS: ${LOGIN_MAX_FAILS:-3}
+      LOGIN_LOCK_MINUTES: ${LOGIN_LOCK_MINUTES:-30}
     depends_on:
       mysql:
         condition: service_healthy

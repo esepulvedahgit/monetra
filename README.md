@@ -65,6 +65,7 @@ Aplicación web de **finanzas personales** desarrollada en Flask. Permite regist
 | i18n | Flask-Babel | ≥3.1 |
 | Cifrado | Cryptography (Fernet) | 41.0.7 |
 | Rate Limiting | Flask-Limiter | 3.8.0 |
+| Storage rate limiting | Redis (opcional, recomendado en producción expuesta) | 8.0-alpine |
 | Scheduler | APScheduler | ≥3.10 |
 | Exportación Excel | xlsxwriter | ≥3.1 |
 | Imágenes (scanner) | Pillow + pillow-heif | — / ≥0.13 |
@@ -185,9 +186,54 @@ JWT_SECRET_KEY=genera-con-secrets.token_hex(32)
 docker compose -f docker-compose.prod.yml up -d
 ```
 
-El contenedor Flask espera a que MySQL esté saludable, ejecuta `init_db.py` automáticamente y levanta Gunicorn con **1 worker** en el puerto 8000 (expuesto en 8085).
+El contenedor Flask espera a que MySQL y Redis estén saludables, ejecuta `init_db.py` automáticamente y levanta Gunicorn con **1 worker** en el puerto 8000 (expuesto en 8085).
 
-> **¿Por qué 1 worker?** Flask-Limiter almacena los contadores de rate limiting en memoria. Con múltiples workers, cada proceso tendría su propio contador independiente, lo que permitiría bypassear los límites de intentos. No aumentes los workers sin migrar a un backend compartido como Redis.
+> **¿Por qué 1 worker?** Sin un backend compartido, Flask-Limiter guarda los contadores de rate limiting en memoria de cada proceso — con varios workers, cada uno llevaría su propio contador y el límite efectivo se multiplicaría por la cantidad de workers. Ambos `docker-compose*.yml` incluyen un servicio **Redis** (ver sección [Rate limiting y seguridad de login](#rate-limiting-y-seguridad-de-login)) que resuelve esto: con `RATELIMIT_STORAGE_URI=redis://redis:6379/0` (default) el contador es compartido, por lo que subir el número de workers en `entrypoint.sh` ya es seguro si lo necesitas.
+
+---
+
+## Rate limiting y seguridad de login
+
+### Backend compartido (Redis)
+
+Ambos `docker-compose*.yml` levantan un servicio `redis` (imagen `redis:8.0-alpine`, sin persistencia, memoria acotada a 128 MB con expulsión LRU, **sin puerto publicado al host** — solo accesible dentro de la red interna del compose) que Flask-Limiter usa como almacén compartido de los contadores de intentos.
+
+| Variable | Default | Descripción |
+|---|---|---|
+| `RATELIMIT_STORAGE_URI` | `redis://redis:6379/0` (Docker) / `memory://` (fuera de Docker) | Backend de Flask-Limiter. `redis://...` comparte el contador entre workers y sobrevive a reinicios — **recomendado si la app está expuesta directamente a internet** (sin WAF/equipo de seguridad delante). `memory://` es válido detrás de un WAF o en desarrollo con 1 worker. |
+
+### Límites por ruta (configurables sin tocar código)
+
+Cada límite sigue la sintaxis de Flask-Limiter: `"N per second|minute|hour|day"`. Cambia el valor en `docker/.env` (o `site_finanzas/.env` fuera de Docker) y reinicia el contenedor para aplicar — sin definir, cada uno usa el default indicado.
+
+| Variable | Default | Ruta |
+|---|---|---|
+| `LOGIN_RATE_LIMIT` | `5 per minute` | `POST /login` |
+| `API_LOGIN_RATE_LIMIT` | `5 per minute` | `POST /api/v1/login` |
+| `MFA_VERIFY_RATE_LIMIT` | `5 per minute` | `POST /mfa-verify` |
+| `REGISTER_RATE_LIMIT` | `5 per minute` | `POST /register` |
+| `RESEND_ACTIVATION_RATE_LIMIT` | `3 per 15 minute` | `POST /resend-activation` |
+| `FORGOT_PASSWORD_RATE_LIMIT` | `3 per 15 minute` | `POST /forgot-password` |
+| `RESET_PASSWORD_RATE_LIMIT` | `5 per 15 minute` | `POST /reset-password/<token>` |
+| `PIN_SET_RATE_LIMIT` | `10 per minute` | `POST /pin/set` |
+| `PIN_DELETE_RATE_LIMIT` | `10 per minute` | `POST /pin/delete` |
+| `PIN_LOGIN_RATE_LIMIT` | `5 per minute` | `POST /pin/login` |
+| `BACKUP_EXPORT_RATE_LIMIT` | `5 per hour` | `POST /admin/backup/export` |
+| `BACKUP_RESTORE_RATE_LIMIT` | `5 per hour` | `POST /admin/backup/restore` |
+| `AI_TEST_CONNECTION_RATE_LIMIT` | `10 per minute` | `POST /configurar/test-ai` |
+| `TELEGRAM_WEBHOOK_RATE_LIMIT` | `60 per minute` | `POST /telegram/webhook/<path>` |
+| `TELEGRAM_LINK_CODE_RATE_LIMIT` | `5 per 10 minute` | `POST /telegram/generate-code` |
+
+### Lockout de cuenta por fuerza bruta
+
+Además del rate limit por IP, la cuenta se bloquea temporalmente tras varios intentos fallidos de login (**password o código MFA — un mismo contador cubre ambos pasos**), sin importar la IP de origen. Protege contra ataques distribuidos desde múltiples IPs, algo que el rate limit por IP no puede evitar por sí solo.
+
+| Variable | Default | Descripción |
+|---|---|---|
+| `LOGIN_MAX_FAILS` | `3` | Intentos fallidos (password + MFA combinados) antes de bloquear la cuenta |
+| `LOGIN_LOCK_MINUTES` | `30` | Minutos que dura el bloqueo |
+
+Al alcanzar el umbral: la cuenta queda bloqueada, se registra el evento `auth.account_locked` en el [registro de auditoría](#características) y se envía un correo de alerta de seguridad al usuario. El contador se reinicia automáticamente en el siguiente login exitoso.
 
 ---
 
@@ -263,6 +309,9 @@ docker load -i monetra-release-arm64.tar
 | `TELEGRAM_WEBHOOK_SECRET` | No* | Cadena aleatoria para validar que los mensajes entrantes provienen de Telegram. Requerido con `TELEGRAM_BOT_TOKEN`. |
 | `TELEGRAM_BOT_USERNAME` | No* | Username del bot sin `@` (ej. `mi_bot`). Si se omite, Monetra lo deriva automáticamente al iniciar via la API de Telegram. |
 | `AI_SHARED_DAILY_LIMIT` | No | Máximo de escaneos de IA por usuario por día cuando se usa la clave compartida del admin (default: `25`). |
+| `RATELIMIT_STORAGE_URI` | No | Backend de Flask-Limiter — `memory://` (default) o `redis://host:6379/0`. Ver [Rate limiting y seguridad de login](#rate-limiting-y-seguridad-de-login). |
+| `LOGIN_MAX_FAILS` / `LOGIN_LOCK_MINUTES` | No | Umbral y duración del bloqueo de cuenta por fuerza bruta en login (defaults: `3` / `30`). Ver sección de rate limiting. |
+| `<RUTA>_RATE_LIMIT` (15 variables) | No | Límite por ruta (login, registro, PIN, backup, etc.) — ver tabla completa en [Rate limiting y seguridad de login](#rate-limiting-y-seguridad-de-login). |
 
 Generar valores seguros:
 ```bash
@@ -293,6 +342,17 @@ SESSION_COOKIE_SECURE=false
 
 # API REST — orígenes CORS permitidos (default: '*')
 # CORS_ORIGINS=*
+
+# Rate limiting — backend compartido (recomendado si la app está expuesta
+# directamente a internet, sin WAF/equipo de seguridad delante)
+# RATELIMIT_STORAGE_URI=redis://redis:6379/0
+
+# Lockout de cuenta por fuerza bruta en login (password + MFA)
+# LOGIN_MAX_FAILS=3
+# LOGIN_LOCK_MINUTES=30
+
+# Límites por ruta — ver README § Rate limiting y seguridad de login para la
+# lista completa (LOGIN_RATE_LIMIT, API_LOGIN_RATE_LIMIT, PIN_LOGIN_RATE_LIMIT, ...)
 
 # Backup (opcional, defaults razonables)
 # MAX_CONTENT_UPLOAD_MB=15

@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request, jsonify, current_app
 from flask_jwt_extended import (
     create_access_token, create_refresh_token,
     jwt_required, get_jwt_identity
@@ -11,7 +11,7 @@ from app import limiter
 
 
 @api_v1.post('/login')
-@limiter.limit('5 per minute')
+@limiter.limit(lambda: current_app.config.get('API_LOGIN_RATE_LIMIT', '5 per minute'))
 def login():
     data = request.get_json(silent=True)
     if not data:
