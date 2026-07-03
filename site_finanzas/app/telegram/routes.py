@@ -48,7 +48,7 @@ def _chat_id_from_update(update: dict) -> int | None:
 # #7 — CSRF exento solo en el webhook (no en generate-code / toggle-usd / unlink)
 @telegram_bp.route('/telegram/webhook/<webhook_path>', methods=['POST'])
 @csrf.exempt
-@limiter.limit("60 per minute")
+@limiter.limit(lambda: current_app.config.get('TELEGRAM_WEBHOOK_RATE_LIMIT', '60 per minute'))
 def webhook(webhook_path: str):
     """Receive Telegram updates. Validates secret path + header before dispatching."""
     secret = current_app.config.get('TELEGRAM_WEBHOOK_SECRET') or ''
@@ -98,7 +98,7 @@ def status():
 
 @telegram_bp.route('/telegram/generate-code', methods=['POST'])
 @login_required
-@limiter.limit("5 per 10 minute")
+@limiter.limit(lambda: current_app.config.get('TELEGRAM_LINK_CODE_RATE_LIMIT', '5 per 10 minute'))
 def generate_code():
     """Generate a one-time linking code and return the Telegram deep link."""
     if not current_app.config.get('TELEGRAM_BOT_TOKEN'):

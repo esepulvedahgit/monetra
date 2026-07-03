@@ -34,6 +34,9 @@ class User(db.Model, UserMixin):
     pin_failed_attempts = db.Column(db.Integer, nullable=False, default=0)
     pin_locked_until = db.Column(db.DateTime, nullable=True)
     pin_lock_cycles = db.Column(db.Integer, nullable=False, default=0)
+    # Lockout de cuenta por fuerza bruta en login normal (password y/o MFA)
+    failed_login_attempts = db.Column(db.Integer, nullable=False, default=0)
+    login_locked_until = db.Column(db.DateTime, nullable=True)
     weekly_report_enabled = db.Column(db.Boolean, nullable=False, default=False)
     insights_panel_enabled = db.Column(db.Boolean, nullable=False, default=False)
     email_verified = db.Column(db.Boolean, nullable=False, default=False)
@@ -92,6 +95,20 @@ class User(db.Model, UserMixin):
         if locked_until.tzinfo is not None:
             locked_until = locked_until.replace(tzinfo=None)
         return locked_until > datetime.utcnow()
+
+    @property
+    def login_is_locked(self):
+        if not self.login_locked_until:
+            return False
+        locked_until = self.login_locked_until
+        # Stored naive in MySQL; treat as UTC when comparing against aware now().
+        if locked_until.tzinfo is None:
+            locked_until = locked_until.replace(tzinfo=timezone.utc)
+        return locked_until > datetime.now(timezone.utc)
+
+    def reset_login_lockout(self):
+        self.failed_login_attempts = 0
+        self.login_locked_until = None
 
     def disable_pin(self):
         """Remove the PIN, reset lockout counters, and revoke all authorized devices.

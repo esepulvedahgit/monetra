@@ -125,6 +125,14 @@ with app.app_context():
             conn.execute(text("ALTER TABLE users ADD COLUMN pin_lock_cycles INT NOT NULL DEFAULT 0"))
             conn.commit()
             print("Columna pin_lock_cycles agregada a users.")
+        if 'failed_login_attempts' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN failed_login_attempts INT NOT NULL DEFAULT 0"))
+            conn.commit()
+            print("Columna failed_login_attempts agregada a users.")
+        if 'login_locked_until' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN login_locked_until DATETIME NULL"))
+            conn.commit()
+            print("Columna login_locked_until agregada a users.")
         if 'last_login_at' not in existing_cols:
             conn.execute(text("ALTER TABLE users ADD COLUMN last_login_at DATETIME NULL"))
             conn.commit()

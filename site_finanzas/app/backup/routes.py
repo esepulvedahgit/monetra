@@ -23,7 +23,7 @@ def _admin_required():
 
 @backup_bp.route('/export', methods=['POST'])
 @login_required
-@limiter.limit('5 per hour', methods=['POST'])
+@limiter.limit(lambda: current_app.config.get('BACKUP_EXPORT_RATE_LIMIT', '5 per hour'), methods=['POST'])
 def export_db():
     _admin_required()
 
@@ -88,7 +88,7 @@ _CONFIRM_WORD = 'RESTAURAR'
 
 @backup_bp.route('/restore', methods=['POST'])
 @login_required
-@limiter.limit('5 per hour', methods=['POST'])
+@limiter.limit(lambda: current_app.config.get('BACKUP_RESTORE_RATE_LIMIT', '5 per hour'), methods=['POST'])
 def restore_db():
     _admin_required()
 

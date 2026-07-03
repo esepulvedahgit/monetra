@@ -89,3 +89,28 @@ class Config:
     # Si Redis se vuelve inalcanzable, degrada a límite en memoria en vez de
     # devolver errores 500, para que el login siga funcionando.
     RATELIMIT_IN_MEMORY_FALLBACK_ENABLED = True
+
+    # Límites por ruta, configurables sin tocar código. Sintaxis Flask-Limiter:
+    # "N per second|minute|hour|day" (o compuesto: "N per minute;M per hour").
+    # Cambia el valor en docker/.env y reinicia el contenedor para aplicar.
+    LOGIN_RATE_LIMIT              = os.environ.get('LOGIN_RATE_LIMIT', '5 per minute')
+    API_LOGIN_RATE_LIMIT          = os.environ.get('API_LOGIN_RATE_LIMIT', '5 per minute')
+    MFA_VERIFY_RATE_LIMIT         = os.environ.get('MFA_VERIFY_RATE_LIMIT', '5 per minute')
+    REGISTER_RATE_LIMIT           = os.environ.get('REGISTER_RATE_LIMIT', '5 per minute')
+    RESEND_ACTIVATION_RATE_LIMIT  = os.environ.get('RESEND_ACTIVATION_RATE_LIMIT', '3 per 15 minute')
+    FORGOT_PASSWORD_RATE_LIMIT    = os.environ.get('FORGOT_PASSWORD_RATE_LIMIT', '3 per 15 minute')
+    RESET_PASSWORD_RATE_LIMIT     = os.environ.get('RESET_PASSWORD_RATE_LIMIT', '5 per 15 minute')
+    PIN_SET_RATE_LIMIT            = os.environ.get('PIN_SET_RATE_LIMIT', '10 per minute')
+    PIN_DELETE_RATE_LIMIT         = os.environ.get('PIN_DELETE_RATE_LIMIT', '10 per minute')
+    PIN_LOGIN_RATE_LIMIT          = os.environ.get('PIN_LOGIN_RATE_LIMIT', '5 per minute')
+    BACKUP_EXPORT_RATE_LIMIT      = os.environ.get('BACKUP_EXPORT_RATE_LIMIT', '5 per hour')
+    BACKUP_RESTORE_RATE_LIMIT     = os.environ.get('BACKUP_RESTORE_RATE_LIMIT', '5 per hour')
+    AI_TEST_CONNECTION_RATE_LIMIT = os.environ.get('AI_TEST_CONNECTION_RATE_LIMIT', '10 per minute')
+    TELEGRAM_WEBHOOK_RATE_LIMIT   = os.environ.get('TELEGRAM_WEBHOOK_RATE_LIMIT', '60 per minute')
+    TELEGRAM_LINK_CODE_RATE_LIMIT = os.environ.get('TELEGRAM_LINK_CODE_RATE_LIMIT', '5 per 10 minute')
+
+    # ── Lockout de cuenta por fuerza bruta en login (password + MFA) ───────────
+    # Tras LOGIN_MAX_FAILS intentos fallidos (password o código MFA) la cuenta
+    # queda bloqueada LOGIN_LOCK_MINUTES minutos, sin importar la IP de origen.
+    LOGIN_MAX_FAILS    = int(os.environ.get('LOGIN_MAX_FAILS', '3'))
+    LOGIN_LOCK_MINUTES = int(os.environ.get('LOGIN_LOCK_MINUTES', '30'))

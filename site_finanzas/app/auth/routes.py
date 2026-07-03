@@ -2,14 +2,17 @@ import secrets
 import hashlib
 from datetime import datetime, timezone, timedelta
 import pyotp
-from flask import render_template, redirect, url_for, flash, request, session
+from flask import render_template, redirect, url_for, flash, request, session, current_app
 from flask_login import login_user, logout_user, current_user
 from flask_babel import gettext as _
 from app import db, limiter
 from app.models import User, AppConfig, PasswordResetToken, EmailActivationToken
 from app.auth import auth
 from app.auth.forms import LoginForm, RegisterForm, ForgotPasswordForm, ResetPasswordForm, MFAVerifyForm
-from app.email_service import send_user_email, send_recovery_email, send_activation_email, decrypt_mfa_secret
+from app.email_service import (
+    send_user_email, send_recovery_email, send_activation_email, decrypt_mfa_secret,
+    send_security_alert_email_async,
+)
 from app.audit.logger import log_event
 from app.audit import events as ev
 
@@ -20,6 +23,24 @@ def _audit_commit(event_type, description=None, user_id=None):
         db.session.commit()
     except Exception:
         db.session.rollback()
+
+
+def _register_login_failure(user):
+    """Increment the account-level failed-attempt counter (password or MFA step)
+    and lock the account once it reaches LOGIN_MAX_FAILS, regardless of the
+    origin IP. Mirrors the PIN lockout pattern in app/auth/pin_routes.py."""
+    max_fails = current_app.config.get('LOGIN_MAX_FAILS', 3)
+    lock_minutes = current_app.config.get('LOGIN_LOCK_MINUTES', 30)
+    user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
+    if user.failed_login_attempts >= max_fails:
+        user.login_locked_until = datetime.now(timezone.utc) + timedelta(minutes=lock_minutes)
+        db.session.commit()
+        _audit_commit(ev.AUTH_ACCOUNT_LOCKED, description=user.email, user_id=user.id)
+        send_security_alert_email_async(
+            user, "bloqueó temporalmente tu cuenta tras varios intentos fallidos de inicio de sesión"
+        )
+    else:
+        db.session.commit()
 
 
 def _generate_activation_token(user_id: int) -> str:
@@ -38,7 +59,7 @@ def _generate_activation_token(user_id: int) -> str:
 
 
 @auth.route('/register', methods=['GET', 'POST'])
-@limiter.limit("5 per minute", methods=['POST'])
+@limiter.limit(lambda: current_app.config.get('REGISTER_RATE_LIMIT', '5 per minute'), methods=['POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
@@ -125,7 +146,7 @@ def verify_email(token):
 
 
 @auth.route('/resend-activation', methods=['POST'])
-@limiter.limit("3 per 15 minute", methods=['POST'])
+@limiter.limit(lambda: current_app.config.get('RESEND_ACTIVATION_RATE_LIMIT', '3 per 15 minute'), methods=['POST'])
 def resend_activation():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
@@ -144,13 +165,19 @@ def resend_activation():
 
 
 @auth.route('/login', methods=['GET', 'POST'])
-@limiter.limit("5 per minute", methods=['POST'])
+@limiter.limit(lambda: current_app.config.get('LOGIN_RATE_LIMIT', '5 per minute'), methods=['POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
+        if user and user.login_is_locked:
+            flash(_(
+                'Demasiados intentos fallidos. Tu cuenta ha sido bloqueada temporalmente. '
+                'Intenta de nuevo en unos minutos.'
+            ), 'danger')
+            return render_template('auth/login.html', title=_('Iniciar Sesión'), form=form)
         if user and user.check_password(form.password.data):
             if not user.email_verified:
                 flash(_(
@@ -164,33 +191,43 @@ def login():
             if user.mfa_enabled:
                 session['mfa_pending'] = {'user_id': user.id, 'remember': form.remember.data}
                 return redirect(url_for('auth.mfa_verify'))
+            user.reset_login_lockout()
             user.last_login_at = datetime.now(timezone.utc)
             login_user(user, remember=form.remember.data)
             session['_login_at'] = datetime.now(timezone.utc).isoformat()
             _audit_commit(ev.AUTH_LOGIN_SUCCESS, description=user.email, user_id=user.id)
             flash(_('¡Bienvenido, %(username)s!', username=user.username), 'success')
             return redirect(url_for('main.dashboard'))
+        if user:
+            _register_login_failure(user)
         _audit_commit(ev.AUTH_LOGIN_FAIL, description=form.email.data)
         flash(_('Email o contraseña incorrectos.'), 'danger')
     return render_template('auth/login.html', title=_('Iniciar Sesión'), form=form)
 
 
 @auth.route('/mfa-verify', methods=['GET', 'POST'])
-@limiter.limit("5 per minute", methods=['POST'])
+@limiter.limit(lambda: current_app.config.get('MFA_VERIFY_RATE_LIMIT', '5 per minute'), methods=['POST'])
 def mfa_verify():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
     pending = session.get('mfa_pending')
     if not pending:
         return redirect(url_for('auth.login'))
+    user = db.session.get(User, pending['user_id'])
+    if user and user.login_is_locked:
+        flash(_(
+            'Demasiados intentos fallidos. Tu cuenta ha sido bloqueada temporalmente. '
+            'Intenta de nuevo en unos minutos.'
+        ), 'danger')
+        return render_template('auth/mfa_verify.html', title=_('Verificación en dos pasos'), form=MFAVerifyForm())
     form = MFAVerifyForm()
     if form.validate_on_submit():
-        user = db.session.get(User, pending['user_id'])
         if user and user.mfa_enabled:
             secret = decrypt_mfa_secret(user.mfa_secret_encrypted)
             totp = pyotp.TOTP(secret)
             if totp.verify(form.code.data):
                 session.pop('mfa_pending', None)
+                user.reset_login_lockout()
                 if not login_user(user, remember=pending.get('remember', False)):
                     flash(_('Tu cuenta ha sido suspendida. Contacta al administrador.'), 'danger')
                     return redirect(url_for('auth.login'))
@@ -199,6 +236,8 @@ def mfa_verify():
                 _audit_commit(ev.AUTH_LOGIN_SUCCESS, description=f'{user.email} (MFA)', user_id=user.id)
                 flash(_('¡Bienvenido, %(username)s!', username=user.username), 'success')
                 return redirect(url_for('main.dashboard'))
+        if user:
+            _register_login_failure(user)
         _audit_commit(ev.AUTH_LOGIN_FAIL, description='MFA code invalid')
         flash(_('Código incorrecto. Inténtalo de nuevo.'), 'danger')
     return render_template('auth/mfa_verify.html', title=_('Verificación en dos pasos'), form=form)
@@ -221,7 +260,7 @@ def logout():
 
 
 @auth.route('/forgot-password', methods=['GET', 'POST'])
-@limiter.limit("3 per 15 minute", methods=['POST'])
+@limiter.limit(lambda: current_app.config.get('FORGOT_PASSWORD_RATE_LIMIT', '3 per 15 minute'), methods=['POST'])
 def forgot_password():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
@@ -272,7 +311,7 @@ def forgot_password():
 
 
 @auth.route('/reset-password/<token>', methods=['GET', 'POST'])
-@limiter.limit("5 per 15 minute", methods=['POST'])
+@limiter.limit(lambda: current_app.config.get('RESET_PASSWORD_RATE_LIMIT', '5 per 15 minute'), methods=['POST'])
 def reset_password(token):
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
