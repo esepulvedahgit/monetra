@@ -6,8 +6,6 @@ from datetime import date, timedelta
 from decimal import Decimal
 from itertools import cycle, islice
 
-import threading
-
 from flask import render_template, redirect, url_for, flash, request, session, abort, jsonify, current_app
 from flask_login import login_required, current_user, logout_user
 from flask_babel import gettext as _, get_locale
@@ -1756,34 +1754,31 @@ def save_weekly_report():
 @login_required
 def send_report_now():
     from datetime import date as _date_cls
+    from app.export.excel_builder import build_excel
+    from app.email_service import send_weekly_report
 
-    app = current_app._get_current_object()
-    user_id = current_user.id
+    # Envío síncrono dentro del request: así el usuario ve el resultado REAL en
+    # vez de un "se enviará" optimista que oculta cualquier fallo. Corre en el
+    # contexto de la petición, que siempre tiene app_context disponible.
     today = _date_cls.today()
     filename = f"monetra_{current_user.username}_{today.year}_{today.month:02d}.xlsx"
+    try:
+        buf = build_excel(current_user, today.year, today.month, today.month)
+        ok, msg = send_weekly_report(current_user, buf.read(), filename)
+    except Exception as exc:
+        current_app.logger.error(
+            "send_report_now: error generando reporte para %s — %s",
+            current_user.email, exc, exc_info=True,
+        )
+        flash(_('No se pudo generar el reporte: %(error)s', error=str(exc)), 'danger')
+        return redirect(url_for('main.configurar'))
 
-    def _send_in_background():
-        from app.models import User
-        from app.export.excel_builder import build_excel
-        from app.email_service import send_weekly_report
-
-        with app.app_context():
-            user = User.query.get(user_id)
-            if user is None:
-                app.logger.warning("send_report_now: usuario %s no encontrado en DB.", user_id)
-                return
-            try:
-                buf = build_excel(user, today.year, today.month, today.month)
-                ok, msg = send_weekly_report(user, buf.read(), filename)
-                if ok:
-                    app.logger.info("send_report_now: reporte enviado a %s.", user.email)
-                else:
-                    app.logger.warning("send_report_now: fallo al enviar a %s — %s", user.email, msg)
-            except Exception as exc:
-                app.logger.error("send_report_now: error generando reporte para %s — %s", user.email, exc, exc_info=True)
-
-    threading.Thread(target=_send_in_background, daemon=True).start()
-    flash(_('Tu reporte se está generando y se enviará a %(email)s en unos momentos.', email=current_user.email), 'info')
+    if ok:
+        current_app.logger.info("send_report_now: reporte enviado a %s.", current_user.email)
+        flash(_('Reporte enviado a %(email)s.', email=current_user.email), 'success')
+    else:
+        current_app.logger.warning("send_report_now: fallo al enviar a %s — %s", current_user.email, msg)
+        flash(_('No se pudo enviar el reporte: %(error)s', error=msg), 'danger')
     return redirect(url_for('main.configurar'))
 
 
