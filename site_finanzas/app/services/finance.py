@@ -90,8 +90,13 @@ def get_monthly_summary(user_id: int, year: int, month: int) -> dict:
 
     budget = Budget.query.filter_by(user_id=user_id, year=year, month=month).first()
     budget_amount = float(budget.amount) if budget else 0.0
+    budget_expense = float(
+        base.filter_by(type="expense", exclude_from_budget=False)
+        .with_entities(func.coalesce(func.sum(Transaction.amount), 0))
+        .scalar()
+    )
     budget_used_pct = (
-        round(total_expense / budget_amount * 100, 1) if budget_amount > 0 else None
+        round(budget_expense / budget_amount * 100, 1) if budget_amount > 0 else None
     )
 
     top_cats = (
@@ -312,6 +317,7 @@ def get_budget_vs_actual(
         .filter(
             Transaction.user_id == user_id,
             Transaction.type == "expense",
+            Transaction.exclude_from_budget == False,
             extract("year", Transaction.date) == year,
             extract("month", Transaction.date) >= from_month,
             extract("month", Transaction.date) <= to_month,
@@ -361,6 +367,7 @@ def get_category_actuals(user_id: int, year: int, month: int, category_ids: list
         .filter(
             Transaction.user_id == user_id,
             Transaction.type == "expense",
+            Transaction.exclude_from_budget == False,
             extract("year", Transaction.date) == year,
             extract("month", Transaction.date) == month,
             Transaction.category_id.in_(category_ids),

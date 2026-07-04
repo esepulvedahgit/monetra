@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Monetra 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-20 23:03-0400\n"
+"POT-Creation-Date: 2026-07-04 16:33-0400\n"
 "PO-Revision-Date: 2025-01-01 00:00+0000\n"
 "Last-Translator: \n"
 "Language: en\n"
@@ -37,6 +37,7 @@ msgstr "The session has expired. Please log in again."
 
 # ── Admin user management ──
 #: app/admin/routes.py:57 app/templates/admin/users.html:14
+#: app/templates/main/configurar.html:539 app/templates/main/guia.html:587
 msgid "Gestión de usuarios"
 msgstr "User Management"
 
@@ -67,22 +68,40 @@ msgid "Usuario %(name)s reactivado."
 msgstr "User %(name)s reactivated."
 
 #: app/admin/routes.py:108
+msgid "No puedes modificar el acceso a IA de tu propia cuenta."
+msgstr "You cannot modify AI access for your own account."
+
+#: app/admin/routes.py:111
+msgid "El administrador principal gestiona su propio acceso a la IA."
+msgstr "The primary administrator manages their own AI access."
+
+#: app/admin/routes.py:119
+#, python-format
+msgid "Acceso a IA concedido a %(name)s."
+msgstr "AI access granted to %(name)s."
+
+#: app/admin/routes.py:122
+#, python-format
+msgid "Acceso a IA revocado a %(name)s."
+msgstr "AI access revoked from %(name)s."
+
+#: app/admin/routes.py:139
 msgid "No puedes eliminar tu propia cuenta."
 msgstr "You cannot delete your own account."
 
-#: app/admin/routes.py:111
+#: app/admin/routes.py:142
 msgid "El administrador principal no puede ser eliminado."
 msgstr "The primary administrator cannot be deleted."
 
-#: app/admin/routes.py:116
+#: app/admin/routes.py:147
 msgid "Contraseña incorrecta. El usuario no fue eliminado."
 msgstr "Incorrect password. The user was not deleted."
 
-#: app/admin/routes.py:126
+#: app/admin/routes.py:157
 msgid "tu cuenta fue eliminada por el administrador"
 msgstr "your account was deleted by the administrator"
 
-#: app/admin/routes.py:141
+#: app/admin/routes.py:172
 #, python-format
 msgid "Usuario %(name)s eliminado permanentemente."
 msgstr "User %(name)s permanently deleted."
@@ -91,7 +110,7 @@ msgstr "User %(name)s permanently deleted."
 msgid "Configura el valor del dólar en Configuración antes de ver el consolidado."
 msgstr "Set the dollar value in Settings before viewing the consolidated."
 
-#: app/analytics/routes.py:36 app/main/routes.py:275
+#: app/analytics/routes.py:36 app/main/routes.py:273
 #: app/templates/analytics/consolidated.html:9
 msgid "Consolidado"
 msgstr "Consolidated"
@@ -122,8 +141,8 @@ msgid "La contraseña debe incluir al menos un carácter especial."
 msgstr "Password must include at least one special character."
 
 # ── Auth forms ──
-#: app/auth/forms.py:24 app/templates/admin/users.html:53
-#: app/templates/admin/users.html:88
+#: app/auth/forms.py:24 app/templates/admin/users.html:63
+#: app/templates/admin/users.html:99
 msgid "Usuario"
 msgstr "Username"
 
@@ -142,7 +161,7 @@ msgstr "Change Password"
 msgid "Confirmar Contraseña"
 msgstr "Confirm password"
 
-#: app/auth/forms.py:29 app/auth/forms.py:63 app/main/forms.py:124
+#: app/auth/forms.py:29 app/auth/forms.py:63 app/main/forms.py:125
 #: app/templates/main/configurar.html:284
 msgid "Las contraseñas no coinciden."
 msgstr "Passwords do not match."
@@ -165,11 +184,11 @@ msgstr "That email is already registered."
 msgid "Recordarme"
 msgstr "Email"
 
-#: app/auth/forms.py:46 app/auth/routes.py:175
+#: app/auth/forms.py:46 app/auth/routes.py:180 app/auth/routes.py:205
 msgid "Iniciar Sesión"
 msgstr "Sign In"
 
-#: app/auth/forms.py:50 app/templates/main/configurar.html:908
+#: app/auth/forms.py:50 app/templates/main/configurar.html:916
 msgid "Código de verificación"
 msgstr "verification code"
 
@@ -189,20 +208,20 @@ msgstr "We send an activation link to"
 msgid "Nueva Contraseña"
 msgstr "Choose a new password"
 
-#: app/auth/forms.py:65 app/auth/routes.py:304
+#: app/auth/forms.py:65 app/auth/routes.py:343
 msgid "Restablecer Contraseña"
 msgstr "Reset Password"
 
-#: app/auth/routes.py:50 app/auth/routes.py:85
+#: app/auth/routes.py:71 app/auth/routes.py:106
 msgid "Registro"
 msgstr "Register"
 
 # ── Auth routes ──
-#: app/auth/routes.py:70
+#: app/auth/routes.py:91
 msgid "Cuenta creada exitosamente. Ya puedes iniciar sesión."
 msgstr "Account created successfully. You can now log in."
 
-#: app/auth/routes.py:79
+#: app/auth/routes.py:100
 msgid ""
 "Cuenta creada, pero no pudimos enviar el correo de activación. Contacta "
 "al administrador para activar tu cuenta."
@@ -210,24 +229,24 @@ msgstr ""
 "Account created, but we could not send the activation email. Contact the "
 "administrator to activate your account."
 
-#: app/auth/routes.py:95
+#: app/auth/routes.py:116
 msgid "Activa tu cuenta"
 msgstr "Activate your account"
 
-#: app/auth/routes.py:107
+#: app/auth/routes.py:128
 msgid "El enlace de activación es inválido o ya fue utilizado."
 msgstr "The activation link is invalid or has already been used."
 
-#: app/auth/routes.py:112
+#: app/auth/routes.py:133
 msgid "El enlace de activación ha expirado. Solicita uno nuevo."
 msgstr "The activation link has expired. Request a new one."
 
 # ── Auth routes ──
-#: app/auth/routes.py:123
+#: app/auth/routes.py:144
 msgid "¡Cuenta activada exitosamente! Ya puedes iniciar sesión."
 msgstr "Account activated successfully! You can now log in."
 
-#: app/auth/routes.py:142
+#: app/auth/routes.py:163
 msgid ""
 "Si la cuenta existe y no está activada, recibirás un nuevo enlace en tu "
 "correo."
@@ -235,7 +254,13 @@ msgstr ""
 "If the account exists and is not activated, you will receive a new link "
 "in your email."
 
-#: app/auth/routes.py:157
+#: app/auth/routes.py:177 app/auth/routes.py:219
+msgid ""
+"Demasiados intentos fallidos. Tu cuenta ha sido bloqueada temporalmente. "
+"Intenta de nuevo en unos minutos."
+msgstr ""
+
+#: app/auth/routes.py:184
 msgid ""
 "Tu cuenta aún no está activada. Revisa tu correo o solicita un nuevo "
 "enlace de activación."
@@ -243,36 +268,37 @@ msgstr ""
 "Your account is not yet activated. Check your email or request a new "
 "activation link."
 
-#: app/auth/routes.py:162 app/auth/routes.py:195
+#: app/auth/routes.py:189 app/auth/routes.py:232
 msgid "Tu cuenta ha sido suspendida. Contacta al administrador."
 msgstr "Your account has been suspended. Contact the administrator."
 
-#: app/auth/routes.py:171 app/auth/routes.py:200
+#: app/auth/routes.py:199 app/auth/routes.py:237
 #, python-format
 msgid "¡Bienvenido, %(username)s!"
 msgstr "Welcome, %(username)s!"
 
-#: app/auth/routes.py:174
+#: app/auth/routes.py:204
 msgid "Email o contraseña incorrectos."
 msgstr "Incorrect email or password."
 
-#: app/auth/routes.py:203
-msgid "Código incorrecto. Inténtalo de nuevo."
-msgstr "Wrong code. Try again."
-
-#: app/auth/routes.py:204 app/templates/auth/mfa_verify.html:10
+#: app/auth/routes.py:222 app/auth/routes.py:243
+#: app/templates/auth/mfa_verify.html:10
 msgid "Verificación en dos pasos"
 msgstr "Two-step verification"
 
-#: app/auth/routes.py:215
+#: app/auth/routes.py:242
+msgid "Código incorrecto. Inténtalo de nuevo."
+msgstr "Wrong code. Try again."
+
+#: app/auth/routes.py:254
 msgid "Datos demo activados. Inicia sesión de nuevo para verlos."
 msgstr "Demo data activated. Please sign in again to see them."
 
-#: app/auth/routes.py:216
+#: app/auth/routes.py:255
 msgid "Datos demo desactivados. Inicia sesión de nuevo."
 msgstr "Demo data deactivated. Please sign in again."
 
-#: app/auth/routes.py:268
+#: app/auth/routes.py:307
 msgid ""
 "Si el correo existe y hay un SMTP disponible, recibirás las instrucciones"
 " en tu correo."
@@ -280,15 +306,15 @@ msgstr ""
 "If the email exists and there is an SMTP available, you will receive the "
 "instructions in your email."
 
-#: app/auth/routes.py:271 app/templates/auth/forgot_password.html:19
+#: app/auth/routes.py:310 app/templates/auth/forgot_password.html:19
 msgid "Recuperar Contraseña"
 msgstr "Recover Password"
 
-#: app/auth/routes.py:284
+#: app/auth/routes.py:323
 msgid "El enlace de recuperación es inválido o ha expirado."
 msgstr "The recovery link is invalid or has expired."
 
-#: app/auth/routes.py:301
+#: app/auth/routes.py:340
 msgid "Tu contraseña ha sido actualizada exitosamente."
 msgstr "Your password has been updated successfully."
 
@@ -660,8 +686,8 @@ msgstr ""
 msgid "Guardar Configuración"
 msgstr "Go to Settings"
 
-#: app/main/forms.py:37 app/main/forms.py:50 app/main/forms.py:83
-#: app/templates/main/guia.html:151 app/templates/main/guia.html:268
+#: app/main/forms.py:37 app/main/forms.py:51 app/main/forms.py:84
+#: app/templates/main/guia.html:152 app/templates/main/guia.html:269
 #: app/templates/main/recurrentes.html:64
 #: app/templates/main/recurrentes.html:154
 #: app/templates/main/transactions.html:22
@@ -669,25 +695,25 @@ msgstr "Go to Settings"
 msgid "Tipo"
 msgstr "Type"
 
-#: app/main/forms.py:38 app/main/forms.py:51 app/main/forms.py:84
-#: app/main/routes.py:590 app/main/routes.py:643 app/main/routes.py:722
-#: app/templates/main/guia.html:55 app/templates/main/recurrentes.html:81
+#: app/main/forms.py:38 app/main/forms.py:52 app/main/forms.py:85
+#: app/main/routes.py:588 app/main/routes.py:646 app/main/routes.py:730
+#: app/templates/main/guia.html:56 app/templates/main/recurrentes.html:81
 #: app/templates/main/recurrentes.html:169
 #: app/templates/main/transactions.html:92
 msgid "Gasto"
 msgstr "Expense"
 
-#: app/main/forms.py:38 app/main/forms.py:51 app/main/forms.py:84
-#: app/main/routes.py:590 app/main/routes.py:643 app/main/routes.py:722
-#: app/templates/main/guia.html:54 app/templates/main/recurrentes.html:79
+#: app/main/forms.py:38 app/main/forms.py:52 app/main/forms.py:85
+#: app/main/routes.py:588 app/main/routes.py:646 app/main/routes.py:730
+#: app/templates/main/guia.html:55 app/templates/main/recurrentes.html:79
 #: app/templates/main/recurrentes.html:167
 #: app/templates/main/transactions.html:90
 msgid "Ingreso"
 msgstr "Income"
 
-#: app/main/forms.py:40 app/main/forms.py:86 app/main/forms.py:104
+#: app/main/forms.py:40 app/main/forms.py:87 app/main/forms.py:105
 #: app/templates/analytics/consolidated.html:118
-#: app/templates/main/dashboard.html:182 app/templates/main/guia.html:151
+#: app/templates/main/dashboard.html:182 app/templates/main/guia.html:152
 #: app/templates/main/recurrentes.html:67
 #: app/templates/main/recurrentes.html:157
 #: app/templates/main/transactions.html:80 app/templates/usd/dashboard.html:217
@@ -695,9 +721,9 @@ msgstr "Income"
 msgid "Monto"
 msgstr "Amount"
 
-#: app/main/forms.py:42 app/main/forms.py:65 app/main/forms.py:88
+#: app/main/forms.py:42 app/main/forms.py:66 app/main/forms.py:89
 #: app/templates/analytics/consolidated.html:116
-#: app/templates/main/dashboard.html:181 app/templates/main/guia.html:151
+#: app/templates/main/dashboard.html:181 app/templates/main/guia.html:152
 #: app/templates/main/recurrentes.html:65
 #: app/templates/main/recurrentes.html:155
 #: app/templates/main/transactions.html:30
@@ -706,11 +732,11 @@ msgstr "Amount"
 msgid "Categoría"
 msgstr "Category"
 
-#: app/main/forms.py:43 app/main/forms.py:78 app/main/forms.py:89
-#: app/templates/main/dashboard.html:180 app/templates/main/guia.html:101
-#: app/templates/main/guia.html:151 app/templates/main/guia.html:216
-#: app/templates/main/guia.html:237 app/templates/main/guia.html:243
-#: app/templates/main/guia.html:464 app/templates/main/guia.html:483
+#: app/main/forms.py:43 app/main/forms.py:79 app/main/forms.py:90
+#: app/templates/main/dashboard.html:180 app/templates/main/guia.html:102
+#: app/templates/main/guia.html:152 app/templates/main/guia.html:217
+#: app/templates/main/guia.html:238 app/templates/main/guia.html:244
+#: app/templates/main/guia.html:465 app/templates/main/guia.html:484
 #: app/templates/main/recurrentes.html:63
 #: app/templates/main/recurrentes.html:153
 #: app/templates/main/transactions.html:78 app/templates/usd/dashboard.html:216
@@ -719,294 +745,299 @@ msgid "Descripción"
 msgstr "Description"
 
 #: app/main/forms.py:44 app/templates/analytics/consolidated.html:115
-#: app/templates/main/dashboard.html:179 app/templates/main/guia.html:151
+#: app/templates/main/dashboard.html:179 app/templates/main/guia.html:152
 #: app/templates/main/transactions.html:75 app/templates/usd/dashboard.html:214
 #: app/templates/usd/dashboard.html:313 app/usd/forms.py:12
 msgid "Fecha"
 msgstr "Date"
 
-#: app/main/forms.py:45 app/main/forms.py:68 app/main/forms.py:79
-#: app/main/forms.py:95 app/main/forms.py:108
+#: app/main/forms.py:45 app/templates/main/guia.html:630
+msgid "No contar en el presupuesto"
+msgstr "Don't count in budget"
+
+#: app/main/forms.py:46 app/main/forms.py:69 app/main/forms.py:80
+#: app/main/forms.py:96 app/main/forms.py:109
 #: app/templates/main/configurar.html:192
-#: app/templates/main/configurar.html:1099 app/templates/main/guia.html:152
+#: app/templates/main/configurar.html:1107 app/templates/main/guia.html:153
 #: app/templates/usd/dashboard.html:293 app/templates/usd/dashboard.html:339
 msgid "Guardar"
 msgstr "Save"
 
-#: app/main/forms.py:49 app/templates/main/guia.html:239 app/usd/forms.py:8
+#: app/main/forms.py:50 app/templates/main/guia.html:240 app/usd/forms.py:8
 msgid "Nombre"
 msgstr "Name"
 
-#: app/main/forms.py:53
+#: app/main/forms.py:54
 #, fuzzy
 msgid "Crear Categoría"
 msgstr "Add category"
 
-#: app/main/forms.py:58 app/templates/main/guia.html:76
+#: app/main/forms.py:59 app/templates/main/guia.html:77
 msgid "Mes"
 msgstr "Month"
 
-#: app/main/forms.py:59
+#: app/main/forms.py:60
 #, fuzzy
 msgid "Monto Presupuesto"
 msgstr "No budget"
 
-#: app/main/forms.py:61
+#: app/main/forms.py:62
 #, fuzzy
 msgid "Guardar Presupuesto"
 msgstr "Create quote"
 
-#: app/main/forms.py:66
+#: app/main/forms.py:67
 #, fuzzy
 msgid "Límite mensual"
 msgstr "Monthly amount"
 
-#: app/main/forms.py:72
+#: app/main/forms.py:73
 #, fuzzy
 msgid "Nombre de la meta"
 msgstr "Fields of a goal"
 
-#: app/main/forms.py:73 app/templates/main/guia.html:240
+#: app/main/forms.py:74 app/templates/main/guia.html:241
 msgid "Monto objetivo"
 msgstr "Target amount"
 
-#: app/main/forms.py:75
+#: app/main/forms.py:76
 #, fuzzy
 msgid "Monto inicial ahorrado"
 msgstr "Amount saved"
 
-#: app/main/forms.py:77 app/templates/main/guia.html:242
+#: app/main/forms.py:78 app/templates/main/guia.html:243
 msgid "Fecha objetivo"
 msgstr "Target date"
 
-#: app/main/forms.py:90 app/templates/main/guia.html:269
+#: app/main/forms.py:91 app/templates/main/guia.html:270
 msgid "Día del mes"
 msgstr "Day of the month"
 
-#: app/main/forms.py:93 app/templates/main/guia.html:270
+#: app/main/forms.py:94 app/templates/main/guia.html:271
 msgid "Fecha de término"
 msgstr "End date"
 
-#: app/main/forms.py:94 app/templates/main/recurrentes.html:96
+#: app/main/forms.py:95 app/templates/main/guia.html:586
+#: app/templates/main/recurrentes.html:96
 msgid "Activa"
 msgstr "Active"
 
-#: app/main/forms.py:99
+#: app/main/forms.py:100
 msgid "La fecha de término no puede ser anterior al día de hoy."
 msgstr "The end date cannot be earlier than today."
 
-#: app/main/forms.py:103
+#: app/main/forms.py:104
 #, fuzzy
 msgid "Nombre del presupuesto"
 msgstr "Budget Usage"
 
-#: app/main/forms.py:106
+#: app/main/forms.py:107
 #, fuzzy
 msgid "Fecha inicio"
 msgstr "End date"
 
-#: app/main/forms.py:107
+#: app/main/forms.py:108
 #, fuzzy
 msgid "Fecha término"
 msgstr "End date"
 
-#: app/main/forms.py:113
+#: app/main/forms.py:114
 #, fuzzy
 msgid "La fecha de término debe ser posterior al inicio."
 msgstr "The end date cannot be earlier than today."
 
-#: app/main/forms.py:115 app/main/routes.py:1104
+#: app/main/forms.py:116 app/main/routes.py:1112
 msgid "El presupuesto personalizado debe estar dentro del mismo mes."
 msgstr "The personalized quote must be within the same month."
 
-#: app/main/forms.py:119
+#: app/main/forms.py:120
 #, fuzzy
 msgid "Contraseña actual"
 msgstr "Your current password"
 
 # ── Templates: reset_password.html ──
-#: app/main/forms.py:120
+#: app/main/forms.py:121
 #, fuzzy
 msgid "Nueva contraseña"
 msgstr "Choose a new password"
 
-#: app/main/forms.py:122
+#: app/main/forms.py:123
 #, fuzzy
 msgid "Confirmar nueva contraseña"
 msgstr "Confirm password"
 
-#: app/main/forms.py:125 app/templates/main/configurar.html:860
+#: app/main/forms.py:126 app/templates/main/configurar.html:868
 msgid "Cambiar Contraseña"
 msgstr "Change Password"
 
-#: app/main/forms.py:129
+#: app/main/forms.py:130
 msgid "Usar mi propio SMTP"
 msgstr ""
 
-#: app/main/forms.py:130
+#: app/main/forms.py:131
 msgid "Servidor SMTP"
 msgstr ""
 
-#: app/main/forms.py:131
+#: app/main/forms.py:132
 msgid "Puerto SMTP"
 msgstr ""
 
-#: app/main/forms.py:132
+#: app/main/forms.py:133
 #, fuzzy
 msgid "Usuario SMTP"
 msgstr "Users"
 
-#: app/main/forms.py:133
+#: app/main/forms.py:134
 #, fuzzy
 msgid "Contraseña SMTP"
 msgstr "Your current password"
 
-#: app/main/forms.py:134
+#: app/main/forms.py:135
 #, fuzzy
 msgid "Usar TLS"
 msgstr "Users"
 
-#: app/main/forms.py:135
+#: app/main/forms.py:136
 #, fuzzy
 msgid "Usar SSL"
 msgstr "Users"
 
-#: app/main/forms.py:136
+#: app/main/forms.py:137
 msgid "Email Remitente"
 msgstr ""
 
-#: app/main/forms.py:137
+#: app/main/forms.py:138
 msgid "Nombre Remitente"
 msgstr ""
 
-#: app/main/forms.py:138
+#: app/main/forms.py:139
 #, fuzzy
 msgid "Guardar Configuración SMTP"
 msgstr "Go to Settings"
 
-#: app/main/forms.py:146 app/main/forms.py:147
+#: app/main/forms.py:147 app/main/forms.py:148
 msgid "No puedes usar TLS y SSL al mismo tiempo."
 msgstr "You cannot use TLS and SSL at the same time."
 
-#: app/main/forms.py:152 app/main/forms.py:158 app/main/forms.py:161
+#: app/main/forms.py:153 app/main/forms.py:159 app/main/forms.py:162
 msgid "Requerido si SMTP está activado."
 msgstr "Required when SMTP is enabled."
 
-#: app/main/forms.py:155
+#: app/main/forms.py:156
 msgid "La contraseña es obligatoria porque no hay una guardada."
 msgstr "Password is required because none is currently saved."
 
-#: app/main/forms.py:168 app/templates/main/configurar.html:468
+#: app/main/forms.py:169 app/templates/main/configurar.html:468
 msgid "Activar IA"
 msgstr "Activate AI"
 
-#: app/main/forms.py:169 app/templates/main/guia.html:485
+#: app/main/forms.py:170 app/templates/main/guia.html:486
 msgid "Proveedor"
 msgstr "Supplier"
 
-#: app/main/forms.py:176
+#: app/main/forms.py:177
 msgid "Modelo (ej. gpt-4o, claude-3-5-sonnet-20241022)"
 msgstr ""
 
-#: app/main/forms.py:178
+#: app/main/forms.py:179
 msgid "URL base (solo OpenAI-compatible personalizado)"
 msgstr ""
 
-#: app/main/forms.py:180 app/templates/main/configurar.html:389
+#: app/main/forms.py:181 app/templates/main/configurar.html:389
 msgid "Token API"
 msgstr "API Token"
 
-#: app/main/forms.py:181
+#: app/main/forms.py:182
 msgid "Compartir mi IA con las demás cuentas"
 msgstr ""
 
-#: app/main/forms.py:182
+#: app/main/forms.py:183
 #, fuzzy
 msgid "Guardar configuración de API"
 msgstr "Account Settings"
 
-#: app/main/routes.py:244
+#: app/main/routes.py:242
 msgid "Este registro es de demostración y no puede modificarse."
 msgstr "This registry is for demonstration purposes and cannot be modified."
 
-#: app/main/routes.py:259
+#: app/main/routes.py:257
 msgid "Cuenta principal"
 msgstr "Main account"
 
-#: app/main/routes.py:260
+#: app/main/routes.py:258
 msgid "Movimientos en moneda local"
 msgstr "Movements in local currency"
 
-#: app/main/routes.py:267 app/templates/usd/dashboard.html:18
+#: app/main/routes.py:265 app/templates/usd/dashboard.html:18
 msgid "Cuenta USD"
 msgstr "USD account"
 
-#: app/main/routes.py:268
+#: app/main/routes.py:266
 msgid "Gastos en dólares"
 msgstr "Expenses in dollars"
 
-#: app/main/routes.py:276
+#: app/main/routes.py:274
 msgid "Vista unificada en moneda principal"
 msgstr "Unified view in primary currency"
 
 # ── Main routes flash ──
-#: app/main/routes.py:370
+#: app/main/routes.py:368
 #, python-format
 msgid "Año %(year)s creado."
 msgstr "Year %(year)s created."
 
-#: app/main/routes.py:394
+#: app/main/routes.py:392
 #, python-format
 msgid "Año %(year)s eliminado junto con todos sus movimientos y presupuestos."
 msgstr "Year %(year)s deleted along with all its transactions and budgets."
 
-#: app/main/routes.py:601 app/main/routes.py:650
+#: app/main/routes.py:602 app/main/routes.py:656
 #, python-format
 msgid "La fecha debe estar dentro de %(month)s %(year)s."
 msgstr "The date must be within %(month)s %(year)s."
 
-#: app/main/routes.py:609 app/main/routes.py:658
+#: app/main/routes.py:610 app/main/routes.py:664
 msgid "La categoría seleccionada no es válida."
 msgstr "The selected category is not valid."
 
-#: app/main/routes.py:611
+#: app/main/routes.py:612
 msgid "La categoría no corresponde al tipo de movimiento seleccionado."
 msgstr "The category does not match the selected transaction type."
 
-#: app/main/routes.py:622
+#: app/main/routes.py:624
 msgid "Movimiento creado exitosamente."
 msgstr "Transaction created successfully."
 
 # ── transactions.html ──
-#: app/main/routes.py:626 app/templates/main/transactions.html:12
+#: app/main/routes.py:628 app/templates/main/transactions.html:12
 msgid "Nuevo Movimiento"
 msgstr "New Transaction"
 
-#: app/main/routes.py:660
+#: app/main/routes.py:666
 msgid "La categoría no corresponde al tipo de movimiento."
 msgstr "The category does not match the transaction type."
 
-#: app/main/routes.py:668 app/usd/routes.py:169
+#: app/main/routes.py:675 app/usd/routes.py:169
 msgid "Movimiento actualizado."
 msgstr "Transaction updated."
 
-#: app/main/routes.py:672
+#: app/main/routes.py:679
 msgid "Editar Movimiento"
 msgstr "Edit Transaction"
 
-#: app/main/routes.py:686 app/usd/routes.py:182
+#: app/main/routes.py:694 app/usd/routes.py:182
 msgid "Movimiento eliminado."
 msgstr "Transaction deleted."
 
-#: app/main/routes.py:730
+#: app/main/routes.py:738
 msgid "Ya existe una categoría con ese nombre y tipo."
 msgstr "A category with that name and type already exists."
 
-#: app/main/routes.py:739 app/usd/routes.py:207
+#: app/main/routes.py:747 app/usd/routes.py:207
 msgid "Categoría creada."
 msgstr "Category created."
 
-#: app/main/routes.py:763
+#: app/main/routes.py:771
 msgid ""
 "Esta categoría pertenece a un presupuesto personalizado. Elimínalo desde "
 "la sección Presupuesto."
@@ -1014,81 +1045,81 @@ msgstr ""
 "This category belongs to a personalized quote. Delete it from the Budget "
 "section."
 
-#: app/main/routes.py:781 app/usd/routes.py:220
+#: app/main/routes.py:789 app/usd/routes.py:220
 msgid "Categoría eliminada."
 msgstr "Category removed."
 
-#: app/main/routes.py:853 app/main/routes.py:858 app/usd/routes.py:246
+#: app/main/routes.py:861 app/main/routes.py:866 app/usd/routes.py:246
 msgid "Presupuesto actualizado."
 msgstr "Budget updated."
 
-#: app/main/routes.py:868
+#: app/main/routes.py:876
 msgid "Presupuesto creado."
 msgstr "Budget created."
 
-#: app/main/routes.py:995
+#: app/main/routes.py:1003
 msgid "Presupuesto eliminado."
 msgstr "Budget eliminated."
 
-#: app/main/routes.py:1033
+#: app/main/routes.py:1041
 msgid "Presupuesto de categoría actualizado."
 msgstr "Updated category budget."
 
-#: app/main/routes.py:1035
+#: app/main/routes.py:1043
 msgid "Ya tienes el máximo de 5 presupuestos de categoría."
 msgstr "You already have the maximum of 5 category budgets."
 
-#: app/main/routes.py:1044
+#: app/main/routes.py:1052
 msgid "Presupuesto de categoría creado."
 msgstr "Category budget created."
 
-#: app/main/routes.py:1062
+#: app/main/routes.py:1070
 msgid "Presupuesto de categoría eliminado."
 msgstr "Category budget removed."
 
-#: app/main/routes.py:1082
+#: app/main/routes.py:1090
 msgid "No se puede editar un presupuesto finalizado. Queda como historial."
 msgstr "You cannot edit a finalized quote. It remains as history."
 
-#: app/main/routes.py:1096
+#: app/main/routes.py:1104
 msgid "El presupuesto personalizado debe pertenecer al mes seleccionado."
 msgstr "The personalized budget must belong to the selected month."
 
-#: app/main/routes.py:1100
+#: app/main/routes.py:1108
 msgid "La fecha de inicio no puede ser anterior a hoy."
 msgstr "The start date cannot be earlier than today."
 
-#: app/main/routes.py:1119 app/templates/main/budget.html:362
+#: app/main/routes.py:1127 app/templates/main/budget.html:362
 msgid "Ya tienes un presupuesto personalizado vigente para este mes."
 msgstr "You already have a personalized budget in effect for this month."
 
-#: app/main/routes.py:1131
+#: app/main/routes.py:1139
 #, python-format
 msgid ""
 "La fecha de inicio debe ser posterior al %(d)s (último presupuesto "
 "finalizado)."
 msgstr "The start date must be after %(d)s (last completed quote)."
 
-#: app/main/routes.py:1143
+#: app/main/routes.py:1151
 msgid "Ya existe una categoría con ese nombre. Elige otro."
 msgstr "There is already a category with that name. Choose another."
 
-#: app/main/routes.py:1154
+#: app/main/routes.py:1162
 msgid "Presupuesto personalizado actualizado."
 msgstr "Updated personalized quote."
 
-#: app/main/routes.py:1173
+#: app/main/routes.py:1181
 #, python-format
 msgid ""
 "Presupuesto personalizado creado. La categoría \"%(name)s\" fue creada "
 "automáticamente."
 msgstr "Custom quote created. The category \"%(name)s\" was created automatically."
 
-#: app/main/routes.py:1186
+#: app/main/routes.py:1194
 msgid "No se puede eliminar un presupuesto finalizado. Queda como historial."
 msgstr "You cannot delete a finalized quote. It remains as history."
 
-#: app/main/routes.py:1210
+#: app/main/routes.py:1218
 #, python-format
 msgid ""
 "Presupuesto \"%(n)s\" eliminado junto con %(tx)s movimientos y %(rec)s "
@@ -1097,66 +1128,66 @@ msgstr ""
 "Budget \"%(n)s\" deleted along with %(tx)s transactions and %(rec)s "
 "associated recurring entries."
 
-#: app/main/routes.py:1213
+#: app/main/routes.py:1221
 #, python-format
 msgid "Presupuesto y categoría \"%(n)s\" eliminados."
 msgstr "Quote and category \"%(n)s\" removed."
 
-#: app/main/routes.py:1317 app/templates/main/dashboard.html:225
+#: app/main/routes.py:1325 app/templates/main/dashboard.html:225
 #: app/templates/main/metas.html:6
 msgid "Metas de Ahorro"
 msgstr "Savings Goals"
 
-#: app/main/routes.py:1341
+#: app/main/routes.py:1349
 msgid "Meta guardada exitosamente."
 msgstr "Goal saved successfully."
 
-#: app/main/routes.py:1345 app/templates/main/meta_form.html:8
+#: app/main/routes.py:1353 app/templates/main/meta_form.html:8
 msgid "Editar Meta"
 msgstr "Edit Meta"
 
 # ── transactions.html ──
-#: app/main/routes.py:1345 app/templates/main/metas.html:8
+#: app/main/routes.py:1353 app/templates/main/metas.html:8
 msgid "Nueva Meta"
 msgstr "New Goal"
 
-#: app/main/routes.py:1356
+#: app/main/routes.py:1364
 msgid "Meta eliminada."
 msgstr "Deleted goal."
 
-#: app/main/routes.py:1365
+#: app/main/routes.py:1373
 msgid "Esta meta es de demostración y no puede modificarse."
 msgstr "This goal is for demonstration purposes and cannot be modified."
 
-#: app/main/routes.py:1370
+#: app/main/routes.py:1378
 msgid "El monto debe ser mayor a cero."
 msgstr "The amount must be greater than zero."
 
-#: app/main/routes.py:1372 app/usd/routes.py:232
+#: app/main/routes.py:1380 app/usd/routes.py:232
 msgid "Monto inválido."
 msgstr "Invalid amount."
 
-#: app/main/routes.py:1441 app/templates/base.html:76
-#: app/templates/main/guia.html:29 app/templates/main/guia.html:259
-#: app/templates/main/guia.html:261 app/templates/main/guia.html:320
+#: app/main/routes.py:1449 app/templates/base.html:76
+#: app/templates/main/guia.html:29 app/templates/main/guia.html:260
+#: app/templates/main/guia.html:262 app/templates/main/guia.html:321
 #: app/templates/main/recurrentes.html:6
 #: app/templates/main/transactions.html:209
 msgid "Recurrentes"
 msgstr "Recurring"
 
-#: app/main/routes.py:1474
+#: app/main/routes.py:1482
 msgid "La categoría no corresponde al tipo seleccionado."
 msgstr "The category does not correspond to the selected type."
 
-#: app/main/routes.py:1476
+#: app/main/routes.py:1484
 msgid "La fecha de término debe estar dentro del año de la recurrente."
 msgstr "The end date must be within the year of the recurring entry."
 
-#: app/main/routes.py:1478
+#: app/main/routes.py:1486
 msgid "La fecha de término no puede ser anterior a hoy."
 msgstr "The end date cannot be earlier than today."
 
-#: app/main/routes.py:1530
+#: app/main/routes.py:1538
 #, python-format
 msgid ""
 "Recurrente creada. Se registró el mes actual (%(date)s) y %(n)s entradas "
@@ -1165,98 +1196,108 @@ msgstr ""
 "Recurring created. Current month (%(date)s) and future %(n)s entries "
 "generated were recorded."
 
-#: app/main/routes.py:1533
+#: app/main/routes.py:1541
 #, python-format
 msgid "Recurrente creada. Se registró el mes actual (%(date)s)."
 msgstr "Recurring created. The current month (%(date)s) was registered."
 
-#: app/main/routes.py:1536
+#: app/main/routes.py:1544
 #, python-format
 msgid "Recurrente creada. %(n)s entradas generadas hasta fin de año."
 msgstr "Recurring created. %(n)s entries generated until the end of the year."
 
-#: app/main/routes.py:1538
+#: app/main/routes.py:1546
 #, python-format
 msgid "Recurrente activada. %(n)s transacciones generadas retroactivamente."
 msgstr "Recurring activated. %(n)s retroactively generated transactions."
 
-#: app/main/routes.py:1540
+#: app/main/routes.py:1548
 msgid "Transacción recurrente guardada."
 msgstr "Saved recurring transaction."
 
-#: app/main/routes.py:1559 app/templates/main/recurrente_form.html:8
+#: app/main/routes.py:1567 app/templates/main/recurrente_form.html:8
 msgid "Editar Recurrente"
 msgstr "Edit Recurring"
 
-#: app/main/routes.py:1559 app/templates/main/recurrente_form.html:8
+#: app/main/routes.py:1567 app/templates/main/recurrente_form.html:8
 #: app/templates/main/recurrentes.html:8
 msgid "Nueva Recurrente"
 msgstr "New Recurring"
 
-#: app/main/routes.py:1571
+#: app/main/routes.py:1579
 msgid "Recurrente finalizada. Ya no generará nuevos movimientos."
 msgstr "Recurring terminated. It will no longer generate new movements."
 
-#: app/main/routes.py:1626
+#: app/main/routes.py:1634
 msgid "Configuración de correo (SMTP) guardada exitosamente."
 msgstr "Email (SMTP) settings saved successfully."
 
-#: app/main/routes.py:1648
+#: app/main/routes.py:1656
 msgid "Configuración de IA guardada."
 msgstr "AI settings saved."
 
-#: app/main/routes.py:1656
+#: app/main/routes.py:1664
 msgid "Configuración de administrador guardada."
 msgstr "Administrator settings saved."
 
-#: app/main/routes.py:1671
+#: app/main/routes.py:1679
 msgid "Configuración regional guardada exitosamente."
 msgstr "Regional settings saved successfully."
 
-#: app/main/routes.py:1731 app/templates/main/configurar.html:8
+#: app/main/routes.py:1739 app/templates/main/configurar.html:8
 msgid "Configurar Cuenta"
 msgstr "Account Settings"
 
-#: app/main/routes.py:1751
+#: app/main/routes.py:1759
 msgid "Configuración de reporte semanal guardada."
 msgstr "Weekly report settings saved."
 
-#: app/main/routes.py:1786
+#: app/main/routes.py:1783
 #, python-format
-msgid "Tu reporte se está generando y se enviará a %(email)s en unos momentos."
+msgid "No se pudo generar el reporte: %(error)s"
 msgstr ""
 
-#: app/main/routes.py:1828
+#: app/main/routes.py:1788
+#, fuzzy, python-format
+msgid "Reporte enviado a %(email)s."
+msgstr "Weekly email report"
+
+#: app/main/routes.py:1791
+#, python-format
+msgid "No se pudo enviar el reporte: %(error)s"
+msgstr ""
+
+#: app/main/routes.py:1833
 msgid "Selecciona un proveedor."
 msgstr "Please select a provider."
 
-#: app/main/routes.py:1849
+#: app/main/routes.py:1854
 msgid "Conexión válida. Token y modelo correctos."
 msgstr "Connection valid. Token and model are correct."
 
-#: app/main/routes.py:1890
+#: app/main/routes.py:1895
 msgid "La contraseña actual es incorrecta."
 msgstr "The current password is incorrect."
 
-#: app/main/routes.py:1905
+#: app/main/routes.py:1910
 msgid ""
 "Contraseña actualizada correctamente. Inicia sesión con tu nueva "
 "contraseña."
 msgstr "Password updated successfully. Sign in with your new password."
 
-#: app/main/routes.py:1936
+#: app/main/routes.py:1941
 msgid "Sesión expirada. Inicia el proceso nuevamente."
 msgstr "Session expired. Start the process again."
 
-#: app/main/routes.py:1940 app/main/routes.py:1958
+#: app/main/routes.py:1945 app/main/routes.py:1963
 msgid "Código incorrecto."
 msgstr "Wrong code."
 
-#: app/main/routes.py:1990
+#: app/main/routes.py:1995
 msgid "Correo de prueba enviado correctamente. Revisa tu bandeja de entrada."
 msgstr "Test email sent successfully. Check your inbox."
 
-#: app/main/routes.py:1992
+#: app/main/routes.py:1997
 #, python-format
 msgid "Error al enviar correo de prueba: %(msg)s"
 msgstr "Error sending test email: %(msg)s"
@@ -1274,27 +1315,27 @@ msgid "No se pudo procesar el archivo HEIC. Asegúrate de que no esté dañado."
 msgstr "Could not process the HEIC file. Make sure it is not corrupted."
 
 # ── Templates: base.html ──
-#: app/templates/base.html:58 app/templates/main/guia.html:146
-#: app/templates/main/guia.html:316 app/templates/main/transactions.html:7
+#: app/templates/base.html:58 app/templates/main/guia.html:147
+#: app/templates/main/guia.html:317 app/templates/main/transactions.html:7
 #: app/templates/usd/dashboard.html:203
 msgid "Movimientos"
 msgstr "Transactions"
 
 #: app/templates/base.html:64 app/templates/main/categories.html:7
-#: app/templates/main/guia.html:26 app/templates/main/guia.html:167
-#: app/templates/main/guia.html:169 app/templates/main/guia.html:317
+#: app/templates/main/guia.html:26 app/templates/main/guia.html:168
+#: app/templates/main/guia.html:170 app/templates/main/guia.html:318
 msgid "Categorías"
 msgstr "Categories"
 
 #: app/templates/analytics/dashboard.html:225 app/templates/base.html:70
 #: app/templates/main/budget.html:7 app/templates/main/dashboard.html:49
-#: app/templates/main/guia.html:107 app/templates/main/guia.html:192
+#: app/templates/main/guia.html:108 app/templates/main/guia.html:193
 #: app/templates/usd/dashboard.html:34
 msgid "Presupuesto"
 msgstr "Budget"
 
-#: app/templates/base.html:82 app/templates/main/guia.html:233
-#: app/templates/main/guia.html:319
+#: app/templates/base.html:82 app/templates/main/guia.html:234
+#: app/templates/main/guia.html:320
 msgid "Metas"
 msgstr "Goals"
 
@@ -1311,7 +1352,7 @@ msgstr "To change the year, exit Movements"
 msgid "Crear nuevo año"
 msgstr "Create new year"
 
-#: app/templates/base.html:133 app/templates/main/guia.html:75
+#: app/templates/base.html:133 app/templates/main/guia.html:76
 msgid "Año"
 msgstr "Year"
 
@@ -1344,19 +1385,19 @@ msgstr "Year to create"
 msgid "Al crear el año la vista cambiará a Enero de ese año."
 msgstr "When creating the year, the view will change to January of that year."
 
-#: app/templates/admin/users.html:212 app/templates/base.html:219
+#: app/templates/admin/users.html:262 app/templates/base.html:219
 #: app/templates/base.html:253 app/templates/main/budget.html:81
 #: app/templates/main/budget.html:337 app/templates/main/budget.html:407
 #: app/templates/main/configurar.html:290
 #: app/templates/main/configurar.html:372
-#: app/templates/main/configurar.html:593
-#: app/templates/main/configurar.html:839
-#: app/templates/main/configurar.html:915
-#: app/templates/main/configurar.html:941 app/templates/main/guia.html:507
+#: app/templates/main/configurar.html:601
+#: app/templates/main/configurar.html:847
+#: app/templates/main/configurar.html:923
+#: app/templates/main/configurar.html:949 app/templates/main/guia.html:513
 #: app/templates/main/meta_form.html:66 app/templates/main/metas.html:195
 #: app/templates/main/recurrente_form.html:140
 #: app/templates/main/recurrentes.html:220
-#: app/templates/main/transaction_form.html:82
+#: app/templates/main/transaction_form.html:88
 #: app/templates/main/transactions.html:241
 #: app/templates/usd/dashboard.html:292 app/templates/usd/dashboard.html:338
 msgid "Cancelar"
@@ -1385,7 +1426,7 @@ msgstr ""
 msgid "Esta acción no se puede deshacer."
 msgstr "This action cannot be undone."
 
-#: app/templates/admin/users.html:154 app/templates/admin/users.html:155
+#: app/templates/admin/users.html:204 app/templates/admin/users.html:205
 #: app/templates/base.html:256 app/templates/main/budget.html:52
 #: app/templates/main/budget.html:197 app/templates/main/budget.html:307
 #: app/templates/main/budget.html:341 app/templates/main/categories.html:96
@@ -1498,80 +1539,120 @@ msgstr "Back to Settings"
 msgid "Usuarios registrados"
 msgstr "Registered users"
 
-#: app/templates/admin/users.html:54
+#: app/templates/admin/users.html:53
+msgid ""
+"El acceso a la IA solo tiene efecto si el administrador tiene activado "
+"\"Compartir mi IA\" en"
+msgstr ""
+"AI access only takes effect if the administrator has enabled \"Share my "
+"AI\" in"
+
+#: app/templates/admin/users.html:54 app/templates/main/guia.html:31
+msgid "Configuración"
+msgstr "Configuration"
+
+#: app/templates/admin/users.html:64
 msgid "Correo"
 msgstr "Email"
 
-#: app/templates/admin/users.html:55
+#: app/templates/admin/users.html:65
 msgid "Rol"
 msgstr "Role"
 
-#: app/templates/admin/users.html:56 app/templates/main/guia.html:197
-#: app/templates/main/guia.html:216 app/templates/main/recurrentes.html:68
+#: app/templates/admin/users.html:66 app/templates/main/guia.html:198
+#: app/templates/main/guia.html:217 app/templates/main/recurrentes.html:68
 msgid "Estado"
 msgstr "State"
 
-#: app/templates/admin/users.html:57 app/templates/main/configurar.html:406
-#: app/templates/main/configurar.html:1432
+#: app/templates/admin/users.html:67 app/templates/main/guia.html:587
+msgid "Acceso IA"
+msgstr "AI Access"
+
+#: app/templates/admin/users.html:68 app/templates/main/configurar.html:406
+#: app/templates/main/configurar.html:1440
 #: app/templates/main/recurrentes.html:69
 #: app/templates/main/recurrentes.html:158
 msgid "Creado"
 msgstr "Created"
 
-#: app/templates/admin/users.html:58
+#: app/templates/admin/users.html:69
 msgid "Último ingreso"
 msgstr "Last login"
 
-#: app/templates/admin/users.html:59 app/templates/main/recurrentes.html:70
+#: app/templates/admin/users.html:70 app/templates/main/recurrentes.html:70
 #: app/templates/main/transactions.html:81 app/templates/usd/dashboard.html:218
 msgid "Acciones"
 msgstr "Actions"
 
-#: app/templates/admin/users.html:72
+#: app/templates/admin/users.html:83
 msgid "Tú"
 msgstr "You"
 
-#: app/templates/admin/users.html:84
+#: app/templates/admin/users.html:95
 msgid "Admin principal"
 msgstr "Primary Admin"
 
-#: app/templates/admin/users.html:86
+#: app/templates/admin/users.html:97
 msgid "Admin"
 msgstr "Admin"
 
-#: app/templates/admin/users.html:96
+#: app/templates/admin/users.html:107
 msgid "Suspendido"
 msgstr "Suspended"
 
-#: app/templates/admin/users.html:100 app/templates/main/configurar.html:392
-#: app/templates/main/configurar.html:751
-#: app/templates/main/configurar.html:781
+#: app/templates/admin/users.html:111 app/templates/main/configurar.html:392
+#: app/templates/main/configurar.html:759
+#: app/templates/main/configurar.html:789
 msgid "Activo"
 msgstr "Asset"
 
-#: app/templates/admin/users.html:119 app/templates/main/configurar.html:408
-#: app/templates/main/configurar.html:1432
+#: app/templates/admin/users.html:124
+msgid "Habilitado"
+msgstr "Enabled"
+
+#: app/templates/admin/users.html:128
+msgid "Sin acceso"
+msgstr "No access"
+
+#: app/templates/admin/users.html:139
+msgid "Revocar acceso a IA"
+msgstr "Revoke AI access"
+
+#: app/templates/admin/users.html:140 app/templates/main/configurar.html:418
+msgid "Revocar"
+msgstr "Revoke"
+
+#: app/templates/admin/users.html:146
+msgid "Conceder acceso a IA"
+msgstr "Grant AI access"
+
+#: app/templates/admin/users.html:147
+msgid "Conceder"
+msgstr "Grant"
+
+#: app/templates/admin/users.html:169 app/templates/main/configurar.html:408
+#: app/templates/main/configurar.html:1440
 msgid "Nunca"
 msgstr "Never"
 
-#: app/templates/admin/users.html:137 app/templates/admin/users.html:138
+#: app/templates/admin/users.html:187 app/templates/admin/users.html:188
 #: app/templates/main/metas.html:155
 msgid "Reactivar"
 msgstr "Reactivate"
 
-#: app/templates/admin/users.html:143 app/templates/admin/users.html:144
+#: app/templates/admin/users.html:193 app/templates/admin/users.html:194
 msgid "Suspender"
 msgstr "Suspend"
 
-#: app/templates/admin/users.html:180
+#: app/templates/admin/users.html:230
 msgid "Eliminar usuario"
 msgstr "Delete user"
 
-#: app/templates/admin/users.html:186
+#: app/templates/admin/users.html:236
 msgid "¿Eliminar permanentemente a"
 msgstr "Permanently delete"
 
-#: app/templates/admin/users.html:192
+#: app/templates/admin/users.html:242
 msgid ""
 "Esta acción es irreversible. Se borrarán todas las transacciones, "
 "presupuestos y datos asociados a esta cuenta."
@@ -1579,11 +1660,11 @@ msgstr ""
 "This action is irreversible. All transactions, budgets and data "
 "associated with this account will be deleted."
 
-#: app/templates/admin/users.html:199
+#: app/templates/admin/users.html:249
 msgid "Confirma tu contraseña de administrador"
 msgstr "Confirm your administrator password"
 
-#: app/templates/admin/users.html:216
+#: app/templates/admin/users.html:266
 msgid "Eliminar definitivamente"
 msgstr "Delete permanently"
 
@@ -1598,7 +1679,7 @@ msgstr "Exchange rate:"
 #: app/templates/analytics/consolidated.html:26
 #: app/templates/main/categories.html:112
 #: app/templates/main/global_dashboard.html:157
-#: app/templates/main/guia.html:104 app/templates/main/guia.html:175
+#: app/templates/main/guia.html:105 app/templates/main/guia.html:176
 #: app/templates/main/transactions.html:25
 #: app/templates/partials/insights_panel.html:173
 msgid "Ingresos"
@@ -1607,7 +1688,7 @@ msgstr "Income"
 #: app/templates/analytics/consolidated.html:34
 #: app/templates/main/categories.html:111
 #: app/templates/main/global_dashboard.html:158
-#: app/templates/main/guia.html:105 app/templates/main/guia.html:174
+#: app/templates/main/guia.html:106 app/templates/main/guia.html:175
 #: app/templates/main/transactions.html:26
 #: app/templates/partials/insights_panel.html:177
 msgid "Gastos"
@@ -1618,7 +1699,7 @@ msgid "Peso"
 msgstr "Weight"
 
 #: app/templates/analytics/consolidated.html:50
-#: app/templates/main/guia.html:106
+#: app/templates/main/guia.html:107
 msgid "Balance"
 msgstr "Monthly Balance"
 
@@ -1650,8 +1731,8 @@ msgstr "No movements this month."
 msgid "Crítico"
 msgstr "Critical"
 
-#: app/templates/analytics/dashboard.html:6 app/templates/main/guia.html:200
-#: app/templates/main/guia.html:467
+#: app/templates/analytics/dashboard.html:6 app/templates/main/guia.html:201
+#: app/templates/main/guia.html:468
 msgid "Advertencia"
 msgstr "Warning"
 
@@ -1863,7 +1944,7 @@ msgstr "Acceptable"
 msgid "Saludable"
 msgstr "Healthy"
 
-#: app/templates/analytics/dashboard.html:199 app/templates/main/guia.html:436
+#: app/templates/analytics/dashboard.html:199 app/templates/main/guia.html:437
 #: app/templates/partials/insights_panel.html:126
 msgid "Salud financiera"
 msgstr "Financial health"
@@ -1992,8 +2073,8 @@ msgid "¿Olvidaste tu contraseña?"
 msgstr "Forgot your password?"
 
 #: app/templates/auth/login.html:59 app/templates/auth/login.html:79
-#: app/templates/auth/login.html:196 app/templates/main/guia.html:544
-#: app/templates/main/guia.html:548
+#: app/templates/auth/login.html:196 app/templates/main/guia.html:550
+#: app/templates/main/guia.html:554
 msgid "Ingresar con PIN"
 msgstr "Sign in with PIN"
 
@@ -2154,7 +2235,7 @@ msgstr "Monthly amount"
 
 #: app/templates/main/budget.html:45 app/templates/main/budget.html:188
 #: app/templates/main/budget.html:302 app/templates/main/budget.html:303
-#: app/templates/main/guia.html:507 app/templates/main/metas.html:104
+#: app/templates/main/guia.html:513 app/templates/main/metas.html:104
 #: app/templates/main/recurrentes.html:109
 #: app/templates/main/transactions.html:123
 msgid "Editar"
@@ -2254,7 +2335,7 @@ msgstr "Range within the selected month · from today · one per month"
 msgid "Historial de presupuestos personalizados finalizados"
 msgstr "History of completed custom quotes"
 
-#: app/templates/main/budget.html:256 app/templates/main/guia.html:219
+#: app/templates/main/budget.html:256 app/templates/main/guia.html:220
 msgid "Finalizado"
 msgstr "Finalized"
 
@@ -2279,7 +2360,7 @@ msgstr "Category: %(name)s"
 msgid "Presupuesto total"
 msgstr "Total budget"
 
-#: app/templates/main/budget.html:310 app/templates/main/guia.html:218
+#: app/templates/main/budget.html:310 app/templates/main/guia.html:219
 msgid "Vigente"
 msgstr "Current"
 
@@ -2561,7 +2642,7 @@ msgid "Confirmar contraseña"
 msgstr "Confirm password"
 
 #: app/templates/main/configurar.html:293
-#: app/templates/main/configurar.html:1952
+#: app/templates/main/configurar.html:1960
 msgid "Descargar respaldo"
 msgstr "Download backup"
 
@@ -2611,17 +2692,13 @@ msgstr ""
 "user."
 
 #: app/templates/main/configurar.html:408
-#: app/templates/main/configurar.html:1432
+#: app/templates/main/configurar.html:1440
 msgid "Último uso"
 msgstr "Last use"
 
 #: app/templates/main/configurar.html:415
 msgid "Regenerar"
 msgstr "Regenerate"
-
-#: app/templates/main/configurar.html:418
-msgid "Revocar"
-msgstr "Revoke"
 
 #: app/templates/main/configurar.html:425
 msgid "Generar Token"
@@ -2669,18 +2746,22 @@ msgid "Clave de IA compartida"
 msgstr "Shared AI key"
 
 #: app/templates/main/configurar.html:497
-msgid "El administrador está compartiendo su IA"
-msgstr "The administrator is sharing their AI"
+msgid "Tienes acceso a la IA compartida del administrador"
+msgstr "You have access to the administrator's shared AI"
 
 #: app/templates/main/configurar.html:503
+msgid "El administrador comparte su IA, pero no te ha habilitado el acceso"
+msgstr "The administrator shares their AI, but has not enabled access for you"
+
+#: app/templates/main/configurar.html:509
 msgid "El administrador no comparte su IA"
 msgstr "The administrator is not sharing their AI"
 
-#: app/templates/main/configurar.html:507
+#: app/templates/main/configurar.html:513
 msgid "Si configuras tu propia IA, se usará tu clave."
 msgstr "If you configure your own AI, your key will be used."
 
-#: app/templates/main/configurar.html:509
+#: app/templates/main/configurar.html:515
 msgid ""
 "Si no la configuras, se usará automáticamente la clave del administrador "
 "y podrás activar Telegram."
@@ -2688,24 +2769,28 @@ msgstr ""
 "If you don't configure it, the administrator's key will be used "
 "automatically and you'll be able to activate Telegram."
 
-#: app/templates/main/configurar.html:511
+#: app/templates/main/configurar.html:517
 msgid "Si no la configuras, no podrás activar Telegram."
 msgstr "If you don't configure it, you won't be able to activate Telegram."
 
-#: app/templates/main/configurar.html:532
-msgid ""
-"Si lo activas, las cuentas verificadas que no tengan su propia IA "
-"configurada podrán usar tu clave para procesar recibos. Cada consulta "
-"consume tu cuota del proveedor."
-msgstr ""
-"If you enable it, verified accounts without their own AI configured can "
-"use your key to process receipts. Each request uses your provider quota."
+#: app/templates/main/configurar.html:538
+msgid "Activa el acceso compartido a tu clave de IA. Luego, desde"
+msgstr "Enable shared access to your AI key. Then, from"
 
-#: app/templates/main/configurar.html:548
+#: app/templates/main/configurar.html:540
+#, fuzzy
+msgid ""
+"habilita individualmente a qué cuentas les permites usar tu clave. Cada "
+"consulta consume tu cuota del proveedor."
+msgstr ""
+", individually enable which accounts can use your key. Each request uses "
+"your provider quota."
+
+#: app/templates/main/configurar.html:556
 msgid "ej. gpt-4o"
 msgstr "e.g. gpt-4o"
 
-#: app/templates/main/configurar.html:551
+#: app/templates/main/configurar.html:559
 msgid ""
 "El modelo debe soportar imágenes (multimodal). Ej: gpt-4o, "
 "claude-3-5-sonnet, gemini-1.5-flash."
@@ -2713,11 +2798,11 @@ msgstr ""
 "The model must support images (multimodal). E.g.: gpt-4o, "
 "claude-3-5-sonnet, gemini-1.5-flash."
 
-#: app/templates/main/configurar.html:558
+#: app/templates/main/configurar.html:566
 msgid "https://api.openai.com/v1  (dejar vacío para usar el default)"
 msgstr "https://api.openai.com/v1 (leave empty to use the default)"
 
-#: app/templates/main/configurar.html:559
+#: app/templates/main/configurar.html:567
 msgid ""
 "Solo para proveedores compatibles con OpenAI (OpenAI, DeepSeek, "
 "OpenRouter). Dejar vacío usa la URL oficial."
@@ -2725,11 +2810,11 @@ msgstr ""
 "Only for OpenAI compatible providers (OpenAI, DeepSeek, OpenRouter). "
 "Leave empty use the official URL."
 
-#: app/templates/main/configurar.html:576
+#: app/templates/main/configurar.html:584
 msgid "Cambiar"
 msgstr "Change"
 
-#: app/templates/main/configurar.html:580
+#: app/templates/main/configurar.html:588
 msgid ""
 "Token guardado. Usa \"Probar conexión\" para verificarlo o \"Cambiar\" "
 "para reemplazarlo."
@@ -2737,54 +2822,54 @@ msgstr ""
 "Saved token. Use \"Test Connection\" to verify it or \"Change\" to "
 "replace it."
 
-#: app/templates/main/configurar.html:588
+#: app/templates/main/configurar.html:596
 msgid "Ingresa el nuevo token y guarda. Deja vacío para conservar el actual."
 msgstr "Enter the new token and save. Leave empty to keep the current one."
 
-#: app/templates/main/configurar.html:601
+#: app/templates/main/configurar.html:609
 msgid "Tu token de API del proveedor seleccionado. Se guarda cifrado."
 msgstr "Your API token from the selected provider. It is saved encrypted."
 
 # ── Scanner AI ──
-#: app/templates/main/configurar.html:612
+#: app/templates/main/configurar.html:620
 msgid "Probar conexión"
 msgstr "Test connection"
 
-#: app/templates/main/configurar.html:627
+#: app/templates/main/configurar.html:635
 msgid "Paso 2"
 msgstr "Step 2"
 
-#: app/templates/main/configurar.html:630
-#: app/templates/main/configurar.html:710
-#: app/templates/main/configurar.html:1841
+#: app/templates/main/configurar.html:638
+#: app/templates/main/configurar.html:718
+#: app/templates/main/configurar.html:1849
 msgid "Activar Telegram"
 msgstr "Activate Telegram"
 
-#: app/templates/main/configurar.html:634
+#: app/templates/main/configurar.html:642
 msgid "Bot vinculado"
 msgstr "Bot linked"
 
-#: app/templates/main/configurar.html:643
+#: app/templates/main/configurar.html:651
 msgid "Esta función no está disponible en esta instancia."
 msgstr "This feature is not available in this instance."
 
-#: app/templates/main/configurar.html:647
+#: app/templates/main/configurar.html:655
 msgid "Para habilitarla, define"
 msgstr "To enable it, define"
 
-#: app/templates/main/configurar.html:647
+#: app/templates/main/configurar.html:655
 msgid "y"
 msgstr ""
 
-#: app/templates/main/configurar.html:647
+#: app/templates/main/configurar.html:655
 msgid "en las variables de entorno del servidor."
 msgstr "in the server environment variables."
 
-#: app/templates/main/configurar.html:650
+#: app/templates/main/configurar.html:658
 msgid "Contacta al administrador para habilitarla."
 msgstr "Contact the administrator to enable it."
 
-#: app/templates/main/configurar.html:663
+#: app/templates/main/configurar.html:671
 msgid ""
 "La IA está desactivada; el bot no podrá procesar mensajes hasta "
 "reactivarla."
@@ -2792,53 +2877,53 @@ msgstr ""
 "AI is disabled; the bot will not be able to process messages until you "
 "reactivate it."
 
-#: app/templates/main/configurar.html:671
+#: app/templates/main/configurar.html:679
 msgid "Cuenta vinculada"
 msgstr "Account linked"
 
-#: app/templates/main/configurar.html:673
+#: app/templates/main/configurar.html:681
 #: app/templates/main/global_dashboard.html:24
 msgid "Desde"
 msgstr "From"
 
-#: app/templates/main/configurar.html:686
+#: app/templates/main/configurar.html:694
 msgid "Registrar también transacciones en dólares (USD)"
 msgstr ""
 
-#: app/templates/main/configurar.html:692
+#: app/templates/main/configurar.html:700
 msgid "Desvincular Telegram"
 msgstr "Unlink Telegram"
 
-#: app/templates/main/configurar.html:702
+#: app/templates/main/configurar.html:710
 msgid "Activa la IA (Paso 1) para desbloquear tu bot de Telegram."
 msgstr "Activate AI (Step 1) to unlock your Telegram bot."
 
-#: app/templates/main/configurar.html:716
+#: app/templates/main/configurar.html:724
 msgid "Pulsa el enlace para abrir el bot en Telegram:"
 msgstr "Click the link to open the bot in Telegram:"
 
-#: app/templates/main/configurar.html:720
+#: app/templates/main/configurar.html:728
 msgid "Abrir en Telegram"
 msgstr "Open in Telegram"
 
-#: app/templates/main/configurar.html:724
+#: app/templates/main/configurar.html:732
 msgid "Pulsa \"Iniciar\" en el chat. El código expira en 10 minutos."
 msgstr "Click \"Start\" in the chat. The code expires in 10 minutes."
 
-#: app/templates/main/configurar.html:742
+#: app/templates/main/configurar.html:750
 msgid "Seguridad"
 msgstr "Security"
 
-#: app/templates/main/configurar.html:749
+#: app/templates/main/configurar.html:757
 msgid "Autenticación en dos pasos (MFA)"
 msgstr "Two-Step Authentication (MFA)"
 
-#: app/templates/main/configurar.html:754
-#: app/templates/main/configurar.html:783
+#: app/templates/main/configurar.html:762
+#: app/templates/main/configurar.html:791
 msgid "Inactivo"
 msgstr "Idle"
 
-#: app/templates/main/configurar.html:758
+#: app/templates/main/configurar.html:766
 msgid ""
 "Protege tu cuenta con un código adicional generado por Google "
 "Authenticator, Authy u otra\n"
@@ -2848,22 +2933,22 @@ msgstr ""
 "Authenticator, Authy or another\n"
 "                    TOTP application."
 
-#: app/templates/main/configurar.html:764
-#: app/templates/main/configurar.html:930
+#: app/templates/main/configurar.html:772
+#: app/templates/main/configurar.html:938
 msgid "Desactivar MFA"
 msgstr "Turn off MFA"
 
-#: app/templates/main/configurar.html:768
+#: app/templates/main/configurar.html:776
 msgid "Activar MFA"
 msgstr "Activate MFA"
 
-#: app/templates/main/configurar.html:779 app/templates/main/guia.html:34
-#: app/templates/main/guia.html:412 app/templates/main/guia.html:525
+#: app/templates/main/configurar.html:787 app/templates/main/guia.html:34
+#: app/templates/main/guia.html:413 app/templates/main/guia.html:531
 #: app/templates/partials/announcements/v2_5.html:24
 msgid "PIN de acceso rápido"
 msgstr "Quick-access PIN"
 
-#: app/templates/main/configurar.html:787
+#: app/templates/main/configurar.html:795
 msgid ""
 "Inicia sesión en este dispositivo con un PIN de 8 dígitos. Más rápido "
 "pero menos seguro que tu contraseña — úsalo bajo tu propio criterio. "
@@ -2872,57 +2957,57 @@ msgstr ""
 "Log in on this device with an 8-digit PIN. Faster but less secure than "
 "your password — use at your own discretion. Available on mobile only."
 
-#: app/templates/main/configurar.html:798
+#: app/templates/main/configurar.html:806
 msgid "PIN de 8 dígitos"
 msgstr "8-digit PIN"
 
-#: app/templates/main/configurar.html:805
+#: app/templates/main/configurar.html:813
 msgid "Confirmar PIN"
 msgstr "Confirm PIN"
 
-#: app/templates/main/configurar.html:809
+#: app/templates/main/configurar.html:817
 msgid "Los PIN no coinciden."
 msgstr "PINs do not match."
 
-#: app/templates/main/configurar.html:812
+#: app/templates/main/configurar.html:820
 msgid "Cambiar PIN"
 msgstr "Change PIN"
 
-#: app/templates/main/configurar.html:812
+#: app/templates/main/configurar.html:820
 msgid "Configurar PIN"
 msgstr "Set up PIN"
 
-#: app/templates/main/configurar.html:816
+#: app/templates/main/configurar.html:824
 msgid "Eliminar PIN"
 msgstr "Remove PIN"
 
-#: app/templates/main/configurar.html:827
+#: app/templates/main/configurar.html:835
 msgid "Confirma tu contraseña para continuar."
 msgstr "Confirm your password to continue."
 
-#: app/templates/main/configurar.html:832
+#: app/templates/main/configurar.html:840
 msgid "Tu contraseña actual"
 msgstr "Your current password"
 
-#: app/templates/main/configurar.html:836
+#: app/templates/main/configurar.html:844
 msgid "Continuar"
 msgstr "Continue"
 
-#: app/templates/main/configurar.html:850
+#: app/templates/main/configurar.html:858
 msgid ""
 "Activa la verificación en dos pasos (MFA) para poder usar el PIN de "
 "acceso rápido."
 msgstr "Enable two-step verification (MFA) to use the quick-access PIN."
 
-#: app/templates/main/configurar.html:862
+#: app/templates/main/configurar.html:870
 msgid "Al guardar se cerrará la sesión automáticamente."
 msgstr "Saving will automatically log you out."
 
-#: app/templates/main/configurar.html:875
+#: app/templates/main/configurar.html:883
 msgid "Mín. 10 caracteres, mayúscula, minúscula, número y carácter especial."
 msgstr "Min. 10 characters, uppercase, lowercase, number and special character."
 
-#: app/templates/main/configurar.html:893
+#: app/templates/main/configurar.html:901
 msgid ""
 "Activar\n"
 "                            autenticación en dos pasos"
@@ -2930,7 +3015,7 @@ msgstr ""
 "Activate\n"
 "                            two-step authentication"
 
-#: app/templates/main/configurar.html:898
+#: app/templates/main/configurar.html:906
 msgid ""
 "Escanea este código QR con tu aplicación autenticadora y\n"
 "                            luego ingresa el código de 6 dígitos para "
@@ -2939,15 +3024,15 @@ msgstr ""
 "Scan this QR code with your authenticator app and\n"
 "                            then enter the 6-digit code to confirm."
 
-#: app/templates/main/configurar.html:903
+#: app/templates/main/configurar.html:911
 msgid "¿No puedes escanear? Ingresa esta clave manualmente:"
 msgstr "Can't scan? Enter this password manually:"
 
-#: app/templates/main/configurar.html:918
+#: app/templates/main/configurar.html:926
 msgid "Confirmar y activar"
 msgstr "Confirm and activate"
 
-#: app/templates/main/configurar.html:934
+#: app/templates/main/configurar.html:942
 msgid ""
 "Ingresa el código actual de tu aplicación autenticadora\n"
 "                            para desactivar la protección."
@@ -2955,11 +3040,11 @@ msgstr ""
 "Enter the current code of your authenticator application\n"
 "                            to disable protection."
 
-#: app/templates/main/configurar.html:944
+#: app/templates/main/configurar.html:952
 msgid "Desactivar"
 msgstr "Deactivate"
 
-#: app/templates/main/configurar.html:954
+#: app/templates/main/configurar.html:962
 msgid ""
 "Configuración de correo\n"
 "                    (SMTP)"
@@ -2967,7 +3052,7 @@ msgstr ""
 "Mail settings\n"
 "                    (SMTP)"
 
-#: app/templates/main/configurar.html:956
+#: app/templates/main/configurar.html:964
 msgid ""
 "Permite enviar correos desde tu propia cuenta, como recordatorios\n"
 "                    o recuperación de contraseña."
@@ -2975,11 +3060,11 @@ msgstr ""
 "Allows you to send emails from your own account, as reminders\n"
 "                    or password recovery."
 
-#: app/templates/main/configurar.html:963
+#: app/templates/main/configurar.html:971
 msgid "¿Cómo funciona la recuperación de contraseña?"
 msgstr "How does password recovery work?"
 
-#: app/templates/main/configurar.html:967
+#: app/templates/main/configurar.html:975
 msgid ""
 "Si activas tu propio SMTP, tus correos de recuperación se enviarán desde "
 "tu cuenta."
@@ -2987,7 +3072,7 @@ msgstr ""
 "If you activate your own SMTP, your recovery emails will be sent from "
 "your account."
 
-#: app/templates/main/configurar.html:969
+#: app/templates/main/configurar.html:977
 msgid ""
 "Si no lo activas, el sistema usará automáticamente el\n"
 "                            SMTP del administrador para enviarte el "
@@ -2997,7 +3082,7 @@ msgstr ""
 "                            SMTP from the administrator to send you the "
 "email (without the need for you to configure anything)."
 
-#: app/templates/main/configurar.html:971
+#: app/templates/main/configurar.html:979
 msgid ""
 "Si no lo activas y el administrador no tiene SMTP configurado, la\n"
 "                            recuperación por correo no estará disponible."
@@ -3006,37 +3091,37 @@ msgstr ""
 "configured, the\n"
 "                            recovery by mail will not be available."
 
-#: app/templates/main/configurar.html:992
+#: app/templates/main/configurar.html:1000
 msgid "ej. smtp.gmail.com"
 msgstr "e.g. smtp.gmail.com"
 
-#: app/templates/main/configurar.html:1016
+#: app/templates/main/configurar.html:1024
 #, fuzzy
 msgid "Contraseña guardada — deja en blanco para conservarla"
 msgstr "Enter the new token and save. Leave empty to keep the current one."
 
-#: app/templates/main/configurar.html:1022
+#: app/templates/main/configurar.html:1030
 msgid "Usa contraseñas de aplicación si es Gmail."
 msgstr "Use app passwords if using Gmail."
 
-#: app/templates/main/configurar.html:1053
+#: app/templates/main/configurar.html:1061
 msgid "SSL → puerto 465 · TLS (STARTTLS) → puerto 587. Solo activa uno a la vez."
 msgstr ""
 
-#: app/templates/main/configurar.html:1069
+#: app/templates/main/configurar.html:1077
 #, python-format
 msgid "Enviar correo de prueba a %(email)s"
 msgstr "Send test email to %(email)s"
 
-#: app/templates/main/configurar.html:1073
+#: app/templates/main/configurar.html:1081
 msgid "Utilizará los ajustes guardados."
 msgstr "Will use the saved settings."
 
-#: app/templates/main/configurar.html:1082
+#: app/templates/main/configurar.html:1090
 msgid "Reporte semanal por email"
 msgstr "Weekly email report"
 
-#: app/templates/main/configurar.html:1085
+#: app/templates/main/configurar.html:1093
 msgid ""
 "Recibe tu resumen Excel todos los lunes a las 10:00 AM (UTC). Incluye "
 "únicamente el mes en curso."
@@ -3044,19 +3129,19 @@ msgstr ""
 "Get your Excel summary every Monday at 10:00 AM (UTC). Includes the "
 "current month only."
 
-#: app/templates/main/configurar.html:1095
+#: app/templates/main/configurar.html:1103
 msgid "Activar reporte semanal"
 msgstr "Activate weekly report"
 
-#: app/templates/main/configurar.html:1109
+#: app/templates/main/configurar.html:1117
 msgid "Enviar ahora"
 msgstr "Send now"
 
-#: app/templates/main/configurar.html:1112
+#: app/templates/main/configurar.html:1120
 msgid "Genera y envía el Excel del mes en curso a"
 msgstr "Generates and sends the current month's Excel to"
 
-#: app/templates/main/configurar.html:1120
+#: app/templates/main/configurar.html:1128
 msgid ""
 "Para enviar reportes necesitas configurar un SMTP (propio o del "
 "administrador)."
@@ -3064,23 +3149,23 @@ msgstr ""
 "To send reports you need to configure an SMTP (your own or the "
 "administrator's)."
 
-#: app/templates/main/configurar.html:1127
+#: app/templates/main/configurar.html:1135
 msgid "Recuperación activa — SMTP propio"
 msgstr "Active Recovery — Own SMTP"
 
-#: app/templates/main/configurar.html:1131
+#: app/templates/main/configurar.html:1139
 msgid "Recuperación activa — vía administrador"
 msgstr "Active recovery — via administrator"
 
-#: app/templates/main/configurar.html:1135
+#: app/templates/main/configurar.html:1143
 msgid "Recuperación por correo: no disponible"
 msgstr "Recovery by mail: not available"
 
-#: app/templates/main/configurar.html:1147
+#: app/templates/main/configurar.html:1155
 msgid "Ayuda Progresiva"
 msgstr "Progressive Help"
 
-#: app/templates/main/configurar.html:1152
+#: app/templates/main/configurar.html:1160
 msgid ""
 "Cuando está activa, los formularios muestran íconos de ayuda con "
 "explicaciones contextuales\n"
@@ -3089,15 +3174,15 @@ msgstr ""
 "When active, forms display help icons with contextual explanations\n"
 "                    about each field."
 
-#: app/templates/main/configurar.html:1161
+#: app/templates/main/configurar.html:1169
 msgid "Mostrar íconos de ayuda en formularios"
 msgstr "Show help icons on forms"
 
-#: app/templates/main/configurar.html:1173 app/templates/main/guia.html:372
+#: app/templates/main/configurar.html:1181 app/templates/main/guia.html:373
 msgid "Panel de Insights"
 msgstr "Insights Dashboard"
 
-#: app/templates/main/configurar.html:1178
+#: app/templates/main/configurar.html:1186
 msgid ""
 "Muestra Salud financiera, Proyección de cierre y Alertas en el dashboard "
 "mensual."
@@ -3105,15 +3190,15 @@ msgstr ""
 "Shows Financial Health, Closing Projection and Alerts on the monthly "
 "dashboard."
 
-#: app/templates/main/configurar.html:1187
+#: app/templates/main/configurar.html:1195
 msgid "Activar panel de insights"
 msgstr "Activate insights panel"
 
-#: app/templates/main/configurar.html:1197
+#: app/templates/main/configurar.html:1205
 msgid "Datos Demo"
 msgstr "Demo Data"
 
-#: app/templates/main/configurar.html:1202
+#: app/templates/main/configurar.html:1210
 msgid ""
 "Carga transacciones de ejemplo para explorar los dashboards sin ingresar "
 "datos reales. Puedes\n"
@@ -3124,55 +3209,55 @@ msgstr ""
 "data. You can\n"
 "                    delete them at any time without affecting your data."
 
-#: app/templates/main/configurar.html:1210 app/templates/main/guia.html:25
-#: app/templates/main/guia.html:144
+#: app/templates/main/configurar.html:1218 app/templates/main/guia.html:25
+#: app/templates/main/guia.html:145
 msgid "Transacciones"
 msgstr "Transactions"
 
-#: app/templates/main/configurar.html:1214
+#: app/templates/main/configurar.html:1222
 msgid "Total gastos"
 msgstr "Total expenses"
 
-#: app/templates/main/configurar.html:1218 app/templates/main/guia.html:314
-#: app/templates/main/guia.html:315 app/templates/main/guia.html:316
-#: app/templates/main/guia.html:317 app/templates/main/guia.html:318
-#: app/templates/main/guia.html:321
+#: app/templates/main/configurar.html:1226 app/templates/main/guia.html:315
+#: app/templates/main/guia.html:316 app/templates/main/guia.html:317
+#: app/templates/main/guia.html:318 app/templates/main/guia.html:319
+#: app/templates/main/guia.html:322
 msgid "Período"
 msgstr "Period"
 
-#: app/templates/main/configurar.html:1225
-#: app/templates/main/configurar.html:1305
+#: app/templates/main/configurar.html:1233
+#: app/templates/main/configurar.html:1313
 msgid "Cargar demo"
 msgstr "Load demo"
 
-#: app/templates/main/configurar.html:1228
+#: app/templates/main/configurar.html:1236
 msgid "Resetear demo"
 msgstr "Reset demo"
 
-#: app/templates/main/configurar.html:1302
+#: app/templates/main/configurar.html:1310
 msgid "Cargado"
 msgstr "Loaded"
 
-#: app/templates/main/configurar.html:1303
+#: app/templates/main/configurar.html:1311
 msgid "No cargado"
 msgstr "Not loaded"
 
-#: app/templates/main/configurar.html:1304
+#: app/templates/main/configurar.html:1312
 msgid "Cargando…"
 msgstr "Loading…"
 
-#: app/templates/main/configurar.html:1306
-#: app/templates/main/configurar.html:1660
-#: app/templates/main/configurar.html:1844
-#: app/templates/main/configurar.html:1873
+#: app/templates/main/configurar.html:1314
+#: app/templates/main/configurar.html:1668
+#: app/templates/main/configurar.html:1852
+#: app/templates/main/configurar.html:1881
 msgid "Error de conexión."
 msgstr "Connection error."
 
-#: app/templates/main/configurar.html:1307
+#: app/templates/main/configurar.html:1315
 msgid "Se cargarán datos demo y se cerrará tu sesión. ¿Continuar?"
 msgstr "Demo data will be loaded and your session will be closed. Continue?"
 
-#: app/templates/main/configurar.html:1308
+#: app/templates/main/configurar.html:1316
 msgid ""
 "¿Eliminar todos los datos demo? Se cerrará tu sesión. Esta acción no se "
 "puede deshacer."
@@ -3180,15 +3265,15 @@ msgstr ""
 "Delete all demo data? Your session will be closed. This action cannot be "
 "undone."
 
-#: app/templates/main/configurar.html:1309
+#: app/templates/main/configurar.html:1317
 msgid "Cerrando sesión…"
 msgstr "Signing out…"
 
-#: app/templates/main/configurar.html:1439
+#: app/templates/main/configurar.html:1447
 msgid "Error al generar el token."
 msgstr "Error generating token."
 
-#: app/templates/main/configurar.html:1447
+#: app/templates/main/configurar.html:1455
 msgid ""
 "¿Seguro que quieres revocar el token? Los agentes que lo usen perderán "
 "acceso."
@@ -3196,73 +3281,73 @@ msgstr ""
 "Are you sure you want to revoke the token? Agents using it will lose "
 "access."
 
-#: app/templates/main/configurar.html:1455
+#: app/templates/main/configurar.html:1463
 msgid "Error al revocar el token."
 msgstr "Error revoking token."
 
-#: app/templates/main/configurar.html:1496
+#: app/templates/main/configurar.html:1504
 msgid "Error al generar el QR."
 msgstr "Error generating the QR."
 
-#: app/templates/main/configurar.html:1508
-#: app/templates/main/configurar.html:1521
-#: app/templates/main/configurar.html:1794
-#: app/templates/main/configurar.html:1800 app/templates/main/metas.html:296
+#: app/templates/main/configurar.html:1516
+#: app/templates/main/configurar.html:1529
+#: app/templates/main/configurar.html:1802
+#: app/templates/main/configurar.html:1808 app/templates/main/metas.html:296
 msgid "Error."
 msgstr "Mistake."
 
-#: app/templates/main/configurar.html:1605
+#: app/templates/main/configurar.html:1613
 msgid "Modelo recomendado: "
 msgstr "Recommended model:"
 
-#: app/templates/main/configurar.html:1620
+#: app/templates/main/configurar.html:1628
 msgid "Guarda el nuevo token primero para probarlo."
 msgstr "Save the new token first to test it."
 
-#: app/templates/main/configurar.html:1739
+#: app/templates/main/configurar.html:1747
 msgid "El PIN debe tener exactamente 8 dígitos."
 msgstr "The PIN must be exactly 8 digits."
 
-#: app/templates/main/configurar.html:1762
+#: app/templates/main/configurar.html:1770
 #, fuzzy
 msgid "Escribe tu contraseña."
 msgstr "Enter your password."
 
-#: app/templates/main/configurar.html:1767
+#: app/templates/main/configurar.html:1775
 msgid "Guardando…"
 msgstr "Saving…"
 
-#: app/templates/main/configurar.html:1801
-#: app/templates/main/configurar.html:1802
+#: app/templates/main/configurar.html:1809
+#: app/templates/main/configurar.html:1810
 msgid "Contraseña incorrecta."
 msgstr "Incorrect password."
 
-#: app/templates/main/configurar.html:1829
+#: app/templates/main/configurar.html:1837
 msgid "Primero activa la IA (Paso 1)."
 msgstr "First activate AI (Step 1)."
 
-#: app/templates/main/configurar.html:1835
+#: app/templates/main/configurar.html:1843
 msgid "El código expira en"
 msgstr "The code expires in"
 
-#: app/templates/main/configurar.html:1835
+#: app/templates/main/configurar.html:1843
 msgid "minutos."
 msgstr "minutes."
 
-#: app/templates/main/configurar.html:1838
+#: app/templates/main/configurar.html:1846
 msgid "Error al generar el código."
 msgstr "Error generating the code."
 
-#: app/templates/main/configurar.html:1867
+#: app/templates/main/configurar.html:1875
 #, fuzzy
 msgid "Error al guardar la configuración."
 msgstr "Save Settings"
 
-#: app/templates/main/configurar.html:1879
+#: app/templates/main/configurar.html:1887
 msgid "¿Desvincular tu cuenta de Telegram?"
 msgstr "Unlink your Telegram account?"
 
-#: app/templates/main/configurar.html:1948
+#: app/templates/main/configurar.html:1956
 msgid "Generando…"
 msgstr "Generating…"
 
@@ -3421,89 +3506,89 @@ msgstr "Cumulative totals by year"
 msgid "Sin datos disponibles."
 msgstr "No data available."
 
-#: app/templates/main/guia.html:17 app/templates/main/guia.html:311
+#: app/templates/main/guia.html:17 app/templates/main/guia.html:312
 msgid "Contenido"
 msgstr "Content"
 
-#: app/templates/main/guia.html:21 app/templates/main/guia.html:48
+#: app/templates/main/guia.html:21 app/templates/main/guia.html:49
 msgid "Conceptos básicos"
 msgstr "Basics"
 
-#: app/templates/main/guia.html:22 app/templates/main/guia.html:71
+#: app/templates/main/guia.html:22 app/templates/main/guia.html:72
 msgid "Selección de período"
 msgstr "Period selection"
 
 # ── global_dashboard.html ──
-#: app/templates/main/guia.html:23 app/templates/main/guia.html:96
+#: app/templates/main/guia.html:23 app/templates/main/guia.html:97
 msgid "Dashboard mensual"
 msgstr "Monthly Dashboard"
 
 # ── global_dashboard.html ──
-#: app/templates/main/guia.html:24 app/templates/main/guia.html:129
+#: app/templates/main/guia.html:24 app/templates/main/guia.html:130
 msgid "Dashboard global"
 msgstr "Global Dashboard"
 
-#: app/templates/main/guia.html:27 app/templates/main/guia.html:190
-#: app/templates/main/guia.html:318
+#: app/templates/main/guia.html:27 app/templates/main/guia.html:191
+#: app/templates/main/guia.html:319
 msgid "Presupuestos"
 msgstr "Budgets"
 
-#: app/templates/main/guia.html:28 app/templates/main/guia.html:110
-#: app/templates/main/guia.html:231
+#: app/templates/main/guia.html:28 app/templates/main/guia.html:111
+#: app/templates/main/guia.html:232
 msgid "Metas de ahorro"
 msgstr "Savings goals"
 
-#: app/templates/main/guia.html:30 app/templates/main/guia.html:300
+#: app/templates/main/guia.html:30 app/templates/main/guia.html:301
 msgid "Exportar a Excel"
 msgstr "Export to Excel"
 
-#: app/templates/main/guia.html:31
-msgid "Configuración"
-msgstr "Configuration"
-
-#: app/templates/main/guia.html:32 app/templates/main/guia.html:111
-#: app/templates/main/guia.html:423
+#: app/templates/main/guia.html:32 app/templates/main/guia.html:112
+#: app/templates/main/guia.html:424
 #: app/templates/partials/announcements/v2_5.html:29
 #: app/templates/partials/announcements/v2_6.html:29
 msgid "Panel de analítica"
 msgstr "Analytics Dashboard"
 
-#: app/templates/main/guia.html:33 app/templates/main/guia.html:404
-#: app/templates/main/guia.html:476
+#: app/templates/main/guia.html:33 app/templates/main/guia.html:405
+#: app/templates/main/guia.html:477
 #, fuzzy
 msgid "IA · Telegram"
 msgstr "Open in Telegram"
 
-#: app/templates/main/guia.html:35 app/templates/main/guia.html:563
+#: app/templates/main/guia.html:35 app/templates/main/guia.html:569
 #: app/templates/partials/announcements/v2_6.html:24
 msgid "Bot de Telegram"
 msgstr "Telegram Bot"
 
-#: app/templates/main/guia.html:36 app/templates/main/guia.html:617
+#: app/templates/main/guia.html:36 app/templates/main/guia.html:628
+msgid "Excluir un movimiento del presupuesto"
+msgstr "Exclude a transaction from the budget"
+
+#: app/templates/main/guia.html:37 app/templates/main/guia.html:655
 msgid "Preguntas frecuentes"
 msgstr "Frequently asked questions"
 
-#: app/templates/main/guia.html:51
+#: app/templates/main/guia.html:52
 msgid "Tipos de movimiento"
 msgstr "Types of movement"
 
-#: app/templates/main/guia.html:52
+#: app/templates/main/guia.html:53
 msgid "Todo movimiento en Monetra es de uno de dos tipos:"
 msgstr "All movement in Monetra is one of two types:"
 
-#: app/templates/main/guia.html:54
+#: app/templates/main/guia.html:55
 msgid "dinero que entra (sueldo, freelance, venta, etc.)"
 msgstr "money that comes in (salary, freelance, sales, etc.)"
 
-#: app/templates/main/guia.html:55
+#: app/templates/main/guia.html:56
 msgid "dinero que sale (arriendo, supermercado, servicios, etc.)"
 msgstr "money that goes out (rent, supermarket, services, etc.)"
 
-#: app/templates/main/guia.html:58
+#: app/templates/main/guia.html:59
 msgid "Años y meses"
 msgstr "Years and months"
 
-#: app/templates/main/guia.html:59
+#: app/templates/main/guia.html:60
 msgid ""
 "Monetra organiza tus datos por año. Puedes tener datos de múltiples años "
 "y navegar entre ellos con el selector de período en la barra superior."
@@ -3511,22 +3596,22 @@ msgstr ""
 "Monetra organizes your data by year. You can have data from multiple "
 "years and navigate between them with the period selector in the top bar."
 
-#: app/templates/main/guia.html:61
+#: app/templates/main/guia.html:62
 #: app/templates/partials/announcements/v2_0.html:33
 msgid "Datos de demostración"
 msgstr "Demo data"
 
-#: app/templates/main/guia.html:64
+#: app/templates/main/guia.html:65
 msgid "Al crear tu cuenta verás datos de ejemplo precargados. Están marcados como"
 msgstr ""
 "When you create your account you will see pre-filled example data. They "
 "are marked as"
 
-#: app/templates/main/guia.html:64
+#: app/templates/main/guia.html:65
 msgid "y no pueden editarse — sirven solo como referencia."
 msgstr "and cannot be edited — they are for reference only."
 
-#: app/templates/main/guia.html:73
+#: app/templates/main/guia.html:74
 msgid ""
 "El selector de período en la barra superior controla qué datos ves en "
 "toda la aplicación."
@@ -3534,15 +3619,15 @@ msgstr ""
 "The period selector in the top bar controls what data you see throughout "
 "the app."
 
-#: app/templates/main/guia.html:75
+#: app/templates/main/guia.html:76
 msgid "selecciona el año de trabajo (ej. 2026)."
 msgstr "select the year of work (e.g. 2026)."
 
-#: app/templates/main/guia.html:76
+#: app/templates/main/guia.html:77
 msgid "selecciona el mes dentro de ese año (ej. Mayo)."
 msgstr "select the month within that year (e.g. May)."
 
-#: app/templates/main/guia.html:80
+#: app/templates/main/guia.html:81
 msgid ""
 "Las transacciones nuevas deben crearse dentro del mes seleccionado. Si "
 "intentas guardar una con fecha fuera del mes activo, el formulario "
@@ -3551,29 +3636,29 @@ msgstr ""
 "New transactions must be created within the selected month. If you try to"
 " save a date outside the active month, the form will display an error."
 
-#: app/templates/main/guia.html:83
+#: app/templates/main/guia.html:84
 msgid "Crear un nuevo año"
 msgstr "Create a new year"
 
-#: app/templates/main/guia.html:84
+#: app/templates/main/guia.html:85
 msgid "Si necesitas registrar datos de un año que no aparece en el selector, ve a"
 msgstr ""
 "If you need to record data for a year that does not appear in the "
 "selector, go to"
 
-#: app/templates/main/guia.html:84
+#: app/templates/main/guia.html:85
 msgid "Nuevo año"
 msgstr "new year"
 
-#: app/templates/main/guia.html:84
+#: app/templates/main/guia.html:85
 msgid "e ingresa el año deseado."
 msgstr "and enter the desired year."
 
-#: app/templates/main/guia.html:86
+#: app/templates/main/guia.html:87
 msgid "Eliminar un año"
 msgstr "Delete a year"
 
-#: app/templates/main/guia.html:89
+#: app/templates/main/guia.html:90
 msgid ""
 "Eliminar un año borra permanentemente todas las transacciones, "
 "presupuestos y recurrentes de ese año. Es irreversible."
@@ -3581,60 +3666,60 @@ msgstr ""
 "Deleting a year permanently deletes all transactions, budgets, and "
 "recurring items for that year. It is irreversible."
 
-#: app/templates/main/guia.html:98
+#: app/templates/main/guia.html:99
 msgid "Vista principal. Muestra un resumen completo del mes seleccionado."
 msgstr "Main view. Shows a complete summary of the selected month."
 
-#: app/templates/main/guia.html:101
+#: app/templates/main/guia.html:102
 msgid "Sección"
 msgstr "Section"
 
 # ── dashboard.html ──
-#: app/templates/main/guia.html:104
+#: app/templates/main/guia.html:105
 msgid "Suma de todos los ingresos del mes"
 msgstr "Sum of all income for the month"
 
-#: app/templates/main/guia.html:105
+#: app/templates/main/guia.html:106
 msgid "Suma de todos los gastos del mes"
 msgstr "Sum of all expenses for the month"
 
-#: app/templates/main/guia.html:106
+#: app/templates/main/guia.html:107
 msgid "Ingresos − Gastos"
 msgstr "Income − Expenses"
 
-#: app/templates/main/guia.html:107
+#: app/templates/main/guia.html:108
 msgid "Barra de progreso: gastos vs. límite mensual"
 msgstr "Progress bar: expenses vs. monthly limit"
 
-#: app/templates/main/guia.html:108 app/templates/main/guia.html:134
+#: app/templates/main/guia.html:109 app/templates/main/guia.html:135
 msgid "Gastos por categoría"
 msgstr "Expenses by category"
 
-#: app/templates/main/guia.html:108
+#: app/templates/main/guia.html:109
 msgid "Gráfico de torta con la distribución"
 msgstr "Pie chart with distribution"
 
-#: app/templates/main/guia.html:109
+#: app/templates/main/guia.html:110
 msgid "Últimas transacciones"
 msgstr "Latest transactions"
 
-#: app/templates/main/guia.html:109
+#: app/templates/main/guia.html:110
 msgid "Los 5 movimientos más recientes del mes"
 msgstr "The 5 most recent movements of the month"
 
-#: app/templates/main/guia.html:110
+#: app/templates/main/guia.html:111
 msgid "Hasta 4 metas activas con su progreso"
 msgstr "Up to 4 active goals with your progress"
 
-#: app/templates/main/guia.html:111
+#: app/templates/main/guia.html:112
 msgid "Salud financiera, proyección y alertas (opcional)"
 msgstr "Financial health, projection and alerts (optional)"
 
-#: app/templates/main/guia.html:115
+#: app/templates/main/guia.html:116
 msgid "Panel de analítica (opcional)"
 msgstr "Analytics panel (optional)"
 
-#: app/templates/main/guia.html:116
+#: app/templates/main/guia.html:117
 msgid ""
 "Incluye salud financiera, proyección de cierre del mes y alertas "
 "inteligentes. Está desactivado por defecto."
@@ -3642,23 +3727,23 @@ msgstr ""
 "Includes financial health, month-end projection and smart alerts. It is "
 "disabled by default."
 
-#: app/templates/main/guia.html:119 app/templates/main/guia.html:429
+#: app/templates/main/guia.html:120 app/templates/main/guia.html:430
 msgid "Para activarlo:"
 msgstr "To activate it:"
 
-#: app/templates/main/guia.html:119 app/templates/main/guia.html:429
+#: app/templates/main/guia.html:120 app/templates/main/guia.html:430
 msgid "Configuración de Cuenta → Panel de Insights"
 msgstr "Account Settings → Insights Dashboard"
 
-#: app/templates/main/guia.html:119 app/templates/main/guia.html:429
+#: app/templates/main/guia.html:120 app/templates/main/guia.html:430
 msgid "activa el interruptor."
 msgstr "activate the switch."
 
-#: app/templates/main/guia.html:122
+#: app/templates/main/guia.html:123
 msgid "Generación automática de recurrentes"
 msgstr "Automatic generation of recurring"
 
-#: app/templates/main/guia.html:123
+#: app/templates/main/guia.html:124
 msgid ""
 "Cada vez que abres el Dashboard, Monetra verifica si hay transacciones "
 "recurrentes pendientes para el mes y las crea automáticamente."
@@ -3666,44 +3751,44 @@ msgstr ""
 "Every time you open the Dashboard, Monetra checks for pending recurring "
 "transactions for the month and creates them automatically."
 
-#: app/templates/main/guia.html:131
+#: app/templates/main/guia.html:132
 msgid "Analiza tus finanzas en un rango de meses. Se accede desde el menú"
 msgstr "Analyze your finances over a range of months. Accessed from the menu"
 
-#: app/templates/main/guia.html:133
+#: app/templates/main/guia.html:134
 msgid "Tendencia mensual"
 msgstr "Monthly trend"
 
-#: app/templates/main/guia.html:133
+#: app/templates/main/guia.html:134
 msgid "gráfico de líneas con ingresos y gastos mes a mes."
 msgstr "Line graph with income and expenses month by month."
 
-#: app/templates/main/guia.html:134
+#: app/templates/main/guia.html:135
 msgid "acumulado de todo el período."
 msgstr "accumulated for the entire period."
 
-#: app/templates/main/guia.html:135
+#: app/templates/main/guia.html:136
 msgid "Comparativa anual"
 msgstr "Annual comparison"
 
-#: app/templates/main/guia.html:135
+#: app/templates/main/guia.html:136
 msgid "evolución de cada año disponible."
 msgstr "evolution of each year available."
 
 # ── global_dashboard.html ──
-#: app/templates/main/guia.html:137
+#: app/templates/main/guia.html:138
 msgid "Exportar desde el Dashboard global"
 msgstr "Export from the global Dashboard"
 
-#: app/templates/main/guia.html:138 app/templates/main/guia.html:288
+#: app/templates/main/guia.html:139 app/templates/main/guia.html:289
 msgid "El botón"
 msgstr "The button"
 
-#: app/templates/main/guia.html:138
+#: app/templates/main/guia.html:139
 msgid "Exportar Excel → Global"
 msgstr "Export Excel → Global"
 
-#: app/templates/main/guia.html:138
+#: app/templates/main/guia.html:139
 msgid ""
 "genera un archivo con los datos exactos del rango seleccionado. El enlace"
 " se actualiza en tiempo real al cambiar los selectores."
@@ -3711,44 +3796,44 @@ msgstr ""
 "generates a file with the exact data of the selected range. The link "
 "updates in real time when changing selectors."
 
-#: app/templates/main/guia.html:146
+#: app/templates/main/guia.html:147
 msgid "Movimientos individuales de dinero. Se accede desde el menú"
 msgstr "Individual money movements. Accessed from the menu"
 
-#: app/templates/main/guia.html:148
+#: app/templates/main/guia.html:149
 msgid "Crear una transacción"
 msgstr "Create a transaction"
 
-#: app/templates/main/guia.html:150 app/templates/main/guia.html:152
-#: app/templates/main/guia.html:248
+#: app/templates/main/guia.html:151 app/templates/main/guia.html:153
+#: app/templates/main/guia.html:249
 msgid "Haz clic en"
 msgstr "Click"
 
-#: app/templates/main/guia.html:150
+#: app/templates/main/guia.html:151
 msgid "Nueva transacción"
 msgstr "New transaction"
 
-#: app/templates/main/guia.html:151
+#: app/templates/main/guia.html:152
 msgid "Selecciona"
 msgstr "Select"
 
-#: app/templates/main/guia.html:151
+#: app/templates/main/guia.html:152
 msgid "Gasto o Ingreso"
 msgstr "Expense or Income"
 
-#: app/templates/main/guia.html:151
+#: app/templates/main/guia.html:152
 msgid "opcional, máx. 200 caracteres"
 msgstr "optional, max. 200 characters"
 
-#: app/templates/main/guia.html:151
+#: app/templates/main/guia.html:152
 msgid "debe estar dentro del mes activo"
 msgstr "must be within the active month"
 
-#: app/templates/main/guia.html:155
+#: app/templates/main/guia.html:156
 msgid "Filtros del listado"
 msgstr "Listing Filters"
 
-#: app/templates/main/guia.html:156
+#: app/templates/main/guia.html:157
 msgid ""
 "Puedes filtrar por tipo (Todos / Ingresos / Gastos), por categoría "
 "específica y por día del mes."
@@ -3756,7 +3841,7 @@ msgstr ""
 "You can filter by type (All / Income / Expenses), by specific category "
 "and by day of the month."
 
-#: app/templates/main/guia.html:160
+#: app/templates/main/guia.html:161
 msgid ""
 "Las transacciones generadas por una recurrente muestran un ícono "
 "especial. Se pueden editar o eliminar individualmente sin afectar la "
@@ -3765,23 +3850,23 @@ msgstr ""
 "Transactions generated by a recurring one display a special icon. They "
 "can be edited or deleted individually without affecting the recurring."
 
-#: app/templates/main/guia.html:169
+#: app/templates/main/guia.html:170
 msgid "Organizan tus transacciones y recurrentes. Se accede desde el menú"
 msgstr "They organize your transactions and recurring ones. Accessed from the menu"
 
-#: app/templates/main/guia.html:171
+#: app/templates/main/guia.html:172
 msgid "Tipos de categorías"
 msgstr "Types of categories"
 
-#: app/templates/main/guia.html:173
+#: app/templates/main/guia.html:174
 msgid "Predeterminadas"
 msgstr "Default"
 
-#: app/templates/main/guia.html:173
+#: app/templates/main/guia.html:174
 msgid "vienen incluidas en Monetra. No pueden modificarse ni eliminarse."
 msgstr "They are included in Monetra. They cannot be modified or deleted."
 
-#: app/templates/main/guia.html:174
+#: app/templates/main/guia.html:175
 msgid ""
 "Alimentación, Transporte, Vivienda, Servicios, Salud, Educación, Ocio, "
 "Otros."
@@ -3789,15 +3874,15 @@ msgstr ""
 "Food, Transportation, Housing, Services, Health, Education, Leisure, "
 "Others."
 
-#: app/templates/main/guia.html:175
+#: app/templates/main/guia.html:176
 msgid "Sueldo, Freelance, Inversiones, Otros Ingresos."
 msgstr "Salary, Freelance, Investments, Other Income."
 
-#: app/templates/main/guia.html:177
+#: app/templates/main/guia.html:178
 msgid "Personalizadas"
 msgstr "Customized"
 
-#: app/templates/main/guia.html:177
+#: app/templates/main/guia.html:178
 msgid ""
 "las que tú creas. Se asigna un color automáticamente de una paleta de 21 "
 "colores."
@@ -3806,11 +3891,11 @@ msgstr ""
 "21 colors."
 
 # ── categories.html ──
-#: app/templates/main/guia.html:180
+#: app/templates/main/guia.html:181
 msgid "Eliminar una categoría"
 msgstr "Delete a category"
 
-#: app/templates/main/guia.html:183
+#: app/templates/main/guia.html:184
 msgid ""
 "Una categoría NO puede eliminarse si tiene transacciones, recurrentes, "
 "presupuestos de categoría o un presupuesto personalizado vinculados. El "
@@ -3820,19 +3905,19 @@ msgstr ""
 "budgets, or a custom budget linked. The system will tell you how many "
 "records block it."
 
-#: app/templates/main/guia.html:192
+#: app/templates/main/guia.html:193
 msgid "Controla cuánto gastas. Se accede desde el menú"
 msgstr "Control how much you spend. Accessed from the menu"
 
-#: app/templates/main/guia.html:192
+#: app/templates/main/guia.html:193
 msgid "Hay tres tipos:"
 msgstr "There are three types:"
 
-#: app/templates/main/guia.html:194
+#: app/templates/main/guia.html:195
 msgid "7.1 Presupuesto mensual general"
 msgstr "7.1 General monthly budget"
 
-#: app/templates/main/guia.html:195
+#: app/templates/main/guia.html:196
 msgid ""
 "Techo total de gastos para el mes. Solo puede haber uno por mes. El "
 "Dashboard muestra una barra de progreso con su consumo."
@@ -3840,39 +3925,39 @@ msgstr ""
 "Total spending ceiling for the month. There can only be one per month. "
 "The Dashboard shows a progress bar with your consumption."
 
-#: app/templates/main/guia.html:197
+#: app/templates/main/guia.html:198
 msgid "Rango de consumo"
 msgstr "Consumption range"
 
-#: app/templates/main/guia.html:199
+#: app/templates/main/guia.html:200
 msgid "Normal"
 msgstr ""
 
-#: app/templates/main/guia.html:201
+#: app/templates/main/guia.html:202
 msgid "Excedido"
 msgstr "Exceeded"
 
-#: app/templates/main/guia.html:205
+#: app/templates/main/guia.html:206
 msgid "7.2 Presupuestos por categoría"
 msgstr "7.2 Budgets by category"
 
-#: app/templates/main/guia.html:206
+#: app/templates/main/guia.html:207
 msgid "Límites individuales por categoría de gasto."
 msgstr "Individual limits per spending category."
 
-#: app/templates/main/guia.html:206
+#: app/templates/main/guia.html:207
 msgid "Máximo 5 por mes."
 msgstr "Maximum 5 per month."
 
-#: app/templates/main/guia.html:206
+#: app/templates/main/guia.html:207
 msgid "Solo aplican a categorías de tipo Gasto."
 msgstr "They only apply to Expense type categories."
 
-#: app/templates/main/guia.html:208
+#: app/templates/main/guia.html:209
 msgid "7.3 Presupuesto personalizado"
 msgstr "7.3 Personalized quote"
 
-#: app/templates/main/guia.html:209
+#: app/templates/main/guia.html:210
 msgid ""
 "Presupuesto puntual con rango de fechas, pensado para eventos o proyectos"
 " específicos (ej. \"Vacaciones julio\")."
@@ -3880,35 +3965,35 @@ msgstr ""
 "Specific budget with date range, designed for specific events or projects"
 " (e.g. \"July vacation\")."
 
-#: app/templates/main/guia.html:211
+#: app/templates/main/guia.html:212
 msgid "Crea automáticamente una categoría de gasto con el mismo nombre."
 msgstr "Automatically creates an expense category with the same name."
 
-#: app/templates/main/guia.html:212
+#: app/templates/main/guia.html:213
 msgid "Solo puede haber"
 msgstr "There can only be"
 
-#: app/templates/main/guia.html:212
+#: app/templates/main/guia.html:213
 msgid "uno vigente"
 msgstr "one current"
 
-#: app/templates/main/guia.html:212
+#: app/templates/main/guia.html:213
 msgid "por mes."
 msgstr "per month."
 
-#: app/templates/main/guia.html:213
+#: app/templates/main/guia.html:214
 msgid "Las fechas deben estar dentro del mismo mes."
 msgstr "Dates must be within the same month."
 
-#: app/templates/main/guia.html:218
+#: app/templates/main/guia.html:219
 msgid "Fecha de término ≥ hoy. Puede editarse y eliminarse."
 msgstr "End date ≥ today. It can be edited and deleted."
 
-#: app/templates/main/guia.html:219
+#: app/templates/main/guia.html:220
 msgid "Fecha de término < hoy. Solo lectura, no puede modificarse."
 msgstr "End date < today. Read only, cannot be modified."
 
-#: app/templates/main/guia.html:224
+#: app/templates/main/guia.html:225
 msgid ""
 "Al eliminar un presupuesto personalizado vigente se borran también todas "
 "las transacciones y recurrentes de su categoría."
@@ -3916,52 +4001,52 @@ msgstr ""
 "Deleting a current custom quote also deletes all transactions and "
 "recurring items in its category."
 
-#: app/templates/main/guia.html:233
+#: app/templates/main/guia.html:234
 msgid "Define objetivos financieros y registra tu avance. Se accede desde el menú"
 msgstr "Define financial goals and record your progress. Accessed from the menu"
 
-#: app/templates/main/guia.html:235
+#: app/templates/main/guia.html:236
 msgid "Campos de una meta"
 msgstr "Fields of a goal"
 
-#: app/templates/main/guia.html:237 app/templates/main/guia.html:483
+#: app/templates/main/guia.html:238 app/templates/main/guia.html:484
 msgid "Campo"
 msgstr "Field"
 
-#: app/templates/main/guia.html:239
+#: app/templates/main/guia.html:240
 msgid "Identificador de la meta (máx. 100 caracteres)"
 msgstr "Goal identifier (max. 100 characters)"
 
-#: app/templates/main/guia.html:240
+#: app/templates/main/guia.html:241
 msgid "Cuánto quieres ahorrar (mayor a 0)"
 msgstr "How much do you want to save (greater than 0)"
 
-#: app/templates/main/guia.html:241
+#: app/templates/main/guia.html:242
 msgid "Monto ahorrado"
 msgstr "Amount saved"
 
-#: app/templates/main/guia.html:241
+#: app/templates/main/guia.html:242
 msgid "Cuánto llevas acumulado (empieza en 0)"
 msgstr "How much have you accumulated (starts at 0)"
 
-#: app/templates/main/guia.html:242
+#: app/templates/main/guia.html:243
 msgid "Fecha límite deseada (opcional)"
 msgstr "Desired deadline (optional)"
 
-#: app/templates/main/guia.html:243
+#: app/templates/main/guia.html:244
 msgid "Notas adicionales (opcional, máx. 200 caracteres)"
 msgstr "Additional notes (optional, max. 200 characters)"
 
-#: app/templates/main/guia.html:247
+#: app/templates/main/guia.html:248
 msgid "Abonar a una meta"
 msgstr "Pay to a goal"
 
-#: app/templates/main/guia.html:248 app/templates/main/metas.html:101
+#: app/templates/main/guia.html:249 app/templates/main/metas.html:101
 #: app/templates/main/metas.html:197
 msgid "Abonar"
 msgstr "Pay"
 
-#: app/templates/main/guia.html:248
+#: app/templates/main/guia.html:249
 msgid ""
 "e ingresa el monto. Si el total ahorrado alcanza el objetivo, la meta se "
 "marca como Completada automáticamente."
@@ -3969,7 +4054,7 @@ msgstr ""
 "and enter the amount. If the total saved reaches the goal, the goal is "
 "marked as Completed automatically."
 
-#: app/templates/main/guia.html:252
+#: app/templates/main/guia.html:253
 msgid ""
 "Las metas son independientes de las transacciones. Abonar a una meta NO "
 "crea un gasto en tu historial."
@@ -3977,7 +4062,7 @@ msgstr ""
 "Goals are independent of transactions. Paying towards a goal does NOT "
 "create an expense in your history."
 
-#: app/templates/main/guia.html:261
+#: app/templates/main/guia.html:262
 msgid ""
 "Automatizan movimientos que se repiten todos los meses (ej. arriendo el "
 "día 1, sueldo el día 30). Se accede desde el menú"
@@ -3985,11 +4070,11 @@ msgstr ""
 "They automate movements that are repeated every month (e.g. rent on day "
 "1, salary on day 30). Accessed from the menu"
 
-#: app/templates/main/guia.html:263
+#: app/templates/main/guia.html:264
 msgid "¿Cómo funcionan?"
 msgstr "How do they work?"
 
-#: app/templates/main/guia.html:264
+#: app/templates/main/guia.html:265
 msgid ""
 "Cada vez que abres el Dashboard o Movimientos, Monetra genera "
 "automáticamente las transacciones del mes si todavía no existen. Si una "
@@ -4001,15 +4086,15 @@ msgstr ""
 "recurring has the 31st day and the month has 30 days, it automatically "
 "adjusts to the last day."
 
-#: app/templates/main/guia.html:266
+#: app/templates/main/guia.html:267
 msgid "Crear una recurrente"
 msgstr "Create a recurring"
 
-#: app/templates/main/guia.html:268
+#: app/templates/main/guia.html:269
 msgid "Gasto o Ingreso."
 msgstr "Expense or Income."
 
-#: app/templates/main/guia.html:269
+#: app/templates/main/guia.html:270
 msgid ""
 "entre 1 y 28. Se recomienda máximo 28 para que funcione igual en todos "
 "los meses, incluido febrero."
@@ -4017,13 +4102,13 @@ msgstr ""
 "between 1 and 28. A maximum of 28 is recommended so that it works the "
 "same in all months, including February."
 
-#: app/templates/main/guia.html:270
+#: app/templates/main/guia.html:271
 msgid "opcional. Sin fecha, genera hasta el 31/12 del año de creación."
 msgstr ""
 "optional. Without a date, it generates until 12/31 of the year of "
 "creation."
 
-#: app/templates/main/guia.html:271
+#: app/templates/main/guia.html:272
 msgid ""
 "Si el día elegido ya pasó este mes, aparece una casilla opcional para "
 "generar también el movimiento del mes actual."
@@ -4031,51 +4116,51 @@ msgstr ""
 "If the chosen day has already passed this month, an optional box appears "
 "to also generate the movement for the current month."
 
-#: app/templates/main/guia.html:276
+#: app/templates/main/guia.html:277
 msgid "Importante"
 msgstr "Important"
 
-#: app/templates/main/guia.html:276
+#: app/templates/main/guia.html:277
 msgid "Las recurrentes"
 msgstr "The appellants"
 
-#: app/templates/main/guia.html:276
+#: app/templates/main/guia.html:277
 msgid "no pueden eliminarse"
 msgstr "cannot be deleted"
 
-#: app/templates/main/guia.html:276
+#: app/templates/main/guia.html:277
 msgid "una vez creadas. Para detenerlas usa el botón"
 msgstr "once created. To stop them use the button"
 
-#: app/templates/main/guia.html:276 app/templates/main/guia.html:284
-#: app/templates/main/guia.html:288 app/templates/main/recurrente_form.html:35
+#: app/templates/main/guia.html:277 app/templates/main/guia.html:285
+#: app/templates/main/guia.html:289 app/templates/main/recurrente_form.html:35
 #: app/templates/main/recurrentes.html:114
 msgid "Finalizar hoy"
 msgstr "Finish today"
 
-#: app/templates/main/guia.html:276 app/templates/main/recurrente_form.html:35
+#: app/templates/main/guia.html:277 app/templates/main/recurrente_form.html:35
 msgid "o establece una fecha de término."
 msgstr "or set an end date."
 
-#: app/templates/main/guia.html:279
+#: app/templates/main/guia.html:280
 msgid "Editar el monto u otros datos"
 msgstr ""
 
-#: app/templates/main/guia.html:280
+#: app/templates/main/guia.html:281
 msgid ""
 "Si editas una recurrente y cambias el monto, el nuevo valor se aplica a "
 "todas las transacciones de ese año, incluidas las pasadas."
 msgstr ""
 
-#: app/templates/main/guia.html:283
+#: app/templates/main/guia.html:284
 msgid "¿Quieres que el cambio aplique solo desde este mes en adelante?"
 msgstr ""
 
-#: app/templates/main/guia.html:284
+#: app/templates/main/guia.html:285
 msgid "No edites la recurrente actual: finalízala con el botón"
 msgstr ""
 
-#: app/templates/main/guia.html:284
+#: app/templates/main/guia.html:285
 msgid ""
 "y crea una nueva con el monto actualizado. Así el historial pasado "
 "conserva el monto anterior y el nuevo valor rige hacia adelante. Al crear"
@@ -4083,11 +4168,11 @@ msgid ""
 "este mes."
 msgstr ""
 
-#: app/templates/main/guia.html:287
+#: app/templates/main/guia.html:288
 msgid "Finalizar una recurrente"
 msgstr "End a recurring"
 
-#: app/templates/main/guia.html:288
+#: app/templates/main/guia.html:289
 msgid ""
 "(ícono de stop) establece la fecha de término como hoy y desactiva la "
 "recurrente. Las transacciones ya generadas permanecen en tu historial."
@@ -4095,109 +4180,109 @@ msgstr ""
 "(stop icon) sets the end date to today and deactivates the recurring one."
 " Transactions already generated remain in your history."
 
-#: app/templates/main/guia.html:290
+#: app/templates/main/guia.html:291
 msgid "Listado"
 msgstr "List"
 
 # ── Templates: base.html ──
-#: app/templates/main/guia.html:292
+#: app/templates/main/guia.html:293
 msgid "Vigentes"
 msgstr "Current"
 
-#: app/templates/main/guia.html:292
+#: app/templates/main/guia.html:293
 msgid "activas o que no han llegado a su fecha de término."
 msgstr "active or that have not reached their end date."
 
-#: app/templates/main/guia.html:293 app/templates/main/recurrentes.html:144
+#: app/templates/main/guia.html:294 app/templates/main/recurrentes.html:144
 msgid "Finalizadas"
 msgstr "Finished"
 
-#: app/templates/main/guia.html:293
+#: app/templates/main/guia.html:294
 msgid "historial de solo lectura, colapsado."
 msgstr "read-only history, collapsed."
 
-#: app/templates/main/guia.html:302
+#: app/templates/main/guia.html:303
 msgid "Genera un reporte Excel completo. Se puede exportar desde:"
 msgstr "Generate a complete Excel report. It can be exported from:"
 
-#: app/templates/main/guia.html:304
+#: app/templates/main/guia.html:305
 msgid "Menú superior → Exportar → Mes actual"
 msgstr "Top menu → Export → Current month"
 
-#: app/templates/main/guia.html:304
+#: app/templates/main/guia.html:305
 msgid "exporta el mes seleccionado."
 msgstr "exports the selected month."
 
 # ── global_dashboard.html ──
-#: app/templates/main/guia.html:305
+#: app/templates/main/guia.html:306
 msgid "Dashboard Global → Exportar → Global"
 msgstr "Global Dashboard → Export → Global"
 
-#: app/templates/main/guia.html:305
+#: app/templates/main/guia.html:306
 msgid "exporta el rango de meses seleccionado."
 msgstr "exports the selected range of months."
 
-#: app/templates/main/guia.html:308
+#: app/templates/main/guia.html:309
 msgid "Contenido del archivo"
 msgstr "File content"
 
-#: app/templates/main/guia.html:311
+#: app/templates/main/guia.html:312
 msgid "Pestaña"
 msgstr "Eyelash"
 
-#: app/templates/main/guia.html:311
+#: app/templates/main/guia.html:312
 msgid "Alcance"
 msgstr "Scope"
 
-#: app/templates/main/guia.html:314
+#: app/templates/main/guia.html:315
 msgid "Portada"
 msgstr "Front page"
 
-#: app/templates/main/guia.html:314
+#: app/templates/main/guia.html:315
 msgid "KPIs e índice de pestañas"
 msgstr "KPIs and tab index"
 
-#: app/templates/main/guia.html:315
+#: app/templates/main/guia.html:316
 msgid "Gráficos e indicadores clave"
 msgstr "Charts and key indicators"
 
-#: app/templates/main/guia.html:316
+#: app/templates/main/guia.html:317
 msgid "Listado completo de transacciones"
 msgstr "Complete list of transactions"
 
-#: app/templates/main/guia.html:317
+#: app/templates/main/guia.html:318
 msgid "Totales por categoría"
 msgstr "Totals by category"
 
-#: app/templates/main/guia.html:318
+#: app/templates/main/guia.html:319
 msgid "Comparativa presupuesto vs. real"
 msgstr "Comparison budget vs. real"
 
-#: app/templates/main/guia.html:319
+#: app/templates/main/guia.html:320
 msgid "Objetivos de ahorro y avance"
 msgstr "Savings and advancement goals"
 
-#: app/templates/main/guia.html:319 app/templates/main/guia.html:320
+#: app/templates/main/guia.html:320 app/templates/main/guia.html:321
 msgid "Historial completo"
 msgstr "Complete history"
 
-#: app/templates/main/guia.html:320
+#: app/templates/main/guia.html:321
 msgid "Recurrentes con KPIs"
 msgstr "Recurring with KPIs"
 
-#: app/templates/main/guia.html:321
+#: app/templates/main/guia.html:322
 msgid "Base de Datos"
 msgstr "Database"
 
-#: app/templates/main/guia.html:321
+#: app/templates/main/guia.html:322
 msgid "Datos en bruto para análisis propio"
 msgstr "Raw data for own analysis"
 
-#: app/templates/main/guia.html:325
+#: app/templates/main/guia.html:326
 msgid "Reporte semanal automático"
 msgstr "Automatic weekly report"
 
-#: app/templates/main/guia.html:326
+#: app/templates/main/guia.html:327
 msgid ""
 "Si configuras tu SMTP, puedes activar el reporte semanal. Monetra te "
 "enviará el Excel todos los lunes."
@@ -4205,21 +4290,21 @@ msgstr ""
 "If you configure your SMTP, you can activate the weekly report. Monetra "
 "will send you the Excel every Monday."
 
-#: app/templates/main/guia.html:332
+#: app/templates/main/guia.html:333
 msgid "Configuración de cuenta"
 msgstr "Account Settings"
 
-#: app/templates/main/guia.html:334
+#: app/templates/main/guia.html:335
 msgid ""
 "Se accede desde el menú de usuario (esquina superior derecha) → "
 "Configurar."
 msgstr "It is accessed from the user menu (upper right corner) → Configure."
 
-#: app/templates/main/guia.html:340
+#: app/templates/main/guia.html:341
 msgid "Moneda y país"
 msgstr "Currency and country"
 
-#: app/templates/main/guia.html:341
+#: app/templates/main/guia.html:342
 msgid ""
 "Selecciona tu país para definir símbolo, código y formato. Puedes editar "
 "el símbolo manualmente. Si tu moneda no es USD, ingresa el valor de "
@@ -4229,11 +4314,11 @@ msgstr ""
 "symbol manually. If your currency is not USD, enter the dollar reference "
 "value."
 
-#: app/templates/main/guia.html:348
+#: app/templates/main/guia.html:349
 msgid "Tema visual"
 msgstr "Visual theme"
 
-#: app/templates/main/guia.html:349
+#: app/templates/main/guia.html:350
 msgid ""
 "9 temas disponibles: Dark, Ocean, Carbon, Dusk, Forest, Pearl, Abyss, "
 "Graphite, Enterprise. El cambio se aplica de inmediato."
@@ -4241,7 +4326,7 @@ msgstr ""
 "9 themes available: Dark, Ocean, Carbon, Dusk, Forest, Pearl, Abyss, "
 "Graphite, Enterprise. The change is applied immediately."
 
-#: app/templates/main/guia.html:357
+#: app/templates/main/guia.html:358
 msgid ""
 "Configura tu servidor de correo para reportes y recuperación de "
 "contraseña. TLS y SSL son mutuamente excluyentes."
@@ -4249,11 +4334,11 @@ msgstr ""
 "Configure your mail server for reporting and password recovery. TLS and "
 "SSL are mutually exclusive."
 
-#: app/templates/main/guia.html:364
+#: app/templates/main/guia.html:365
 msgid "Autenticación 2FA"
 msgstr "2FA Authentication"
 
-#: app/templates/main/guia.html:365
+#: app/templates/main/guia.html:366
 msgid ""
 "Activa TOTP con Google Authenticator, Authy, etc. Escanea el código QR y "
 "confirma con el código de 6 dígitos."
@@ -4261,7 +4346,7 @@ msgstr ""
 "Activate TOTP with Google Authenticator, Authy, etc. Scan the QR code and"
 " confirm with the 6-digit code."
 
-#: app/templates/main/guia.html:373
+#: app/templates/main/guia.html:374
 msgid ""
 "Activa o desactiva el panel de analítica (Salud financiera, Proyección, "
 "Alertas) en el Dashboard. Desactivado por defecto."
@@ -4269,11 +4354,11 @@ msgstr ""
 "Activate or deactivate the analytics panel (Financial Health, Forecast, "
 "Alerts) in the Dashboard. Disabled by default."
 
-#: app/templates/main/guia.html:380 app/templates/main/guia.html:488
+#: app/templates/main/guia.html:381 app/templates/main/guia.html:489
 msgid "Token de API"
 msgstr "API Token"
 
-#: app/templates/main/guia.html:381
+#: app/templates/main/guia.html:382
 msgid ""
 "Token de acceso personal (mntr_…) para consumir la API REST. Activo "
 "mientras exista — sin fecha de expiración. Muestra prefijo, fecha de "
@@ -4285,11 +4370,11 @@ msgstr ""
 "date. Options: Generate, Regenerate and Revoke. Save it when you create "
 "it — it will not be shown again."
 
-#: app/templates/main/guia.html:388
+#: app/templates/main/guia.html:389
 msgid "Reporte semanal"
 msgstr "weekly report"
 
-#: app/templates/main/guia.html:389
+#: app/templates/main/guia.html:390
 msgid ""
 "Con SMTP configurado, activa el envío automático del Excel Global. Se "
 "enviará a tu correo todos los lunes a las 10:00 UTC con los datos del mes"
@@ -4299,11 +4384,11 @@ msgstr ""
 " be sent to your email every Monday at 10:00 UTC with the data for the "
 "current month and year."
 
-#: app/templates/main/guia.html:396
+#: app/templates/main/guia.html:397
 msgid "Referencias de formularios"
 msgstr "Form References"
 
-#: app/templates/main/guia.html:397
+#: app/templates/main/guia.html:398
 msgid ""
 "Activa el modo de ayuda para ver íconos de referencia junto a cada campo "
 "de los formularios. Al pasar el cursor sobre ellos aparece una "
@@ -4312,7 +4397,7 @@ msgstr ""
 "Turn on help mode to see reference icons next to each form field. "
 "Hovering over them displays a description of the field."
 
-#: app/templates/main/guia.html:405
+#: app/templates/main/guia.html:406
 msgid ""
 "Dos pasos: primero activa la IA (proveedor, modelo multimodal y token de "
 "API — usa \"Probar conexión\" antes de guardar); luego activa el bot de "
@@ -4320,14 +4405,14 @@ msgid ""
 "cuando la IA está activa."
 msgstr ""
 
-#: app/templates/main/guia.html:413
+#: app/templates/main/guia.html:414
 msgid ""
 "Acceso rápido desde móvil con un PIN de 8 dígitos vinculado al "
 "dispositivo actual. Solo visible en pantallas pequeñas. Requiere "
 "confirmar tu contraseña para activarlo o eliminarlo."
 msgstr ""
 
-#: app/templates/main/guia.html:425
+#: app/templates/main/guia.html:426
 msgid ""
 "El panel de analítica aparece en el Dashboard mensual y ofrece tres "
 "indicadores inteligentes calculados en tiempo real con tus datos del mes "
@@ -4337,7 +4422,7 @@ msgstr ""
 "smart indicators calculated in real time with your data from the active "
 "month. It is disabled by default."
 
-#: app/templates/main/guia.html:437
+#: app/templates/main/guia.html:438
 msgid ""
 "Puntuación de 0 a 100 que combina tasa de ahorro, cumplimiento de "
 "presupuesto, diversificación de ingresos y tendencia de gastos. Cuanto "
@@ -4347,13 +4432,13 @@ msgstr ""
 " diversification and spending trend. The higher it is, the better your "
 "finances are that month."
 
-#: app/templates/main/guia.html:444
+#: app/templates/main/guia.html:445
 #: app/templates/partials/announcements/v2_1.html:34
 #: app/templates/partials/insights_panel.html:164
 msgid "Proyección de cierre"
 msgstr "Closing projection"
 
-#: app/templates/main/guia.html:445
+#: app/templates/main/guia.html:446
 msgid ""
 "Estima el balance que tendrás al final del mes, extrapolando el ritmo de "
 "gastos e ingresos actuales. Útil para decidir si puedes gastar más o "
@@ -4363,11 +4448,11 @@ msgstr ""
 " the rate of current expenses and income. Useful to decide if you can "
 "spend more or should adjust before the end of the month."
 
-#: app/templates/main/guia.html:452
+#: app/templates/main/guia.html:453
 msgid "Alertas inteligentes"
 msgstr "Smart alerts"
 
-#: app/templates/main/guia.html:453
+#: app/templates/main/guia.html:454
 msgid ""
 "Detecta automáticamente situaciones como déficit proyectado, picos de "
 "gasto en una categoría, transacciones inusuales, riesgo en metas de "
@@ -4377,11 +4462,11 @@ msgstr ""
 "spikes in a category, unusual transactions, risk in savings goals and "
 "negative flow trends."
 
-#: app/templates/main/guia.html:459
+#: app/templates/main/guia.html:460
 msgid "¿Cómo aprende el sistema?"
 msgstr "How does the system learn?"
 
-#: app/templates/main/guia.html:460
+#: app/templates/main/guia.html:461
 msgid ""
 "Los indicadores mejoran con el tiempo. Con más meses registrados, la "
 "proyección es más precisa y las alertas detectan anomalías con mayor "
@@ -4393,19 +4478,19 @@ msgstr ""
 "accurately when compared to your own history. With little data, the panel"
 " will display a note indicating that it is still in learning mode."
 
-#: app/templates/main/guia.html:462
+#: app/templates/main/guia.html:463
 msgid "Severidad de las alertas"
 msgstr "Alert Severity"
 
-#: app/templates/main/guia.html:464
+#: app/templates/main/guia.html:465
 msgid "Nivel"
 msgstr "Level"
 
-#: app/templates/main/guia.html:466
+#: app/templates/main/guia.html:467
 msgid "Crítica"
 msgstr "Criticism"
 
-#: app/templates/main/guia.html:466
+#: app/templates/main/guia.html:467
 msgid ""
 "Requiere atención inmediata (ej. déficit proyectado severo, gasto muy por"
 " encima del límite)"
@@ -4413,15 +4498,15 @@ msgstr ""
 "Requires immediate attention (e.g. severe projected deficit, spending "
 "well above limit)"
 
-#: app/templates/main/guia.html:467
+#: app/templates/main/guia.html:468
 msgid "Situación a vigilar (ej. ritmo de gasto elevado, meta en riesgo)"
 msgstr "Situation to monitor (e.g. high spending rate, goal at risk)"
 
-#: app/templates/main/guia.html:468
+#: app/templates/main/guia.html:469
 msgid "Informativa"
 msgstr "Informative"
 
-#: app/templates/main/guia.html:468
+#: app/templates/main/guia.html:469
 msgid ""
 "Dato útil sin urgencia (ej. transacción inusual, categoría sin "
 "presupuesto)"
@@ -4429,7 +4514,7 @@ msgstr ""
 "Useful information without urgency (e.g. unusual transaction, category "
 "without budget)"
 
-#: app/templates/main/guia.html:478
+#: app/templates/main/guia.html:479
 msgid ""
 "La IA de Monetra lee fotos de recibos y extrae monto, descripción y "
 "comercio automáticamente. El canal de acceso es el bot de Telegram: "
@@ -4437,35 +4522,35 @@ msgid ""
 " IA debe estar activa para poder vincular Telegram."
 msgstr ""
 
-#: app/templates/main/guia.html:480
+#: app/templates/main/guia.html:481
 #, fuzzy
 msgid "Paso 1 — Activar la IA"
 msgstr "Activate AI"
 
-#: app/templates/main/guia.html:481 app/templates/main/guia.html:537
-#: app/templates/main/guia.html:589
+#: app/templates/main/guia.html:482 app/templates/main/guia.html:543
+#: app/templates/main/guia.html:587 app/templates/main/guia.html:600
 msgid "Ve a"
 msgstr "Go to"
 
-#: app/templates/main/guia.html:481
+#: app/templates/main/guia.html:482
 #, fuzzy
 msgid "Configuración → IA · Telegram → Paso 1"
 msgstr "Settings → Telegram"
 
-#: app/templates/main/guia.html:481
+#: app/templates/main/guia.html:482
 #, fuzzy
 msgid "y completa estos campos:"
 msgstr "and complete:"
 
-#: app/templates/main/guia.html:485
+#: app/templates/main/guia.html:486
 msgid "OpenAI, Anthropic, Gemini, DeepSeek u OpenRouter"
 msgstr "OpenAI, Anthropic, Gemini, DeepSeek or OpenRouter"
 
-#: app/templates/main/guia.html:486
+#: app/templates/main/guia.html:487
 msgid "Modelo"
 msgstr "Model"
 
-#: app/templates/main/guia.html:486
+#: app/templates/main/guia.html:487
 msgid ""
 "Debe soportar imágenes (multimodal). Ej: gpt-4o, claude-3-5-sonnet, "
 "gemini-1.5-flash"
@@ -4473,11 +4558,11 @@ msgstr ""
 "It must support images (multimodal). Ex: gpt-4o, claude-3-5-sonnet, "
 "gemini-1.5-flash"
 
-#: app/templates/main/guia.html:487
+#: app/templates/main/guia.html:488
 msgid "URL base"
 msgstr "Base URL"
 
-#: app/templates/main/guia.html:487
+#: app/templates/main/guia.html:488
 #, fuzzy
 msgid ""
 "Opcional. Solo para proveedores compatibles con OpenAI. Dejar vacío usa "
@@ -4486,7 +4571,7 @@ msgstr ""
 "Optional. Only for OpenAI-compatible providers (DeepSeek, OpenRouter). "
 "Leave empty to use the official URL."
 
-#: app/templates/main/guia.html:488
+#: app/templates/main/guia.html:489
 #, fuzzy
 msgid ""
 "Tu clave del proveedor. Se guarda cifrada. Usa \"Probar conexión\" antes "
@@ -4496,61 +4581,99 @@ msgstr ""
 " before saving."
 
 #: app/templates/main/guia.html:493
+msgid "IA compartida por el administrador"
+msgstr "AI shared by the administrator"
+
+#: app/templates/main/guia.html:494
 msgid ""
-"Si el administrador de la instancia habilitó la IA compartida, verás la "
-"sección IA activa aunque no hayas configurado un token propio. En ese "
-"caso puedes pasar directamente al Paso 2."
+"El administrador puede compartir su clave de IA con usuarios específicos."
+" El estado se muestra con un badge en la sección IA · Telegram de tu "
+"configuración:"
 msgstr ""
+"The administrator can share their AI key with specific users. The status "
+"is shown with a badge in the AI · Telegram section of your settings:"
 
 #: app/templates/main/guia.html:496
+msgid "Tienes acceso a la IA compartida"
+msgstr "You have access to the shared AI"
+
+#: app/templates/main/guia.html:496
+msgid ""
+"el admin activó el acceso compartido y te concedió acceso. Puedes pasar "
+"directamente al Paso 2."
+msgstr ""
+"the admin enabled shared access and granted you access. You can skip "
+"directly to Step 2."
+
+#: app/templates/main/guia.html:497
+msgid "El admin comparte su IA pero no te ha habilitado el acceso"
+msgstr "The admin shares their AI but has not enabled access for you"
+
+#: app/templates/main/guia.html:497
+msgid ""
+"solicítale al administrador que active tu acceso desde Gestión de "
+"usuarios."
+msgstr ""
+"ask the administrator to enable your access from the User Management "
+"panel."
+
+#: app/templates/main/guia.html:498
+msgid "El admin no comparte su IA"
+msgstr "The admin does not share their AI"
+
+#: app/templates/main/guia.html:498
+msgid "deberás configurar tu propio proveedor de IA."
+msgstr "you will need to configure your own AI provider."
+
+#: app/templates/main/guia.html:502
 #, fuzzy
 msgid "Paso 2 — Vincular Telegram"
 msgstr "Unlink Telegram"
 
-#: app/templates/main/guia.html:498
+#: app/templates/main/guia.html:504
 msgid "Con la IA activa, pulsa"
 msgstr ""
 
-#: app/templates/main/guia.html:498
+#: app/templates/main/guia.html:504
 #, fuzzy
 msgid "Activar"
 msgstr "Active"
 
-#: app/templates/main/guia.html:498
+#: app/templates/main/guia.html:504
 #, fuzzy
 msgid "en la sección Telegram."
 msgstr "Activate Telegram"
 
-#: app/templates/main/guia.html:499
+#: app/templates/main/guia.html:505
 msgid ""
 "Se genera un enlace de vinculación de un solo uso (válido 10 min). Ábrelo"
 " desde tu móvil."
 msgstr ""
 
-#: app/templates/main/guia.html:500
+#: app/templates/main/guia.html:506
 msgid "En el chat del bot, pulsa"
 msgstr ""
 
-#: app/templates/main/guia.html:500
+#: app/templates/main/guia.html:506
 #, fuzzy
 msgid "Iniciar"
 msgstr "Sign In"
 
-#: app/templates/main/guia.html:500
+#: app/templates/main/guia.html:506
 #, fuzzy
 msgid "El bot confirma que tu cuenta quedó vinculada."
 msgstr "In the chat, click \"Start\". The bot confirms the account is linked."
 
-#: app/templates/main/guia.html:503
+#: app/templates/main/guia.html:509
 msgid "Cómo registrar gastos desde Telegram"
 msgstr ""
 
-#: app/templates/main/guia.html:505 app/templates/main/guia.html:599
+#: app/templates/main/guia.html:511 app/templates/main/guia.html:610
 #, fuzzy
 msgid "Foto de recibo"
 msgstr "File content"
 
-#: app/templates/main/guia.html:505
+#: app/templates/main/guia.html:511
 #, fuzzy
 msgid ""
 "envía la imagen. La IA extrae monto, descripción y comercio "
@@ -4559,36 +4682,36 @@ msgstr ""
 "the AI extracts amount, description and merchant. You can edit any data "
 "before continuing."
 
-#: app/templates/main/guia.html:506
+#: app/templates/main/guia.html:512
 #, fuzzy
 msgid "Texto libre"
 msgstr "Free"
 
-#: app/templates/main/guia.html:506
+#: app/templates/main/guia.html:512
 msgid ""
 "escribe algo como \"Café 3.50\" o \"3.50 café\". Monetra interpreta el "
 "monto y la descripción."
 msgstr ""
 
-#: app/templates/main/guia.html:507
+#: app/templates/main/guia.html:513
 msgid "El bot muestra los datos extraídos con tres botones:"
 msgstr ""
 
-#: app/templates/main/guia.html:507
+#: app/templates/main/guia.html:513
 #, fuzzy
 msgid "Confirmar"
 msgstr "Settings"
 
-#: app/templates/main/guia.html:508
+#: app/templates/main/guia.html:514
 #, fuzzy
 msgid "Al confirmar, la transacción se guarda en el mes activo con categoría"
 msgstr "the transaction is created in the active month with the reviewed data."
 
-#: app/templates/main/guia.html:513
+#: app/templates/main/guia.html:519
 msgid "Privacidad"
 msgstr "Privacy"
 
-#: app/templates/main/guia.html:513
+#: app/templates/main/guia.html:519
 #, fuzzy
 msgid ""
 "las imágenes se envían al proveedor de IA configurado (el tuyo o el del "
@@ -4598,7 +4721,7 @@ msgstr ""
 "the image is sent to the AI provider you have configured. Monetra never "
 "stores the image — it is processed in memory and discarded."
 
-#: app/templates/main/guia.html:518
+#: app/templates/main/guia.html:524
 #, fuzzy
 msgid ""
 "Fotos borrosas, con poca luz o con texto muy pequeño pueden producir "
@@ -4608,7 +4731,7 @@ msgstr ""
 "Blurry, poorly lit or small-text images may produce incorrect results. "
 "Always review the data in the review step before saving."
 
-#: app/templates/main/guia.html:527
+#: app/templates/main/guia.html:533
 msgid ""
 "El PIN de acceso rápido es un método de login opt-in vinculado al "
 "dispositivo donde fue activado. Solo aparece en móvil (pantalla menor a "
@@ -4616,43 +4739,43 @@ msgid ""
 "borras las cookies deberás reactivarlo desde Configuración."
 msgstr ""
 
-#: app/templates/main/guia.html:531
+#: app/templates/main/guia.html:537
 msgid ""
 "El PIN no reemplaza tu contraseña. La necesitas para activarlo y "
 "eliminarlo. Es un acceso conveniente para el mismo dispositivo, no una "
 "alternativa de seguridad."
 msgstr ""
 
-#: app/templates/main/guia.html:534
+#: app/templates/main/guia.html:540
 #, fuzzy
 msgid "Activar el PIN"
 msgstr "Activate insights panel"
 
-#: app/templates/main/guia.html:536
+#: app/templates/main/guia.html:542
 #, fuzzy
 msgid "Inicia sesión con email y contraseña desde tu móvil."
 msgstr "Sign in with your email and password from your mobile device."
 
-#: app/templates/main/guia.html:537
+#: app/templates/main/guia.html:543
 #, fuzzy
 msgid "Configuración → Seguridad → PIN de acceso rápido"
 msgstr "Settings → Security → Biometric Authentication"
 
-#: app/templates/main/guia.html:538
+#: app/templates/main/guia.html:544
 #, fuzzy
 msgid "Ingresa tu contraseña actual para confirmar."
 msgstr "Confirm your password to continue."
 
-#: app/templates/main/guia.html:539
+#: app/templates/main/guia.html:545
 msgid "Elige un PIN de 8 dígitos (no puede ser secuencia ni todos iguales)."
 msgstr ""
 
-#: app/templates/main/guia.html:540
+#: app/templates/main/guia.html:546
 #, fuzzy
 msgid "El dispositivo queda registrado automáticamente."
 msgstr "Registered device"
 
-#: app/templates/main/guia.html:542
+#: app/templates/main/guia.html:548
 #, fuzzy
 msgid ""
 "La próxima vez que abras la pantalla de login en ese dispositivo, "
@@ -4661,39 +4784,39 @@ msgstr ""
 "Once registered, the next time you open the login page from that device "
 "you will see the button"
 
-#: app/templates/main/guia.html:546
+#: app/templates/main/guia.html:552
 #, fuzzy
 msgid "Abre la página de login desde el móvil donde activaste el PIN."
 msgstr "Open the login page from your registered mobile device."
 
-#: app/templates/main/guia.html:547
+#: app/templates/main/guia.html:553
 msgid "Escribe tu PIN de 8 dígitos en el campo que aparece."
 msgstr ""
 
-#: app/templates/main/guia.html:548
+#: app/templates/main/guia.html:554
 msgid "Pulsa"
 msgstr "Tap"
 
-#: app/templates/main/guia.html:551
+#: app/templates/main/guia.html:557
 #, fuzzy
 msgid "Eliminar el PIN"
 msgstr "Remove PIN"
 
-#: app/templates/main/guia.html:552
+#: app/templates/main/guia.html:558
 msgid ""
 "Ve a Configuración → Seguridad → PIN de acceso rápido y pulsa Eliminar. "
 "Se pedirá tu contraseña para confirmar. El PIN y todos los dispositivos "
 "autorizados quedan revocados."
 msgstr ""
 
-#: app/templates/main/guia.html:556
+#: app/templates/main/guia.html:562
 msgid ""
 "La autorización del dispositivo expira a los 90 días de inactividad. Si "
 "el PIN expiró en ese dispositivo, deberás reactivarlo desde "
 "Configuración. Siempre podrás iniciar sesión con tu contraseña."
 msgstr ""
 
-#: app/templates/main/guia.html:565
+#: app/templates/main/guia.html:571
 #, fuzzy
 msgid ""
 "El bot de Telegram es el canal principal para registrar gastos con IA. "
@@ -4706,50 +4829,70 @@ msgstr ""
 " confirmation before saving. Requires the instance administrator to "
 "configure a bot."
 
-#: app/templates/main/guia.html:567
+#: app/templates/main/guia.html:573
 msgid "Para el administrador (una sola vez)"
 msgstr "For the administrator (once only)"
 
-#: app/templates/main/guia.html:569
+#: app/templates/main/guia.html:575
 msgid "Crear el bot en Telegram hablando con @BotFather y obtener el token."
 msgstr "Create the bot in Telegram by talking to @BotFather and getting the token."
 
-#: app/templates/main/guia.html:570
+#: app/templates/main/guia.html:576
 msgid "Definir las variables de entorno en el servidor:"
 msgstr "Set the environment variables on the server:"
 
-#: app/templates/main/guia.html:572
+#: app/templates/main/guia.html:578
 msgid "token entregado por @BotFather."
 msgstr "token provided by @BotFather."
 
-#: app/templates/main/guia.html:573
+#: app/templates/main/guia.html:579
 msgid "cadena aleatoria para validar que los mensajes vienen de Telegram."
 msgstr "random string to validate that messages come from Telegram."
 
-#: app/templates/main/guia.html:574
+#: app/templates/main/guia.html:580
 msgid "username del bot (sin @). Necesario para generar el enlace de vinculación."
 msgstr ""
 
-#: app/templates/main/guia.html:577
+#: app/templates/main/guia.html:583
 msgid ""
 "Reiniciar la aplicación. Monetra registra el webhook automáticamente al "
 "iniciar."
 msgstr "Restart the app. Monetra registers the webhook automatically on startup."
 
-#: app/templates/main/guia.html:578
-msgid "(Opcional) Activa la IA compartida en"
+#: app/templates/main/guia.html:584
+msgid "(Opcional) Comparte tu IA con usuarios específicos:"
+msgstr "(Optional) Share your AI with specific users:"
+
+#: app/templates/main/guia.html:586
+msgid "Compartir mi IA"
+msgstr "Share my AI"
+
+#: app/templates/main/guia.html:586
+msgid "en"
 msgstr ""
 
-#: app/templates/main/guia.html:578
+#: app/templates/main/guia.html:586
 #, fuzzy
 msgid "Configuración → IA · Telegram"
 msgstr "Settings → Telegram"
 
-#: app/templates/main/guia.html:578
-msgid "para que los usuarios sin clave propia también puedan usar el bot."
-msgstr ""
+#: app/templates/main/guia.html:586
+msgid "(interruptor maestro)."
+msgstr "(master switch)."
 
-#: app/templates/main/guia.html:583
+#: app/templates/main/guia.html:587
+msgid "y activa el toggle"
+msgstr "and enable the toggle"
+
+#: app/templates/main/guia.html:587
+msgid ""
+"para cada cuenta que quieras habilitar. Solo las cuentas habilitadas "
+"podrán usar el bot sin clave propia."
+msgstr ""
+"for each account you want to enable. Only enabled accounts will be able "
+"to use the bot without their own key."
+
+#: app/templates/main/guia.html:594
 msgid ""
 "Si el administrador no configuró el bot, la sección Telegram en "
 "Configuración aparece deshabilitada. Debe definir"
@@ -4757,31 +4900,31 @@ msgstr ""
 "If the administrator has not configured the bot, the Telegram section in "
 "Settings appears disabled. They must define"
 
-#: app/templates/main/guia.html:583
+#: app/templates/main/guia.html:594
 msgid "en el servidor para habilitarla."
 msgstr "on the server to enable it."
 
-#: app/templates/main/guia.html:586
+#: app/templates/main/guia.html:597
 msgid "Para el usuario final"
 msgstr "For the end user"
 
-#: app/templates/main/guia.html:588
+#: app/templates/main/guia.html:599
 msgid ""
 "Asegúrate de tener la IA activa (propia o compartida por el admin). Ver "
 "sección 13."
 msgstr ""
 
-#: app/templates/main/guia.html:589
+#: app/templates/main/guia.html:600
 #, fuzzy
 msgid "Configuración → IA · Telegram → Paso 2"
 msgstr "Settings → Telegram"
 
-#: app/templates/main/guia.html:589
+#: app/templates/main/guia.html:600
 #, fuzzy
 msgid "y pulsa \"Activar\"."
 msgstr "and click \"Activate\"."
 
-#: app/templates/main/guia.html:590
+#: app/templates/main/guia.html:601
 #, fuzzy
 msgid ""
 "Abre el enlace generado desde tu móvil: lleva directamente al chat del "
@@ -4790,68 +4933,68 @@ msgstr ""
 "Click the generated link: it opens the bot chat with the linking code "
 "already loaded."
 
-#: app/templates/main/guia.html:591
+#: app/templates/main/guia.html:602
 #, fuzzy
 msgid ""
 "En el chat, pulsa \"Iniciar\". El bot confirma que tu cuenta quedó "
 "vinculada."
 msgstr "In the chat, click \"Start\". The bot confirms the account is linked."
 
-#: app/templates/main/guia.html:592
+#: app/templates/main/guia.html:603
 #, fuzzy
 msgid ""
 "Ya puedes enviar fotos de recibos o mensajes de texto para registrar "
 "gastos."
 msgstr "Send a receipt photo or text (e.g. \"Coffee 3.50\") to record an expense."
 
-#: app/templates/main/guia.html:595
+#: app/templates/main/guia.html:606
 msgid "Formatos que acepta el bot"
 msgstr ""
 
-#: app/templates/main/guia.html:597
+#: app/templates/main/guia.html:608
 #, fuzzy
 msgid "Formato"
 msgstr "Informative"
 
-#: app/templates/main/guia.html:597
+#: app/templates/main/guia.html:608
 msgid "Ejemplo"
 msgstr ""
 
-#: app/templates/main/guia.html:597
+#: app/templates/main/guia.html:608
 #, fuzzy
 msgid "Resultado"
 msgstr "State"
 
-#: app/templates/main/guia.html:599
+#: app/templates/main/guia.html:610
 msgid "(imagen JPEG, PNG, WebP, HEIC)"
 msgstr ""
 
-#: app/templates/main/guia.html:599
+#: app/templates/main/guia.html:610
 msgid "IA extrae monto, descripción y comercio"
 msgstr ""
 
-#: app/templates/main/guia.html:600
+#: app/templates/main/guia.html:611
 msgid "Texto: descripción + monto"
 msgstr ""
 
-#: app/templates/main/guia.html:600
+#: app/templates/main/guia.html:611
 msgid "Gasto de 3.50 con descripción \"Café\""
 msgstr ""
 
-#: app/templates/main/guia.html:601
+#: app/templates/main/guia.html:612
 #, fuzzy
 msgid "Texto: monto + descripción"
 msgstr "No description"
 
-#: app/templates/main/guia.html:601
+#: app/templates/main/guia.html:612
 msgid "Gasto de 3.50 con descripción \"café\""
 msgstr ""
 
-#: app/templates/main/guia.html:605
+#: app/templates/main/guia.html:616
 msgid "Desvincular"
 msgstr "Unlink"
 
-#: app/templates/main/guia.html:606
+#: app/templates/main/guia.html:617
 #, fuzzy
 msgid ""
 "En Configuración → IA · Telegram, pulsa \"Desvincular\". Elimina el "
@@ -4860,7 +5003,7 @@ msgstr ""
 "In Settings → Telegram, click the \"Unlink\" button. It removes the link "
 "and any pending confirmation expenses."
 
-#: app/templates/main/guia.html:610
+#: app/templates/main/guia.html:621
 #, fuzzy
 msgid ""
 "El código de vinculación es de un solo uso y expira en 10 minutos. Si "
@@ -4869,46 +5012,122 @@ msgstr ""
 "The linking code is single-use and expires in 10 minutes. If it expires, "
 "generate a new one from Settings → Telegram."
 
-#: app/templates/main/guia.html:626
+#: app/templates/main/guia.html:630
+msgid ""
+"Al crear o editar un movimiento, si ya tienes un presupuesto mensual "
+"general definido para ese mes, verás la casilla"
+msgstr ""
+"When creating or editing a transaction, if you already have a general "
+"monthly budget set for that month, you'll see the checkbox"
+
+#: app/templates/main/guia.html:632
+msgid "¿Para qué sirve?"
+msgstr "What is it for?"
+
+#: app/templates/main/guia.html:633
+msgid ""
+"Te permite registrar un gasto real sin que consuma tu límite mensual. Es "
+"útil para gastos que no representan tu consumo habitual, por ejemplo un "
+"pago de tarjeta de crédito, un reembolso pendiente o una compra grande "
+"puntual que no quieres que active tus alertas de presupuesto."
+msgstr ""
+"It lets you record a real expense without it consuming your monthly "
+"limit. Useful for expenses that don't represent your usual consumption — "
+"for example a credit card payment, a pending refund, or a one-off large "
+"purchase you don't want triggering your budget alerts."
+
+#: app/templates/main/guia.html:635
+msgid "¿Qué pasa exactamente al marcarla?"
+msgstr "What exactly happens when you check it?"
+
+#: app/templates/main/guia.html:637
+msgid "Cálculo"
+msgstr "Calculation"
+
+#: app/templates/main/guia.html:637
+msgid "¿Incluye el monto marcado?"
+msgstr "Does it include the marked amount?"
+
+#: app/templates/main/guia.html:639
+msgid "Barra de presupuesto general y presupuestos por categoría"
+msgstr "General budget bar and category budgets"
+
+#: app/templates/main/guia.html:639 app/templates/main/guia.html:640
+msgid "No"
+msgstr "No"
+
+#: app/templates/main/guia.html:640
+msgid "Panel de analítica (salud financiera, proyección, alertas)"
+msgstr "Analytics panel (financial health, projection, alerts)"
+
+#: app/templates/main/guia.html:641
+msgid "Total gastado, balance y listado de movimientos"
+msgstr "Total spent, balance, and transaction list"
+
+#: app/templates/main/guia.html:641 app/templates/main/guia.html:642
+msgid "Sí"
+msgstr "Yes"
+
+#: app/templates/main/guia.html:642
+msgid "Reporte Excel"
+msgstr "Excel report"
+
+#: app/templates/main/guia.html:648
+msgid ""
+"La casilla solo aparece si el mes activo tiene un presupuesto general "
+"creado. Si no ves la opción, ve a la sección Presupuesto y crea uno para "
+"ese mes."
+msgstr ""
+"The checkbox only appears if the active month already has a general "
+"budget created. If you don't see the option, go to the Budget section and "
+"create one for that month."
+
+#: app/templates/main/guia.html:664
 msgid "¿Necesito mi propia clave de IA para usar el bot?"
 msgstr ""
 
-#: app/templates/main/guia.html:627
+#: app/templates/main/guia.html:665
 msgid ""
-"No necesariamente. Si el administrador de la instancia activó la IA "
-"compartida, puedes vincular Telegram y usar el bot sin configurar un "
-"token propio. Si la IA compartida no está disponible, deberás configurar "
-"tu propio proveedor en Configuración → IA · Telegram."
+"No necesariamente. Si el administrador activó la IA compartida y te "
+"concedió acceso individual desde el panel de Gestión de usuarios, puedes "
+"vincular Telegram sin configurar un token propio. Si la IA compartida no "
+"está disponible o el admin no te habilitó, deberás configurar tu propio "
+"proveedor en Configuración → IA · Telegram."
 msgstr ""
+"Not necessarily. If the administrator enabled shared AI and granted you "
+"individual access from the User Management panel, you can link Telegram "
+"without configuring your own token. If shared AI is unavailable or the "
+"admin has not enabled you, you will need to configure your own provider "
+"in Settings → AI · Telegram."
 
-#: app/templates/main/guia.html:635
+#: app/templates/main/guia.html:673
 msgid "¿Qué categoría se asigna a las transacciones del bot?"
 msgstr ""
 
-#: app/templates/main/guia.html:636
+#: app/templates/main/guia.html:674
 msgid ""
 "Todas las transacciones creadas desde el bot de Telegram se asignan "
 "automáticamente a la categoría \"Telegram\". Puedes cambiarla manualmente"
 " desde la sección Movimientos si necesitas reclasificarla."
 msgstr ""
 
-#: app/templates/main/guia.html:644
+#: app/templates/main/guia.html:682
 msgid "¿Puedo registrar gastos en texto sin foto?"
 msgstr ""
 
-#: app/templates/main/guia.html:645
+#: app/templates/main/guia.html:683
 msgid ""
 "Sí. Escribe \"descripción monto\" o \"monto descripción\" y el bot lo "
 "interpreta directamente sin necesitar IA. Ejemplos válidos: "
 "\"Supermercado 45.90\", \"12000 transporte\", \"Netflix 15.99\"."
 msgstr ""
 
-#: app/templates/main/guia.html:653
+#: app/templates/main/guia.html:691
 #, fuzzy
 msgid "¿La IA siempre extrae bien los datos del recibo?"
 msgstr "Does the scanner always extract data correctly?"
 
-#: app/templates/main/guia.html:654
+#: app/templates/main/guia.html:692
 #, fuzzy
 msgid ""
 "Depende de la calidad de la imagen y el modelo configurado. Fotos "
@@ -4920,23 +5139,23 @@ msgstr ""
 "framed images with good lighting give better results. You can always "
 "review and correct the extracted data before saving the transaction."
 
-#: app/templates/main/guia.html:662
+#: app/templates/main/guia.html:700
 #, fuzzy
 msgid "¿Qué pasa si el código de vinculación expira?"
 msgstr "Enter the code of your authenticator application"
 
-#: app/templates/main/guia.html:663
+#: app/templates/main/guia.html:701
 msgid ""
 "El código dura 10 minutos y es de un solo uso. Si expiró, ve a "
 "Configuración → IA · Telegram y genera uno nuevo pulsando \"Activar\" de "
 "nuevo. El proceso toma segundos."
 msgstr ""
 
-#: app/templates/main/guia.html:671
+#: app/templates/main/guia.html:709
 msgid "¿Qué proveedor de IA me recomiendas para el bot?"
 msgstr ""
 
-#: app/templates/main/guia.html:672
+#: app/templates/main/guia.html:710
 msgid ""
 "Para fotos de recibos necesitas un modelo multimodal. Algunas opciones "
 "probadas: gpt-4o (OpenAI), claude-3-5-sonnet o claude-3-haiku "
@@ -4944,11 +5163,11 @@ msgid ""
 "conexión\" en Configuración antes de guardar."
 msgstr ""
 
-#: app/templates/main/guia.html:680
+#: app/templates/main/guia.html:718
 msgid "¿Cuántas fotos puedo enviar con la IA compartida?"
 msgstr ""
 
-#: app/templates/main/guia.html:681
+#: app/templates/main/guia.html:719
 msgid ""
 "Cuando usas la clave de IA del administrador, existe un límite diario de "
 "consultas a la IA por usuario (por defecto 25 por día). Si lo alcanzas, "
@@ -4960,11 +5179,11 @@ msgstr ""
 "notify you and you can keep sending text or wait until the next day. With"
 " your own AI key, no limit is applied by Monetra."
 
-#: app/templates/main/guia.html:689
+#: app/templates/main/guia.html:727
 msgid "¿Las fotos que envío al bot son privadas?"
 msgstr ""
 
-#: app/templates/main/guia.html:690
+#: app/templates/main/guia.html:728
 msgid ""
 "Monetra no almacena las imágenes: se procesan en memoria y se descartan "
 "tras la extracción. La imagen sí se envía al proveedor de IA configurado "
@@ -4972,11 +5191,11 @@ msgid ""
 "dudas."
 msgstr ""
 
-#: app/templates/main/guia.html:699
+#: app/templates/main/guia.html:737
 msgid "¿Por qué no puedo eliminar una categoría?"
 msgstr "Why can't I delete a category?"
 
-#: app/templates/main/guia.html:700
+#: app/templates/main/guia.html:738
 msgid ""
 "Porque tiene registros asociados: transacciones, recurrentes o "
 "presupuestos. Primero elimina o reasigna esos registros, luego podrás "
@@ -4987,11 +5206,11 @@ msgstr ""
 "First delete or reassign those records, then you can delete the category."
 " The system will tell you exactly how many records block it."
 
-#: app/templates/main/guia.html:708
+#: app/templates/main/guia.html:746
 msgid "¿Puedo eliminar una recurrente?"
 msgstr "Can I delete a recurring one?"
 
-#: app/templates/main/guia.html:709
+#: app/templates/main/guia.html:747
 msgid ""
 "No. Las recurrentes no pueden eliminarse para preservar la coherencia del"
 " historial. Para detenerla usa el botón Finalizar hoy o edita la fecha de"
@@ -5001,11 +5220,11 @@ msgstr ""
 "stop it, use the End Today button or edit the end date. Transactions "
 "already generated remain in your history."
 
-#: app/templates/main/guia.html:717
+#: app/templates/main/guia.html:755
 msgid "¿Qué pasa si el día de mi recurrente no existe en el mes?"
 msgstr "What happens if my recurring day does not exist in the month?"
 
-#: app/templates/main/guia.html:718
+#: app/templates/main/guia.html:756
 msgid ""
 "Monetra ajusta automáticamente al último día del mes. Por eso se "
 "recomienda usar máximo el día 28 para que funcione igual en todos los "
@@ -5015,11 +5234,11 @@ msgstr ""
 "it is recommended to use the 28th maximum so that it works the same in "
 "all months, including February."
 
-#: app/templates/main/guia.html:726
+#: app/templates/main/guia.html:764
 msgid "¿El presupuesto personalizado borra mis transacciones si lo elimino?"
 msgstr "Does the custom quote delete my transactions if I delete it?"
 
-#: app/templates/main/guia.html:727
+#: app/templates/main/guia.html:765
 msgid ""
 "Sí. Al eliminar un presupuesto personalizado vigente se borran también "
 "todas las transacciones y recurrentes de su categoría. Se te informará "
@@ -5030,11 +5249,11 @@ msgstr ""
 "recurring items in its category. You will be informed how many records "
 "will be deleted before confirming. Finalized quotes cannot be deleted."
 
-#: app/templates/main/guia.html:735
+#: app/templates/main/guia.html:773
 msgid "¿Abonar a una meta descuenta de mi saldo?"
 msgstr "Does crediting a goal deduct from my balance?"
 
-#: app/templates/main/guia.html:736
+#: app/templates/main/guia.html:774
 msgid ""
 "No. Las metas son independientes de tus transacciones. Registrar un abono"
 " solo actualiza el contador de progreso. Si quieres también registrar el "
@@ -5044,11 +5263,11 @@ msgstr ""
 "only updates the progress counter. If you also want to record the "
 "movement, you must create a separate transaction."
 
-#: app/templates/main/guia.html:744
+#: app/templates/main/guia.html:782
 msgid "¿El Export incluye todos los datos o solo el período visible?"
 msgstr "Does the Export include all the data or only the visible period?"
 
-#: app/templates/main/guia.html:745
+#: app/templates/main/guia.html:783
 msgid ""
 "Depende de la pestaña. Movimientos, Categorías, Presupuestos, Dashboard y"
 " Base de Datos se filtran al período exportado. Metas y Recurrentes "
@@ -5059,11 +5278,11 @@ msgstr ""
 "Database are filtered to the exported period. Goals and Recurring show "
 "the complete history, regardless of the period selected."
 
-#: app/templates/main/guia.html:753
+#: app/templates/main/guia.html:791
 msgid "¿Cada cuánto se envía el reporte semanal?"
 msgstr "How often is the weekly report sent?"
 
-#: app/templates/main/guia.html:754
+#: app/templates/main/guia.html:792
 msgid ""
 "Todos los lunes a las 10:00 UTC. Requiere haber configurado el servidor "
 "SMTP en Configuración de Cuenta y activado la opción \"Reporte semanal\"."
@@ -5071,23 +5290,23 @@ msgstr ""
 "Every Monday at 10:00 UTC. Requires having configured the SMTP server in "
 "Account Settings and activating the \"Weekly Report\" option."
 
-#: app/templates/main/guia.html:762
+#: app/templates/main/guia.html:800
 #, fuzzy
 msgid "¿Puedo usar el PIN si tengo 2FA activado?"
 msgstr "Can I use Face ID if I have 2FA enabled?"
 
-#: app/templates/main/guia.html:763
+#: app/templates/main/guia.html:801
 msgid ""
 "Sí. Al ingresar con PIN y tener 2FA activo, serás redirigido a la "
 "pantalla de verificación TOTP. Deberás ingresar tu código de autenticador"
 " como de costumbre."
 msgstr ""
 
-#: app/templates/main/guia.html:771
+#: app/templates/main/guia.html:809
 msgid "¿Por qué no puedo editar un registro de Demo?"
 msgstr "Why can't I edit a Demo record?"
 
-#: app/templates/main/guia.html:772
+#: app/templates/main/guia.html:810
 msgid ""
 "Los registros de demostración son de solo lectura. Puedes crear tus "
 "propios registros en paralelo o resetear los datos demo desde el panel de"
@@ -5095,6 +5314,28 @@ msgid ""
 msgstr ""
 "Demo logs are read-only. You can create your own records in parallel or "
 "reset the demo data from the administration panel."
+
+#: app/templates/main/guia.html:818
+msgid ""
+"El badge dice que el admin comparte su IA pero yo no tengo acceso. ¿Qué "
+"hago?"
+msgstr ""
+"The badge says the admin shares their AI but I don't have access. What "
+"should I do?"
+
+#: app/templates/main/guia.html:819
+msgid ""
+"El administrador activó la IA compartida (interruptor maestro), pero el "
+"acceso es opt-in: cada usuario debe ser habilitado individualmente. "
+"Solicítale al administrador que active el toggle \"Acceso IA\" junto a tu"
+" cuenta en Gestión de usuarios (/admin/users). Una vez habilitado, el "
+"badge cambiará a verde y podrás vincular Telegram."
+msgstr ""
+"The administrator enabled shared AI (master switch), but access is opt-"
+"in: each user must be individually enabled. Ask the administrator to "
+"enable the \"AI Access\" toggle next to your account in User Management "
+"(/admin/users). Once enabled, the badge will turn green and you can link "
+"Telegram."
 
 #: app/templates/main/meta_form.html:8
 msgid "Nueva Meta de Ahorro"
@@ -5286,7 +5527,7 @@ msgid "Tus categorías"
 msgstr "Your categories"
 
 #: app/templates/main/recurrente_form.html:156
-#: app/templates/main/transaction_form.html:100
+#: app/templates/main/transaction_form.html:106
 msgid "Sin categorías disponibles"
 msgstr "No categories available"
 
@@ -5385,21 +5626,29 @@ msgstr ""
 "Is it money that comes in or goes out? Change the available categories "
 "and affect the dashboard."
 
-#: app/templates/main/transaction_form.html:40
+#: app/templates/main/transaction_form.html:38
+msgid ""
+"El monto no se sumará a tu presupuesto del mes, pero sí aparecerá en tus "
+"movimientos y en el total gastado."
+msgstr ""
+"The amount won't be added to your monthly budget, but it will still "
+"appear in your transactions and in the total spent."
+
+#: app/templates/main/transaction_form.html:46
 #: app/templates/main/transactions.html:99
 msgid "Pertenece a presupuesto personalizado"
 msgstr "Belongs to personalized quote"
 
-#: app/templates/main/transaction_form.html:42
+#: app/templates/main/transaction_form.html:48
 msgid "Presupuesto personalizado"
 msgstr "Personalized quote"
 
 # ── categories.html ──
-#: app/templates/main/transaction_form.html:58
+#: app/templates/main/transaction_form.html:64
 msgid "Crear nueva categoría"
 msgstr "Create new category"
 
-#: app/templates/main/transaction_form.html:63
+#: app/templates/main/transaction_form.html:69
 msgid ""
 "Solo el mes activo. Para ajustes de meses pasados, usa edición desde el "
 "listado."
@@ -5407,17 +5656,17 @@ msgstr ""
 "Only the active month. For adjustments from past months, use editing from"
 " the list."
 
-#: app/templates/main/transaction_form.html:69
+#: app/templates/main/transaction_form.html:75
 #, python-format
 msgid "Solo fechas de %(month)s %(year)s."
 msgstr "%(month)s %(year)s dates only."
 
 # ── transaction_form.html ──
-#: app/templates/main/transaction_form.html:74
+#: app/templates/main/transaction_form.html:80
 msgid "Descripción opcional..."
 msgstr "Optional description..."
 
-#: app/templates/main/transaction_form.html:115
+#: app/templates/main/transaction_form.html:121
 msgid "Este movimiento se contabilizará en el presupuesto personalizado"
 msgstr "This movement will be posted to the custom budget"
 
@@ -5960,8 +6209,8 @@ msgid ""
 "Telegram para enviar texto o una foto de tu recibo, y Monetra los guarda "
 "por ti."
 msgstr ""
-"Now you log expenses by chat: enable AI and link the Telegram Bot to send "
-"text or a receipt photo, and Monetra saves them for you."
+"Now you log expenses by chat: enable AI and link the Telegram Bot to send"
+" text or a receipt photo, and Monetra saves them for you."
 
 #: app/templates/partials/announcements/v2_6.html:19
 msgid "Integración de IA"
@@ -5987,8 +6236,8 @@ msgid ""
 "Telegram)."
 msgstr ""
 "— Link your account and log expenses by sending a message or a receipt "
-"photo to the bot. You confirm the amount, category, and date before saving. "
-"Requires AI active (Step 2 in Account Settings → AI · Telegram)."
+"photo to the bot. You confirm the amount, category, and date before "
+"saving. Requires AI active (Step 2 in Account Settings → AI · Telegram)."
 
 #: app/templates/partials/announcements/v2_6.html:41
 msgid ""
@@ -6100,185 +6349,6 @@ msgstr "There is already a category with that name."
 #: app/usd/routes.py:216
 msgid "No se puede eliminar: la categoría tiene movimientos asociados."
 msgstr "Cannot be deleted: the category has associated movements."
-
-#: app/templates/admin/users.html
-msgid "Acceso IA"
-msgstr "AI Access"
-
-#: app/templates/admin/users.html
-msgid "Habilitado"
-msgstr "Enabled"
-
-#: app/templates/admin/users.html
-msgid "Sin acceso"
-msgstr "No access"
-
-#: app/templates/admin/users.html
-msgid "Revocar acceso a IA"
-msgstr "Revoke AI access"
-
-#: app/templates/admin/users.html
-msgid "Revocar"
-msgstr "Revoke"
-
-#: app/templates/admin/users.html
-msgid "Conceder acceso a IA"
-msgstr "Grant AI access"
-
-#: app/templates/admin/users.html
-msgid "Conceder"
-msgstr "Grant"
-
-#: app/templates/admin/users.html
-msgid ""
-"El acceso a la IA solo tiene efecto si el administrador tiene activado "
-"\"Compartir mi IA\" en"
-msgstr ""
-"AI access only takes effect if the administrator has enabled "
-"\"Share my AI\" in"
-
-#: app/templates/main/configurar.html
-msgid "Tienes acceso a la IA compartida del administrador"
-msgstr "You have access to the administrator's shared AI"
-
-#: app/templates/main/configurar.html
-msgid "El administrador comparte su IA, pero no te ha habilitado el acceso"
-msgstr "The administrator shares their AI, but has not enabled access for you"
-
-#: app/templates/main/configurar.html
-msgid "Activa el acceso compartido a tu clave de IA. Luego, desde"
-msgstr "Enable shared access to your AI key. Then, from"
-
-#: app/templates/main/configurar.html
-msgid ""
-", habilita individualmente a qué cuentas les permites usar tu clave. Cada "
-"consulta consume tu cuota del proveedor."
-msgstr ""
-", individually enable which accounts can use your key. Each request uses "
-"your provider quota."
-
-#: app/admin/routes.py
-msgid "No puedes modificar el acceso a IA de tu propia cuenta."
-msgstr "You cannot modify AI access for your own account."
-
-#: app/admin/routes.py
-msgid "El administrador principal gestiona su propio acceso a la IA."
-msgstr "The primary administrator manages their own AI access."
-
-#: app/admin/routes.py
-#, python-format
-msgid "Acceso a IA concedido a %(name)s."
-msgstr "AI access granted to %(name)s."
-
-#: app/admin/routes.py
-#, python-format
-msgid "Acceso a IA revocado a %(name)s."
-msgstr "AI access revoked from %(name)s."
-
-#: app/templates/main/guia.html
-msgid "IA compartida por el administrador"
-msgstr "AI shared by the administrator"
-
-#: app/templates/main/guia.html
-msgid ""
-"El administrador puede compartir su clave de IA con usuarios específicos. "
-"El estado se muestra con un badge en la sección IA · Telegram de tu "
-"configuración:"
-msgstr ""
-"The administrator can share their AI key with specific users. The status "
-"is shown with a badge in the AI · Telegram section of your settings:"
-
-#: app/templates/main/guia.html
-msgid "Tienes acceso a la IA compartida"
-msgstr "You have access to the shared AI"
-
-#: app/templates/main/guia.html
-msgid ""
-"el admin activó el acceso compartido y te concedió acceso. Puedes pasar "
-"directamente al Paso 2."
-msgstr ""
-"the admin enabled shared access and granted you access. You can skip "
-"directly to Step 2."
-
-#: app/templates/main/guia.html
-msgid "El admin comparte su IA pero no te ha habilitado el acceso"
-msgstr "The admin shares their AI but has not enabled access for you"
-
-#: app/templates/main/guia.html
-msgid "solicítale al administrador que active tu acceso desde Gestión de usuarios."
-msgstr "ask the administrator to enable your access from the User Management panel."
-
-#: app/templates/main/guia.html
-msgid "El admin no comparte su IA"
-msgstr "The admin does not share their AI"
-
-#: app/templates/main/guia.html
-msgid "deberás configurar tu propio proveedor de IA."
-msgstr "you will need to configure your own AI provider."
-
-#: app/templates/main/guia.html
-msgid "(Opcional) Comparte tu IA con usuarios específicos:"
-msgstr "(Optional) Share your AI with specific users:"
-
-#: app/templates/main/guia.html
-msgid "Compartir mi IA"
-msgstr "Share my AI"
-
-#: app/templates/main/guia.html
-msgid "(interruptor maestro)."
-msgstr "(master switch)."
-
-#: app/templates/main/guia.html
-msgid "y activa el toggle"
-msgstr "and enable the toggle"
-
-#: app/templates/main/guia.html
-msgid ""
-"para cada cuenta que quieras habilitar. Solo las cuentas habilitadas "
-"podrán usar el bot sin clave propia."
-msgstr ""
-"for each account you want to enable. Only enabled accounts will be able "
-"to use the bot without their own key."
-
-#: app/templates/main/guia.html
-msgid "¿Necesito mi propia clave de IA para usar el bot?"
-msgstr "Do I need my own AI key to use the bot?"
-
-#: app/templates/main/guia.html
-msgid ""
-"No necesariamente. Si el administrador activó la IA compartida y te "
-"concedió acceso individual desde el panel de Gestión de usuarios, puedes "
-"vincular Telegram sin configurar un token propio. Si la IA compartida no "
-"está disponible o el admin no te habilitó, deberás configurar tu propio "
-"proveedor en Configuración → IA · Telegram."
-msgstr ""
-"Not necessarily. If the administrator enabled shared AI and granted you "
-"individual access from the User Management panel, you can link Telegram "
-"without configuring your own token. If shared AI is unavailable or the "
-"admin has not enabled you, you will need to configure your own provider "
-"in Settings → AI · Telegram."
-
-#: app/templates/main/guia.html
-msgid ""
-"El badge dice que el admin comparte su IA pero yo no tengo acceso. "
-"¿Qué hago?"
-msgstr ""
-"The badge says the admin shares their AI but I don't have access. "
-"What should I do?"
-
-#: app/templates/main/guia.html
-msgid ""
-"El administrador activó la IA compartida (interruptor maestro), pero el "
-"acceso es opt-in: cada usuario debe ser habilitado individualmente. "
-"Solicítale al administrador que active el toggle \"Acceso IA\" junto a "
-"tu cuenta en Gestión de usuarios (/admin/users). Una vez habilitado, el "
-"badge cambiará a verde y podrás vincular Telegram."
-msgstr ""
-"The administrator enabled shared AI (master switch), but access is "
-"opt-in: each user must be individually enabled. Ask the administrator to "
-"enable the \"AI Access\" toggle next to your account in User Management "
-"(/admin/users). Once enabled, the badge will turn green and you can "
-"link Telegram."
 
 # ── Login message ──
 #~ msgid "Por favor inicia sesión para acceder."
@@ -6950,4 +7020,48 @@ msgstr ""
 #~ "If you don't configure it and the"
 #~ " administrator doesn't share their key, "
 #~ "AI won't be available."
+
+#~ msgid "Tu reporte se está generando y se enviará a %(email)s en unos momentos."
+#~ msgstr ""
+
+#~ msgid "El administrador está compartiendo su IA"
+#~ msgstr "The administrator is sharing their AI"
+
+#~ msgid ""
+#~ "Si lo activas, las cuentas verificadas"
+#~ " que no tengan su propia IA "
+#~ "configurada podrán usar tu clave para"
+#~ " procesar recibos. Cada consulta consume"
+#~ " tu cuota del proveedor."
+#~ msgstr ""
+#~ "If you enable it, verified accounts "
+#~ "without their own AI configured can "
+#~ "use your key to process receipts. "
+#~ "Each request uses your provider quota."
+
+#~ msgid ""
+#~ "Si el administrador de la instancia "
+#~ "habilitó la IA compartida, verás la "
+#~ "sección IA activa aunque no hayas "
+#~ "configurado un token propio. En ese "
+#~ "caso puedes pasar directamente al Paso"
+#~ " 2."
+#~ msgstr ""
+
+#~ msgid "(Opcional) Activa la IA compartida en"
+#~ msgstr ""
+
+#~ msgid "para que los usuarios sin clave propia también puedan usar el bot."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "No necesariamente. Si el administrador "
+#~ "de la instancia activó la IA "
+#~ "compartida, puedes vincular Telegram y "
+#~ "usar el bot sin configurar un "
+#~ "token propio. Si la IA compartida "
+#~ "no está disponible, deberás configurar "
+#~ "tu propio proveedor en Configuración →"
+#~ " IA · Telegram."
+#~ msgstr ""
 

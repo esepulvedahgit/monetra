@@ -37,6 +37,7 @@ def get_unified_transactions(user_id: int, year: int, month: int) -> list[dict]:
             'description': str,
             'source':      'main' | 'usd',
             'recurring_id': int | None,
+            'exclude_from_budget': bool,
         }
     """
     user = User.query.get(user_id)
@@ -73,6 +74,7 @@ def get_unified_transactions(user_id: int, year: int, month: int) -> list[dict]:
             'description': tx.description or '',
             'source': 'main',
             'recurring_id': tx.recurring_id,
+            'exclude_from_budget': tx.exclude_from_budget,
         })
 
     for tx in usd_txs:
@@ -89,6 +91,7 @@ def get_unified_transactions(user_id: int, year: int, month: int) -> list[dict]:
             'description': tx.description or '',
             'source': 'usd',
             'recurring_id': None,
+            'exclude_from_budget': False,
         })
 
     unified.sort(key=lambda x: x['date'], reverse=True)
@@ -132,7 +135,9 @@ def build_feature_bundle(user_id: int, year: int, month: int):
 
     budget = Budget.query.filter_by(user_id=user_id, year=year, month=month).first()
     budget_amount = float(budget.amount) if budget else None
-    budget_used_pct = (round(total_expense / budget_amount * 100, 1)
+    budget_expense = sum(t['amount_local'] for t in transactions
+                        if t['type'] == 'expense' and not t['exclude_from_budget'])
+    budget_used_pct = (round(budget_expense / budget_amount * 100, 1)
                        if budget_amount and budget_amount > 0 else None)
 
     elapsed = _month_elapsed_pct(year, month)
