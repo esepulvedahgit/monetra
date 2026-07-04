@@ -106,7 +106,12 @@ class Config:
     BACKUP_EXPORT_RATE_LIMIT      = os.environ.get('BACKUP_EXPORT_RATE_LIMIT', '5 per hour')
     BACKUP_RESTORE_RATE_LIMIT     = os.environ.get('BACKUP_RESTORE_RATE_LIMIT', '5 per hour')
     AI_TEST_CONNECTION_RATE_LIMIT = os.environ.get('AI_TEST_CONNECTION_RATE_LIMIT', '10 per minute')
-    TELEGRAM_WEBHOOK_RATE_LIMIT   = os.environ.get('TELEGRAM_WEBHOOK_RATE_LIMIT', '60 per minute')
+    # TELEGRAM_WEBHOOK_RATE_LIMIT — presupuesto por chat_id (NO global/por-IP; el
+    # webhook lo scopea por el chat_id del payload de Telegram, porque todo el
+    # tráfico de Telegram para todos los usuarios comparte el mismo pool de IPs
+    # de servidores de Telegram). El comando /start (que completa la vinculación)
+    # siempre está exento de este límite sin importar el valor configurado.
+    TELEGRAM_WEBHOOK_RATE_LIMIT   = os.environ.get('TELEGRAM_WEBHOOK_RATE_LIMIT', '30 per minute')
     TELEGRAM_LINK_CODE_RATE_LIMIT = os.environ.get('TELEGRAM_LINK_CODE_RATE_LIMIT', '5 per 10 minute')
 
     # ── Lockout de cuenta por fuerza bruta en login (password + MFA) ───────────
