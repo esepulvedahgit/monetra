@@ -32,6 +32,12 @@
                                 </div>
                                 {% endif %}
                             </div>
+                            {% if has_month_budget %}
+                            <div class="form-check mt-2">
+                                {{ form.exclude_from_budget(class="form-check-input") }}
+                                {{ form.exclude_from_budget.label(class="form-check-label") }}{{ hint(_('El monto no se sumará a tu presupuesto del mes, pero sí aparecerá en tus movimientos y en el total gastado.')) }}
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex align-items-center justify-content-between gap-2">

@@ -33,7 +33,8 @@
                     <a class="nav-link sidebar-link py-2 px-3 small" href="#s13">13. {{ _('IA · Telegram') }}</a>
                     <a class="nav-link sidebar-link py-2 px-3 small" href="#s14">14. {{ _('PIN de acceso rápido') }}</a>
                     <a class="nav-link sidebar-link py-2 px-3 small" href="#s15">15. {{ _('Bot de Telegram') }}</a>
-                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s16">16. {{ _('Preguntas frecuentes') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s16">16. {{ _('Excluir un movimiento del presupuesto') }}</a>
+                    <a class="nav-link sidebar-link py-2 px-3 small" href="#s17">17. {{ _('Preguntas frecuentes') }}</a>
                 </nav>
             </div>
         </div>
@@ -621,10 +622,37 @@
             </div>
         </section>
 
-        {# 16. Preguntas frecuentes #}
+        {# 16. Excluir un movimiento del presupuesto #}
         <section id="s16" class="guia-section mb-5">
             <h4 class="fw-bold mb-3 border-bottom pb-2">
-                <i class="bi bi-question-circle text-primary me-2"></i>16. {{ _('Preguntas frecuentes') }}
+                <i class="bi bi-slash-circle text-primary me-2"></i>16. {{ _('Excluir un movimiento del presupuesto') }}
+            </h4>
+            <p class="text-muted">{{ _('Al crear o editar un movimiento, si ya tienes un presupuesto mensual general definido para ese mes, verás la casilla') }} <strong>{{ _('No contar en el presupuesto') }}</strong>.</p>
+
+            <h6 class="fw-semibold mt-3">{{ _('¿Para qué sirve?') }}</h6>
+            <p class="text-muted">{{ _('Te permite registrar un gasto real sin que consuma tu límite mensual. Es útil para gastos que no representan tu consumo habitual, por ejemplo un pago de tarjeta de crédito, un reembolso pendiente o una compra grande puntual que no quieres que active tus alertas de presupuesto.') }}</p>
+
+            <h6 class="fw-semibold mt-3">{{ _('¿Qué pasa exactamente al marcarla?') }}</h6>
+            <table class="table table-sm table-bordered small">
+                <thead class="table-dark"><tr><th>{{ _('Cálculo') }}</th><th>{{ _('¿Incluye el monto marcado?') }}</th></tr></thead>
+                <tbody>
+                    <tr><td>{{ _('Barra de presupuesto general y presupuestos por categoría') }}</td><td><span class="text-danger">✗</span> {{ _('No') }}</td></tr>
+                    <tr><td>{{ _('Panel de analítica (salud financiera, proyección, alertas)') }}</td><td><span class="text-danger">✗</span> {{ _('No') }}</td></tr>
+                    <tr><td>{{ _('Total gastado, balance y listado de movimientos') }}</td><td><span class="text-success">✓</span> {{ _('Sí') }}</td></tr>
+                    <tr><td>{{ _('Reporte Excel') }}</td><td><span class="text-success">✓</span> {{ _('Sí') }}</td></tr>
+                </tbody>
+            </table>
+
+            <div class="alert alert-secondary small py-2">
+                <i class="bi bi-info-circle me-1"></i>
+                {{ _('La casilla solo aparece si el mes activo tiene un presupuesto general creado. Si no ves la opción, ve a la sección Presupuesto y crea uno para ese mes.') }}
+            </div>
+        </section>
+
+        {# 17. Preguntas frecuentes #}
+        <section id="s17" class="guia-section mb-5">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-question-circle text-primary me-2"></i>17. {{ _('Preguntas frecuentes') }}
             </h4>
 
             <div class="row g-3">

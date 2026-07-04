@@ -193,6 +193,7 @@ class Transaction(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     is_demo = db.Column(db.Boolean, nullable=False, default=False)
     recurring_id = db.Column(db.Integer, nullable=True)
+    exclude_from_budget = db.Column(db.Boolean, nullable=False, default=False)
 
     def __repr__(self):
         return f'<Transaction {self.type} {self.amount}>'

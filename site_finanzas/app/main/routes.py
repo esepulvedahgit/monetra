@@ -589,6 +589,9 @@ def add_transaction():
     all_cats = _user_categories()
     form.category_id.choices = [(c.id, c.name) for c in all_cats]
     cats_json = json.dumps([{'id': c.id, 'name': c.name, 'type': c.type} for c in all_cats])
+    has_month_budget = Budget.query.filter_by(
+        user_id=current_user.id, year=year, month=month
+    ).first() is not None
 
     if request.method == 'GET':
         today = date.today()
@@ -615,6 +618,7 @@ def add_transaction():
                     category_id=form.category_id.data,
                     description=form.description.data,
                     date=form.date.data,
+                    exclude_from_budget=has_month_budget and form.exclude_from_budget.data,
                 ))
                 db.session.commit()
                 flash(_('Movimiento creado exitosamente.'), 'success')
@@ -624,6 +628,7 @@ def add_transaction():
                            form=form, title=_('Nuevo Movimiento'), cats_json=cats_json,
                            date_min=date_min.isoformat(), date_max=date_max.isoformat(),
                            date_month_name=_locale_month_names()[month], date_year=year,
+                           has_month_budget=has_month_budget,
                             custom_budget_info=_custom_budget_info(year, month))
 
 
@@ -642,6 +647,9 @@ def edit_transaction(tx_id):
     all_cats = _user_categories()
     form.category_id.choices = [(c.id, c.name) for c in all_cats]
     cats_json = json.dumps([{'id': c.id, 'name': c.name, 'type': c.type} for c in all_cats])
+    has_month_budget = Budget.query.filter_by(
+        user_id=current_user.id, year=year, month=month
+    ).first() is not None
 
     if form.validate_on_submit():
         if not (date_min <= form.date.data <= date_max):
@@ -662,6 +670,7 @@ def edit_transaction(tx_id):
                 tx.category_id = form.category_id.data
                 tx.description = form.description.data
                 tx.date = form.date.data
+                tx.exclude_from_budget = has_month_budget and form.exclude_from_budget.data
                 db.session.commit()
                 flash(_('Movimiento actualizado.'), 'success')
                 return redirect(url_for('main.transactions'))
@@ -670,6 +679,7 @@ def edit_transaction(tx_id):
                            form=form, title=_('Editar Movimiento'), cats_json=cats_json,
                            date_min=date_min.isoformat(), date_max=date_max.isoformat(),
                            date_month_name=_locale_month_names()[month], date_year=year,
+                           has_month_budget=has_month_budget,
                             custom_budget_info=_custom_budget_info(year, month))
 
 

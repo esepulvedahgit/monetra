@@ -186,6 +186,10 @@ with app.app_context():
             conn.execute(text("ALTER TABLE transactions ADD COLUMN is_demo BOOLEAN NOT NULL DEFAULT FALSE"))
             conn.commit()
             print("Columna is_demo agregada a transactions.")
+        if 'exclude_from_budget' not in tx_cols:
+            conn.execute(text("ALTER TABLE transactions ADD COLUMN exclude_from_budget BOOLEAN NOT NULL DEFAULT FALSE"))
+            conn.commit()
+            print("Columna exclude_from_budget agregada a transactions.")
 
     # category_budgets table is created by db.create_all() via the model.
     # No ALTER TABLE needed — new table, not a column addition.

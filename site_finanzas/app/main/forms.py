@@ -42,6 +42,7 @@ class TransactionForm(FlaskForm):
     category_id = SelectField(_l('Categoría'), coerce=int, validators=[DataRequired()])
     description = TextAreaField(_l('Descripción'), validators=[Optional(), Length(max=2000)])
     date = DateField(_l('Fecha'), validators=[DataRequired()], default=date.today)
+    exclude_from_budget = BooleanField(_l('No contar en el presupuesto'))
     submit = SubmitField(_l('Guardar'))
 
 
