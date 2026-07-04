@@ -221,7 +221,7 @@ Cada límite sigue la sintaxis de Flask-Limiter: `"N per second|minute|hour|day"
 | `BACKUP_EXPORT_RATE_LIMIT` | `5 per hour` | `POST /admin/backup/export` |
 | `BACKUP_RESTORE_RATE_LIMIT` | `5 per hour` | `POST /admin/backup/restore` |
 | `AI_TEST_CONNECTION_RATE_LIMIT` | `10 per minute` | `POST /configurar/test-ai` |
-| `TELEGRAM_WEBHOOK_RATE_LIMIT` | `60 per minute` | `POST /telegram/webhook/<path>` |
+| `TELEGRAM_WEBHOOK_RATE_LIMIT` | `30 per minute` (por chat_id, `/start` exento) | `POST /telegram/webhook/<path>` |
 | `TELEGRAM_LINK_CODE_RATE_LIMIT` | `5 per 10 minute` | `POST /telegram/generate-code` |
 
 ### Lockout de cuenta por fuerza bruta

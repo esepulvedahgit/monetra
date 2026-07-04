@@ -2,11 +2,10 @@ import hashlib
 import hmac
 import logging
 import secrets
-import time
-from collections import defaultdict, deque
 from datetime import datetime, timezone, timedelta
 
 from flask import current_app, jsonify, request
+from flask_limiter.util import get_remote_address
 from flask_login import current_user, login_required
 
 from app import csrf, db, limiter
@@ -19,23 +18,6 @@ from app.telegram.service import _webhook_path
 
 _log = logging.getLogger(__name__)
 
-# #10 — Throttle por chat_id (in-process, para single-worker Gunicorn)
-# Permite hasta 20 mensajes por chat en 60 segundos antes de descartarlos silenciosamente.
-_CHAT_TIMESTAMPS: dict[int, deque] = defaultdict(lambda: deque(maxlen=20))
-_CHAT_RATE_WINDOW = 60
-_CHAT_RATE_LIMIT  = 20
-
-
-def _is_chat_rate_limited(chat_id: int) -> bool:
-    now = time.monotonic()
-    dq = _CHAT_TIMESTAMPS[chat_id]
-    while dq and now - dq[0] > _CHAT_RATE_WINDOW:
-        dq.popleft()
-    if len(dq) >= _CHAT_RATE_LIMIT:
-        return True
-    dq.append(now)
-    return False
-
 
 def _chat_id_from_update(update: dict) -> int | None:
     if 'message' in update:
@@ -45,10 +27,42 @@ def _chat_id_from_update(update: dict) -> int | None:
     return None
 
 
+def _is_start_command(update: dict) -> bool:
+    """True si el update es un mensaje /start (handshake de vinculación)."""
+    text = (update.get('message') or {}).get('text') or ''
+    return text.strip().startswith('/start')
+
+
+def _telegram_rate_limit_key() -> str:
+    """Key del rate limit del webhook, scopeada por chat_id.
+
+    Todos los updates de Telegram para todos los usuarios llegan desde el
+    mismo pool pequeño de IPs de servidores de Telegram, así que usar
+    get_remote_address (default de Flask-Limiter) crea UN bucket compartido
+    por todo el tráfico del bot. Escopear por chat_id da a cada chat su
+    propio presupuesto. Cae a la IP remota solo si no se puede parsear el
+    chat_id — la autenticación real de esta ruta es el path secreto +
+    header X-Telegram-Bot-Api-Secret-Token validados en webhook().
+    """
+    update = request.get_json(silent=True) or {}
+    chat_id = _chat_id_from_update(update)
+    return f"tg-chat:{chat_id}" if chat_id else f"tg-ip:{get_remote_address()}"
+
+
+def _exempt_start_from_rate_limit() -> bool:
+    """El /start que completa la vinculación nunca debe bloquearse."""
+    update = request.get_json(silent=True) or {}
+    return _is_start_command(update)
+
+
 # #7 — CSRF exento solo en el webhook (no en generate-code / toggle-usd / unlink)
 @telegram_bp.route('/telegram/webhook/<webhook_path>', methods=['POST'])
 @csrf.exempt
-@limiter.limit(lambda: current_app.config.get('TELEGRAM_WEBHOOK_RATE_LIMIT', '60 per minute'))
+@limiter.limit(
+    lambda: current_app.config.get('TELEGRAM_WEBHOOK_RATE_LIMIT', '30 per minute'),
+    key_func=_telegram_rate_limit_key,
+    exempt_when=_exempt_start_from_rate_limit,
+)
 def webhook(webhook_path: str):
     """Receive Telegram updates. Validates secret path + header before dispatching."""
     secret = current_app.config.get('TELEGRAM_WEBHOOK_SECRET') or ''
@@ -68,12 +82,6 @@ def webhook(webhook_path: str):
 
     update = request.get_json(silent=True)
     if update:
-        # #10 — Throttle por chat_id antes de procesar
-        chat_id = _chat_id_from_update(update)
-        if chat_id and _is_chat_rate_limited(chat_id):
-            _log.warning("Per-chat rate limit exceeded for chat_id=%s, dropping update", chat_id)
-            return jsonify({'ok': True}), 200  # siempre 200 a Telegram
-
         try:
             process_update(update)
         except Exception as exc:
