@@ -446,6 +446,24 @@ Autenticación por **JWT** (Bearer token). CSRF está exento para la API.
 | `/api/v1/transactions/<id>` | PUT | Actualizar campos |
 | `/api/v1/transactions/<id>` | DELETE | Eliminar transacción |
 
+#### Transacciones USD API
+
+Las rutas USD usan el mismo Bearer JWT o token persistente `mntr_*` de la API
+principal; no se configura ni genera un token independiente.
+
+| Endpoint | Método | Detalles |
+|---|---|---|
+| `/api/v1/usd/transactions` | GET | Lista movimientos USD. Filtros: `year`, `month`, `category_id` |
+| `/api/v1/usd/transactions` | POST | Crea un gasto USD con `amount`, `date`, `category_id` y `description` opcional |
+| `/api/v1/usd/transactions/<id>` | PUT | Actualiza parcialmente monto, fecha, categoría o descripción |
+| `/api/v1/usd/transactions/<id>` | DELETE | Elimina un movimiento USD propio |
+| `/api/v1/usd/categories` | GET | Lista las categorías USD del usuario autenticado |
+
+Los movimientos USD siempre se representan como `type: "expense"` y
+`currency: "USD"`. El monto debe ser positivo, con hasta dos decimales, y la
+categoría debe pertenecer al usuario del token. Las categorías USD son de solo
+lectura por API; se gestionan desde la sección web Cuenta USD.
+
 #### Presupuestos API
 
 | Endpoint | Método | Detalles |
@@ -519,6 +537,7 @@ El cliente guarda el `created_at` del último evento y lo usa como `since` en el
 - **day_of_month en recurrentes**: 1–28.
 - **Abonar a meta completada**: HTTP 400.
 - **Presupuestos de categoría/personalizados**: No disponibles en API.
+- **USD**: No hay ingresos, presupuestos, recurrentes ni metas USD expuestos por API; los movimientos USD requieren una categoría USD propia.
 - **Auditoría API**: Solo accesible con token de usuario `admin` → 403 para usuarios normales.
 - **`since`/`until` inválido**: HTTP 400 con mensaje descriptivo.
 

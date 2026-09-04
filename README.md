@@ -409,7 +409,16 @@ curl http://localhost:8085/api/v1/transactions \
   -H "Authorization: Bearer <token>"
 ```
 
-Recursos disponibles: `transactions`, `budgets`, `categories`, `recurring`, `savings`, `dashboard/summary`, `dashboard/global`, `audit/logs` (solo admin).
+El mismo JWT o token persistente `mntr_*` sirve para movimientos locales y USD:
+
+```bash
+curl -X POST http://localhost:8085/api/v1/usd/transactions \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"amount":"24.99","date":"2026-09-04","category_id":7,"description":"Suscripción"}'
+```
+
+Recursos disponibles: `transactions`, `usd/transactions`, `usd/categories`, `budgets`, `categories`, `recurring`, `savings`, `dashboard/summary`, `dashboard/global`, `audit/logs` (solo admin).
 
 ---
 
