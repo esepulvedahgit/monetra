@@ -210,6 +210,42 @@ class TestUsdTransactions:
         assert no_json.status_code == 400
         assert foreign_category.status_code == 400
 
+    @pytest.mark.parametrize('update_payload', [
+        {'amount': '1.001'},
+        {'amount': 'NaN'},
+        {'date': 'invalid-date'},
+        {'description': 'x' * 201},
+        {'description': 42},
+        {'category_id': None},
+    ])
+    def test_rejects_invalid_partial_update(self, app, client, user, update_payload):
+        category_id, _ = _make_usd_category(app, user)
+        headers = _auth_headers(_login(client)['access_token'])
+        created = client.post('/api/v1/usd/transactions', headers=headers,
+                              json=_usd_payload(category_id)).get_json()
+
+        response = client.put(f"/api/v1/usd/transactions/{created['id']}",
+                              headers=headers, json=update_payload)
+
+        assert response.status_code == 400
+
+    def test_rejects_update_without_json_or_with_foreign_category(self, app, client, user):
+        category_id, _ = _make_usd_category(app, user)
+        foreign_category_id, _ = _make_other_users_usd_transaction(app)
+        headers = _auth_headers(_login(client)['access_token'])
+        created = client.post('/api/v1/usd/transactions', headers=headers,
+                              json=_usd_payload(category_id)).get_json()
+
+        no_json = client.put(f"/api/v1/usd/transactions/{created['id']}", headers=headers)
+        foreign_category = client.put(
+            f"/api/v1/usd/transactions/{created['id']}",
+            headers=headers,
+            json={'category_id': foreign_category_id},
+        )
+
+        assert no_json.status_code == 400
+        assert foreign_category.status_code == 400
+
     def test_cannot_read_or_mutate_another_users_transaction(self, app, client, user):
         _, transaction_id = _make_other_users_usd_transaction(app)
         headers = _auth_headers(_login(client)['access_token'])
