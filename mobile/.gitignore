@@ -1,0 +1,13 @@
+node_modules/
+.expo/
+.android-sdk/
+.android/
+.gradle/
+dist/
+*.log
+.secrets/
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/keystore.properties
