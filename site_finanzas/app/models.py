@@ -43,6 +43,8 @@ class User(db.Model, UserMixin):
     email_verified_at = db.Column(db.DateTime, nullable=True)
     last_login_at = db.Column(db.DateTime, nullable=True)
     is_suspended = db.Column(db.Boolean, nullable=False, default=False)
+    api_sessions_valid_after = db.Column(db.DateTime(timezone=True), nullable=True)
+    api_session_version = db.Column(db.Integer, nullable=False, default=0)
     # Cuota diaria de escaneos IA sobre la clave compartida del admin
     shared_ai_scans_date  = db.Column(db.Date, nullable=True)
     shared_ai_scans_count = db.Column(db.Integer, nullable=False, default=0)
@@ -194,6 +196,12 @@ class Transaction(db.Model):
     is_demo = db.Column(db.Boolean, nullable=False, default=False)
     recurring_id = db.Column(db.Integer, nullable=True)
     exclude_from_budget = db.Column(db.Boolean, nullable=False, default=False)
+    # Client-generated key used to make mobile POST retries safe.
+    client_request_id = db.Column(db.String(128), nullable=True)
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'client_request_id', name='uq_transaction_client_request'),
+    )
 
     def __repr__(self):
         return f'<Transaction {self.type} {self.amount}>'
@@ -233,6 +241,47 @@ class AppConfig(db.Model):
 
     def __repr__(self):
         return f'<AppConfig allow_registration={self.allow_registration}>'
+
+
+class MobileRelease(db.Model):
+    """Metadata for a published Android release.
+
+    APK bytes deliberately do not live in the database or under ``static``.
+    There is exactly one on-disk binary (the row with ``is_current=True``),
+    while these rows retain a small, auditable publication history.
+    """
+    __tablename__ = 'mobile_releases'
+
+    id = db.Column(db.Integer, primary_key=True)
+    version = db.Column(db.String(40), nullable=False)
+    version_code = db.Column(db.Integer, nullable=False, unique=True)
+    notes = db.Column(db.Text, nullable=True)
+    size_bytes = db.Column(db.BigInteger, nullable=False)
+    sha256 = db.Column(db.String(64), nullable=False)
+    certificate_sha256 = db.Column(db.String(64), nullable=False)
+    is_current = db.Column(db.Boolean, nullable=False, default=False, index=True)
+    published_at = db.Column(db.DateTime, nullable=False,
+                             default=lambda: datetime.now(timezone.utc))
+    published_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+    published_by = db.relationship('User', foreign_keys=[published_by_id])
+
+    def __repr__(self):
+        return f'<MobileRelease {self.version} ({self.version_code})>'
+
+
+class MobileMfaChallenge(db.Model):
+    """One-time, short-lived proof that a password was accepted before TOTP."""
+    __tablename__ = 'mobile_mfa_challenges'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    token_hash = db.Column(db.String(64), nullable=False, unique=True)
+    session_version = db.Column(db.Integer, nullable=False)
+    expires_at = db.Column(db.DateTime(timezone=True), nullable=False)
+    consumed_at = db.Column(db.DateTime(timezone=True), nullable=True)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False,
+                           default=lambda: datetime.now(timezone.utc))
 
 
 class UserEmailConfig(db.Model):

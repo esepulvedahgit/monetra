@@ -1,5 +1,6 @@
 from datetime import date as date_type
 from flask import request, jsonify
+from sqlalchemy.exc import IntegrityError
 from app import db
 from app.models import Transaction, Category
 from app.api import api_v1
@@ -31,6 +32,24 @@ def _owned_category(user, category_id, tx_type):
 @api_login_required
 def list_transactions():
     user = get_current_api_user()
+    has_pagination = 'page' in request.args or 'per_page' in request.args
+    if has_pagination:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        if page < 1 or not 1 <= per_page <= 100:
+            return jsonify({"error": "Paginación inválida", "code": "validation_error",
+                            "message": "Paginación inválida"}), 400
+        txs, total, pages = svc.get_transactions_page(
+            user.id, page, per_page,
+            year=request.args.get("year", type=int),
+            month=request.args.get("month", type=int),
+            tx_type=request.args.get("type"),
+            category_id=request.args.get("category_id", type=int),
+        )
+        return jsonify({
+            "transactions": txs, "total": total, "page": page, "per_page": per_page,
+            "pages": pages, "has_next": page < pages,
+        }), 200
     txs = svc.get_transactions(
         user.id,
         year=request.args.get("year", type=int),
@@ -48,6 +67,16 @@ def create_transaction():
     data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "Se requiere JSON"}), 400
+
+    idempotency_key = request.headers.get("Idempotency-Key", "").strip()
+    if len(idempotency_key) > 128:
+        return jsonify({"error": "Idempotency-Key inválido", "code": "validation_error"}), 400
+    if idempotency_key:
+        previous = Transaction.query.filter_by(
+            user_id=user.id, client_request_id=idempotency_key
+        ).first()
+        if previous:
+            return jsonify(_tx_dict(previous)), 200
 
     tx_type = data.get("type")
     if tx_type not in ("income", "expense"):
@@ -80,14 +109,26 @@ def create_transaction():
         date=tx_date,
         category_id=category_id,
         is_demo=False,
+        client_request_id=idempotency_key or None,
     )
     db.session.add(tx)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        # The unique constraint also covers simultaneous retries from a flaky network.
+        existing = Transaction.query.filter_by(
+            user_id=user.id, client_request_id=idempotency_key
+        ).first()
+        if existing:
+            return jsonify(_tx_dict(existing)), 200
+        raise
     db.session.refresh(tx)
     return jsonify(_tx_dict(tx)), 201
 
 
 @api_v1.put("/transactions/<int:tx_id>")
+@api_v1.patch("/transactions/<int:tx_id>")
 @api_login_required
 def update_transaction(tx_id):
     user = get_current_api_user()

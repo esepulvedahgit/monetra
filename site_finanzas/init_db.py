@@ -1,5 +1,5 @@
 ﻿from app import create_app, db
-from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, EmailActivationToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget, UserAIConfig, ApiToken, UserPinDevice, TelegramLink, TelegramLinkCode, TelegramPendingTx  # noqa: F401
+from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, EmailActivationToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget, UserAIConfig, ApiToken, UserPinDevice, TelegramLink, TelegramLinkCode, TelegramPendingTx, MobileRelease, MobileMfaChallenge  # noqa: F401
 from sqlalchemy import inspect, text
 
 app = create_app()
@@ -141,6 +141,14 @@ with app.app_context():
             conn.execute(text("ALTER TABLE users ADD COLUMN is_suspended TINYINT(1) NOT NULL DEFAULT 0"))
             conn.commit()
             print("Columna is_suspended agregada a users.")
+        if 'api_sessions_valid_after' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN api_sessions_valid_after DATETIME NULL"))
+            conn.commit()
+            print("Columna api_sessions_valid_after agregada a users.")
+        if 'api_session_version' not in existing_cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN api_session_version INT NOT NULL DEFAULT 0"))
+            conn.commit()
+            print("Columna api_session_version agregada a users.")
         if 'shared_ai_scans_date' not in existing_cols:
             conn.execute(text("ALTER TABLE users ADD COLUMN shared_ai_scans_date DATE NULL"))
             conn.commit()
@@ -153,6 +161,16 @@ with app.app_context():
             conn.execute(text("ALTER TABLE users ADD COLUMN ai_access_granted TINYINT(1) NOT NULL DEFAULT 0"))
             conn.commit()
             print("Columna ai_access_granted agregada a users.")
+
+        transaction_cols = [c['name'] for c in inspect(db.engine).get_columns('transactions')]
+        if 'client_request_id' not in transaction_cols:
+            conn.execute(text("ALTER TABLE transactions ADD COLUMN client_request_id VARCHAR(128) NULL"))
+            conn.execute(text(
+                "CREATE UNIQUE INDEX uq_transaction_client_request "
+                "ON transactions (user_id, client_request_id)"
+            ))
+            conn.commit()
+            print("Columna client_request_id agregada a transactions.")
 
         # El primer usuario que se registre en /register queda como admin automáticamente.
 

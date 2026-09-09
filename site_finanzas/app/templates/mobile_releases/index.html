@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4" style="max-width:720px;">
+  <h3 class="fw-bold mb-3">{{ _('Aplicación Android') }}</h3>
+  {% if release %}
+  <div class="card shadow-sm"><div class="card-body">
+    <h5 class="card-title mb-1">Monetra {{ release.version }}</h5>
+    <p class="text-muted mb-3">{{ release.published_at.strftime('%d/%m/%Y') }} · {{ '%.1f'|format(release.size_bytes / 1024 / 1024) }} MB</p>
+    {% if release.notes %}<p class="card-text">{{ release.notes }}</p>{% endif %}
+    <a class="btn btn-primary" href="{{ url_for('mobile_releases.download') }}"><i class="bi bi-android2 me-1"></i>{{ _('Descargar APK') }}</a>
+    <p class="small text-muted mt-3 mb-0">{{ _('Android puede pedirte permitir instalaciones desde este navegador.') }}</p>
+  </div></div>
+  {% else %}
+  <div class="alert alert-info">{{ _('La aplicación Android todavía no está disponible.') }}</div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -327,6 +327,10 @@ def reset_password(token):
     if form.validate_on_submit():
         user = User.query.get(token_record.user_id)
         user.set_password(form.password.data)
+        # Password recovery is equivalent to a password change: any mobile
+        # bearer/refresh token issued before it must no longer be accepted.
+        user.api_sessions_valid_after = datetime.now(timezone.utc)
+        user.api_session_version += 1
         token_record.used_at = datetime.now(timezone.utc)
 
         PasswordResetToken.query.filter(

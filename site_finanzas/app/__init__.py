@@ -116,6 +116,9 @@ def create_app(config_class=Config):
     from app.backup import backup_bp
     app.register_blueprint(backup_bp)
 
+    from app.mobile_releases import mobile_releases_bp
+    app.register_blueprint(mobile_releases_bp)
+
     from app.telegram import telegram_bp
     app.register_blueprint(telegram_bp)
     # #7 — CSRF exento solo en el webhook; generate-code/toggle-usd/unlink conservan protección.
