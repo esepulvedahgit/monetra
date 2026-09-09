@@ -2,7 +2,7 @@
 
 # Update CURRENT_ANNOUNCEMENT to the latest key when releasing a new version.
 # New users created on or after 'released_at' skip the announcement automatically.
-CURRENT_ANNOUNCEMENT = 'v2.6'
+CURRENT_ANNOUNCEMENT = 'v2.7'
 
 ANNOUNCEMENTS = {
     'v1.7': {
@@ -36,5 +36,9 @@ ANNOUNCEMENTS = {
     'v2.6': {
         'key': 'v2.6',
         'released_at': datetime(2026, 6, 20, tzinfo=timezone.utc),
+    },
+    'v2.7': {
+        'key': 'v2.7',
+        'released_at': datetime(2026, 9, 8, tzinfo=timezone.utc),
     },
 }

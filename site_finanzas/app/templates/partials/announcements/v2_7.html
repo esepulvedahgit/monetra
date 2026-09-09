@@ -1,0 +1,32 @@
+<div class="modal-header"
+     style="background: linear-gradient(135deg, #2563EB 0%, var(--monetra-primary, #00C896) 100%); color: #fff;">
+    <h5 class="modal-title fw-bold">
+        <i class="bi bi-android2 me-2"></i>
+        {{ _('¡Monetra ahora está disponible en Android!') }}
+    </h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+            aria-label="{{ _('Cerrar') }}"></button>
+</div>
+
+<div class="modal-body py-4">
+    <p class="mb-3 fw-semibold" style="color: var(--monetra-text);">
+        {{ _('Lleva las funciones que más usas de Monetra contigo: revisa tu resumen, registra movimientos, sigue tus metas y consulta tu perfil desde tu teléfono Android.') }}
+    </p>
+
+    <ul class="list-unstyled mb-3 ps-1" style="color: var(--monetra-text-soft); line-height: 1.9;">
+        <li class="mb-2"><i class="bi bi-grid-1x2-fill me-2" style="color: #60A5FA;"></i><strong>{{ _('Resumen mensual') }}</strong>{{ _(' — Consulta tu balance, ingresos, gastos y categorías principales.') }}</li>
+        <li class="mb-2"><i class="bi bi-arrow-left-right me-2" style="color: #34D399;"></i><strong>{{ _('Movimientos') }}</strong>{{ _(' — Registra y organiza tus ingresos y gastos al instante.') }}</li>
+        <li class="mb-2"><i class="bi bi-trophy-fill me-2" style="color: #F59E0B;"></i><strong>{{ _('Metas de ahorro') }}</strong>{{ _(' — Revisa tu avance y agrega aportes desde donde estés.') }}</li>
+    </ul>
+
+    <div class="p-3 rounded" style="background: rgba(37,99,235,0.10); border: 1px solid rgba(37,99,235,0.25); color: var(--monetra-text-soft);">
+        <div class="fw-semibold mb-1" style="color: var(--monetra-text);"><i class="bi bi-download me-1" style="color:#2563EB;"></i>{{ _('Descarga la app') }}</div>
+        <div class="small">{{ _('La ruta exacta es ') }}<a class="fw-semibold" href="{{ url_for('mobile_releases.index') }}"><code>/mobile</code></a>{{ _(' . Desde allí podrás descargar el APK actual de Monetra para Android.') }}</div>
+    </div>
+</div>
+
+<div class="modal-footer" style="border-top: 1px solid var(--card-border);">
+    <span class="text-muted small me-auto"><i class="bi bi-code-slash me-1"></i>v2.7</span>
+    <button type="button" class="btn btn-outline-secondary fw-semibold px-3" data-bs-dismiss="modal">{{ _('Entendido') }}</button>
+    <a href="{{ url_for('mobile_releases.index') }}" class="btn btn-primary fw-semibold px-4"><i class="bi bi-android2 me-1"></i>{{ _('Ir a /mobile') }}</a>
+</div>
