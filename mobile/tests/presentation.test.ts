@@ -6,7 +6,10 @@ import {
   buildTransactionPayload,
   categoriesForType,
   categorySegments,
+  periodFromRouteParams,
   shiftMonth,
+  transactionPeriodParams,
+  transactionsRouteParams,
 } from '../src/finance/presentation';
 
 describe('buildTransactionPayload', () => {
@@ -53,6 +56,19 @@ describe('categoriesForType', () => {
 describe('shiftMonth', () => {
   it('crosses a year boundary when moving back from January', () => {
     expect(shiftMonth({ year: 2026, month: 1 }, -1)).toEqual({ year: 2025, month: 12 });
+  });
+});
+
+describe('transaction period navigation', () => {
+  it('passes the selected summary month to the movements route and API query', () => {
+    const period = { year: 2026, month: 8 };
+
+    expect(transactionsRouteParams(period)).toEqual({ year: '2026', month: '8' });
+    expect(transactionPeriodParams(period)).toEqual({ year: 2026, month: 8 });
+  });
+
+  it('falls back to the current month when a direct movement route has invalid period parameters', () => {
+    expect(periodFromRouteParams({ year: '2026', month: '0' }, new Date(2026, 8, 8))).toEqual({ year: 2026, month: 9 });
   });
 });
 

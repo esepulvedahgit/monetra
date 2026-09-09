@@ -4,6 +4,13 @@
     "internal": {
       "distribution": "internal",
       "android": { "buildType": "apk" }
+    },
+    "production": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://monetra.hgrey.net/api/v1"
+      },
+      "android": { "buildType": "apk" }
     }
   }
 }

@@ -9,6 +9,24 @@ export function shiftMonth(period: Period, direction: -1 | 1): Period {
   return { year: period.year, month: next };
 }
 
+export function transactionsRouteParams(period: Period) {
+  return { year: String(period.year), month: String(period.month) };
+}
+
+export function transactionPeriodParams(period: Period) {
+  return { year: period.year, month: period.month };
+}
+
+export function periodFromRouteParams(
+  params: { year?: string | string[]; month?: string | string[] },
+  now = new Date(),
+): Period {
+  const year = Number(Array.isArray(params.year) ? params.year[0] : params.year);
+  const month = Number(Array.isArray(params.month) ? params.month[0] : params.month);
+  if (Number.isInteger(year) && Number.isInteger(month) && month >= 1 && month <= 12) return { year, month };
+  return { year: now.getFullYear(), month: now.getMonth() + 1 };
+}
+
 export function buildTransactionPayload(values: TransactionFormValues) {
   const category = values.categoryId.trim();
   return {

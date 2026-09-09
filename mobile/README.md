@@ -18,4 +18,12 @@ Los tokens se guardan con SecureStore; las respuestas `GET` se conservan como ca
 npx eas-cli build --platform android --profile internal
 ```
 
+## APK de producción
+
+La versión de producción utiliza `https://monetra.hgrey.net/api/v1` y debe compilarse con el perfil `production`:
+
+```bash
+npx eas-cli build --platform android --profile production
+```
+
 EAS mantiene la clave privada de firma. Descarga el APK resultante y publícalo desde **Administración → App Android** en la web. El servidor verifica que su certificado SHA-256 coincida con `MOBILE_APK_SIGNER_SHA256`, conserva el historial de metadatos y entrega solamente el APK vigente a usuarios autenticados.

@@ -1,11 +1,13 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { clearSessionTokens, currentTokenSession, getSessionTokens, isCurrentTokenSession, setSessionTokens } from '../auth/sessionTokens';
+import { currentTokenSession, getSessionTokens, isCurrentTokenSession, setSessionTokens } from '../auth/sessionTokens';
+import { notifySessionExpired } from '../auth/sessionExpiry';
+import { shouldEndSessionAfterRefreshFailure } from '../auth/refreshFailure';
 import { isReadCacheKey, readCacheKey } from './readCache';
 import { ApiSession, type ApiSessionBinding } from './requestSession';
 
-const baseURL = process.env.EXPO_PUBLIC_API_URL ?? 'https://monetra-dev.hgrey.net/api/v1';
+const baseURL = process.env.EXPO_PUBLIC_API_URL ?? 'https://monetra.hgrey.net/api/v1';
 
 export const api = axios.create({
   baseURL,
@@ -56,10 +58,19 @@ async function refreshAccessToken(session: ApiSessionBinding, tokenSession: numb
     });
     if (!apiSession.isCurrent(session) || !isCurrentTokenSession(tokenSession)) return null;
     const accessToken = response.data.access_token as string;
-    const wrote = await setSessionTokens(tokenSession, { accessToken, refreshToken: response.data.refresh_token });
-    return wrote && apiSession.isCurrent(session) ? accessToken : null;
-  } catch {
-    if (apiSession.isCurrent(session)) await clearSessionTokens(tokenSession);
+    try {
+      const wrote = await setSessionTokens(tokenSession, { accessToken, refreshToken: response.data.refresh_token });
+      return wrote && apiSession.isCurrent(session) ? accessToken : null;
+    } catch {
+      // Refresh rotation is one-time. If its replacement cannot be sealed locally,
+      // end the session instead of leaving an apparently-open session with no token.
+      if (apiSession.isCurrent(session) && isCurrentTokenSession(tokenSession)) notifySessionExpired(tokenSession);
+      return null;
+    }
+  } catch (error) {
+    if (shouldEndSessionAfterRefreshFailure(error) && apiSession.isCurrent(session) && isCurrentTokenSession(tokenSession)) {
+      notifySessionExpired(tokenSession);
+    }
     return null;
   }
 }

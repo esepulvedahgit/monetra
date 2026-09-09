@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, Text, TextInput, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 import { api, apiError } from '../../src/api/client';
 import type { User } from '../../src/api/types';
@@ -9,6 +9,7 @@ import { colors, radii, spacing } from '../../src/theme/tokens';
 import { Icon } from '../../src/components/Icon';
 
 export default function Login() {
+  const { reason } = useLocalSearchParams<{ reason?: string }>();
   const { signIn } = useSession();
   const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [passwordVisible, setPasswordVisible] = useState(false); const [loading, setLoading] = useState(false);
   const submit = async () => {
@@ -24,6 +25,7 @@ export default function Login() {
   return <View style={{ flex: 1, justifyContent: 'center', padding: spacing.xl, backgroundColor: colors.background }}>
     <Image source={require('../../assets/monetra-logo.png')} accessibilityLabel="Monetra" resizeMode="contain" style={{ width: 220, height: 145, alignSelf: 'center', marginBottom: spacing.md }} />
     <Text style={{ color: colors.textStrong, fontSize: 32, fontWeight: '800' }}>Monetra</Text><Text style={{ color: colors.muted, marginTop: spacing.sm, marginBottom: spacing.xl }}>Tus finanzas, más simples.</Text>
+    {reason === 'session_expired' ? <Text style={{ color: colors.warning, marginBottom: spacing.md }}>Tu sesión expiró. Inicia sesión nuevamente.</Text> : null}
     <TextInput value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="Correo electrónico" style={input} />
     <View style={passwordField}><TextInput value={password} onChangeText={setPassword} secureTextEntry={!passwordVisible} placeholder="Contraseña" style={passwordInput} /><Pressable accessibilityRole="button" accessibilityLabel={passwordVisible ? 'Ocultar contraseña' : 'Mostrar contraseña'} accessibilityHint="Cambia la visibilidad de la contraseña" hitSlop={8} onPress={() => setPasswordVisible((visible) => !visible)} style={({ pressed }) => [passwordToggle, pressed && pressedToggle]}><Icon name={passwordVisible ? 'eye-off' : 'eye'} color={colors.muted} /></Pressable></View>
     <Pressable onPress={submit} disabled={loading} style={button}>{loading ? <ActivityIndicator color={colors.onAccent} /> : <Text style={buttonText}>Iniciar sesión</Text>}</Pressable>
