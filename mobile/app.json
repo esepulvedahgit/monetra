@@ -3,7 +3,7 @@
     "name": "Monetra",
     "slug": "monetra-mobile",
     "scheme": "monetra",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "icon": "./assets/monetra-app-icon.png",
     "splash": {
       "image": "./assets/monetra-app-icon.png",
@@ -15,7 +15,7 @@
     "android": {
       "package": "com.monetra.mobile",
       "allowBackup": false,
-      "versionCode": 2,
+      "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/monetra-app-icon.png",
         "backgroundColor": "#0F1117"
