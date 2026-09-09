@@ -1,0 +1,36 @@
+{
+  "name": "monetra-mobile",
+  "version": "0.1.7",
+  "private": true,
+  "type": "module",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@tanstack/react-query": "^5.90.5",
+    "axios": "^1.13.2",
+    "expo": "~57.0.20",
+    "expo-router": "~57.0.19",
+    "expo-secure-store": "~57.0.3",
+    "i18next": "^25.7.4",
+    "react": "19.2.3",
+    "react-i18next": "^16.3.5",
+    "react-native": "0.86.0",
+    "react-native-gesture-handler": "~2.32.0",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-svg": "15.15.4"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "~5.9.3",
+    "vitest": "^4.0.16"
+  }
+}

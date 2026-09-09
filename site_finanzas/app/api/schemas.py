@@ -2,7 +2,9 @@ def user_schema(user):
     return {
         "id": user.id,
         "username": user.username,
+        "name": user.username,
         "email": user.email,
+        "mfa_enabled": user.mfa_enabled,
         "country": user.country,
         "currency_symbol": user.currency_symbol or '$',
         "currency_code": user.currency_code or 'USD',

@@ -36,6 +36,8 @@ ADMIN_ACCOUNT_REACTIVATED = 'admin.account_reactivated'
 ADMIN_ACCOUNT_DELETED     = 'admin.account_deleted'
 ADMIN_AI_ACCESS_GRANTED   = 'admin.ai_access_granted'
 ADMIN_AI_ACCESS_REVOKED   = 'admin.ai_access_revoked'
+MOBILE_RELEASE_PUBLISHED  = 'mobile_release.published'
+MOBILE_RELEASE_DOWNLOADED = 'mobile_release.downloaded'
 
 # Telegram events
 TELEGRAM_LINK    = 'telegram.link'
@@ -49,6 +51,7 @@ CATEGORY_META = {
     'config': {'label': 'Configuración', 'color': 'rgba(252,211,77,0.25)',  'border': '#FCD34D'},
     'admin':  {'label': 'Admin',         'color': 'rgba(196,181,253,0.25)', 'border': '#C4B5FD'},
     'telegram': {'label': 'Telegram', 'color': 'rgba(0,136,204,0.20)', 'border': '#0088CC'},
+    'mobile_release': {'label': 'App Android', 'color': 'rgba(52,211,153,0.20)', 'border': '#34D399'},
 }
 
 

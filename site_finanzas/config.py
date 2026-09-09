@@ -31,8 +31,16 @@ class Config:
     BABEL_SUPPORTED_LOCALES = ['es', 'en']
     BABEL_TRANSLATION_DIRECTORIES = 'translations'
 
-    # Default 15 MB; raise MAX_CONTENT_UPLOAD_MB in docker/.env to restore large databases.
-    MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_UPLOAD_MB', '15')) * 1024 * 1024
+    # APK uploads have their own strict 100 MB validation limit. Flask's global
+    # request cap must be at least that value so the publication route can
+    # apply its APK-specific checks.
+    MAX_MOBILE_APK_BYTES = int(os.environ.get('MAX_MOBILE_APK_MB', '100')) * 1024 * 1024
+    MAX_CONTENT_LENGTH = max(
+        int(os.environ.get('MAX_CONTENT_UPLOAD_MB', '15')) * 1024 * 1024,
+        MAX_MOBILE_APK_BYTES,
+    )
+    MOBILE_RELEASES_DIR = os.environ.get('MOBILE_RELEASES_DIR', '/app/data/mobile-releases')
+    MOBILE_APK_SIGNER_SHA256 = os.environ.get('MOBILE_APK_SIGNER_SHA256', '').strip()
 
     JWT_SECRET_KEY = _require_key('JWT_SECRET_KEY')
     JWT_ACCESS_TOKEN_EXPIRES = 900        # 15 min

@@ -32,6 +32,11 @@ class TestConfig:
     MAX_CONTENT_LENGTH = 15 * 1024 * 1024
     CORS_ORIGINS = ['*']
     RATELIMIT_ENABLED = False
+    # Flask-Limiter route decorators are intentionally exercised in tests, but
+    # the shared test client must not exhaust a production-sized IP bucket.
+    API_LOGIN_RATE_LIMIT = '1000 per minute'
+    MFA_VERIFY_RATE_LIMIT = '1000 per minute'
+    FORGOT_PASSWORD_RATE_LIMIT = '1000 per minute'
 
 
 @pytest.fixture(scope='session')

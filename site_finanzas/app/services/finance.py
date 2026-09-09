@@ -1,3 +1,4 @@
+import calendar
 from datetime import date as _date, datetime, timezone
 from sqlalchemy import func, extract, or_
 from app import db
@@ -25,6 +26,7 @@ def _cat_dict(cat):
         "name": cat.name,
         "type": cat.type,
         "is_global": cat.user_id is None,
+        "color": cat.color,
     }
 
 
@@ -98,21 +100,46 @@ def get_monthly_summary(user_id: int, year: int, month: int) -> dict:
     budget_used_pct = (
         round(budget_expense / budget_amount * 100, 1) if budget_amount > 0 else None
     )
+    budget_remaining = round(max(budget_amount - budget_expense, 0), 2)
+
+    today = _date.today()
+    if (year, month) < (today.year, today.month):
+        days_remaining = 0
+    elif (year, month) == (today.year, today.month):
+        days_remaining = max(calendar.monthrange(year, month)[1] - today.day, 0)
+    else:
+        days_remaining = calendar.monthrange(year, month)[1]
 
     top_cats = (
-        db.session.query(Category.name, func.sum(Transaction.amount).label("total"))
-        .join(Transaction, Transaction.category_id == Category.id)
+        db.session.query(
+            Category.id,
+            Category.name,
+            Category.color,
+            func.sum(Transaction.amount).label("total"),
+        )
+        .outerjoin(Transaction, Transaction.category_id == Category.id)
         .filter(
             Transaction.user_id == user_id,
             Transaction.type == "expense",
             extract("year", Transaction.date) == year,
             extract("month", Transaction.date) == month,
         )
-        .group_by(Category.id, Category.name)
+        .group_by(Category.id, Category.name, Category.color)
         .order_by(func.sum(Transaction.amount).desc())
         .limit(5)
         .all()
     )
+
+    category_rows = [
+        {
+            "id": cat_id,
+            "name": name,
+            "color": color or "#A39E98",
+            "amount": float(total),
+            "percentage": round(float(total) / total_expense * 100, 1) if total_expense else 0.0,
+        }
+        for cat_id, name, color, total in top_cats
+    ]
 
     recent = (
         base.order_by(Transaction.date.desc(), Transaction.id.desc()).limit(5).all()
@@ -126,9 +153,18 @@ def get_monthly_summary(user_id: int, year: int, month: int) -> dict:
         "balance": round(total_income - total_expense, 2),
         "budget_amount": budget_amount,
         "budget_used_pct": budget_used_pct,
+        "budget": {
+            "limit": budget_amount,
+            "spent": budget_expense,
+            "remaining": budget_remaining,
+            "used_pct": budget_used_pct,
+            "days_remaining": days_remaining,
+        },
         "top_expense_categories": [
-            {"name": name, "total": float(total)} for name, total in top_cats
+            {"id": row["id"], "name": row["name"], "color": row["color"], "total": row["amount"]}
+            for row in category_rows
         ],
+        "expense_categories": category_rows,
         "recent_transactions": [_tx_dict(t) for t in recent],
     }
 
@@ -274,6 +310,26 @@ def get_transactions(
     if limit:
         query = query.limit(limit)
     return [_tx_dict(t) for t in query.all()]
+
+
+def get_transactions_page(
+    user_id: int, page: int, per_page: int, year=None, month=None,
+    tx_type=None, category_id=None,
+) -> tuple[list, int, int]:
+    """Return one stable page of a user's transactions and pagination metadata."""
+    query = Transaction.query.filter_by(user_id=user_id)
+    if year:
+        query = query.filter(extract("year", Transaction.date) == year)
+    if month:
+        query = query.filter(extract("month", Transaction.date) == month)
+    if tx_type in ("income", "expense"):
+        query = query.filter_by(type=tx_type)
+    if category_id:
+        query = query.filter_by(category_id=category_id)
+    page_result = query.order_by(Transaction.date.desc(), Transaction.id.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    return [_tx_dict(t) for t in page_result.items], page_result.total, page_result.pages
 
 
 # ── Categories ─────────────────────────────────────────────────────────────────

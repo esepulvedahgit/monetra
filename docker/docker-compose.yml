@@ -9,8 +9,9 @@
     volumes:
       - ../site_finanzas:/app
       - /app/venv
+      - mobile_releases_data:/app/data/mobile-releases
     ports:
-      - "8085:8000"
+      - "192.168.1.2:8085:8000"
     environment:
       FLASK_DEBUG: "1"
       DB_HOST: mysql
@@ -21,9 +22,12 @@
       SECRET_KEY: ${SECRET_KEY}
       FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      SERVER_URL: ${SERVER_URL:-}
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
       MAX_CONTENT_UPLOAD_MB: ${MAX_CONTENT_UPLOAD_MB:-15}
       MAX_RESTORE_SQL_MB: ${MAX_RESTORE_SQL_MB:-500}
+      MAX_MOBILE_APK_MB: ${MAX_MOBILE_APK_MB:-100}
+      MOBILE_APK_SIGNER_SHA256: ${MOBILE_APK_SIGNER_SHA256:-}
       # Backend de rate limiting — usa el Redis incluido abajo. Cámbialo a
       # memory:// en el .env si no quieres depender de Redis en local.
       RATELIMIT_STORAGE_URI: ${RATELIMIT_STORAGE_URI:-redis://redis:6379/0}
@@ -86,7 +90,7 @@
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3306:3306"
     volumes:
       - mysql_finanzas_data:/var/lib/mysql
     healthcheck:
@@ -100,6 +104,7 @@
 
 volumes:
   mysql_finanzas_data:
+  mobile_releases_data:
 
 networks:
   finanzas_net:
