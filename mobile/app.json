@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Monetra",
+    "slug": "monetra-mobile",
+    "scheme": "monetra",
+    "version": "0.1.7",
+    "icon": "./assets/monetra-app-icon.png",
+    "splash": {
+      "image": "./assets/monetra-app-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "orientation": "default",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.monetra.mobile",
+      "allowBackup": false,
+      "versionCode": 9,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/monetra-app-icon.png",
+        "backgroundColor": "#0F1117"
+      }
+    },
+    "plugins": ["expo-router", "expo-secure-store"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
