@@ -1,7 +1,9 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { clearSessionTokens, currentTokenSession, getSessionTokens, isCurrentTokenSession, setSessionTokens } from '../auth/sessionTokens';
+import { currentTokenSession, getSessionTokens, isCurrentTokenSession, setSessionTokens } from '../auth/sessionTokens';
+import { notifySessionExpired } from '../auth/sessionExpiry';
+import { shouldEndSessionAfterRefreshFailure } from '../auth/refreshFailure';
 import { isReadCacheKey, readCacheKey } from './readCache';
 import { ApiSession, type ApiSessionBinding } from './requestSession';
 
@@ -58,8 +60,10 @@ async function refreshAccessToken(session: ApiSessionBinding, tokenSession: numb
     const accessToken = response.data.access_token as string;
     const wrote = await setSessionTokens(tokenSession, { accessToken, refreshToken: response.data.refresh_token });
     return wrote && apiSession.isCurrent(session) ? accessToken : null;
-  } catch {
-    if (apiSession.isCurrent(session)) await clearSessionTokens(tokenSession);
+  } catch (error) {
+    if (shouldEndSessionAfterRefreshFailure(error) && apiSession.isCurrent(session) && isCurrentTokenSession(tokenSession)) {
+      notifySessionExpired(tokenSession);
+    }
     return null;
   }
 }
