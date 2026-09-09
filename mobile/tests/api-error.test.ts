@@ -34,6 +34,6 @@ describe('apiError', () => {
   });
 
   it('uses the public Monetra API when no build-time URL is supplied', () => {
-    expect(api.defaults.baseURL).toBe('https://monetra-dev.hgrey.net/api/v1');
+    expect(api.defaults.baseURL).toBe('https://monetra.hgrey.net/api/v1');
   });
 });

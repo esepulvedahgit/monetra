@@ -5,7 +5,7 @@ import { clearSessionTokens, currentTokenSession, getSessionTokens, isCurrentTok
 import { isReadCacheKey, readCacheKey } from './readCache';
 import { ApiSession, type ApiSessionBinding } from './requestSession';
 
-const baseURL = process.env.EXPO_PUBLIC_API_URL ?? 'https://monetra-dev.hgrey.net/api/v1';
+const baseURL = process.env.EXPO_PUBLIC_API_URL ?? 'https://monetra.hgrey.net/api/v1';
 
 export const api = axios.create({
   baseURL,
