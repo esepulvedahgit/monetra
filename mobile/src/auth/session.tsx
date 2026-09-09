@@ -8,32 +8,51 @@ import { api, clearReadCache, setReadCacheAccount } from '../api/client';
 import type { User } from '../api/types';
 import { beginTokenSession, clearSessionTokens, getSessionTokens, isCurrentTokenSession, setSessionTokens } from './sessionTokens';
 import type { Tokens } from './tokens';
+import { clearDeviceCredentialVault, enrollDeviceCredentialVault, getDeviceCredentialVaultStatus, lockDeviceCredentialVault, rotateDeviceCredentialVault, unlockDeviceCredentialVault } from './deviceCredentialVault';
+import { configureQuickAccessVault, disableQuickAccess, enableQuickAccess, isQuickAccessEnabled, lockQuickAccess, markQuickAccessLocked, unlockQuickAccess } from './tokens';
 import { clearSessionData } from './sessionCache';
 import { SessionActivityTracker } from './sessionActivity';
 import { subscribeSessionExpiry } from './sessionExpiry';
+import { initializeQuickAccessLock, lockQuickAccessAfterInactivity, restoreQuickAccessSession, shouldKeepQuickAccessLocked } from './quickAccessLifecycle';
 
 type SessionContextValue = {
   user: User | null;
   ready: boolean;
+  locked: boolean;
+  quickAccessSupported: boolean;
+  quickAccessEnabled: boolean;
   signIn: (tokens: Tokens, user: User) => Promise<void>;
   signOut: () => Promise<void>;
   reloadUser: () => Promise<void>;
+  enableQuickAccess: () => Promise<void>;
+  disableQuickAccess: () => Promise<void>;
+  unlockQuickAccess: () => Promise<void>;
 };
 
 const SessionContext = createContext<SessionContextValue | undefined>(undefined);
 const userKey = 'monetra.mobile.user.v1';
 
+configureQuickAccessVault({
+  enroll: enrollDeviceCredentialVault,
+  rotate: rotateDeviceCredentialVault,
+  lock: lockDeviceCredentialVault,
+  clear: clearDeviceCredentialVault,
+});
+
 export function SessionProvider({ children }: PropsWithChildren) {
   const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
+  const [locked, setLocked] = useState(false);
+  const [quickAccessSupported, setQuickAccessSupported] = useState(false);
+  const [quickAccessEnabled, setQuickAccessEnabled] = useState(false);
   const endingSession = useRef(false);
   const activityTracker = useRef(new SessionActivityTracker());
 
-  const saveUser = useCallback(async (next: User | null) => {
+  const saveUser = useCallback(async (next: User | null, persist = true) => {
     setUser(next);
-    if (next) await AsyncStorage.setItem(userKey, JSON.stringify(next));
-    else await AsyncStorage.removeItem(userKey);
+    if (next && persist) await AsyncStorage.setItem(userKey, JSON.stringify(next));
+    else if (!next || !persist) await AsyncStorage.removeItem(userKey);
   }, []);
 
   const endSession = useCallback(async (expired = false) => {
@@ -51,10 +70,46 @@ export function SessionProvider({ children }: PropsWithChildren) {
       ]);
       endingSession.current = false;
     }
+    setLocked(false);
+    setQuickAccessEnabled(false);
     if (expired) router.replace({ pathname: '/(auth)/login', params: { reason: 'session_expired' } });
   }, [queryClient, saveUser]);
 
+  const lockForInactivity = useCallback(async () => {
+    const vault = await getDeviceCredentialVaultStatus();
+    const tokenSession = beginTokenSession();
+    setReadCacheAccount(null);
+    const result = await lockQuickAccessAfterInactivity({
+      enrolled: vault.enrolled,
+      fullSignOut: () => endSession(true),
+      clearSessionData: async () => { try { await clearSessionData(queryClient, clearReadCache); } catch { /* lock still takes precedence */ } },
+      lockVault: lockQuickAccess,
+      clearActivity: () => activityTracker.current.clear(),
+      clearUser: () => saveUser(null),
+    });
+    if (result === 'locked' && isCurrentTokenSession(tokenSession)) {
+      setQuickAccessEnabled(true);
+      setLocked(true);
+      router.replace('/(auth)/unlock');
+    }
+  }, [endSession, queryClient, saveUser]);
+
   useEffect(() => { void (async () => {
+    const vault = await getDeviceCredentialVaultStatus();
+    setQuickAccessSupported(vault.supported);
+    if (await initializeQuickAccessLock({
+      enrolled: vault.enrolled,
+      markLocked: markQuickAccessLocked,
+      clearSessionData: async () => { try { await clearSessionData(queryClient, clearReadCache); } catch { /* locked state still clears other local data */ } },
+      clearActivity: () => activityTracker.current.clear(),
+      clearUser: () => saveUser(null),
+    })) {
+      setReadCacheAccount(null);
+      setQuickAccessEnabled(true);
+      setLocked(true);
+      setReady(true);
+      return;
+    }
     const [tokens, savedUser] = await Promise.all([getSessionTokens(), AsyncStorage.getItem(userKey)]);
     if (tokens && savedUser) {
       if (!await activityTracker.current.returnToForeground(Date.now(), () => true)) {
@@ -71,7 +126,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
       }
     }
     setReady(true);
-  })(); }, [endSession, saveUser]);
+  })(); }, [endSession, queryClient, saveUser]);
 
   useEffect(() => subscribeSessionExpiry((tokenSession) => {
     if (isCurrentTokenSession(tokenSession)) void endSession(true);
@@ -91,27 +146,30 @@ export function SessionProvider({ children }: PropsWithChildren) {
           const sessionIsActive = await activityTracker.current.returnToForeground(Date.now(), () => AppState.currentState === 'active');
           if (sessionIsActive === null) return;
           if (!sessionIsActive) {
-            await endSession(true);
+            await lockForInactivity();
             return;
           }
-          if (user) {
+          if (user && !locked) {
             try { await api.get<User>('/me'); } catch { /* The interceptor ends invalid sessions. */ }
           }
         })();
       }
     });
     return () => subscription.remove();
-  }, [endSession, ready, user]);
+  }, [lockForInactivity, locked, ready, user]);
 
   const value = useMemo<SessionContextValue>(() => ({
-    user, ready,
+    user, ready, locked, quickAccessSupported, quickAccessEnabled,
     signIn: async (tokens, account) => {
       const tokenSession = beginTokenSession();
       setReadCacheAccount(account.id);
       await clearSessionData(queryClient, clearReadCache);
       await activityTracker.current.clear();
+      await clearSessionTokens(tokenSession);
       await setSessionTokens(tokenSession, tokens);
       await saveUser(account);
+      setLocked(false);
+      setQuickAccessEnabled(false);
     },
     signOut: async () => {
       try {
@@ -124,9 +182,56 @@ export function SessionProvider({ children }: PropsWithChildren) {
       const response = await api.get<User>('/me');
       if (user && user.id !== response.data.id) await clearSessionData(queryClient, clearReadCache);
       setReadCacheAccount(response.data.id);
-      await saveUser(response.data);
+      await saveUser(response.data, !await isQuickAccessEnabled());
     },
-  }), [endSession, queryClient, user, ready, saveUser]);
+    enableQuickAccess: async () => {
+      const tokens = await getSessionTokens();
+      if (!tokens) throw new Error('Tu sesión ya no está disponible. Ingresa nuevamente.');
+      const vault = await getDeviceCredentialVaultStatus();
+      if (!vault.supported) throw new Error('El acceso rápido requiere Android 11 o superior y un bloqueo de pantalla configurado.');
+      await enableQuickAccess(tokens);
+      try {
+        await AsyncStorage.removeItem(userKey);
+      } catch (error) {
+        await endSession(true);
+        throw error;
+      }
+      setQuickAccessEnabled(true);
+    },
+    disableQuickAccess: async () => {
+      await disableQuickAccess();
+      if (user) await saveUser(user);
+      setQuickAccessEnabled(false);
+    },
+    unlockQuickAccess: async () => {
+      try {
+        let tokenSession: number | null = null;
+        const account = await restoreQuickAccessSession({
+          unlockVault: unlockDeviceCredentialVault,
+          refresh: async (refreshToken) => {
+            const refreshed = await api.post<{ access_token: string; refresh_token: string }>('/refresh', undefined, {
+              headers: { Authorization: `Bearer ${refreshToken}` },
+            });
+            return { accessToken: refreshed.data.access_token, refreshToken: refreshed.data.refresh_token };
+          },
+          restoreTokens: async (tokens) => {
+            tokenSession = beginTokenSession();
+            await unlockQuickAccess(tokens);
+          },
+          loadUser: async () => (await api.get<User>('/me')).data,
+        });
+        if (tokenSession === null || !isCurrentTokenSession(tokenSession)) return;
+        setReadCacheAccount(account.id);
+        await saveUser(account, false);
+        setLocked(false);
+      } catch (error) {
+        if (shouldKeepQuickAccessLocked(error)) throw error;
+        await clearDeviceCredentialVault();
+        await endSession(true);
+        throw error;
+      }
+    },
+  }), [endSession, locked, queryClient, quickAccessEnabled, quickAccessSupported, ready, saveUser, user]);
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
 

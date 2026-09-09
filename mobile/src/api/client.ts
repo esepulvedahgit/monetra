@@ -58,8 +58,15 @@ async function refreshAccessToken(session: ApiSessionBinding, tokenSession: numb
     });
     if (!apiSession.isCurrent(session) || !isCurrentTokenSession(tokenSession)) return null;
     const accessToken = response.data.access_token as string;
-    const wrote = await setSessionTokens(tokenSession, { accessToken, refreshToken: response.data.refresh_token });
-    return wrote && apiSession.isCurrent(session) ? accessToken : null;
+    try {
+      const wrote = await setSessionTokens(tokenSession, { accessToken, refreshToken: response.data.refresh_token });
+      return wrote && apiSession.isCurrent(session) ? accessToken : null;
+    } catch {
+      // Refresh rotation is one-time. If its replacement cannot be sealed locally,
+      // end the session instead of leaving an apparently-open session with no token.
+      if (apiSession.isCurrent(session) && isCurrentTokenSession(tokenSession)) notifySessionExpired(tokenSession);
+      return null;
+    }
   } catch (error) {
     if (shouldEndSessionAfterRefreshFailure(error) && apiSession.isCurrent(session) && isCurrentTokenSession(tokenSession)) {
       notifySessionExpired(tokenSession);

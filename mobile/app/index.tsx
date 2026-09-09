@@ -5,7 +5,7 @@ import { useSession } from '../src/auth/session';
 import { colors } from '../src/theme/tokens';
 
 export default function Index() {
-  const { ready, user } = useSession();
-  useEffect(() => { if (ready) router.replace(user ? '/(tabs)/summary' : '/(auth)/login'); }, [ready, user]);
+  const { ready, user, locked } = useSession();
+  useEffect(() => { if (ready) router.replace(locked ? '/(auth)/unlock' : user ? '/(tabs)/summary' : '/(auth)/login'); }, [ready, locked, user]);
   return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}><ActivityIndicator color={colors.accent} /></View>;
 }
