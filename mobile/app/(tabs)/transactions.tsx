@@ -12,10 +12,11 @@ import { Icon } from '../../src/components/Icon';
 import { confirmDeleteTransaction, TransactionEditor } from '../../src/features/transactions/TransactionEditor';
 import { useTransactionMutations } from '../../src/features/transactions/useTransactionMutations';
 import { flattenTransactionPages, type TransactionPage } from '../../src/features/transactions/pagination';
+import { periodFromRouteParams, transactionPeriodParams } from '../../src/finance/presentation';
 
 export default function TransactionsScreen() {
-  const { create } = useLocalSearchParams<{ create?: string }>(); const { user } = useSession(); const [type, setType] = useState<'all' | Transaction['type']>('all'); const [categoryId, setCategoryId] = useState<number | null>(null); const [editorOpen, setEditorOpen] = useState(false); const [editing, setEditing] = useState<Transaction | null>(null); const mutations = useTransactionMutations();
-  const query = useInfiniteQuery({ queryKey: ['transactions'], initialPageParam: 1, queryFn: async ({ pageParam }) => (await api.get<TransactionPage>('/transactions', { params: { page: pageParam, per_page: 100 } })).data, getNextPageParam: (lastPage, pages) => lastPage.has_next ? pages.length + 1 : undefined });
+  const { create, year, month } = useLocalSearchParams<{ create?: string; year?: string; month?: string }>(); const period = periodFromRouteParams({ year, month }); const { user } = useSession(); const [type, setType] = useState<'all' | Transaction['type']>('all'); const [categoryId, setCategoryId] = useState<number | null>(null); const [editorOpen, setEditorOpen] = useState(false); const [editing, setEditing] = useState<Transaction | null>(null); const mutations = useTransactionMutations();
+  const query = useInfiniteQuery({ queryKey: ['transactions', period.year, period.month], initialPageParam: 1, queryFn: async ({ pageParam }) => (await api.get<TransactionPage>('/transactions', { params: { page: pageParam, per_page: 100, ...transactionPeriodParams(period) } })).data, getNextPageParam: (lastPage, pages) => lastPage.has_next ? pages.length + 1 : undefined });
   const categories = useQuery({ queryKey: ['categories'], queryFn: async () => (await api.get<Category[]>('/categories')).data });
   useEffect(() => { if (create === '1') { setEditing(null); setEditorOpen(true); router.setParams({ create: undefined }); } }, [create]);
   const filtered = useMemo(() => flattenTransactionPages(query.data?.pages).filter((item) => (type === 'all' || item.type === type) && (!categoryId || item.category_id === categoryId)), [query.data, type, categoryId]);
