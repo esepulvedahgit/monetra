@@ -15,7 +15,7 @@
     "android": {
       "package": "com.monetra.mobile",
       "allowBackup": false,
-      "versionCode": 3,
+      "versionCode": 6,
       "adaptiveIcon": {
         "foregroundImage": "./assets/monetra-app-icon.png",
         "backgroundColor": "#0F1117"

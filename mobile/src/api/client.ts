@@ -17,6 +17,14 @@ export const api = axios.create({
     post: { 'Content-Type': 'application/json' },
   },
 });
+
+/** Uses a restricted status credential and deliberately bypasses API interceptors. */
+export async function validateQuickAccessStatus(statusToken: string): Promise<void> {
+  await axios.get(`${baseURL}/quick-access/status`, {
+    headers: { Authorization: `Bearer ${statusToken}`, Accept: 'application/json' },
+    timeout: 15_000,
+  });
+}
 type CachedRequest = InternalAxiosRequestConfig & { _session?: ApiSessionBinding; _tokenSession?: number; _retried?: boolean };
 
 const apiSession = new ApiSession();
@@ -59,7 +67,11 @@ async function refreshAccessToken(session: ApiSessionBinding, tokenSession: numb
     if (!apiSession.isCurrent(session) || !isCurrentTokenSession(tokenSession)) return null;
     const accessToken = response.data.access_token as string;
     try {
-      const wrote = await setSessionTokens(tokenSession, { accessToken, refreshToken: response.data.refresh_token });
+      const wrote = await setSessionTokens(tokenSession, {
+        accessToken,
+        refreshToken: response.data.refresh_token,
+        quickAccessStatusToken: response.data.quick_access_status_token,
+      });
       return wrote && apiSession.isCurrent(session) ? accessToken : null;
     } catch {
       // Refresh rotation is one-time. If its replacement cannot be sealed locally,

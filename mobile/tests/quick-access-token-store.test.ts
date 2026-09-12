@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { QuickAccessTokenStore } from '../src/auth/quickAccessTokenStore';
 
-const tokens = { accessToken: 'access-1', refreshToken: 'refresh-1' };
+const tokens = { accessToken: 'access-1', refreshToken: 'refresh-1', quickAccessStatusToken: 'status-1' };
 
 describe('QuickAccessTokenStore', () => {
   it('moves tokens out of regular persistence when quick access is enabled', async () => {
@@ -12,7 +12,7 @@ describe('QuickAccessTokenStore', () => {
 
     await store.enable(tokens);
 
-    expect(vault.enroll).toHaveBeenCalledWith('refresh-1');
+    expect(vault.enroll).toHaveBeenCalledWith('refresh-1', 'status-1');
     expect(regular.clear).toHaveBeenCalledOnce();
     expect(await store.get()).toEqual(tokens);
   });
@@ -37,11 +37,11 @@ describe('QuickAccessTokenStore', () => {
     const store = new QuickAccessTokenStore(regular, vault);
     await store.enable(tokens);
 
-    await store.set({ accessToken: 'access-2', refreshToken: 'refresh-2' });
+    await store.set({ accessToken: 'access-2', refreshToken: 'refresh-2', quickAccessStatusToken: 'status-2' });
 
-    expect(vault.rotate).toHaveBeenCalledWith('refresh-2');
+    expect(vault.rotate).toHaveBeenCalledWith('refresh-2', 'status-2');
     expect(regular.set).not.toHaveBeenCalled();
-    expect(await store.get()).toEqual({ accessToken: 'access-2', refreshToken: 'refresh-2' });
+    expect(await store.get()).toEqual({ accessToken: 'access-2', refreshToken: 'refresh-2', quickAccessStatusToken: 'status-2' });
   });
 
   it('removes both the in-memory session and vault on full sign-out', async () => {

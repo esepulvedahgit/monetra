@@ -26,19 +26,31 @@ export async function lockQuickAccessAfterInactivity({ enrolled, fullSignOut, lo
   return 'locked';
 }
 
-export async function restoreQuickAccessSession<User>({ unlockVault, refresh, restoreTokens, loadUser }: {
+export async function restoreQuickAccessSession<User>({ unlockVault, refresh, restoreTokens, loadUser, lockSession }: {
   unlockVault: () => Promise<string>;
   refresh: (refreshToken: string) => Promise<Tokens>;
   restoreTokens: (tokens: Tokens) => Promise<void>;
   loadUser: () => Promise<User>;
+  lockSession: () => Promise<void>;
 }): Promise<User> {
-  const refreshToken = await unlockVault();
-  const tokens = await refresh(refreshToken);
-  await restoreTokens(tokens);
-  return loadUser();
+  try {
+    const refreshToken = await unlockVault();
+    const tokens = await refresh(refreshToken);
+    await restoreTokens(tokens);
+    return await loadUser();
+  } catch (error) {
+    // A temporary failure is not revocation. Keep the sealed credential (which
+    // may already have rotated), but remove unlocked keys/tokens before retrying.
+    if (shouldKeepQuickAccessLocked(error)) await lockSession();
+    throw error;
+  }
 }
 
 export function shouldKeepQuickAccessLocked(error: unknown): boolean {
-  const code = (error as { code?: string }).code;
-  return code === 'CANCELLED' || code === 'AUTH_FAILED';
+  const failure = error as { code?: string; response?: { status?: number }; message?: string } | null;
+  const status = failure?.response?.status;
+  if (status !== undefined) return status !== 401 && status !== 403;
+  // Unknown local failures do not establish that the server session expired.
+  // A failed rotation is different: its one-time replacement could not be sealed.
+  return !['ROTATE_FAILED', 'NOT_ENROLLED'].includes(failure?.code ?? '');
 }

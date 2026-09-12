@@ -7,8 +7,8 @@ export type TokenPersistence = {
 };
 
 export type QuickAccessVault = {
-  enroll: (refreshToken: string) => Promise<void>;
-  rotate: (refreshToken: string) => Promise<void>;
+  enroll: (refreshToken: string, quickAccessStatusToken?: string) => Promise<void>;
+  rotate: (refreshToken: string, quickAccessStatusToken?: string) => Promise<void>;
   lock: () => Promise<void>;
   clear: () => Promise<void>;
 };
@@ -34,12 +34,12 @@ export class QuickAccessTokenStore {
   async set(tokens: Tokens): Promise<void> {
     if (!this.quickAccessEnabled) return this.regular.set(tokens);
     if (!this.activeTokens) throw new Error('Quick access is locked.');
-    await this.vault.rotate(tokens.refreshToken);
+    await this.vault.rotate(tokens.refreshToken, tokens.quickAccessStatusToken);
     this.activeTokens = tokens;
   }
 
   async enable(tokens: Tokens): Promise<void> {
-    await this.vault.enroll(tokens.refreshToken);
+    await this.vault.enroll(tokens.refreshToken, tokens.quickAccessStatusToken);
     try {
       await this.regular.clear();
     } catch (error) {
@@ -52,7 +52,7 @@ export class QuickAccessTokenStore {
 
   /** Restores memory after a successful system-credential unlock. */
   async unlock(tokens: Tokens): Promise<void> {
-    await this.vault.rotate(tokens.refreshToken);
+    await this.vault.rotate(tokens.refreshToken, tokens.quickAccessStatusToken);
     this.quickAccessEnabled = true;
     this.activeTokens = tokens;
   }
