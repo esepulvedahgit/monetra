@@ -42,6 +42,7 @@ class DeviceCredentialVaultModule(reactContext: ReactApplicationContext) : React
     private const val WRAPPED_KEY_IV = "wrapped_data_key_iv"
     private const val REFRESH_TOKEN = "refresh_token"
     private const val REFRESH_TOKEN_IV = "refresh_token_iv"
+    private const val QUICK_ACCESS_STATUS_TOKEN = "quick_access_status_token"
     private const val GCM_TAG_LENGTH = 128
   }
 
@@ -57,11 +58,12 @@ class DeviceCredentialVaultModule(reactContext: ReactApplicationContext) : React
     val map = Arguments.createMap()
     map.putBoolean("supported", isSupported())
     map.putBoolean("enrolled", isEnrolled())
+    map.putString("quickAccessStatusToken", prefs().getString(QUICK_ACCESS_STATUS_TOKEN, null))
     promise.resolve(map)
   }
 
   @ReactMethod
-  fun enroll(refreshToken: String, promise: Promise) {
+  fun enroll(refreshToken: String, quickAccessStatusToken: String?, promise: Promise) {
     if (!requireSupported(promise)) return
     val dataKey = ByteArray(32).also { SecureRandom().nextBytes(it) }
     try {
@@ -74,6 +76,7 @@ class DeviceCredentialVaultModule(reactContext: ReactApplicationContext) : React
             .putString(WRAPPED_KEY_IV, encode(cipher.iv))
             .putString(REFRESH_TOKEN, encode(refresh.first))
             .putString(REFRESH_TOKEN_IV, encode(refresh.second))
+            .putString(QUICK_ACCESS_STATUS_TOKEN, quickAccessStatusToken)
             .commit()
           if (!stored) throw IllegalStateException("The credential vault could not be written.")
           replaceActiveDataKey(dataKey)
@@ -120,7 +123,7 @@ class DeviceCredentialVaultModule(reactContext: ReactApplicationContext) : React
   }
 
   @ReactMethod
-  fun rotate(refreshToken: String, promise: Promise) {
+  fun rotate(refreshToken: String, quickAccessStatusToken: String?, promise: Promise) {
     synchronized(stateLock) {
       val dataKey = activeDataKey
       if (dataKey == null) {
@@ -129,7 +132,11 @@ class DeviceCredentialVaultModule(reactContext: ReactApplicationContext) : React
       }
       try {
         val refresh = encryptWithDataKey(dataKey, refreshToken.toByteArray(StandardCharsets.UTF_8))
-        val stored = prefs().edit().putString(REFRESH_TOKEN, encode(refresh.first)).putString(REFRESH_TOKEN_IV, encode(refresh.second)).commit()
+        val editor = prefs().edit()
+          .putString(REFRESH_TOKEN, encode(refresh.first))
+          .putString(REFRESH_TOKEN_IV, encode(refresh.second))
+        if (quickAccessStatusToken != null) editor.putString(QUICK_ACCESS_STATUS_TOKEN, quickAccessStatusToken)
+        val stored = editor.commit()
         if (!stored) throw IllegalStateException("The rotated credential could not be written.")
         promise.resolve(null)
       } catch (error: Exception) {

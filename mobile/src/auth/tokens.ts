@@ -2,16 +2,40 @@ import * as SecureStore from 'expo-secure-store';
 import { QuickAccessTokenStore, type QuickAccessVault } from './quickAccessTokenStore';
 
 const tokenKey = 'monetra.mobile.tokens.v1';
-export type Tokens = { accessToken: string; refreshToken: string };
+export type Tokens = {
+  accessToken: string;
+  refreshToken: string;
+  // Optional while devices migrate from sessions issued before this field existed.
+  quickAccessStatusToken?: string;
+};
+
+let activeRegularTokens: Tokens | null = null;
+let legacyTokensDiscarded = false;
+
+/**
+ * Sessions without quick access must not survive an Android process restart.
+ * Older releases persisted these tokens, so discard them without ever reading
+ * or restoring their value.
+ */
+async function discardLegacyTokens(): Promise<void> {
+  if (legacyTokensDiscarded) return;
+  legacyTokensDiscarded = true;
+  try { await SecureStore.deleteItemAsync(tokenKey); } catch { /* Legacy data is never read. */ }
+}
 
 const regularTokens = {
   async get(): Promise<Tokens | null> {
-  const raw = await SecureStore.getItemAsync(tokenKey);
-  if (!raw) return null;
-  try { return JSON.parse(raw) as Tokens; } catch { return null; }
+    await discardLegacyTokens();
+    return activeRegularTokens;
   },
-  async set(tokens: Tokens): Promise<void> { await SecureStore.setItemAsync(tokenKey, JSON.stringify(tokens)); },
-  async clear(): Promise<void> { await SecureStore.deleteItemAsync(tokenKey); },
+  async set(tokens: Tokens): Promise<void> {
+    await discardLegacyTokens();
+    activeRegularTokens = tokens;
+  },
+  async clear(): Promise<void> {
+    activeRegularTokens = null;
+    try { await SecureStore.deleteItemAsync(tokenKey); } catch { /* Best-effort legacy cleanup. */ }
+  },
 };
 
 const unavailableVault: QuickAccessVault = {

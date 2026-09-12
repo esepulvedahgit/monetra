@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { api, clearReadCache, setReadCacheAccount } from '../api/client';
+import { api, clearReadCache, setReadCacheAccount, validateQuickAccessStatus } from '../api/client';
 import type { User } from '../api/types';
 import { beginTokenSession, clearSessionTokens, getSessionTokens, isCurrentTokenSession, setSessionTokens } from './sessionTokens';
 import type { Tokens } from './tokens';
@@ -14,6 +14,7 @@ import { clearSessionData } from './sessionCache';
 import { SessionActivityTracker } from './sessionActivity';
 import { subscribeSessionExpiry } from './sessionExpiry';
 import { initializeQuickAccessLock, lockQuickAccessAfterInactivity, restoreQuickAccessSession, shouldKeepQuickAccessLocked } from './quickAccessLifecycle';
+import { shouldDiscardQuickAccessAfterStatusCheck } from './quickAccessStatus';
 
 type SessionContextValue = {
   user: User | null;
@@ -47,6 +48,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
   const [quickAccessSupported, setQuickAccessSupported] = useState(false);
   const [quickAccessEnabled, setQuickAccessEnabled] = useState(false);
   const endingSession = useRef(false);
+  const unlockingSession = useRef<Promise<void> | null>(null);
   const activityTracker = useRef(new SessionActivityTracker());
 
   const saveUser = useCallback(async (next: User | null, persist = true) => {
@@ -97,6 +99,17 @@ export function SessionProvider({ children }: PropsWithChildren) {
   useEffect(() => { void (async () => {
     const vault = await getDeviceCredentialVaultStatus();
     setQuickAccessSupported(vault.supported);
+    if (vault.enrolled && vault.quickAccessStatusToken) {
+      try {
+        await validateQuickAccessStatus(vault.quickAccessStatusToken);
+      } catch (error) {
+        if (shouldDiscardQuickAccessAfterStatusCheck(error)) {
+          await endSession(true);
+          setReady(true);
+          return;
+        }
+      }
+    }
     if (await initializeQuickAccessLock({
       enrolled: vault.enrolled,
       markLocked: markQuickAccessLocked,
@@ -124,6 +137,10 @@ export function SessionProvider({ children }: PropsWithChildren) {
           await saveUser(response.data);
         } catch { /* Offline requests retain the last known account. */ }
       }
+    } else if (savedUser) {
+      // A normal session is memory-only. Do not leave an old account profile
+      // behind after Android has terminated the process.
+      await saveUser(null);
     }
     setReady(true);
   })(); }, [endSession, queryClient, saveUser]);
@@ -139,11 +156,15 @@ export function SessionProvider({ children }: PropsWithChildren) {
       const leftForeground = previousState === 'active' && (nextState === 'inactive' || nextState === 'background');
       const returnedToForeground = (previousState === 'inactive' || previousState === 'background') && nextState === 'active';
       previousState = nextState;
+      // Android's credential screen also causes foreground transitions. While
+      // locked, the unlock flow alone owns session restoration and token rotation.
+      if (locked || unlockingSession.current) return;
       if (leftForeground) {
         void activityTracker.current.recordInactive(Date.now()).catch(() => undefined);
       } else if (returnedToForeground) {
         void (async () => {
           const sessionIsActive = await activityTracker.current.returnToForeground(Date.now(), () => AppState.currentState === 'active');
+          if (unlockingSession.current) return;
           if (sessionIsActive === null) return;
           if (!sessionIsActive) {
             await lockForInactivity();
@@ -203,33 +224,53 @@ export function SessionProvider({ children }: PropsWithChildren) {
       if (user) await saveUser(user);
       setQuickAccessEnabled(false);
     },
-    unlockQuickAccess: async () => {
+    unlockQuickAccess: () => {
+      if (unlockingSession.current) return unlockingSession.current;
+      unlockingSession.current = (async () => {
       try {
         let tokenSession: number | null = null;
         const account = await restoreQuickAccessSession({
           unlockVault: unlockDeviceCredentialVault,
           refresh: async (refreshToken) => {
-            const refreshed = await api.post<{ access_token: string; refresh_token: string }>('/refresh', undefined, {
+            const refreshed = await api.post<{ access_token: string; refresh_token: string; quick_access_status_token?: string }>('/refresh', undefined, {
               headers: { Authorization: `Bearer ${refreshToken}` },
             });
-            return { accessToken: refreshed.data.access_token, refreshToken: refreshed.data.refresh_token };
+            return {
+              accessToken: refreshed.data.access_token,
+              refreshToken: refreshed.data.refresh_token,
+              quickAccessStatusToken: refreshed.data.quick_access_status_token,
+            };
           },
           restoreTokens: async (tokens) => {
             tokenSession = beginTokenSession();
             await unlockQuickAccess(tokens);
           },
           loadUser: async () => (await api.get<User>('/me')).data,
+          lockSession: lockQuickAccess,
         });
-        if (tokenSession === null || !isCurrentTokenSession(tokenSession)) return;
+        if (tokenSession === null || !isCurrentTokenSession(tokenSession)) {
+          throw Object.assign(new Error('La recuperación fue cancelada porque la sesión cambió.'), { code: 'CANCELLED' });
+        }
         setReadCacheAccount(account.id);
         await saveUser(account, false);
         setLocked(false);
       } catch (error) {
+        const failure = error as { code?: string; response?: { status?: number } } | null;
+        console.warn('Quick access recovery failed', {
+          code: failure?.code ?? 'LOCAL_RECOVERY_ERROR',
+          status: failure?.response?.status ?? null,
+        });
         if (shouldKeepQuickAccessLocked(error)) throw error;
         await clearDeviceCredentialVault();
-        await endSession(true);
+        const rejected = failure?.response?.status === 401 || failure?.response?.status === 403;
+        await endSession(rejected);
+        if (!rejected) router.replace({ pathname: '/(auth)/login', params: { reason: 'quick_access_unavailable' } });
         throw error;
+      } finally {
+        unlockingSession.current = null;
       }
+      })();
+      return unlockingSession.current;
     },
   }), [endSession, locked, queryClient, quickAccessEnabled, quickAccessSupported, ready, saveUser, user]);
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
