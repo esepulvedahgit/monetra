@@ -18,7 +18,7 @@
 
 </div>
 
-Aplicación web de **finanzas personales** desarrollada en Flask. Permite registrar ingresos y gastos, gestionar presupuestos mensuales, definir metas de ahorro, programar transacciones recurrentes y visualizar el estado financiero mediante gráficos interactivos.
+Aplicación web de **finanzas personales** desarrollada en Flask. Permite registrar ingresos y gastos, gestionar presupuestos mensuales, definir metas de ahorro, programar transacciones recurrentes y visualizar el estado financiero mediante gráficos interactivos, ademas en su ultima version permite descargar un apk firmado para android el cual se conecta via a api a tu servidor monetra, dando la oportunidad de usar una aplicacion nativa para android.
 
 ---
 
