@@ -1,15 +1,13 @@
 """API endpoint tests: auth (JWT + API key), transactions."""
 import hashlib
-import os
 from datetime import datetime, timedelta, timezone
-import pytest
+
 import pyotp
 from cryptography.fernet import Fernet
 
 from app import db
 from app.email_service import encrypt_mfa_secret
 from app.models import ApiToken, Budget, Category, PasswordResetToken, Transaction, User
-
 
 # ---------------------------------------------------------------------------
 # Helpers

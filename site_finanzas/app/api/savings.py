@@ -1,9 +1,11 @@
 from datetime import date as date_type
-from flask import request, jsonify
+
+from flask import jsonify, request
+
 from app import db
-from app.models import SavingsGoal
 from app.api import api_v1
 from app.api.decorators import api_login_required, get_current_api_user
+from app.models import SavingsGoal
 from app.services import finance as svc
 from app.services.finance import _savings_dict
 

@@ -1,6 +1,5 @@
 """Tests for app/telegram/providers.py — SSRF validation, vision-error detection, test_connection."""
 import json
-import types
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -8,9 +7,10 @@ from app.telegram.providers import (
     _check_http_error,
     _parse_json_response,
     _validate_base_url,
+)
+from app.telegram.providers import (
     test_connection as ai_test_connection,
 )
-
 
 # ---------------------------------------------------------------------------
 # _parse_json_response

@@ -1,6 +1,6 @@
+import calendar
 import json
 import random
-import calendar
 from datetime import date, datetime, timezone
 from decimal import Decimal
 
@@ -8,11 +8,18 @@ from sqlalchemy import func
 
 from app import db
 from app.models import (
-    Transaction, Category, UserYear, DemoState,
-    Budget, CategoryBudget, RecurringTransaction, SavingsGoal,
-    UsdCategory, UsdTransaction, UsdBudget,
+    Budget,
+    Category,
+    CategoryBudget,
+    DemoState,
+    RecurringTransaction,
+    SavingsGoal,
+    Transaction,
+    UsdBudget,
+    UsdCategory,
+    UsdTransaction,
+    UserYear,
 )
-
 
 DEMO_EXPENSE_RANGES = {
     'Alimentación': (1200, 45000),
@@ -25,7 +32,7 @@ DEMO_EXPENSE_RANGES = {
     'Otros':        (1200, 25000),
 }
 _DEFAULT_RANGE = (1200, 50000)
-_DEMO_MAX_AMOUNT = Decimal('1000000')
+_DEMO_MAX_AMOUNT = Decimal(1000000)
 
 _PREFERRED_DEMO_CATS = ['Alimentación', 'Transporte', 'Servicios', 'Salud', 'Ocio']
 _CAT_BUDGET_CATS    = ['Alimentación', 'Transporte', 'Ocio']
@@ -232,13 +239,13 @@ def generate_demo_data(user_id: int, seed: int = 42):
     if income_cat:
         recurring.append(RecurringTransaction(
             user_id=user_id, category_id=income_cat.id, type='income',
-            amount=Decimal('180000'), description='Freelance demo',
+            amount=Decimal(180000), description='Freelance demo',
             day_of_month=10, is_active=False, is_demo=True,
             end_date=end_date_rec, created_at=created_at_rec,
         ))
         recurring.append(RecurringTransaction(
             user_id=user_id, category_id=income_cat.id, type='income',
-            amount=Decimal('75000'), description='Bono mensual demo',
+            amount=Decimal(75000), description='Bono mensual demo',
             day_of_month=28, is_active=False, is_demo=True,
             end_date=end_date_rec, created_at=created_at_rec,
         ))
@@ -246,25 +253,25 @@ def generate_demo_data(user_id: int, seed: int = 42):
     recurring.extend([
         RecurringTransaction(
             user_id=user_id, category_id=vivienda_cat.id, type='expense',
-            amount=Decimal('320000'), description='Arriendo demo',
+            amount=Decimal(320000), description='Arriendo demo',
             day_of_month=1, is_active=False, is_demo=True,
             end_date=end_date_rec, created_at=created_at_rec,
         ),
         RecurringTransaction(
             user_id=user_id, category_id=ocio_cat.id, type='expense',
-            amount=Decimal('12000'), description='Netflix demo',
+            amount=Decimal(12000), description='Netflix demo',
             day_of_month=15, is_active=False, is_demo=True,
             end_date=end_date_rec, created_at=created_at_rec,
         ),
         RecurringTransaction(
             user_id=user_id, category_id=salud_cat.id, type='expense',
-            amount=Decimal('85000'), description='Seguro médico demo',
+            amount=Decimal(85000), description='Seguro médico demo',
             day_of_month=5, is_active=False, is_demo=True,
             end_date=end_date_rec, created_at=created_at_rec,
         ),
         RecurringTransaction(
             user_id=user_id, category_id=salud_cat.id, type='expense',
-            amount=Decimal('18000'), description='Gym demo',
+            amount=Decimal(18000), description='Gym demo',
             day_of_month=3, is_active=False, is_demo=True,
             end_date=end_date_rec, created_at=created_at_rec,
         ),
@@ -273,21 +280,21 @@ def generate_demo_data(user_id: int, seed: int = 42):
     # ── Savings goals ─────────────────────────────────────────────────────────
     goals = [
         SavingsGoal(user_id=user_id, name='Fondo de emergencia',
-                    target_amount=Decimal('600000'), current_amount=Decimal('510000'),
+                    target_amount=Decimal(600000), current_amount=Decimal(510000),
                     description='3 meses de gastos cubiertos', is_demo=True),
         SavingsGoal(user_id=user_id, name='Vacaciones Europa',
-                    target_amount=Decimal('450000'), current_amount=Decimal('270000'),
+                    target_amount=Decimal(450000), current_amount=Decimal(270000),
                     target_date=date(today.year + 1, 6, 30),
                     description='Vuelos, hotel y actividades', is_demo=True),
         SavingsGoal(user_id=user_id, name='Auto nuevo',
-                    target_amount=Decimal('900000'), current_amount=Decimal('260000'),
+                    target_amount=Decimal(900000), current_amount=Decimal(260000),
                     target_date=date(today.year + 2, 12, 31),
                     description='Ahorro para pie inicial', is_demo=True),
         SavingsGoal(user_id=user_id, name='MacBook Pro',
-                    target_amount=Decimal('220000'), current_amount=Decimal('220000'),
+                    target_amount=Decimal(220000), current_amount=Decimal(220000),
                     is_completed=True, description='Meta cumplida', is_demo=True),
         SavingsGoal(user_id=user_id, name='Renovación hogar',
-                    target_amount=Decimal('700000'), current_amount=Decimal('120000'),
+                    target_amount=Decimal(700000), current_amount=Decimal(120000),
                     target_date=date(today.year + 1, 12, 31),
                     description='Muebles y electrodomésticos', is_demo=True),
     ]

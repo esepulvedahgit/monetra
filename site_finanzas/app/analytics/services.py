@@ -1,10 +1,10 @@
 """Aggregations that feed the analytics views."""
-from app.models import User
 from app.analytics.features import (
-    get_unified_transactions,
     get_category_breakdown,
     get_conversion_rate,
+    get_unified_transactions,
 )
+from app.models import User
 
 
 def get_consolidated_summary(user_id: int, year: int, month: int) -> dict:

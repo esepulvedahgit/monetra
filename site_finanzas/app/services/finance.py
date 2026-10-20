@@ -1,8 +1,18 @@
 import calendar
-from datetime import date as _date, datetime, timezone
-from sqlalchemy import func, extract, or_
+from datetime import date as _date
+from datetime import datetime, timezone
+
+from sqlalchemy import extract, func, or_
+
 from app import db
-from app.models import Transaction, Category, Budget, RecurringTransaction, SavingsGoal, CustomBudget
+from app.models import (
+    Budget,
+    Category,
+    CustomBudget,
+    RecurringTransaction,
+    SavingsGoal,
+    Transaction,
+)
 
 
 def _tx_dict(tx):

@@ -10,8 +10,8 @@ from unittest.mock import patch
 import pytest
 
 from app import db
-from app.models import User, AuditLog
 from app.audit import events as ev
+from app.models import AuditLog, User
 from config import Config
 
 LOCKOUT_EMAIL    = 'lockout_test@example.com'

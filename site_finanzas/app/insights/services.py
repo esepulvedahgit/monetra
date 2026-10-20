@@ -5,6 +5,7 @@ This is the seam between the insights pipeline and the rest of the app —
 internal models stay internal.
 """
 from __future__ import annotations
+
 import logging
 
 from app.insights.engine import InsightEngine

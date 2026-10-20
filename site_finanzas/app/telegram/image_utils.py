@@ -3,7 +3,6 @@ import io
 from flask import current_app
 from flask_babel import gettext as _
 
-
 _MAGIC = {
     b'\xff\xd8\xff':                   'image/jpeg',
     b'\x89PNG\r\n\x1a\n':             'image/png',
@@ -59,9 +58,7 @@ def validate_and_normalize_image(image_file_or_bytes):
         else:
             pil_img = Image.open(io.BytesIO(raw))
 
-        if pil_img.mode in ('RGBA', 'LA', 'P'):
-            pil_img = pil_img.convert('RGB')
-        elif pil_img.mode != 'RGB':
+        if pil_img.mode in ('RGBA', 'LA', 'P') or pil_img.mode != 'RGB':
             pil_img = pil_img.convert('RGB')
 
         buf = io.BytesIO()

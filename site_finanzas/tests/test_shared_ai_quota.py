@@ -9,12 +9,11 @@ Verifies:
 Uses real ORM User objects in the in-memory SQLite test DB so that the atomic
 SQL UPDATE in consume_shared_ai_quota executes correctly.
 """
-import pytest
 from datetime import date, timedelta
 
 from app import db as _db
-from app.models import User
 from app.email_service import consume_shared_ai_quota
+from app.models import User
 
 _counter = [0]
 

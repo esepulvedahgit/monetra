@@ -54,9 +54,10 @@ def _weekly_report_job(app):
     """Batch job: generates and emails Excel reports for all opted-in users (max 5 concurrent)."""
     with app.app_context():
         from datetime import date
-        from app.models import User
-        from app.export.excel_builder import build_excel
+
         from app.email_service import send_weekly_report
+        from app.export.excel_builder import build_excel
+        from app.models import User
 
         today = date.today()
         users = User.query.filter_by(weekly_report_enabled=True).all()
@@ -80,8 +81,8 @@ def _weekly_report_job(app):
                     logger.info(f"Weekly report sent to {user.email}.")
                 else:
                     logger.warning(f"Weekly report failed for {user.username}: {msg}")
-            except Exception as e:
-                logger.error(f"Weekly report error for {user.username}: {e}", exc_info=True)
+            except Exception:
+                logger.exception("Weekly report error for %s", user.username)
 
         logger.info("Weekly report job finished.")
 
@@ -89,7 +90,8 @@ def _weekly_report_job(app):
 def _telegram_cleanup_job(app):
     """Elimina códigos de vinculación expirados y transacciones Telegram pendientes > 1h."""
     with app.app_context():
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta, timezone
+
         from app import db
         from app.models import TelegramLinkCode, TelegramPendingTx
 
@@ -114,4 +116,4 @@ def _telegram_cleanup_job(app):
                 )
         except Exception as exc:
             db.session.rollback()
-            logger.error("Telegram cleanup job error: %s", exc, exc_info=True)
+            logger.exception("Telegram cleanup job error: %s", exc)

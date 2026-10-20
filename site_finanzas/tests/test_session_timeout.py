@@ -6,7 +6,7 @@ Covers:
 - Session with stale activity (> timeout) is rejected with redirect to login.
 - /api/* routes are exempt from the inactivity check.
 """
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 

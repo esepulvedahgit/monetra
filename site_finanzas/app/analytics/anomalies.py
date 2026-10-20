@@ -12,18 +12,26 @@ USD anomaly detection is deferred to a future iteration; CLP is where the
 historical depth lives for almost every user.
 """
 from __future__ import annotations
+
 from datetime import date, timedelta
+
 from sqlalchemy import extract, func
 
 from app import db
-from app.models import Transaction, Category
-from app.analytics.schemas import AnomalyResult
 from app.analytics.datasets import (
     build_category_monthly_series,
     get_user_expense_categories_with_history,
 )
-from app.analytics.utils import iqr_bounds, percentile, mean, stdev, z_score, safe_pct_change
-
+from app.analytics.schemas import AnomalyResult
+from app.analytics.utils import (
+    iqr_bounds,
+    mean,
+    percentile,
+    safe_pct_change,
+    stdev,
+    z_score,
+)
+from app.models import Category, Transaction
 
 # ── Tunables (kept here, not in severity — these define what counts as a
 # detection at all; severity is a downstream concern). ────────────────────────

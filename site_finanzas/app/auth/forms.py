@@ -1,8 +1,11 @@
 import re
+
+from flask_babel import gettext as _
+from flask_babel import lazy_gettext as _l
 from flask_wtf import FlaskForm
-from flask_babel import lazy_gettext as _l, gettext as _
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import BooleanField, PasswordField, StringField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
+
 from app.models import User
 
 

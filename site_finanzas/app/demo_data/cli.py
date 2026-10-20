@@ -19,7 +19,7 @@ def register_cli(app):
         if uid is None:
             click.echo('No hay usuarios registrados.')
             return
-        ok, msg = generate_demo_data(uid)
+        _ok, msg = generate_demo_data(uid)
         click.echo(msg)
 
     @demo_group.command('reset')

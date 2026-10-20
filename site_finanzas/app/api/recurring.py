@@ -1,9 +1,11 @@
 from datetime import date
-from flask import request, jsonify
+
+from flask import jsonify, request
+
 from app import db
-from app.models import RecurringTransaction, Category
 from app.api import api_v1
 from app.api.decorators import api_login_required, get_current_api_user
+from app.models import Category, RecurringTransaction
 from app.services import finance as svc
 from app.services.finance import _recurring_dict
 
@@ -62,7 +64,7 @@ def create_recurring():
     category_id = data.get("category_id")
     if not category_id:
         return jsonify({"error": "category_id es requerido"}), 400
-    cat, err = _owned_category(user, category_id, tx_type)
+    _cat, err = _owned_category(user, category_id, tx_type)
     if err:
         return jsonify({"error": err}), 400
 
@@ -118,7 +120,7 @@ def update_recurring(rec_id):
         rec.description = data["description"]
 
     if "category_id" in data:
-        cat, err = _owned_category(user, data["category_id"], rec.type)
+        _cat, err = _owned_category(user, data["category_id"], rec.type)
         if err:
             return jsonify({"error": err}), 400
         rec.category_id = data["category_id"]

@@ -1,11 +1,31 @@
-from decimal import Decimal as _Decimal
-from flask_wtf import FlaskForm
-from flask_babel import lazy_gettext as _l, gettext as _
-from wtforms import (StringField, DecimalField, SelectField, TextAreaField,
-                     DateField, SubmitField, BooleanField, IntegerField, PasswordField)
-from wtforms.validators import DataRequired, NumberRange, Optional, Length, Email, EqualTo, ValidationError
-from app.auth.forms import validate_password_policy
 from datetime import date
+from decimal import Decimal as _Decimal
+
+from flask_babel import gettext as _
+from flask_babel import lazy_gettext as _l
+from flask_wtf import FlaskForm
+from wtforms import (
+    BooleanField,
+    DateField,
+    DecimalField,
+    IntegerField,
+    PasswordField,
+    SelectField,
+    StringField,
+    SubmitField,
+    TextAreaField,
+)
+from wtforms.validators import (
+    DataRequired,
+    Email,
+    EqualTo,
+    Length,
+    NumberRange,
+    Optional,
+    ValidationError,
+)
+
+from app.auth.forms import validate_password_policy
 
 
 class CleanDecimalField(DecimalField):

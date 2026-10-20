@@ -1,7 +1,10 @@
-﻿from datetime import date as _date, datetime, timezone
-from app import db, login_manager
+﻿from datetime import date as _date
+from datetime import datetime, timezone
+
 from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from app import db, login_manager
 
 
 @login_manager.user_loader
@@ -118,7 +121,9 @@ class User(db.Model, UserMixin):
         Centralises PIN teardown so mfa_disable(), pin_delete() and the
         repeated-lockout-cycle handler all stay in sync.
         """
-        from app.models import UserPinDevice  # local import avoids circular at module load
+        from app.models import (
+            UserPinDevice,  # local import avoids circular at module load
+        )
         self.pin_hash = None
         self.pin_failed_attempts = 0
         self.pin_locked_until = None

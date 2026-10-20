@@ -10,6 +10,7 @@ Fernet payload (after decryption):
 The FIELD_ENCRYPTION_KEY / SECRET_KEY / JWT_SECRET_KEY are NOT included in the
 backup on purpose — they must be migrated separately via docker/.env.
 """
+import base64
 import gzip
 import io
 import json
@@ -17,12 +18,11 @@ import os
 import struct
 import subprocess
 import tempfile
-import base64
 from datetime import datetime, timezone
 
 from cryptography.fernet import Fernet, InvalidToken
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 MAGIC = b'MNTRBAK1'
 SALT_LEN = 32
@@ -136,6 +136,7 @@ def dump_database() -> bytes:
         capture_output=True,
         env=env,
         shell=False,
+        check=False,
         timeout=DUMP_TIMEOUT,
     )
 
@@ -168,6 +169,7 @@ def restore_database(sql_bytes: bytes) -> None:
         capture_output=True,
         env=env,
         shell=False,
+        check=False,
         timeout=RESTORE_TIMEOUT,
     )
 

@@ -2,19 +2,31 @@ import hashlib
 import html
 import logging
 import re
-from datetime import datetime, timezone, timedelta, date as _date
+from datetime import date as _date
+from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 
-from flask import current_app, request as flask_request
+from flask import request as flask_request
 
 from app import db
-from app.audit.events import TELEGRAM_LINK, TELEGRAM_UNLINK, TELEGRAM_TX_CREATE
+from app.audit.events import TELEGRAM_LINK, TELEGRAM_TX_CREATE
 from app.audit.logger import log_event
 from app.models import (
-    TelegramLink, TelegramLinkCode, TelegramPendingTx,
-    Transaction, Category, UsdTransaction, UsdCategory, UserAIConfig, User,
+    Category,
+    TelegramLink,
+    TelegramLinkCode,
+    TelegramPendingTx,
+    Transaction,
+    UsdCategory,
+    UsdTransaction,
+    User,
 )
-from app.money import format_money, format_money_for_user, parse_amount, parse_amount_for_user
+from app.money import (
+    format_money,
+    format_money_for_user,
+    parse_amount,
+    parse_amount_for_user,
+)
 from app.telegram.messages import t
 from app.telegram.service import (
     answer_callback_query,
@@ -230,7 +242,7 @@ def _handle_photo(
     tx_type: str,
     link: TelegramLink,
 ) -> None:
-    from app.email_service import resolve_ai_config, consume_shared_ai_quota
+    from app.email_service import consume_shared_ai_quota, resolve_ai_config
     _tg_user = User.query.get(user_id)
     ai_config = resolve_ai_config(_tg_user) if _tg_user else None
     if not ai_config:

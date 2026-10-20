@@ -5,11 +5,18 @@ external DTOs. Keeping internal vs external separated lets us evolve the
 pipeline without breaking consumers.
 """
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
-from app.insights.enums import Severity, Confidence, InsightCategory, AlertType, SignalType
+from app.insights.enums import (
+    AlertType,
+    Confidence,
+    InsightCategory,
+    Severity,
+    SignalType,
+)
 
 
 @dataclass

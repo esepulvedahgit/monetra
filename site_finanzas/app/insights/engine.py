@@ -9,11 +9,12 @@ never the lower layers directly.
 STUB (Chunk 1): wired up but returns []. Real pipeline activates in Chunk 3.
 """
 from __future__ import annotations
+
 import logging
 
-from app.insights.signals import build_signals
-from app.insights.rules import RuleEngine
 from app.insights.models import Alert
+from app.insights.rules import RuleEngine
+from app.insights.signals import build_signals
 
 log = logging.getLogger(__name__)
 

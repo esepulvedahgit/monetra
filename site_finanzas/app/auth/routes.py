@@ -1,20 +1,38 @@
-import secrets
 import hashlib
-from datetime import datetime, timezone, timedelta
+import secrets
+from datetime import datetime, timedelta, timezone
+
 import pyotp
-from flask import render_template, redirect, url_for, flash, request, session, current_app
-from flask_login import login_user, logout_user, current_user
+from flask import (
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 from flask_babel import gettext as _
+from flask_login import current_user, login_user, logout_user
+
 from app import db, limiter
-from app.models import User, AppConfig, PasswordResetToken, EmailActivationToken
+from app.audit import events as ev
+from app.audit.logger import log_event
 from app.auth import auth
-from app.auth.forms import LoginForm, RegisterForm, ForgotPasswordForm, ResetPasswordForm, MFAVerifyForm
+from app.auth.forms import (
+    ForgotPasswordForm,
+    LoginForm,
+    MFAVerifyForm,
+    RegisterForm,
+    ResetPasswordForm,
+)
 from app.email_service import (
-    send_user_email, send_recovery_email, send_activation_email, decrypt_mfa_secret,
+    decrypt_mfa_secret,
+    send_activation_email,
+    send_recovery_email,
     send_security_alert_email_async,
 )
-from app.audit.logger import log_event
-from app.audit import events as ev
+from app.models import AppConfig, EmailActivationToken, PasswordResetToken, User
 
 
 def _audit_commit(event_type, description=None, user_id=None):

@@ -1,0 +1,31 @@
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+# Keep CI's lint policy explicit instead of inheriting changing Ruff defaults.
+# Date/time handling and best-effort exception boundaries need domain review.
+select = [
+    "E722",
+    "E902",
+    "W605",
+    "F",
+    "I",
+    "B017",
+    "C408",
+    "FURB157",
+    "G201",
+    "PLW1508",
+    "PLW1510",
+    "RET501",
+    "RUF010",
+    "RUF012",
+    "RUF013",
+    "RUF046",
+    "RUF059",
+    "RUF100",
+    "SIM102",
+    "SIM103",
+    "SIM114",
+    "UP035",
+    "UP041",
+]

@@ -4,6 +4,7 @@ Using `str, Enum` so values serialize cleanly to JSON for the UI/API and
 compare against plain strings in templates without `.value` boilerplate.
 """
 from __future__ import annotations
+
 from enum import Enum
 
 

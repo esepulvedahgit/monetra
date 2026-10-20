@@ -10,7 +10,6 @@ from app.api.usd import usd_api
 from app.api.usd.schemas import usd_transaction_schema
 from app.models import UsdCategory, UsdTransaction
 
-
 MAX_USD_AMOUNT = Decimal('9999999999.99')
 
 

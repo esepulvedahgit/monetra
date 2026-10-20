@@ -2,14 +2,14 @@ import hashlib
 import hmac
 import logging
 import secrets
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 from flask import current_app, jsonify, request
 from flask_limiter.util import get_remote_address
 from flask_login import current_user, login_required
 
 from app import csrf, db, limiter
-from app.audit.events import TELEGRAM_LINK, TELEGRAM_UNLINK
+from app.audit.events import TELEGRAM_UNLINK
 from app.audit.logger import log_event
 from app.models import TelegramLink, TelegramLinkCode, TelegramPendingTx
 from app.telegram import telegram_bp

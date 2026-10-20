@@ -2,9 +2,6 @@
 import io
 from unittest.mock import patch
 
-import pytest
-
-
 ADMIN_EMAIL = 'admin_backup@example.com'
 ADMIN_PASSWORD = 'AdminPass123!'
 REGULAR_EMAIL = 'regular_backup@example.com'

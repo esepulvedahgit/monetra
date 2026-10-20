@@ -13,7 +13,6 @@ from app.analytics.datasets import (
 )
 from app.analytics.utils import mean
 
-
 VARIABLE_HISTORY_MONTHS = 6
 VARIABLE_INCOME_HAIRCUT = 0.80
 VARIABLE_EXPENSE_STRESS = 1.10

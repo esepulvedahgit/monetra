@@ -6,10 +6,11 @@ analytics DTOs directly. This decoupling lets analytics evolve (new methods,
 new evidence shape) without breaking rules.
 """
 from __future__ import annotations
+
 import logging
 
+from app.insights.enums import Confidence, SignalType
 from app.insights.models import Signal
-from app.insights.enums import SignalType, Confidence
 
 log = logging.getLogger(__name__)
 
@@ -40,11 +41,10 @@ def _maturity_evidence(historical_months: int) -> dict:
 
 def build_signals(user_id: int, year: int, month: int) -> list[Signal]:
     """Pull analytics results and convert each into a normalized Signal."""
-    from app.analytics.features import build_feature_bundle
-    from app.analytics.forecasting import forecast_monthly
     from app.analytics.anomalies import detect_anomalies
     from app.analytics.capacity import calculate_sustainable_savings_capacity
-    from app.analytics.datasets import build_history_window_expense_series
+    from app.analytics.features import build_feature_bundle
+    from app.analytics.forecasting import forecast_monthly
     from app.analytics.savings_goals import analyze_savings_goals
 
     signals: list[Signal] = []

@@ -5,7 +5,8 @@ instead of enums and primitive floats instead of Decimals so they
 serialize cleanly to JSON and play well with Jinja2.
 """
 from __future__ import annotations
-from dataclasses import dataclass, field, asdict
+
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
 

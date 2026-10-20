@@ -1,14 +1,28 @@
 from datetime import datetime, timezone
 
-from flask import current_app, request, redirect, url_for, flash, Response, abort, session
+from flask import (
+    Response,
+    abort,
+    current_app,
+    flash,
+    redirect,
+    request,
+    session,
+    url_for,
+)
 from flask_login import current_user, login_required, logout_user
 
 from app import db, limiter
-from app.backup import backup_bp
-from app.backup.service import make_backup, read_backup, restore_database, _save_safety_snapshot
-from app.models import AppConfig
-from app.audit.logger import log_event
 from app.audit import events as ev
+from app.audit.logger import log_event
+from app.backup import backup_bp
+from app.backup.service import (
+    _save_safety_snapshot,
+    make_backup,
+    read_backup,
+    restore_database,
+)
+from app.models import AppConfig
 
 
 def _admin_required():

@@ -1,15 +1,15 @@
 from flask import jsonify, request
-from flask_login import login_required, current_user
+from flask_login import current_user, login_required
 
 from app import db
+from app.audit import events as ev
+from app.audit.logger import log_event
 from app.demo_data import demo_data_bp
 from app.demo_data.service import (
-    get_demo_data_summary,
     generate_demo_data,
+    get_demo_data_summary,
     reset_demo_data,
 )
-from app.audit.logger import log_event
-from app.audit import events as ev
 
 
 @demo_data_bp.route('/status', methods=['GET'])

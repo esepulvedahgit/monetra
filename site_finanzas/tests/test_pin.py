@@ -14,7 +14,6 @@ import pytest
 from app import db
 from app.models import User, UserPinDevice
 
-
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -548,7 +547,6 @@ class TestPinLockoutCycles:
     @patch('app.auth.pin_routes.send_security_alert_email_async')
     def test_successful_login_resets_lock_cycles(self, mock_alert, app, pin_user_id):
         """A successful PIN login resets pin_lock_cycles to 0."""
-        from app.auth.pin_routes import MAX_FAILS
 
         # Trigger one partial lockout cycle (but not MAX_LOCK_CYCLES)
         with app.app_context():

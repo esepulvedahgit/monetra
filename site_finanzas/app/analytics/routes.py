@@ -1,8 +1,9 @@
 import logging
 from datetime import date
-from flask import render_template, redirect, url_for, flash, session
-from flask_login import login_required, current_user
+
+from flask import flash, redirect, render_template, session, url_for
 from flask_babel import gettext as _
+from flask_login import current_user, login_required
 
 log = logging.getLogger(__name__)
 

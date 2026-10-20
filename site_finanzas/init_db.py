@@ -1,6 +1,30 @@
-﻿from app import create_app, db
-from app.models import Category, AppConfig, UserEmailConfig, PasswordResetToken, EmailActivationToken, RecurringTransaction, CategoryBudget, UserSeenAnnouncement, DemoState, CustomBudget, AuditLog, UsdCategory, UsdTransaction, UsdBudget, UserAIConfig, ApiToken, UserPinDevice, TelegramLink, TelegramLinkCode, TelegramPendingTx, MobileRelease, MobileMfaChallenge  # noqa: F401
-from sqlalchemy import inspect, text
+﻿from sqlalchemy import inspect, text
+
+from app import create_app, db
+from app.models import (  # noqa: F401
+    ApiToken,
+    AppConfig,
+    AuditLog,
+    Category,
+    CategoryBudget,
+    CustomBudget,
+    DemoState,
+    EmailActivationToken,
+    MobileMfaChallenge,
+    MobileRelease,
+    PasswordResetToken,
+    RecurringTransaction,
+    TelegramLink,
+    TelegramLinkCode,
+    TelegramPendingTx,
+    UsdBudget,
+    UsdCategory,
+    UsdTransaction,
+    UserAIConfig,
+    UserEmailConfig,
+    UserPinDevice,
+    UserSeenAnnouncement,
+)
 
 app = create_app()
 

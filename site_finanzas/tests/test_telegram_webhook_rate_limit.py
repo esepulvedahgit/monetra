@@ -16,13 +16,15 @@ that app. So this module builds its own small app (own in-memory DB) with
 RATELIMIT_ENABLED = True from the start.
 """
 import hashlib
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
+from typing import ClassVar
 from unittest.mock import patch
 
 import pytest
 from sqlalchemy.pool import StaticPool
 
-from app import create_app, db as _db, limiter
+from app import create_app, limiter
+from app import db as _db
 from app.models import AuditLog, TelegramLink, TelegramLinkCode, User
 from app.telegram.service import _webhook_path
 
@@ -33,7 +35,7 @@ RATE_LIMIT = '3 per minute'
 class RateLimitTestConfig:
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
-    SQLALCHEMY_ENGINE_OPTIONS = {
+    SQLALCHEMY_ENGINE_OPTIONS: ClassVar[dict] = {
         'connect_args': {'check_same_thread': False},
         'poolclass': StaticPool,
     }
@@ -44,10 +46,10 @@ class RateLimitTestConfig:
     JWT_ACCESS_TOKEN_EXPIRES = 900
     JWT_REFRESH_TOKEN_EXPIRES = 2592000
     BABEL_DEFAULT_LOCALE = 'es'
-    BABEL_SUPPORTED_LOCALES = ['es', 'en']
+    BABEL_SUPPORTED_LOCALES: ClassVar[list[str]] = ['es', 'en']
     BABEL_TRANSLATION_DIRECTORIES = 'translations'
     MAX_CONTENT_LENGTH = 15 * 1024 * 1024
-    CORS_ORIGINS = ['*']
+    CORS_ORIGINS: ClassVar[list[str]] = ['*']
     RATELIMIT_ENABLED = True
     TELEGRAM_BOT_TOKEN = 'test-bot-token'
     TELEGRAM_WEBHOOK_SECRET = WEBHOOK_SECRET
