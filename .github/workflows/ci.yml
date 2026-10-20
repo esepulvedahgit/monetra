@@ -84,6 +84,9 @@ jobs:
           scanners: vuln,misconfig,secret
           version: "v0.76.0"
           exit-code: "1"
+          trivyignores: .trivyignore.yaml
+        env:
+          TRIVY_SHOW_SUPPRESSED: "true"
 
   quality-gate:
     name: Quality gate

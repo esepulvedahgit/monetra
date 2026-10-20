@@ -1,0 +1,28 @@
+vulnerabilities:
+  - id: CVE-2026-93687
+    paths:
+      - mobile/package-lock.json
+    expired_at: 2026-12-31
+    statement: >-
+      Temporary exception for braces@3.0.3, pulled in by micromatch through
+      Metro build tooling. No patched release is available upstream. Revisit
+      when braces publishes a fix or this dependency is removed.
+
+  - id: CVE-2026-85393
+    paths:
+      - mobile/package-lock.json
+    expired_at: 2026-12-31
+    statement: >-
+      Temporary exception for node-forge@1.4.0, pulled in by Expo CLI tooling.
+      No patched release is available upstream; a fix is pending upstream.
+      Revisit when a patched release is available or this dependency is removed.
+
+  - id: CVE-2026-45822
+    paths:
+      - mobile/package-lock.json
+    expired_at: 2026-12-31
+    statement: >-
+      Temporary compatibility exception for decode-uri-component@0.2.2 via
+      Expo Router 57 and query-string 7. The patched 0.5.0 release is ESM-only,
+      incompatible with this CommonJS dependency chain. Revisit after Expo
+      Router provides a compatible upgrade path.
