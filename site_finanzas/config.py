@@ -1,5 +1,6 @@
 ﻿import os
 import secrets
+from typing import ClassVar
 
 
 def _require_key(env_var: str, fallback_in_debug: bool = True) -> str:
@@ -28,7 +29,7 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     BABEL_DEFAULT_LOCALE = 'es'
-    BABEL_SUPPORTED_LOCALES = ['es', 'en']
+    BABEL_SUPPORTED_LOCALES: ClassVar[list[str]] = ['es', 'en']
     BABEL_TRANSLATION_DIRECTORIES = 'translations'
 
     # APK uploads have their own strict 100 MB validation limit. Flask's global
@@ -69,7 +70,7 @@ class Config:
     REMEMBER_COOKIE_SAMESITE = 'Lax'
     REMEMBER_COOKIE_SECURE   = _secure_cookies
     # Inactivity timeout (seconds). Override with SESSION_INACTIVITY_TIMEOUT env var.
-    SESSION_INACTIVITY_TIMEOUT = int(os.environ.get('SESSION_INACTIVITY_TIMEOUT', 900))  # 15 min
+    SESSION_INACTIVITY_TIMEOUT = int(os.environ.get('SESSION_INACTIVITY_TIMEOUT', '900'))  # 15 min
 
     # Telegram Bot (optional — feature is disabled if not set)
     TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')

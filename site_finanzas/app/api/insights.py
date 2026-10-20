@@ -1,5 +1,7 @@
 from datetime import date
-from flask import request, jsonify
+
+from flask import jsonify, request
+
 from app.api import api_v1
 from app.api.decorators import api_login_required, get_current_api_user
 

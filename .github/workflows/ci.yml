@@ -82,6 +82,7 @@ jobs:
           scan-type: fs
           scan-ref: .
           scanners: vuln,misconfig,secret
+          version: "v0.76.0"
           exit-code: "1"
 
   quality-gate:

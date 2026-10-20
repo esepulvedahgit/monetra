@@ -96,9 +96,9 @@ def _goal_score(active_count: int, overdue_count: int, at_risk_count: int,
 
     if coverage_pct is None:
         progresses = [item['progress_pct'] for item in items]
-        return int(round(sum(progresses) / len(progresses))) if progresses else 70
+        return round(sum(progresses) / len(progresses)) if progresses else 70
 
-    score = min(100, int(round(coverage_pct)))
+    score = min(100, round(coverage_pct))
     score -= overdue_count * 35
     score -= at_risk_count * 10
     return max(0, min(100, score))

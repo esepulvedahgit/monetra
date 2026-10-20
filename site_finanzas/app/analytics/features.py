@@ -6,10 +6,10 @@ statistical models, ML forecasts) consumes the normalized streams from here.
 """
 import calendar
 from datetime import date
+
 from sqlalchemy import extract
 
-from app import db
-from app.models import User, Transaction, UsdTransaction, Budget
+from app.models import Budget, Transaction, UsdTransaction, User
 
 
 def get_conversion_rate(user) -> float:
@@ -115,13 +115,12 @@ def build_feature_bundle(user_id: int, year: int, month: int):
     anomaly detection and scoring. Uses the unified CLP+USD stream so all
     amounts are already in the user's main currency."""
     # Local import to avoid circular dependency (datasets imports from features)
-    from app.analytics.schemas import FeatureBundle
     from app.analytics.datasets import (
         get_historical_months_count,
-        build_history_window_expense_series,
         get_recurring_totals_for_month,
     )
-    from app.analytics.utils import mean, stdev, safe_pct_change
+    from app.analytics.schemas import FeatureBundle
+    from app.analytics.utils import mean, safe_pct_change, stdev
 
     transactions = get_unified_transactions(user_id, year, month)
     total_income = sum(t['amount_local'] for t in transactions if t['type'] == 'income')

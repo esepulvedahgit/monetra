@@ -5,12 +5,14 @@ scoring. Streams stay unified (CLP + USD converted to local) so the analytics
 layer always sees one currency, consistent with the consolidated view.
 """
 from __future__ import annotations
+
 from datetime import date, datetime, timezone
-from sqlalchemy import func, extract, distinct, or_
+
+from sqlalchemy import distinct, extract, func, or_
 
 from app import db
-from app.models import User, Transaction, UsdTransaction, Category, RecurringTransaction
 from app.analytics.features import get_conversion_rate
+from app.models import Category, RecurringTransaction, Transaction, UsdTransaction, User
 
 
 def _year_month_iter(end_year: int, end_month: int, months_back: int):

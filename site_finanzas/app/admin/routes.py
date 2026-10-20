@@ -14,11 +14,10 @@ from flask_login import current_user, login_required
 
 from app import db
 from app.admin import admin_bp
-from app.models import User
-from app.email_service import send_security_alert_email, send_security_alert_email_async
-from app.audit.logger import log_event
 from app.audit import events as ev
-
+from app.audit.logger import log_event
+from app.email_service import send_security_alert_email, send_security_alert_email_async
+from app.models import User
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -40,7 +39,7 @@ def _audit(event_type, description=None):
         db.session.commit()
     except Exception:
         db.session.rollback()
-        current_app.logger.error('Audit log failed for %s', event_type, exc_info=True)
+        current_app.logger.exception('Audit log failed for %s', event_type)
 
 
 # ---------------------------------------------------------------------------

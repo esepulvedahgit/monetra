@@ -9,8 +9,8 @@ STUB (Chunk 1): structure + thresholds as constants. Real branching lives in
 Chunk 3 (signature kept stable so callers compile).
 """
 from __future__ import annotations
-from app.insights.enums import Severity, Confidence
 
+from app.insights.enums import Confidence, Severity
 
 # Thresholds — single source of truth. Tweak here, not in rules.
 BUDGET_BURN_RATE_WARNING_PP = 25   # gap (used% - elapsed%) over this → warning

@@ -1,4 +1,6 @@
 ﻿import os
+from typing import ClassVar
+
 import pytest
 
 os.environ.setdefault('SECRET_KEY', 'test-secret-key')
@@ -7,8 +9,9 @@ os.environ.setdefault('FLASK_DEBUG', '1')
 
 from sqlalchemy.pool import StaticPool
 
-from app import create_app, db as _db
-from app.models import User, Category
+from app import create_app
+from app import db as _db
+from app.models import Category, User
 
 
 class TestConfig:
@@ -16,7 +19,7 @@ class TestConfig:
     # StaticPool forces all connections to use the same in-memory SQLite DB so
     # data committed in fixtures is visible inside test-client request contexts.
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
-    SQLALCHEMY_ENGINE_OPTIONS = {
+    SQLALCHEMY_ENGINE_OPTIONS: ClassVar[dict] = {
         'connect_args': {'check_same_thread': False},
         'poolclass': StaticPool,
     }
@@ -27,10 +30,10 @@ class TestConfig:
     JWT_ACCESS_TOKEN_EXPIRES = 900
     JWT_REFRESH_TOKEN_EXPIRES = 2592000
     BABEL_DEFAULT_LOCALE = 'es'
-    BABEL_SUPPORTED_LOCALES = ['es', 'en']
+    BABEL_SUPPORTED_LOCALES: ClassVar[list[str]] = ['es', 'en']
     BABEL_TRANSLATION_DIRECTORIES = 'translations'
     MAX_CONTENT_LENGTH = 15 * 1024 * 1024
-    CORS_ORIGINS = ['*']
+    CORS_ORIGINS: ClassVar[list[str]] = ['*']
     RATELIMIT_ENABLED = False
     # Flask-Limiter route decorators are intentionally exercised in tests, but
     # the shared test client must not exhaust a production-sized IP bucket.

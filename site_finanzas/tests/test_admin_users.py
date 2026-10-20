@@ -7,15 +7,14 @@ Covers:
 - last_login_at        : set by login(), mfa_verify(), pin_login()
 - is_suspended         : login() rejects suspended users; before_request forces logout
 """
+import hashlib
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import pytest
 
 from app import db
-from app.models import User, ApiToken, UserPinDevice
-import hashlib
-
+from app.models import ApiToken, User, UserPinDevice
 
 # ---------------------------------------------------------------------------
 # Constants

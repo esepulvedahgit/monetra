@@ -44,7 +44,7 @@ class TestSafeGunzip:
             _safe_gunzip(compressed, limit=1024)
 
     def test_invalid_data_raises(self):
-        with pytest.raises(Exception):
+        with pytest.raises(gzip.BadGzipFile):
             _safe_gunzip(b'not gzip data at all')
 
 
@@ -128,6 +128,7 @@ def _craft_blob(db_name='test_db', fmt='monetra-backup/1',
                 sql=FAKE_SQL, password=PASSWORD):
     """Build a syntactically valid encrypted blob without calling dump_database."""
     from cryptography.fernet import Fernet
+
     from app.backup.service import _derive_key
 
     compressed = gzip.compress(sql)

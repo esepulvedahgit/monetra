@@ -3,19 +3,64 @@ import hashlib
 import json
 import secrets
 from datetime import date, timedelta
-from decimal import Decimal
 from itertools import cycle, islice
 
-from flask import render_template, redirect, url_for, flash, request, session, abort, jsonify, current_app
-from flask_login import login_required, current_user, logout_user
-from flask_babel import gettext as _, get_locale
+from flask import (
+    abort,
+    current_app,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
+from flask_babel import get_locale
+from flask_babel import gettext as _
+from flask_login import current_user, login_required, logout_user
 from sqlalchemy import extract, func
 
 from app import db, limiter
+from app.email_service import (
+    decrypt_mfa_secret,
+    encrypt_ai_token,
+    encrypt_mfa_secret,
+    encrypt_smtp_password,
+    resolve_ai_config,
+    send_security_alert_email_async,
+    send_user_email,
+)
 from app.main import main
-from app.main.forms import TransactionForm, CategoryForm, BudgetForm, CategoryBudgetForm, ConfigForm, SMTPConfigForm, RecurringTransactionForm, SavingsGoalForm, ChangePasswordForm, CustomBudgetForm, AIConfigForm
-from app.models import Transaction, Category, Budget, CategoryBudget, UserYear, User, AppConfig, UserEmailConfig, RecurringTransaction, SavingsGoal, UserSeenAnnouncement, CustomBudget, UserAIConfig, ApiToken, UserPinDevice
-from app.email_service import encrypt_smtp_password, send_user_email, encrypt_mfa_secret, decrypt_mfa_secret, encrypt_ai_token, send_security_alert_email, send_security_alert_email_async, resolve_ai_config
+from app.main.forms import (
+    AIConfigForm,
+    BudgetForm,
+    CategoryBudgetForm,
+    CategoryForm,
+    ChangePasswordForm,
+    ConfigForm,
+    CustomBudgetForm,
+    RecurringTransactionForm,
+    SavingsGoalForm,
+    SMTPConfigForm,
+    TransactionForm,
+)
+from app.models import (
+    ApiToken,
+    AppConfig,
+    Budget,
+    Category,
+    CategoryBudget,
+    CustomBudget,
+    RecurringTransaction,
+    SavingsGoal,
+    Transaction,
+    User,
+    UserAIConfig,
+    UserEmailConfig,
+    UserSeenAnnouncement,
+    UserYear,
+)
 
 # (nombre, símbolo, nombre_moneda, código_ISO, locale_babel)
 COUNTRIES_CURRENCIES = [
@@ -206,22 +251,22 @@ def inject_period():
         from app.demo_data.service import get_demo_years
         demo_years = get_demo_years(current_user.id)
 
-        return dict(
-            sel_year=year,
-            sel_month=month,
-            available_years=avail,
-            next_year=avail[-1] + 1,
-            today_year=today.year,
-            month_names_nav=month_names_nav,
-            is_tx_page=request.endpoint in _TX_ENDPOINTS,
-            currency_symbol=current_user.currency_symbol or '$',
-            currency_code=current_user.currency_code or 'USD',
-            currency_locale=(current_user.currency_locale or 'es').replace('_', '-'),
-            currency_decimals=_currency_decimals(current_user.currency_code or 'USD'),
-            help_mode_enabled=bool(current_user.help_mode_enabled),
-            demo_years=demo_years,
-            is_demo_year=(year in demo_years),
-        )
+        return {
+            'sel_year': year,
+            'sel_month': month,
+            'available_years': avail,
+            'next_year': avail[-1] + 1,
+            'today_year': today.year,
+            'month_names_nav': month_names_nav,
+            'is_tx_page': request.endpoint in _TX_ENDPOINTS,
+            'currency_symbol': current_user.currency_symbol or '$',
+            'currency_code': current_user.currency_code or 'USD',
+            'currency_locale': (current_user.currency_locale or 'es').replace('_', '-'),
+            'currency_decimals': _currency_decimals(current_user.currency_code or 'USD'),
+            'help_mode_enabled': bool(current_user.help_mode_enabled),
+            'demo_years': demo_years,
+            'is_demo_year': year in demo_years,
+        }
     return {}
 
 
@@ -285,8 +330,9 @@ def inject_announcement():
     try:
         if not current_user.is_authenticated:
             return {'announcement_to_show': None}
-        from app.announcements import CURRENT_ANNOUNCEMENT, ANNOUNCEMENTS
         from datetime import timezone as _tz
+
+        from app.announcements import ANNOUNCEMENTS, CURRENT_ANNOUNCEMENT
         ann = ANNOUNCEMENTS.get(CURRENT_ANNOUNCEMENT)
         if not ann:
             return {'announcement_to_show': None}
@@ -312,14 +358,13 @@ def inject_announcement():
 @login_required
 def mark_announcement_seen(key):
     from app.announcements import CURRENT_ANNOUNCEMENT
-    if key == CURRENT_ANNOUNCEMENT:
-        if not UserSeenAnnouncement.query.filter_by(
+    if key == CURRENT_ANNOUNCEMENT and not UserSeenAnnouncement.query.filter_by(
+        user_id=current_user.id, announcement_key=key
+    ).first():
+        db.session.add(UserSeenAnnouncement(
             user_id=current_user.id, announcement_key=key
-        ).first():
-            db.session.add(UserSeenAnnouncement(
-                user_id=current_user.id, announcement_key=key
-            ))
-            db.session.commit()
+        ))
+        db.session.commit()
     return '', 204
 
 
@@ -809,7 +854,7 @@ def _expire_custom_budget(cb):
     Los presupuestos personalizados ya no se eliminan al vencer.
     El estado se calcula dinámicamente según el período consultado.
     """
-    return None
+    return
 
 
 def _custom_budget_for_period(user_id, year, month, active_only=True):
@@ -1010,7 +1055,6 @@ def save_category_budget():
     year, month = _get_period()
     if _is_demo_year(year):
         return _reject_demo('main.budget')
-    month_names = _locale_month_names()
     cat_budgets_count = CategoryBudget.query.filter_by(user_id=current_user.id, year=year, month=month).count()
 
     cat_form = CategoryBudgetForm()
@@ -1764,8 +1808,9 @@ def save_weekly_report():
 @login_required
 def send_report_now():
     from datetime import date as _date_cls
-    from app.export.excel_builder import build_excel
+
     from app.email_service import send_weekly_report
+    from app.export.excel_builder import build_excel
 
     # Envío síncrono dentro del request: así el usuario ve el resultado REAL en
     # vez de un "se enviará" optimista que oculta cualquier fallo. Corre en el
@@ -1776,9 +1821,9 @@ def send_report_now():
         buf = build_excel(current_user, today.year, today.month, today.month)
         ok, msg = send_weekly_report(current_user, buf.read(), filename)
     except Exception as exc:
-        current_app.logger.error(
-            "send_report_now: error generando reporte para %s — %s",
-            current_user.email, exc, exc_info=True,
+        current_app.logger.exception(
+            "send_report_now: error generando reporte para %s",
+            current_user.email,
         )
         flash(_('No se pudo generar el reporte: %(error)s', error=str(exc)), 'danger')
         return redirect(url_for('main.configurar'))
@@ -1821,8 +1866,8 @@ def onboarding_dismiss():
 @login_required
 def test_ai_connection():
     """Test AI provider connection with a lightweight text-only call."""
-    from app.telegram.providers import test_connection as _test_connection
     from app.email_service import decrypt_ai_token
+    from app.telegram.providers import test_connection as _test_connection
 
     provider = (request.form.get('provider') or '').strip()
     model = (request.form.get('model') or '').strip()
@@ -1918,7 +1963,11 @@ def change_password():
 @main.route('/configurar/mfa-setup', methods=['POST'])
 @login_required
 def mfa_setup():
-    import pyotp, qrcode, io, base64
+    import base64
+    import io
+
+    import pyotp
+    import qrcode
     secret = pyotp.random_base32()
     session['mfa_setup_secret'] = secret
     totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
@@ -1969,8 +2018,8 @@ def mfa_disable():
     current_user.disable_pin()
     db.session.commit()
     if had_pin:
-        from app.audit.logger import log_event
         from app.audit import events as ev
+        from app.audit.logger import log_event
         try:
             log_event(ev.AUTH_PIN_DISABLED,
                       description=f'{current_user.email} PIN revocado al desactivar MFA',

@@ -1,6 +1,7 @@
 import os
+
 from app import create_app, db
-from app.models import User, Category, Transaction, Budget, UserYear
+from app.models import Budget, Category, Transaction, User, UserYear
 
 app = create_app()
 

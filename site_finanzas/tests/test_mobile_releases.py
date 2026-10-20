@@ -1,13 +1,12 @@
 """Integration tests for authenticated Android APK distribution."""
 import io
-from unittest.mock import patch
 import zipfile
+from unittest.mock import patch
 
 import pytest
 
 from app import db
 from app.models import MobileRelease
-
 
 ADMIN_EMAIL = 'admin_backup@example.com'
 ADMIN_PASSWORD = 'AdminPass123!'

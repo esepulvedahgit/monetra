@@ -1,22 +1,28 @@
-import re
 import hashlib
+import re
 import secrets
 from datetime import datetime, timedelta, timezone
 
-from flask import request, jsonify, current_app, url_for
-from flask_jwt_extended import (
-    create_access_token, create_refresh_token,
-    jwt_required, get_jwt_identity, get_jwt
-)
 import pyotp
-from app.models import MobileMfaChallenge, PasswordResetToken, User
-from app.email_service import decrypt_mfa_secret, send_recovery_email
-from app.api import api_v1
-from app.api.schemas import user_schema
-from app.api.decorators import (
-    _account_error, _jwt_is_stale, api_login_required, get_current_api_user,
+from flask import current_app, jsonify, request, url_for
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    get_jwt_identity,
+    jwt_required,
 )
+
 from app import db, limiter
+from app.api import api_v1
+from app.api.decorators import (
+    _account_error,
+    _jwt_is_stale,
+    api_login_required,
+    get_current_api_user,
+)
+from app.api.schemas import user_schema
+from app.email_service import decrypt_mfa_secret, send_recovery_email
+from app.models import MobileMfaChallenge, PasswordResetToken, User
 
 
 def _token_pair(user):

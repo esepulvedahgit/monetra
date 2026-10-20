@@ -17,10 +17,10 @@ Schema per template:
     }
 """
 from __future__ import annotations
+
 from flask_babel import lazy_gettext as _l
 
-from app.insights.enums import Severity, AlertType
-
+from app.insights.enums import AlertType, Severity
 
 TEMPLATES: dict[AlertType, dict[Severity, dict[str, str]]] = {
 

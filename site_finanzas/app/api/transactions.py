@@ -1,10 +1,12 @@
 from datetime import date as date_type
-from flask import request, jsonify
+
+from flask import jsonify, request
 from sqlalchemy.exc import IntegrityError
+
 from app import db
-from app.models import Transaction, Category
 from app.api import api_v1
 from app.api.decorators import api_login_required, get_current_api_user
+from app.models import Category, Transaction
 from app.services import finance as svc
 from app.services.finance import _tx_dict
 
@@ -95,7 +97,7 @@ def create_transaction():
 
     category_id = data.get("category_id")
     if category_id:
-        cat, err = _owned_category(user, category_id, tx_type)
+        _cat, err = _owned_category(user, category_id, tx_type)
         if err:
             return jsonify({"error": err}), 400
     else:
@@ -165,7 +167,7 @@ def update_transaction(tx_id):
         if data["category_id"] is None:
             tx.category_id = None
         else:
-            cat, err = _owned_category(user, data["category_id"], tx.type)
+            _cat, err = _owned_category(user, data["category_id"], tx.type)
             if err:
                 return jsonify({"error": err}), 400
             tx.category_id = data["category_id"]

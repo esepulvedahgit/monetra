@@ -17,10 +17,10 @@ The script:
   5. Saves the .po file in-place
 """
 
-import re
-import time
-import sys
 import os
+import re
+import sys
+import time
 
 # Force UTF-8 output on Windows consoles
 if sys.stdout.encoding and sys.stdout.encoding.lower() not in ('utf-8', 'utf8'):

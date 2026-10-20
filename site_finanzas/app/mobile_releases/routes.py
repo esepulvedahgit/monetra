@@ -4,14 +4,27 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from flask import abort, current_app, flash, redirect, render_template, request, send_file, url_for
+from flask import (
+    abort,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from flask_login import current_user, login_required
 
 from app import db
 from app.audit import events as ev
 from app.audit.logger import log_event
 from app.mobile_releases import mobile_releases_bp
-from app.mobile_releases.service import ReleaseValidationError, current_apk_path, stage_apk
+from app.mobile_releases.service import (
+    ReleaseValidationError,
+    current_apk_path,
+    stage_apk,
+)
 from app.models import MobileRelease
 
 

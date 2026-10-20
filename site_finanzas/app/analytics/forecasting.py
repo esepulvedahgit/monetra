@@ -10,18 +10,19 @@ Every result returns a MonthlyForecast with `method` + `confidence` + `evidence`
 The evidence dict is the auditable trail: which numbers fed the prediction.
 """
 from __future__ import annotations
+
 import logging
 
-from app.analytics.schemas import MonthlyForecast, FeatureBundle
-from app.analytics.features import build_feature_bundle
 from app.analytics.datasets import (
     build_history_window_expense_series,
     build_history_window_income_series,
 )
+from app.analytics.features import build_feature_bundle
+from app.analytics.schemas import FeatureBundle, MonthlyForecast
 from app.analytics.utils import (
+    linear_trend,
     mean,
     weighted_moving_average,
-    linear_trend,
 )
 
 log = logging.getLogger(__name__)

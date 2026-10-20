@@ -5,8 +5,9 @@ small, pure, and side-effect free so they remain trivially testable. If a
 caller needs numpy later, the function signatures should not change.
 """
 from __future__ import annotations
+
 import math
-from typing import Sequence
+from collections.abc import Sequence
 
 
 def mean(xs: Sequence[float]) -> float:

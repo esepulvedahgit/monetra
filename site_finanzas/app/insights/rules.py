@@ -5,13 +5,14 @@ Each rule handler maps one SignalType → at most one Alert. Handlers consult
 thresholds locally and never decide copy locally.
 """
 from __future__ import annotations
-import logging
-from typing import Callable
 
-from app.insights.models import Signal, Alert
-from app.insights.enums import SignalType, AlertType, InsightCategory, Severity
-from app.insights.severity import SeverityClassifier
+import logging
+from collections.abc import Callable
+
+from app.insights.enums import AlertType, InsightCategory, Severity, SignalType
 from app.insights.messages import get_template
+from app.insights.models import Alert, Signal
+from app.insights.severity import SeverityClassifier
 
 log = logging.getLogger(__name__)
 

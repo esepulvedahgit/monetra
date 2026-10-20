@@ -20,12 +20,11 @@ from flask import current_app, jsonify, request, session, url_for
 from flask_login import current_user, login_required, login_user
 
 from app import db, limiter
-from app.auth import auth
-from app.models import User, UserPinDevice
 from app.audit import events as ev
 from app.audit.logger import log_event
-from app.email_service import send_security_alert_email, send_security_alert_email_async
-
+from app.auth import auth
+from app.email_service import send_security_alert_email_async
+from app.models import UserPinDevice
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -90,7 +89,7 @@ def _audit(event_type, description=None, user_id=None):
         db.session.commit()
     except Exception:
         db.session.rollback()
-        current_app.logger.error('Audit log failed for %s', event_type, exc_info=True)
+        current_app.logger.exception('Audit log failed for %s', event_type)
 
 
 def _is_valid_pin(pin: str) -> bool:
@@ -101,9 +100,7 @@ def _is_valid_pin(pin: str) -> bool:
         return False
     asc = ''.join(str((int(pin[0]) + i) % 10) for i in range(8))
     desc = ''.join(str((int(pin[0]) - i) % 10) for i in range(8))
-    if pin in (asc, desc):                        # 12345678, 87654321, wrap-arounds
-        return False
-    return True
+    return pin not in (asc, desc)                 # 12345678, 87654321, wrap-arounds
 
 
 # ---------------------------------------------------------------------------

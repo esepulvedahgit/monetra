@@ -6,7 +6,7 @@ from uuid import uuid4
 import pytest
 
 from app import db
-from app.models import ApiToken, User, UsdCategory, UsdTransaction
+from app.models import ApiToken, UsdCategory, UsdTransaction, User
 
 
 def _login(client, email='test@example.com', password='Password123!'):

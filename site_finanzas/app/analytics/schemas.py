@@ -6,6 +6,7 @@ Every result that leaves analytics carries an `evidence` dict so it can be
 audited downstream.
 """
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Any
 

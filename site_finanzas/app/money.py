@@ -47,8 +47,8 @@ def parse_amount(value, locale='es', code='USD'):
     Devuelve un ``Decimal`` cuantificado a la precisión de la moneda (p. ej. CLP → 0
     decimales, USD → 2). Lanza ``ValueError`` si el valor no es interpretable.
     """
-    from babel.numbers import parse_decimal, get_currency_precision
     from babel.numbers import NumberFormatError as BabelNumberFormatError
+    from babel.numbers import get_currency_precision, parse_decimal
     s = str(value).strip()
     try:
         dec = parse_decimal(s, locale=locale or 'es')

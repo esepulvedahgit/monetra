@@ -1,10 +1,12 @@
 import hashlib
 from datetime import datetime, timezone
 from functools import wraps
+
 from flask import g, jsonify, request
-from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity, get_jwt
-from app.models import User, ApiToken
+from flask_jwt_extended import get_jwt, get_jwt_identity, verify_jwt_in_request
+
 from app import db
+from app.models import ApiToken, User
 
 
 def _account_error(user):

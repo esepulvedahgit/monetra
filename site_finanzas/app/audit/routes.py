@@ -1,10 +1,11 @@
-from flask import render_template, request, abort
+from flask import abort, render_template, request
 from flask_login import current_user, login_required
 from sqlalchemy import func
 
 from app import db
-from app.models import AuditLog, User
 from app.audit.events import CATEGORY_META, category_of
+from app.models import AuditLog, User
+
 from . import audit_bp
 
 _PAGE_SIZE = 50
@@ -44,7 +45,7 @@ def index():
         cat_counts[category_of(evt)] = cat_counts.get(category_of(evt), 0) + cnt
 
     # Unique IPs and unique users in the last 7 days
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime, timedelta, timezone
     since_7d = datetime.now(timezone.utc) - timedelta(days=7)
     unique_ips = db.session.query(func.count(func.distinct(AuditLog.ip_address))).filter(
         AuditLog.created_at >= since_7d).scalar() or 0

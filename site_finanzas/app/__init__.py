@@ -1,15 +1,18 @@
-﻿from datetime import datetime, timezone, timedelta
+﻿from datetime import datetime, timedelta, timezone
 
-from flask import Flask, render_template, request, session, redirect, url_for, flash
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, current_user, logout_user
-from flask_wtf.csrf import CSRFProtect, CSRFError
-from config import Config
+from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask_babel import Babel
+from flask_babel import gettext as _
+from flask_babel import lazy_gettext as _l
+from flask_cors import CORS
+from flask_jwt_extended import JWTManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_babel import Babel, lazy_gettext as _l, gettext as _
-from flask_jwt_extended import JWTManager
-from flask_cors import CORS
+from flask_login import LoginManager, current_user, logout_user
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFError, CSRFProtect
+
+from config import Config
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -83,7 +86,7 @@ def create_app(config_class=Config):
 
     @app.context_processor
     def inject_get_locale():
-        return dict(get_locale=get_locale)
+        return {"get_locale": get_locale}
 
     from app.auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint)
@@ -140,8 +143,9 @@ def create_app(config_class=Config):
     def too_many_requests(e):
         try:
             from flask_login import current_user as cu
-            from app.audit.logger import log_event
+
             from app.audit.events import APP_RATE_LIMITED
+            from app.audit.logger import log_event
             uid = cu.id if cu.is_authenticated else None
             log_event(APP_RATE_LIMITED, description=request.path, user_id=uid, request=request)
             db.session.commit()
@@ -154,8 +158,9 @@ def create_app(config_class=Config):
         db.session.rollback()
         try:
             from flask_login import current_user as cu
-            from app.audit.logger import log_event
+
             from app.audit.events import APP_ERROR_500
+            from app.audit.logger import log_event
             uid = cu.id if cu.is_authenticated else None
             log_event(APP_ERROR_500, description=str(e)[:200], user_id=uid, request=request)
             db.session.commit()
@@ -164,12 +169,14 @@ def create_app(config_class=Config):
         return render_template('errors/500.html'), 500
 
     import os
-    if not app.testing:
-        if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
-            from app.scheduler import init_scheduler
-            init_scheduler(app)
-            # Auto-register Telegram webhook if configured
-            _setup_telegram_webhook(app)
+    if not app.testing and (
+        not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true'
+    ):
+        from app.scheduler import init_scheduler
+
+        init_scheduler(app)
+        # Auto-register Telegram webhook if configured
+        _setup_telegram_webhook(app)
 
     from app.admin import admin_bp
     app.register_blueprint(admin_bp)
@@ -250,7 +257,7 @@ def _setup_telegram_webhook(app):
         )
     with app.app_context():
         try:
-            from app.telegram.service import set_webhook, get_me
+            from app.telegram.service import get_me, set_webhook
             if not server_url.startswith('http'):
                 server_url = f"https://{server_url}"
             # Derive the authoritative bot username from the token so the deep

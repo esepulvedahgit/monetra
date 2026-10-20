@@ -1,7 +1,7 @@
-from flask_wtf import FlaskForm
-from wtforms import StringField, DecimalField, DateField, SelectField
-from wtforms.validators import DataRequired, NumberRange, Length, Optional
 from flask_babel import lazy_gettext as _l
+from flask_wtf import FlaskForm
+from wtforms import DateField, DecimalField, SelectField, StringField
+from wtforms.validators import DataRequired, Length, NumberRange, Optional
 
 
 class UsdCategoryForm(FlaskForm):

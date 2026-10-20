@@ -2,9 +2,11 @@ import os
 import smtplib
 import socket
 import ssl
-from datetime import date, timezone
+from datetime import date
 from email.message import EmailMessage
+
 from cryptography.fernet import Fernet
+
 
 def get_fernet():
     key = os.environ.get('FIELD_ENCRYPTION_KEY')
@@ -108,6 +110,7 @@ def consume_shared_ai_quota(user) -> bool:
     """
     from flask import current_app
     from sqlalchemy import or_
+
     from app import db
     from app.models import User as _User
 
@@ -163,8 +166,8 @@ def _open_and_send(config, msg):
     except smtplib.SMTPAuthenticationError:
         return False, "Error de autenticación SMTP. Verifica tu usuario y contraseña."
     except smtplib.SMTPException as e:
-        return False, f"Error del servidor SMTP: {str(e)}"
-    except (socket.timeout, TimeoutError):
+        return False, f"Error del servidor SMTP: {e!s}"
+    except TimeoutError:
         return False, (
             "Tiempo de espera agotado al conectar con el servidor SMTP. "
             "Revisa el host y el puerto, y la combinación TLS/SSL: "
@@ -173,16 +176,16 @@ def _open_and_send(config, msg):
         )
     except (ConnectionRefusedError, socket.gaierror) as e:
         return False, (
-            f"No se pudo conectar al servidor SMTP ({str(e)}). "
+            f"No se pudo conectar al servidor SMTP ({e!s}). "
             "Verifica que el host y el puerto sean correctos."
         )
     except ssl.SSLError as e:
         return False, (
-            f"Error de cifrado SSL/TLS ({str(e)}). "
+            f"Error de cifrado SSL/TLS ({e!s}). "
             "Verifica la combinación: puerto 465 → SSL, puerto 587 → TLS (STARTTLS)."
         )
     except Exception as e:
-        return False, f"Error inesperado al enviar el correo: {str(e)}"
+        return False, f"Error inesperado al enviar el correo: {e!s}"
     finally:
         if server is not None:
             try:
@@ -301,7 +304,9 @@ def send_activation_email(user, activation_url: str) -> tuple[bool, str]:
     return send_recovery_email(user, user.email, subject, body_text, body_html)
 
 
-def send_security_alert_email(user, action_label: str, detail: str = None) -> None:
+def send_security_alert_email(
+    user, action_label: str, detail: str | None = None
+) -> None:
     """Send a security notification when the user changes a security setting.
 
     Best-effort: never raises — the alert is informational and must not interrupt
@@ -388,7 +393,9 @@ def send_security_alert_email(user, action_label: str, detail: str = None) -> No
         pass  # Best-effort — never break the caller
 
 
-def send_security_alert_email_async(user, action_label: str, detail: str = None) -> None:
+def send_security_alert_email_async(
+    user, action_label: str, detail: str | None = None
+) -> None:
     """Fires send_security_alert_email in a daemon thread so the request is not blocked.
 
     Uses the same pattern as send_report_now in main/routes.py:
@@ -397,6 +404,7 @@ def send_security_alert_email_async(user, action_label: str, detail: str = None)
     - The underlying call is already best-effort (never raises), so the thread is fire-and-forget.
     """
     import threading
+
     from flask import current_app
 
     app = current_app._get_current_object()

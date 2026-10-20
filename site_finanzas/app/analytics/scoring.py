@@ -13,11 +13,13 @@ constants in this file so they're easy to find and tweak.
 """
 from __future__ import annotations
 
-from app.analytics.schemas import FinancialHealthScore
-from app.analytics.features import build_feature_bundle
-from app.analytics.datasets import build_history_window_income_series, build_history_window_expense_series
 from app.analytics.anomalies import detect_anomalies
-
+from app.analytics.datasets import (
+    build_history_window_expense_series,
+    build_history_window_income_series,
+)
+from app.analytics.features import build_feature_bundle
+from app.analytics.schemas import FinancialHealthScore
 
 # Weights sum to 1.0
 W_CASHFLOW = 0.35
@@ -73,7 +75,7 @@ def _cashflow_subscore(user_id: int, year: int, month: int) -> tuple[int, dict]:
     if months_with_data == 0:
         return 50, {'reason': 'no_data', 'fallback_score': 50}
     positive = sum(1 for i in range(len(income)) if (income[i] - expense[i]) > 0)
-    score = int(round(positive / months_with_data * 100))
+    score = round(positive / months_with_data * 100)
     return score, {
         'months_evaluated': months_with_data,
         'months_with_positive_balance': positive,
@@ -95,7 +97,7 @@ def _budget_subscore(bundle) -> tuple[int, dict]:
         score = 100
     else:
         # Linear decay: every 1pp over → -1.5 score points (so +66pp → 0)
-        score = max(0, int(round(100 - gap * 1.5)))
+        score = max(0, round(100 - gap * 1.5))
     return score, {
         'budget_amount': bundle.budget_amount,
         'budget_used_pct': used_pct,
@@ -117,7 +119,7 @@ def _savings_subscore(bundle) -> tuple[int, dict]:
         if rate <= 0:
             rate_score = 0
         else:
-            rate_score = min(100, int(round(rate / SAVINGS_TARGET_PCT * 100)))
+            rate_score = min(100, round(rate / SAVINGS_TARGET_PCT * 100))
         rate_evidence = {
             'total_income': bundle.total_income,
             'total_expense': bundle.total_expense,
@@ -128,7 +130,7 @@ def _savings_subscore(bundle) -> tuple[int, dict]:
     capacity = calculate_sustainable_savings_capacity(
         bundle.user_id, bundle.period_year, bundle.period_month)
     goals = analyze_savings_goals(bundle.user_id, capacity['sustainable_capacity'])
-    score = int(round(rate_score * 0.6 + goals['score'] * 0.4))
+    score = round(rate_score * 0.6 + goals['score'] * 0.4)
     return score, {
         **rate_evidence,
         'rate_score': rate_score,

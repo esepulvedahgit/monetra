@@ -1,8 +1,15 @@
+from flask import Request
+
 from app import db
 from app.models import AuditLog
 
 
-def log_event(event_type: str, description: str = None, user_id: int = None, request=None):
+def log_event(
+    event_type: str,
+    description: str | None = None,
+    user_id: int | None = None,
+    request: Request | None = None,
+):
     """Append an audit entry to the current DB session. Caller is responsible for commit.
 
     Safe to call inside error handlers — catches and silently swallows any exception
