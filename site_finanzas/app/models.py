@@ -660,3 +660,74 @@ class TelegramPendingTx(db.Model):
 
     def __repr__(self):
         return f'<TelegramPendingTx chat={self.chat_id} amount={self.amount}>'
+
+
+class Cart(db.Model):
+    """Carrito de supermercado: acumula productos y su total durante una compra."""
+    __tablename__ = 'carts'
+
+    id             = db.Column(db.Integer, primary_key=True)
+    user_id        = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    status         = db.Column(db.String(12), nullable=False, default='open')  # 'open' | 'finalized'
+    store_name     = db.Column(db.String(120), nullable=True)
+    total          = db.Column(db.Numeric(12, 2), nullable=False, default=0)
+    item_count     = db.Column(db.Integer, nullable=False, default=0)
+    source         = db.Column(db.String(10), nullable=False, default='telegram')  # 'telegram' | 'web' | 'api'
+    # Movimiento generado a partir del carrito (si el usuario lo registró).
+    transaction_id = db.Column(db.Integer, db.ForeignKey('transactions.id', ondelete='SET NULL'),
+                               nullable=True)
+    started_at     = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at     = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    finalized_at   = db.Column(db.DateTime, nullable=True)
+
+    user  = db.relationship('User', backref=db.backref('carts', lazy=True,
+                                                       cascade='all, delete-orphan'))
+    items = db.relationship('CartItem', backref='cart', lazy=True,
+                            cascade='all, delete-orphan', order_by='CartItem.id')
+
+    def __repr__(self):
+        return f'<Cart user={self.user_id} status={self.status} total={self.total}>'
+
+
+class CartItem(db.Model):
+    """Producto agregado a un carrito."""
+    __tablename__ = 'cart_items'
+
+    id         = db.Column(db.Integer, primary_key=True)
+    cart_id    = db.Column(db.Integer, db.ForeignKey('carts.id', ondelete='CASCADE'),
+                           nullable=False, index=True)
+    name       = db.Column(db.String(200), nullable=False)
+    qty        = db.Column(db.Numeric(10, 3), nullable=False, default=1)
+    unit_price = db.Column(db.Numeric(12, 2), nullable=False)
+    line_total = db.Column(db.Numeric(12, 2), nullable=False)
+    source     = db.Column(db.String(10), nullable=False, default='text')  # 'text' | 'photo' | 'web' | 'api'
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f'<CartItem {self.name} {self.line_total}>'
+
+
+class CartPendingItem(db.Model):
+    """Producto enviado al bot de Telegram en modo carrito, pendiente de confirmación."""
+    __tablename__ = 'cart_pending_items'
+
+    id             = db.Column(db.Integer, primary_key=True)
+    chat_id        = db.Column(db.BigInteger, nullable=False, index=True)
+    user_id        = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    cart_id        = db.Column(db.Integer, db.ForeignKey('carts.id', ondelete='CASCADE'), nullable=False)
+    name           = db.Column(db.String(200), nullable=False)
+    qty            = db.Column(db.Numeric(10, 3), nullable=False, default=1)
+    line_total     = db.Column(db.Numeric(12, 2), nullable=False)
+    # Precio alternativo leído de la etiqueta (p. ej. oferta con tarjeta) que el usuario puede elegir.
+    alt_line_total = db.Column(db.Numeric(12, 2), nullable=True)
+    note           = db.Column(db.String(200), nullable=True)
+    source         = db.Column(db.String(10), nullable=False, default='text')  # 'text' | 'photo'
+    created_at     = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship('User', backref=db.backref('cart_pending_items', lazy=True,
+                                                       cascade='all, delete-orphan'))
+    cart = db.relationship('Cart', backref=db.backref('pending_items', lazy=True,
+                                                       cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<CartPendingItem chat={self.chat_id} {self.name} {self.line_total}>'
