@@ -1,4 +1,3 @@
-import unicodedata
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
@@ -57,13 +56,6 @@ def _parse_decimal(value: str | None) -> Decimal | None:
         return None
 
 
-def _normalize_name(name: str) -> str:
-    """Clave de comparación: minúsculas, sin acentos ni espacios repetidos."""
-    text = unicodedata.normalize('NFKD', name or '')
-    text = ''.join(ch for ch in text if not unicodedata.combining(ch))
-    return ' '.join(text.lower().split())
-
-
 def _finalized_carts():
     return (Cart.query
             .filter_by(user_id=current_user.id, status='finalized')
@@ -117,34 +109,9 @@ def detail(cart_id):
 def compare():
     a = _own_cart_or_404(request.args.get('a', type=int) or 0)
     b = _own_cart_or_404(request.args.get('b', type=int) or 0)
-    # Ordenar cronológicamente: "antes" vs "después".
-    if (a.finalized_at or a.started_at) > (b.finalized_at or b.started_at):
-        a, b = b, a
-
-    def _by_name(cart):
-        grouped = {}
-        for item in cart.items:
-            key = _normalize_name(item.name)
-            entry = grouped.setdefault(key, {'name': item.name, 'unit_price': item.unit_price,
-                                             'line_total': Decimal(0)})
-            entry['line_total'] += Decimal(item.line_total)
-        return grouped
-
-    before, after = _by_name(a), _by_name(b)
-    rows = []
-    for key in sorted(set(before) | set(after)):
-        old, new = before.get(key), after.get(key)
-        diff = None
-        pct = None
-        if old and new:
-            diff = Decimal(new['unit_price']) - Decimal(old['unit_price'])
-            if old['unit_price']:
-                pct = float(diff / Decimal(old['unit_price']) * 100)
-        rows.append({'name': (new or old)['name'], 'old': old, 'new': new, 'diff': diff, 'pct': pct})
-    rows.sort(key=lambda r: (r['old'] is None or r['new'] is None, -(abs(r['pct'] or 0))))
-
-    return render_template('cart/compare.html', a=a, b=b, rows=rows,
-                           total_diff=Decimal(b.total) - Decimal(a.total))
+    result = svc.compare_carts(a, b)
+    return render_template('cart/compare.html', a=result['before'], b=result['after'],
+                           rows=result['rows'], total_diff=result['total_diff'])
 
 
 # ── Acciones ──────────────────────────────────────────────────────────────────

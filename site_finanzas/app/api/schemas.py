@@ -89,3 +89,39 @@ def audit_log_schema(log):
         "username":    log.user.username if log.user else None,
         "created_at":  log.created_at.isoformat(),
     }
+
+
+def _iso(value):
+    return value.isoformat() if value else None
+
+
+def cart_item_schema(item):
+    return {
+        "id": item.id,
+        "name": item.name,
+        "qty": float(item.qty),
+        "unit_price": float(item.unit_price),
+        "line_total": float(item.line_total),
+        "source": item.source,
+        "created_at": _iso(item.created_at),
+    }
+
+
+def cart_schema(cart, include_items=False, movement=None):
+    """``movement``: Transaction vigente del carrito (ver cart.service.linked_transaction)."""
+    data = {
+        "id": cart.id,
+        "status": cart.status,
+        "store_name": cart.store_name,
+        "total": float(cart.total),
+        "item_count": cart.item_count,
+        "source": cart.source,
+        "started_at": _iso(cart.started_at),
+        "updated_at": _iso(cart.updated_at),
+        "finalized_at": _iso(cart.finalized_at),
+        "transaction_id": cart.transaction_id,
+    }
+    if include_items:
+        data["items"] = [cart_item_schema(i) for i in cart.items]
+        data["movement"] = transaction_schema(movement) if movement else None
+    return data

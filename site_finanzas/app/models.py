@@ -701,7 +701,13 @@ class CartItem(db.Model):
     unit_price = db.Column(db.Numeric(12, 2), nullable=False)
     line_total = db.Column(db.Numeric(12, 2), nullable=False)
     source     = db.Column(db.String(10), nullable=False, default='text')  # 'text' | 'photo' | 'web' | 'api'
+    # Clave generada por el cliente (Idempotency-Key) para que reintentos móviles no dupliquen.
+    client_request_id = db.Column(db.String(128), nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        db.UniqueConstraint('cart_id', 'client_request_id', name='uq_cart_item_client_request'),
+    )
 
     def __repr__(self):
         return f'<CartItem {self.name} {self.line_total}>'

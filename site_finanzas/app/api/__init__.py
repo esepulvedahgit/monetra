@@ -6,6 +6,7 @@ from app.api import (  # noqa: F401
     audit,
     auth,
     budgets,
+    carts,
     categories,
     dashboard,
     insights,

@@ -49,6 +49,9 @@
 | `UsdTransaction` | Transacciones de la cuenta USD (monto en dólares, fecha, categoría USD) |
 | `UsdBudget` | Presupuesto mensual para la cuenta USD |
 | `ApiToken` | Tokens persistentes de 365 días para la API REST (formato `mntr_*`) |
+| `Cart` | Carrito de supermercado (Mi Carrito): estado `open`/`finalized`, total, movimiento asociado |
+| `CartItem` | Producto de un carrito: nombre, cantidad, precio unitario, subtotal y origen (texto/foto/web/api) |
+| `CartPendingItem` | Producto enviado al bot en modo carrito, pendiente de confirmación (expira en 1 h) |
 
 ---
 
@@ -463,6 +466,33 @@ Los movimientos USD siempre se representan como `type: "expense"` y
 `currency: "USD"`. El monto debe ser positivo, con hasta dos decimales, y la
 categoría debe pertenecer al usuario del token. Las categorías USD son de solo
 lectura por API; se gestionan desde la sección web Cuenta USD.
+
+#### Mi Carrito API
+
+Mismas reglas que el bot (`/carrito`) y la web (`/carrito`): un solo carrito abierto
+por usuario; un carrito abierto sin actividad durante `CART_IDLE_HOURS` (6 h por
+defecto) se guarda automáticamente. Los errores de negocio devuelven
+`{"error", "code", "message"}` con `code` estable (`cart_closed`, `cart_empty`,
+`already_registered`, `invalid_amount`, `invalid_category`, …).
+
+| Endpoint | Método | Detalles |
+|---|---|---|
+| `/api/v1/carts` | GET | Lista paginada (`page`, `per_page` ≤ 100). Filtro: `status` (`open`/`finalized`) |
+| `/api/v1/carts` | POST | Inicia un carrito (`store_name` opcional). Si ya hay uno abierto lo devuelve con 200 |
+| `/api/v1/carts/current` | GET | Carrito abierto con sus productos, o `{"cart": null}` |
+| `/api/v1/carts/<id>` | GET | Detalle con `items` y `movement` |
+| `/api/v1/carts/<id>` | PATCH | Cambia `store_name` |
+| `/api/v1/carts/<id>` | DELETE | Elimina el carrito y sus productos |
+| `/api/v1/carts/<id>/items` | POST | Agrega producto: `name`, `qty` (def. 1) y `unit_price` **o** `line_total`. Acepta `Idempotency-Key` |
+| `/api/v1/carts/<id>/items/<item_id>` | DELETE | Quita un producto (solo carrito abierto) |
+| `/api/v1/carts/<id>/scan` | POST | Multipart `image`: lee la etiqueta con IA y **sugiere** `name`, `price`, `offer_price`, `offer_text`, `unit`. No agrega nada |
+| `/api/v1/carts/<id>/finalize` | POST | Cierra el carrito. Con `register_movement: true` crea el gasto (`category_id`, `amount`, `date`, `description` opcionales) |
+| `/api/v1/carts/<id>/movement` | POST | Registra después el gasto de un carrito finalizado ("solo guardar"); `amount` = monto pagado en caja |
+| `/api/v1/carts/compare` | GET | `?a=<id>&b=<id>`: diferencia de total y variación del precio unitario por producto |
+
+`/scan` consume la cuota diaria de IA compartida (`AI_SHARED_DAILY_LIMIT`) igual
+que el bot cuando el usuario no tiene clave propia, y tiene límite
+`CART_SCAN_RATE_LIMIT` (20/min por defecto).
 
 #### Presupuestos API
 

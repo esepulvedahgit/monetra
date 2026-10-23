@@ -5,6 +5,7 @@ las reglas — un solo carrito abierto por usuario, recálculo del total, regist
 del movimiento — vivan en un único lugar. Las funciones no hacen commit: el
 llamador decide cuándo confirmar la transacción de BD.
 """
+import unicodedata
 from datetime import date, datetime, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
@@ -127,7 +128,8 @@ def _recalc(cart: Cart) -> None:
     cart.updated_at = _now()
 
 
-def add_item(cart: Cart, name: str, line_total, qty=1, source: str = 'text') -> CartItem:
+def add_item(cart: Cart, name: str, line_total, qty=1, source: str = 'text',
+             client_request_id: str | None = None) -> CartItem:
     """Agrega un producto. ``line_total`` es el monto total de la línea (precio × cantidad)."""
     if cart.status != 'open':
         raise CartError('cart_closed')
@@ -142,6 +144,7 @@ def add_item(cart: Cart, name: str, line_total, qty=1, source: str = 'text') -> 
         unit_price=unit_price,
         line_total=line_total,
         source=source,
+        client_request_id=client_request_id or None,
     )
     cart.items.append(item)
     _recalc(cart)
@@ -246,3 +249,52 @@ def finalize(cart: Cart, register: bool = False, **movement_kwargs) -> Transacti
     if register:
         return register_movement(cart, **movement_kwargs)
     return None
+
+
+# ── Comparación ───────────────────────────────────────────────────────────────
+
+def normalize_name(name: str) -> str:
+    """Clave de comparación: minúsculas, sin acentos ni espacios repetidos."""
+    text = unicodedata.normalize('NFKD', name or '')
+    text = ''.join(ch for ch in text if not unicodedata.combining(ch))
+    return ' '.join(text.lower().split())
+
+
+def _items_by_name(cart: Cart) -> dict:
+    grouped = {}
+    for item in cart.items:
+        entry = grouped.setdefault(normalize_name(item.name), {
+            'name': item.name, 'unit_price': Decimal(item.unit_price),
+            'qty': Decimal(0), 'line_total': Decimal(0),
+        })
+        entry['qty'] += Decimal(item.qty)
+        entry['line_total'] += Decimal(item.line_total)
+    return grouped
+
+
+def compare_carts(a: Cart, b: Cart) -> dict:
+    """Compara dos carritos en orden cronológico emparejando productos por nombre.
+
+    Devuelve ``before``/``after`` (carritos), ``total_diff`` y ``rows`` con el precio
+    unitario de cada producto en ambas compras y su variación porcentual. Las filas
+    con variación van primero (mayor cambio arriba); luego productos nuevos o no comprados.
+    """
+    if (a.finalized_at or a.started_at) > (b.finalized_at or b.started_at):
+        a, b = b, a
+    before, after = _items_by_name(a), _items_by_name(b)
+    rows = []
+    for key in sorted(set(before) | set(after)):
+        old, new = before.get(key), after.get(key)
+        diff = pct = None
+        if old and new:
+            diff = new['unit_price'] - old['unit_price']
+            if old['unit_price']:
+                pct = float(diff / old['unit_price'] * 100)
+        rows.append({'name': (new or old)['name'], 'old': old, 'new': new, 'diff': diff, 'pct': pct})
+    rows.sort(key=lambda r: (r['old'] is None or r['new'] is None, -abs(r['pct'] or 0)))
+    return {
+        'before': a,
+        'after': b,
+        'rows': rows,
+        'total_diff': Decimal(b.total) - Decimal(a.total),
+    }
