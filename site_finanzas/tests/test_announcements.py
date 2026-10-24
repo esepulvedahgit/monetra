@@ -15,5 +15,5 @@ def _announcements_module():
 def test_mobile_app_announcement_is_the_current_release():
     announcements = _announcements_module()
 
-    assert announcements.CURRENT_ANNOUNCEMENT == 'v2.7'
-    assert announcements.ANNOUNCEMENTS['v2.7']['released_at'] == datetime(2026, 9, 8, tzinfo=timezone.utc)
+    assert announcements.CURRENT_ANNOUNCEMENT == 'v2.8'
+    assert announcements.ANNOUNCEMENTS['v2.8']['released_at'] == datetime(2026, 9, 15, tzinfo=timezone.utc)
