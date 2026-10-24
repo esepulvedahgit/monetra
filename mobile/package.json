@@ -7,6 +7,7 @@
   "overrides": {
     "brace-expansion": "5.0.12",
     "compression": "1.8.2",
+    "follow-redirects": "1.16.1",
     "shell-quote": "1.11.0",
     "source-map-js": "1.2.2",
     "uuid": "11.1.1"
