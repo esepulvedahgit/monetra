@@ -56,6 +56,8 @@ def _clean_carts(app):
         CartPendingItem.query.delete()
         CartItem.query.delete()
         Cart.query.delete()
+        TelegramLink.query.filter_by(chat_id=CHAT_ID).update(
+            {'pending_type': None, 'state_updated_at': None, 'usd_enabled': False})
         _db.session.commit()
 
 
@@ -71,7 +73,7 @@ def _login(app, email=CART_EMAIL):
 class TestCartService:
     def test_add_items_and_running_total(self, app, cart_user_id):
         with app.app_context():
-            cart = svc.start_cart(cart_user_id)
+            cart = svc.start_cart(cart_user_id, 'Lider')
             svc.add_item(cart, 'Leche', Decimal(1290))
             svc.add_item(cart, 'Yogurt', Decimal(1980), qty=2)
             assert cart.total == Decimal(3270)
@@ -83,21 +85,32 @@ class TestCartService:
             assert cart.total == Decimal(1290)
             assert cart.item_count == 1
 
+    def test_store_name_required_to_create(self, app, cart_user_id):
+        with app.app_context():
+            for bad in (None, '', '   ', '1290', '/carrito'):
+                with pytest.raises(svc.CartError) as exc:
+                    svc.start_cart(cart_user_id, bad)
+                assert exc.value.code == 'store_name_required'
+            cart = svc.start_cart(cart_user_id, '  Santa   Isabel ')
+            assert cart.store_name == 'Santa Isabel'
+            # Con un carrito abierto no se exige nombre: se devuelve el existente.
+            assert svc.start_cart(cart_user_id, None).id == cart.id
+
     def test_only_one_open_cart(self, app, cart_user_id):
         with app.app_context():
-            first = svc.start_cart(cart_user_id)
-            assert svc.start_cart(cart_user_id).id == first.id
+            first = svc.start_cart(cart_user_id, 'Lider')
+            assert svc.start_cart(cart_user_id, 'Lider').id == first.id
 
     def test_rejects_invalid_amounts(self, app, cart_user_id):
         with app.app_context():
-            cart = svc.start_cart(cart_user_id)
+            cart = svc.start_cart(cart_user_id, 'Lider')
             for bad in (0, -5, 'abc', Decimal(99999999999)):
                 with pytest.raises(svc.CartError):
                     svc.add_item(cart, 'X', bad)
 
     def test_finalize_save_only_then_register_with_checkout_amount(self, app, cart_user_id):
         with app.app_context():
-            cart = svc.start_cart(cart_user_id)
+            cart = svc.start_cart(cart_user_id, 'Lider')
             svc.add_item(cart, 'Pan', Decimal(2500))
             assert svc.finalize(cart) is None
             assert cart.status == 'finalized'
@@ -119,7 +132,7 @@ class TestCartService:
 
     def test_finalize_with_movement(self, app, cart_user_id):
         with app.app_context():
-            cart = svc.start_cart(cart_user_id)
+            cart = svc.start_cart(cart_user_id, 'Lider')
             svc.add_item(cart, 'Arroz', Decimal(1500))
             tx = svc.finalize(cart, register=True)
             _db.session.commit()
@@ -129,7 +142,7 @@ class TestCartService:
 
     def test_cannot_finalize_empty_cart(self, app, cart_user_id):
         with app.app_context():
-            cart = svc.start_cart(cart_user_id)
+            cart = svc.start_cart(cart_user_id, 'Lider')
             with pytest.raises(svc.CartError) as exc:
                 svc.finalize(cart)
             assert exc.value.code == 'cart_empty'
@@ -138,7 +151,7 @@ class TestCartService:
         with app.app_context():
             foreign = Category(name='Ajena', type='expense', user_id=other_user_id)
             _db.session.add(foreign)
-            cart = svc.start_cart(cart_user_id)
+            cart = svc.start_cart(cart_user_id, 'Lider')
             svc.add_item(cart, 'Pan', Decimal(2500))
             svc.finalize(cart)
             with pytest.raises(svc.CartError) as exc:
@@ -148,7 +161,7 @@ class TestCartService:
 
     def test_stale_cart_is_saved_automatically(self, app, cart_user_id):
         with app.app_context():
-            cart = svc.start_cart(cart_user_id)
+            cart = svc.start_cart(cart_user_id, 'Lider')
             svc.add_item(cart, 'Pan', Decimal(2500))
             cart.updated_at = datetime.now(timezone.utc) - timedelta(hours=7)
             _db.session.commit()
@@ -199,7 +212,7 @@ def tg(app, cart_user_id):
 class TestTelegramCartFlow:
     def test_full_flow_save_only(self, app, cart_user_id, tg):
         run, send, buttons = tg
-        run(_text('/carrito'))
+        run(_text('/carrito Lider'))
         assert 'Carrito iniciado' in send.call_args.args[1]
 
         run(_text('Leche entera 1290'))
@@ -236,10 +249,83 @@ class TestTelegramCartFlow:
             assert cart.transaction_id is None
         assert 'Compra guardada' in send.call_args.args[1]
 
+    def test_cart_command_asks_store_name(self, app, cart_user_id, tg):
+        run, send, buttons = tg
+        run(_text('/carrito'))
+        assert '¿En qué supermercado estás?' in buttons.call_args.args[1]
+        assert 'cartnostart:0' in _buttons(buttons)
+        with app.app_context():
+            assert svc.get_open_cart(cart_user_id) is None
+            assert TelegramLink.query.filter_by(chat_id=CHAT_ID).one().pending_type == 'cartname'
+
+        run(_text('Lider Vespucio'))
+        assert 'Carrito iniciado en Lider Vespucio' in send.call_args.args[1]
+        with app.app_context():
+            assert svc.get_open_cart(cart_user_id).store_name == 'Lider Vespucio'
+            assert TelegramLink.query.filter_by(chat_id=CHAT_ID).one().pending_type is None
+
+        # Lo siguiente ya es un producto.
+        run(_text('Leche 1290'))
+        with app.app_context():
+            assert CartPendingItem.query.filter_by(chat_id=CHAT_ID).one().name == 'Leche'
+
+    def test_store_name_rejects_photo_and_numbers(self, app, cart_user_id, tg):
+        run, _send, buttons = tg
+        run(_text('/carrito'))
+        run(_photo())
+        assert 'Necesito el nombre del supermercado' in buttons.call_args.args[1]
+        run(_text('1290'))
+        assert 'Necesito el nombre del supermercado' in buttons.call_args.args[1]
+        with app.app_context():
+            assert svc.get_open_cart(cart_user_id) is None
+        run(_text('Jumbo'))
+        with app.app_context():
+            assert svc.get_open_cart(cart_user_id).store_name == 'Jumbo'
+
+    def test_recent_store_button(self, app, cart_user_id, tg):
+        run, _send, buttons = tg
+        with app.app_context():
+            previous = svc.start_cart(cart_user_id, 'Unimarc')
+            svc.add_item(previous, 'Pan', Decimal(2500))
+            svc.finalize(previous)
+            _db.session.commit()
+            previous_id = previous.id
+        run(_text('/carrito'))
+        assert f'cartstore:{previous_id}' in _buttons(buttons)
+        run(_callback(f'cartstore:{previous_id}'))
+        with app.app_context():
+            cart = svc.get_open_cart(cart_user_id)
+            assert cart.store_name == 'Unimarc' and cart.id != previous_id
+
+    def test_cancel_store_prompt(self, app, cart_user_id, tg):
+        run, send, _buttons_mock = tg
+        run(_text('/carrito'))
+        run(_callback('cartnostart:0'))
+        assert 'No se creó el carrito' in send.call_args.args[1]
+        with app.app_context():
+            assert svc.get_open_cart(cart_user_id) is None
+            assert TelegramLink.query.filter_by(chat_id=CHAT_ID).one().pending_type is None
+
+    def test_expired_store_prompt_does_not_leak_into_usd_flow(self, app, cart_user_id, tg):
+        run, _send, _buttons_mock = tg
+        with app.app_context():
+            link = TelegramLink.query.filter_by(chat_id=CHAT_ID).one()
+            link.usd_enabled = True
+            link.pending_type = 'cartname'
+            link.state_updated_at = datetime.now(timezone.utc) - timedelta(hours=2)
+            _db.session.commit()
+        with patch('app.telegram.handlers.send_message_with_buttons') as type_buttons:
+            run(_text('Café 3000'))
+        # La espera venció: se pregunta Principal/USD en vez de tomarlo como supermercado.
+        assert 'settype:principal' in _buttons(type_buttons)
+        with app.app_context():
+            assert svc.get_open_cart(cart_user_id) is None
+            assert TelegramLink.query.filter_by(chat_id=CHAT_ID).one().pending_type is None
+
     def test_save_with_movement(self, app, cart_user_id, tg):
         run, _send, _buttons_mock = tg
         with app.app_context():
-            cart = svc.start_cart(cart_user_id)
+            cart = svc.start_cart(cart_user_id, 'Lider')
             svc.add_item(cart, 'Pan', Decimal(2500))
             _db.session.commit()
             cart_id = cart.id
@@ -254,7 +340,7 @@ class TestTelegramCartFlow:
 
     def test_photo_uses_price_tag_extraction_and_offer(self, app, cart_user_id, tg):
         run, _send, buttons = tg
-        run(_text('/carrito'))
+        run(_text('/carrito Lider'))
         with patch('app.telegram.handlers._load_photo_for_ai', return_value=(object(), b'img', 'image/jpeg')), \
                 patch('app.telegram.providers.extract_price_tag', return_value={
                     'name': 'Aceite Belmont 1L', 'price': 3990, 'offer_price': 3490,
@@ -277,7 +363,7 @@ class TestTelegramCartFlow:
 
     def test_photo_without_price_asks_to_retry(self, app, cart_user_id, tg):
         run, send, _buttons_mock = tg
-        run(_text('/carrito'))
+        run(_text('/carrito Lider'))
         with patch('app.telegram.handlers._load_photo_for_ai', return_value=(object(), b'img', 'image/jpeg')), \
                 patch('app.telegram.providers.extract_price_tag', side_effect=ValueError('no price')):
             run(_photo())
@@ -288,10 +374,10 @@ class TestTelegramCartFlow:
     def test_old_button_cannot_touch_new_cart(self, app, cart_user_id, tg):
         run, _send, _buttons_mock = tg
         with app.app_context():
-            old = svc.start_cart(cart_user_id)
+            old = svc.start_cart(cart_user_id, 'Lider')
             svc.add_item(old, 'Pan', Decimal(2500))
             svc.finalize(old)
-            new = svc.start_cart(cart_user_id)
+            new = svc.start_cart(cart_user_id, 'Lider')
             svc.add_item(new, 'Leche', Decimal(1290))
             _db.session.commit()
             old_id, new_id = old.id, new.id
@@ -304,7 +390,7 @@ class TestTelegramCartFlow:
     def test_discard_cart(self, app, cart_user_id, tg):
         run, _send, _buttons_mock = tg
         with app.app_context():
-            cart = svc.start_cart(cart_user_id)
+            cart = svc.start_cart(cart_user_id, 'Lider')
             svc.add_item(cart, 'Pan', Decimal(2500))
             _db.session.commit()
             cart_id = cart.id
@@ -317,7 +403,7 @@ class TestTelegramCartFlow:
 
     def test_unparseable_text_shows_help(self, app, cart_user_id, tg):
         run, send, _buttons_mock = tg
-        run(_text('/carrito'))
+        run(_text('/carrito Lider'))
         run(_text('hola'))
         assert 'Escribe el producto y su precio' in send.call_args.args[1]
 
@@ -359,11 +445,51 @@ class TestCartWeb:
 
         assert c.get('/carrito/').status_code == 200
 
+    def test_web_store_name_required_and_editable(self, app, cart_user_id):
+        c = _login(app)
+        c.post('/carrito/nuevo', data={'store_name': ''})
+        with app.app_context():
+            assert svc.get_open_cart(cart_user_id) is None
+        c.post('/carrito/nuevo', data={'store_name': 'Tottus'})
+        with app.app_context():
+            cart_id = svc.get_open_cart(cart_user_id).id
+        c.post(f'/carrito/{cart_id}/supermercado', data={'store_name': ''})
+        with app.app_context():
+            assert _db.session.get(Cart, cart_id).store_name == 'Tottus'
+        c.post(f'/carrito/{cart_id}/supermercado', data={'store_name': 'Tottus Kennedy'})
+        with app.app_context():
+            assert _db.session.get(Cart, cart_id).store_name == 'Tottus Kennedy'
+
+        # Carritos antiguos sin nombre muestran el aviso y el formulario para corregirlo.
+        with app.app_context():
+            _db.session.get(Cart, cart_id).store_name = None
+            _db.session.commit()
+        html_page = c.get(f'/carrito/{cart_id}').get_data(as_text=True)
+        assert 'Sin supermercado' in html_page and f'/carrito/{cart_id}/supermercado' in html_page
+
+    def test_history_lists_product_names_and_popup_entry(self, app, cart_user_id):
+        with app.app_context():
+            cart = svc.start_cart(cart_user_id, 'Lider')
+            svc.add_item(cart, 'Leche Colún 1L', Decimal(1290))
+            svc.add_item(cart, 'Pan amasado', Decimal(2580), qty=2)
+            svc.finalize(cart)
+            _db.session.commit()
+            cart_id = cart.id
+        c = _login(app)
+        page = c.get('/carrito/').get_data(as_text=True)
+        # Nombres en la columna Productos y detalle desplegable con cantidad × precio.
+        assert 'Leche Colún 1L, Pan amasado' in page
+        assert f'id="cart-items-{cart_id}"' in page
+        assert '2 × $1.290' in page
+        # El acceso está en el popup de Movimientos, no como enlace propio del menú.
+        assert 'Compras de supermercado e historial' in page
+        assert 'Mi Carrito' not in page
+
     def test_compare_two_carts(self, app, cart_user_id):
         with app.app_context():
             ids = []
             for price in ('1290', '1390'):
-                cart = svc.start_cart(cart_user_id)
+                cart = svc.start_cart(cart_user_id, 'Lider')
                 svc.add_item(cart, 'Leche Colún', Decimal(price))
                 svc.finalize(cart)
                 _db.session.commit()
@@ -378,7 +504,7 @@ class TestCartWeb:
 
     def test_other_user_cannot_see_cart(self, app, cart_user_id, other_user_id):
         with app.app_context():
-            cart = svc.start_cart(cart_user_id)
+            cart = svc.start_cart(cart_user_id, 'Lider')
             _db.session.commit()
             cart_id = cart.id
         c = _login(app, OTHER_EMAIL)

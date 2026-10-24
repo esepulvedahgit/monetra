@@ -321,6 +321,14 @@ def inject_account_types():
                 'url': url_for('analytics.consolidated'),
                 'active': endpoint.startswith('analytics.'),
             },
+            {
+                'key': 'cart',
+                'name': _('Carrito'),
+                'description': _('Compras de supermercado e historial'),
+                'icon': 'bi-cart3',
+                'url': url_for('cart.index'),
+                'active': endpoint.startswith('cart.'),
+            },
         ]
     }
 

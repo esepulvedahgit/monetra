@@ -3,10 +3,13 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <a href="{{ url_for('cart.index') }}" class="small text-muted text-decoration-none"><i class="bi bi-arrow-left"></i> {{ _('Mi Carrito') }}</a>
+        <a href="{{ url_for('cart.index') }}" class="small text-muted text-decoration-none"><i class="bi bi-arrow-left"></i> {{ _('Carrito') }}</a>
         <h2 class="mb-0 fw-bold">
             <i class="bi bi-cart3 text-primary"></i>
             {{ cart.store_name or _('Carrito') }}
+            {% if not cart.store_name %}
+            <span class="badge bg-warning text-dark align-middle" style="font-size:.7rem;">{{ _('Sin supermercado') }}</span>
+            {% endif %}
             {% if cart.status == 'open' %}
             <span class="badge bg-success align-middle" style="font-size:.7rem;">{{ _('En curso') }}</span>
             {% endif %}
@@ -157,6 +160,19 @@
             </div>
         </div>
         {% endif %}
+
+        <div class="card shadow-sm mb-3 {% if not cart.store_name %}border-warning{% endif %}">
+            <div class="card-header fw-semibold"><i class="bi bi-shop text-primary"></i> {{ _('Supermercado') }}</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('cart.rename_store', cart_id=cart.id) }}" class="d-flex gap-2">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="text" name="store_name" maxlength="120" required class="form-control form-control-sm"
+                           value="{{ cart.store_name or '' }}" placeholder="{{ _('Ej: Lider, Jumbo') }}"
+                           aria-label="{{ _('Supermercado') }}">
+                    <button type="submit" class="btn btn-outline-primary btn-sm">{{ _('Guardar') }}</button>
+                </form>
+            </div>
+        </div>
 
         {% if cart.status == 'finalized' and others %}
         <div class="card shadow-sm mb-3">

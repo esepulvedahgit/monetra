@@ -42,6 +42,7 @@ def api_user(app):
 
 
 def _start(client, headers, **body):
+    body.setdefault('store_name', 'Lider')
     r = client.post('/api/v1/carts', json=body, headers=headers)
     assert r.status_code in (200, 201), r.data
     return r.get_json()
@@ -128,6 +129,24 @@ class TestCartApi:
         r = client.post(f'/api/v1/carts/{cart["id"]}/movement', json={}, headers=headers)
         assert r.status_code == 409 and r.get_json()['code'] == 'cart_not_finalized'
 
+    def test_store_name_is_required(self, client, api_user):
+        _uid, headers = api_user
+        for body in ({}, {'store_name': ''}, {'store_name': '   '}, {'store_name': '1290'}):
+            r = client.post('/api/v1/carts', json=body, headers=headers)
+            assert r.status_code == 400 and r.get_json()['code'] == 'store_name_required'
+        assert client.get('/api/v1/carts/current', headers=headers).get_json()['cart'] is None
+
+        cart = _start(client, headers, store_name='  Santa   Isabel ')
+        assert cart['store_name'] == 'Santa Isabel'
+        # Con un carrito abierto, POST lo devuelve aunque no venga el nombre.
+        r = client.post('/api/v1/carts', json={}, headers=headers)
+        assert r.status_code == 200 and r.get_json()['id'] == cart['id']
+
+        r = client.patch(f'/api/v1/carts/{cart["id"]}', json={'store_name': ''}, headers=headers)
+        assert r.status_code == 400 and r.get_json()['code'] == 'store_name_required'
+        r = client.patch(f'/api/v1/carts/{cart["id"]}', json={'store_name': 'Jumbo'}, headers=headers)
+        assert r.status_code == 200 and r.get_json()['store_name'] == 'Jumbo'
+
     def test_idempotent_item_creation(self, client, api_user):
         _uid, headers = api_user
         cart = _start(client, headers)
@@ -143,7 +162,7 @@ class TestCartApi:
         ids = []
         with app.app_context():
             for price in ('1000', '1100'):
-                cart = svc.start_cart(user_id)
+                cart = svc.start_cart(user_id, 'Lider')
                 svc.add_item(cart, 'Leche Colún', Decimal(price))
                 svc.add_item(cart, 'Pan' if price == '1000' else 'Queso', Decimal(500))
                 svc.finalize(cart)
