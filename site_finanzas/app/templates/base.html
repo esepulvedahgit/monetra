@@ -83,6 +83,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('cart.') %}active{% endif %}"
+                            href="{{ url_for('cart.index') }}">
+                            <i class="bi bi-cart3"></i> {{ _('Mi Carrito') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'main.global_dashboard' or (request.endpoint and request.endpoint.startswith('analytics.')) %}active{% endif %}"
                             href="#" role="button" data-bs-toggle="modal" data-bs-target="#globalSwitchModal">
                             <i class="bi bi-globe2"></i> {{ _('Global') }}

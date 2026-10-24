@@ -24,11 +24,13 @@ MESSAGES = {
     'linked_ok': {
         'es': (
             "✅ <b>¡Hola, {name}!</b> Tu cuenta de Monetra quedó vinculada correctamente.\n"
-            "Ahora puedes enviar fotos de recibos o texto como \"Café 3.50\" para registrar gastos."
+            "Ahora puedes enviar fotos de recibos o texto como \"Café 3.50\" para registrar gastos.\n"
+            "Escribe /carrito para llevar la cuenta de una compra en el supermercado."
         ),
         'en': (
             "✅ <b>Hi, {name}!</b> Your Monetra account is now linked.\n"
-            "You can send receipt photos or text like \"Coffee 3.50\" to log expenses."
+            "You can send receipt photos or text like \"Coffee 3.50\" to log expenses.\n"
+            "Type /cart to keep track of a supermarket purchase."
         ),
     },
     'already_linked': {
@@ -116,6 +118,135 @@ MESSAGES = {
             "Example: <code>Coffee 3.50</code>"
         ),
     },
+    # ── Mi Carrito ────────────────────────────────────────────────────────────
+    'btn_type_cart': {'es': "🛒 Carrito", 'en': "🛒 Cart"},
+    'cart_started': {
+        'es': (
+            "🛒 <b>Carrito iniciado</b>\n\n"
+            "Envía cada producto como texto (<code>Leche 1290</code>, <code>2 x 990 yogurt</code>) "
+            "o una foto de la etiqueta de precio. Después de cada producto verás el total."
+        ),
+        'en': (
+            "🛒 <b>Cart started</b>\n\n"
+            "Send each product as text (<code>Milk 3.50</code>, <code>2 x 1.20 yogurt</code>) "
+            "or a photo of the price label. You'll see the running total after each product."
+        ),
+    },
+    'cart_resumed': {
+        'es': "🛒 Tienes un carrito en curso: <b>{total}</b> ({count} productos). Sigue enviando productos.",
+        'en': "🛒 You have a cart in progress: <b>{total}</b> ({count} products). Keep sending products.",
+    },
+    'cart_item_card': {
+        'es': "🛒 <b>Confirmar producto</b>\n\n📝 {name}\n💰 <b>{amount}</b>{extra}\n\n¿Agregar al carrito?",
+        'en': "🛒 <b>Confirm product</b>\n\n📝 {name}\n💰 <b>{amount}</b>{extra}\n\nAdd to cart?",
+    },
+    'cart_qty_line': {'es': "\n🔢 {qty} × {unit}", 'en': "\n🔢 {qty} × {unit}"},
+    'cart_offer_line': {'es': "\n🏷 Oferta: <b>{amount}</b>{text}", 'en': "\n🏷 Offer: <b>{amount}</b>{text}"},
+    'cart_note_line': {'es': "\nℹ️ {note}", 'en': "\nℹ️ {note}"},
+    'cart_note_per_kg': {
+        'es': "Precio por kg: si pesaste el producto, usa ✏️ Corregir con el monto de la balanza.",
+        'en': "Price per kg: if you weighed the product, use ✏️ Fix with the scale amount.",
+    },
+    'btn_cart_add': {'es': "✅ Agregar", 'en': "✅ Add"},
+    'btn_cart_add_offer': {'es': "🏷 Agregar {amount}", 'en': "🏷 Add {amount}"},
+    'btn_cart_fix': {'es': "✏️ Corregir", 'en': "✏️ Fix"},
+    'btn_cart_skip': {'es': "❌ Descartar", 'en': "❌ Discard"},
+    'cart_added': {
+        'es': "✅ <b>{name}</b> — {amount}\n\n🛒 <b>Total del carrito: {total}</b>\n📦 {count} productos",
+        'en': "✅ <b>{name}</b> — {amount}\n\n🛒 <b>Cart total: {total}</b>\n📦 {count} products",
+    },
+    'cart_status': {
+        'es': "🛒 <b>Total del carrito: {total}</b>\n📦 {count} productos",
+        'en': "🛒 <b>Cart total: {total}</b>\n📦 {count} products",
+    },
+    'btn_cart_more': {'es': "➕ Agregar otro", 'en': "➕ Add another"},
+    'btn_cart_undo': {'es': "↩️ Quitar último", 'en': "↩️ Remove last"},
+    'btn_cart_finish': {'es': "🏁 Finalizar", 'en': "🏁 Finish"},
+    'cart_prompt_next': {
+        'es': "📸 Envía el siguiente producto (texto o foto).",
+        'en': "📸 Send the next product (text or photo).",
+    },
+    'cart_fix_prompt': {
+        'es': "✏️ Escribe el producto con el precio correcto. Ejemplo: <code>Leche 1290</code>",
+        'en': "✏️ Type the product with the correct price. Example: <code>Milk 3.50</code>",
+    },
+    'cart_item_skipped': {'es': "❌ Producto descartado.", 'en': "❌ Product discarded."},
+    'cart_undone': {'es': "↩️ Quitado: <b>{name}</b> — {amount}", 'en': "↩️ Removed: <b>{name}</b> — {amount}"},
+    'cart_nothing_to_undo': {'es': "ℹ️ El carrito está vacío.", 'en': "ℹ️ The cart is empty."},
+    'cart_finish_summary': {
+        'es': (
+            "🏁 <b>Resumen de tu carrito</b>\n\n{lines}\n\n"
+            "💰 <b>Total: {total}</b> ({count} productos)\n\n¿Cómo quieres guardarlo?"
+        ),
+        'en': (
+            "🏁 <b>Your cart summary</b>\n\n{lines}\n\n"
+            "💰 <b>Total: {total}</b> ({count} products)\n\nHow do you want to save it?"
+        ),
+    },
+    'cart_line': {'es': "• {name} — {amount}", 'en': "• {name} — {amount}"},
+    'cart_more_lines': {'es': "… y {n} más", 'en': "… and {n} more"},
+    'btn_cart_save_only': {'es': "💾 Solo guardar", 'en': "💾 Save only"},
+    'btn_cart_save_movement': {'es': "📥 Guardar y agregar a movimientos", 'en': "📥 Save and add to transactions"},
+    'btn_cart_continue': {'es': "⬅️ Seguir comprando", 'en': "⬅️ Keep shopping"},
+    'btn_cart_discard': {'es': "🗑 Descartar carrito", 'en': "🗑 Discard cart"},
+    'cart_saved_only': {
+        'es': (
+            "💾 <b>Compra guardada</b> — {total} ({count} productos).\n\n"
+            "Cuando pagues, puedes registrarla como movimiento desde la app en <b>Mi Carrito</b>, "
+            "ajustando el monto si cambió en caja."
+        ),
+        'en': (
+            "💾 <b>Purchase saved</b> — {total} ({count} products).\n\n"
+            "After checkout you can record it as a transaction from the app in <b>My Cart</b>, "
+            "adjusting the amount if it changed at the register."
+        ),
+    },
+    'cart_saved_movement': {
+        'es': "✅ <b>Compra guardada y agregada a tus movimientos</b>\n\n💰 {total} · 🏷 {category}",
+        'en': "✅ <b>Purchase saved and added to your transactions</b>\n\n💰 {total} · 🏷 {category}",
+    },
+    'cart_movement_error': {
+        'es': "⚠️ No pude crear el movimiento. La compra quedó guardada; regístrala desde la app en <b>Mi Carrito</b>.",
+        'en': "⚠️ I couldn't create the transaction. The purchase was saved; record it from the app in <b>My Cart</b>.",
+    },
+    'cart_discard_confirm': {
+        'es': "⚠️ ¿Descartar el carrito con {count} productos ({total})? No se puede deshacer.",
+        'en': "⚠️ Discard the cart with {count} products ({total})? This can't be undone.",
+    },
+    'btn_cart_discard_yes': {'es': "🗑 Sí, descartar", 'en': "🗑 Yes, discard"},
+    'btn_cart_discard_no': {'es': "⬅️ No, volver", 'en': "⬅️ No, go back"},
+    'cart_discarded': {'es': "🗑 Carrito descartado.", 'en': "🗑 Cart discarded."},
+    'cart_empty_finish': {
+        'es': "ℹ️ El carrito está vacío. Agrega al menos un producto antes de finalizar.",
+        'en': "ℹ️ The cart is empty. Add at least one product before finishing.",
+    },
+    'cart_not_active': {
+        'es': "ℹ️ Este carrito ya no está activo. Escribe /carrito para empezar uno nuevo.",
+        'en': "ℹ️ This cart is no longer active. Type /cart to start a new one.",
+    },
+    'cart_stale_saved': {
+        'es': "ℹ️ Tu carrito anterior estaba inactivo y se guardó en el historial ({total}).",
+        'en': "ℹ️ Your previous cart was idle and was saved to your history ({total}).",
+    },
+    'cart_full': {
+        'es': "⚠️ El carrito alcanzó el máximo de productos. Finalízalo para empezar otro.",
+        'en': "⚠️ The cart reached the maximum number of products. Finish it to start another.",
+    },
+    'cart_price_not_found': {
+        'es': (
+            "⚠️ No pude leer el precio en la imagen. Acércate a la etiqueta e intenta de nuevo, "
+            "o escribe el producto y su precio."
+        ),
+        'en': (
+            "⚠️ I couldn't read the price in the image. Get closer to the label and try again, "
+            "or type the product and its price."
+        ),
+    },
+    'cart_text_help': {
+        'es': "ℹ️ Escribe el producto y su precio: <code>Leche 1290</code> o <code>2 x 990 yogurt</code>",
+        'en': "ℹ️ Type the product and its price: <code>Milk 3.50</code> or <code>2 x 1.20 yogurt</code>",
+    },
+    'cart_default_item': {'es': "Producto", 'en': "Product"},
 }
 
 

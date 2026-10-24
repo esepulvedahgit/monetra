@@ -27,6 +27,7 @@ from app.money import (
     parse_amount,
     parse_amount_for_user,
 )
+from app.telegram import cart_flow
 from app.telegram.messages import t
 from app.telegram.service import (
     answer_callback_query,
@@ -151,6 +152,19 @@ def _handle_message(msg: dict) -> None:
 
     user = User.query.get(link.user_id)
     lang = _lang_of(user)
+    photos = msg.get('photo')
+
+    # ── Mi Carrito: /carrito inicia el modo; con un carrito abierto todo va al carrito ──
+    if cart_flow.is_cart_command(text):
+        cart_flow.start(chat_id, user)
+        return
+    cart = cart_flow.active_cart(chat_id, user)
+    if cart is not None:
+        if photos:
+            cart_flow.handle_photo(chat_id, user, cart, photos)
+        elif text:
+            cart_flow.handle_text(chat_id, user, cart, text)
+        return
 
     # ── Modo USD activo: pedir tipo antes de recibir el gasto ────────────────
     if link.usd_enabled:
@@ -160,6 +174,8 @@ def _handle_message(msg: dict) -> None:
             buttons = [[
                 {'text': t('btn_type_principal', lang), 'callback_data': 'settype:principal'},
                 {'text': t('btn_type_usd', lang), 'callback_data': 'settype:usd'},
+            ], [
+                {'text': t('btn_type_cart', lang), 'callback_data': 'settype:cart'},
             ]]
             send_message_with_buttons(chat_id, t('ask_type', lang).format(name=name), buttons)
             return
@@ -167,7 +183,6 @@ def _handle_message(msg: dict) -> None:
     else:
         tx_type = 'principal'
 
-    photos = msg.get('photo')
     if photos:
         _handle_photo(chat_id, link.user_id, photos, lang, tx_type, link)
         return
@@ -234,6 +249,52 @@ def _handle_start(chat_id: int, code: str) -> None:
 
 # ── Photo handler ─────────────────────────────────────────────────────────────
 
+def _load_photo_for_ai(chat_id: int, user_id: int, photos: list, lang: str | None):
+    """Valida la config/cuota de IA, descarga y normaliza la foto.
+
+    Devuelve ``(ai_config, image_bytes, mime_type)`` o None si ya se notificó un error al usuario.
+    """
+    from app.email_service import consume_shared_ai_quota, resolve_ai_config
+    _tg_user = User.query.get(user_id)
+    ai_config = resolve_ai_config(_tg_user) if _tg_user else None
+    if not ai_config:
+        send_message(chat_id, t('ai_not_configured', lang))
+        return None
+
+    # Cuota diaria anti-abuso: solo aplica cuando se usa la clave compartida del admin.
+    # ai_config.user_id es el dueño de la configuración; si difiere del usuario que envía
+    # la foto, se está usando la clave compartida → verificar/decrementar cuota.
+    _is_shared_key = getattr(ai_config, 'user_id', None) != user_id
+    if _is_shared_key and not consume_shared_ai_quota(_tg_user):
+        send_message(chat_id, t('ai_quota_exceeded', lang))
+        return None
+
+    best = max(photos, key=lambda p: p.get('file_size', 0))
+    file_id = best.get('file_id')
+    if not file_id:
+        send_message(chat_id, t('extract_error', lang))
+        return None
+
+    image_bytes = download_file(file_id)
+    if not image_bytes:
+        send_message(chat_id, t('extract_error', lang))
+        return None
+
+    try:
+        from app.telegram.image_utils import validate_and_normalize_image
+        image_bytes, mime_type = validate_and_normalize_image(image_bytes)
+    except ValueError as exc:
+        _log.warning("Image validation error for chat_id=%s: %s", chat_id, exc)
+        send_message(chat_id, t('extract_error', lang))
+        return None
+    except Exception as exc:
+        _log.error("Image validation unexpected error for chat_id=%s: %s", chat_id, exc, exc_info=True)
+        send_message(chat_id, t('extract_error', lang))
+        return None
+
+    return ai_config, image_bytes, mime_type
+
+
 def _handle_photo(
     chat_id: int,
     user_id: int,
@@ -242,43 +303,10 @@ def _handle_photo(
     tx_type: str,
     link: TelegramLink,
 ) -> None:
-    from app.email_service import consume_shared_ai_quota, resolve_ai_config
-    _tg_user = User.query.get(user_id)
-    ai_config = resolve_ai_config(_tg_user) if _tg_user else None
-    if not ai_config:
-        send_message(chat_id, t('ai_not_configured', lang))
+    loaded = _load_photo_for_ai(chat_id, user_id, photos, lang)
+    if loaded is None:
         return
-
-    # Cuota diaria anti-abuso: solo aplica cuando se usa la clave compartida del admin.
-    # ai_config.user_id es el dueño de la configuración; si difiere del usuario que envía
-    # la foto, se está usando la clave compartida → verificar/decrementar cuota.
-    _is_shared_key = getattr(ai_config, 'user_id', None) != user_id
-    if _is_shared_key and not consume_shared_ai_quota(_tg_user):
-        send_message(chat_id, t('ai_quota_exceeded', lang))
-        return
-
-    best = max(photos, key=lambda p: p.get('file_size', 0))
-    file_id = best.get('file_id')
-    if not file_id:
-        send_message(chat_id, t('extract_error', lang))
-        return
-
-    image_bytes = download_file(file_id)
-    if not image_bytes:
-        send_message(chat_id, t('extract_error', lang))
-        return
-
-    try:
-        from app.telegram.image_utils import validate_and_normalize_image
-        image_bytes, mime_type = validate_and_normalize_image(image_bytes)
-    except ValueError as exc:
-        _log.warning("Image validation error for chat_id=%s: %s", chat_id, exc)
-        send_message(chat_id, t('extract_error', lang))
-        return
-    except Exception as exc:
-        _log.error("Image validation unexpected error for chat_id=%s: %s", chat_id, exc, exc_info=True)
-        send_message(chat_id, t('extract_error', lang))
-        return
+    ai_config, image_bytes, mime_type = loaded
 
     try:
         from app.telegram.providers import extract_receipt
@@ -443,7 +471,9 @@ def _handle_callback(callback: dict) -> None:
     if callback.get('message', {}).get('chat', {}).get('type') != 'private':
         return
 
-    if data.startswith('settype:'):
+    if cart_flow.handles(data):
+        cart_flow.handle_callback(chat_id, message_id, callback_id, data)
+    elif data.startswith('settype:'):
         _do_set_type(chat_id, message_id, callback_id, data)
     elif data.startswith('confirm:'):
         _do_confirm(chat_id, message_id, callback_id, data)
@@ -461,7 +491,7 @@ def _do_set_type(chat_id: int, message_id: int, callback_id: str, data: str) -> 
         answer_callback_query(callback_id)
         return
 
-    if chosen not in ('principal', 'usd'):
+    if chosen not in ('principal', 'usd', 'cart'):
         answer_callback_query(callback_id)
         return
 
@@ -472,6 +502,12 @@ def _do_set_type(chat_id: int, message_id: int, callback_id: str, data: str) -> 
 
     user = User.query.get(link.user_id)
     lang = _lang_of(user)
+
+    if chosen == 'cart':
+        answer_callback_query(callback_id)
+        edit_message_reply_markup(chat_id, message_id, {})
+        cart_flow.start(chat_id, user)
+        return
 
     link.pending_type = chosen
     link.state_updated_at = datetime.now(timezone.utc)

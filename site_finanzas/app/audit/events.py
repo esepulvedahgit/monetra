@@ -44,6 +44,10 @@ TELEGRAM_LINK    = 'telegram.link'
 TELEGRAM_UNLINK  = 'telegram.unlink'
 TELEGRAM_TX_CREATE = 'telegram.tx_create'
 
+# Mi Carrito
+CART_FINALIZE = 'cart.finalize'
+CART_MOVEMENT = 'cart.movement'
+
 # Map prefix → display label + pastel color
 CATEGORY_META = {
     'auth':   {'label': 'Autenticación', 'color': 'rgba(56,189,248,0.25)',  'border': '#38BDF8'},
@@ -52,6 +56,7 @@ CATEGORY_META = {
     'admin':  {'label': 'Admin',         'color': 'rgba(196,181,253,0.25)', 'border': '#C4B5FD'},
     'telegram': {'label': 'Telegram', 'color': 'rgba(0,136,204,0.20)', 'border': '#0088CC'},
     'mobile_release': {'label': 'App Android', 'color': 'rgba(52,211,153,0.20)', 'border': '#34D399'},
+    'cart':   {'label': 'Mi Carrito',    'color': 'rgba(0,200,150,0.20)',   'border': '#00C896'},
 }
 
 

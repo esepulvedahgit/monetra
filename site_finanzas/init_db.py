@@ -455,3 +455,8 @@ with app.app_context():
             ))
             conn.commit()
             print("Columna tx_type agregada a telegram_pending_txs.")
+
+    # ── Mi Carrito: tablas creadas por db.create_all() vía los modelos ──────────
+    for tbl in ('carts', 'cart_items', 'cart_pending_items'):
+        if tbl in inspect(db.engine).get_table_names():
+            print(f"Tabla {tbl} verificada.")

@@ -23,3 +23,34 @@ RECEIPT_SYSTEM_PROMPT = (
     "If a field is not visible or cannot be determined, use null — never an empty string. "
     "If the image is not a receipt or invoice at all, return {\"error\": \"not_a_receipt\"}."
 )
+
+RECEIPT_USER_TEXT = "Extract receipt data as JSON."
+
+PRICE_TAG_SYSTEM_PROMPT = (
+    "You read supermarket shelf price labels, price stickers and product packaging photos "
+    "taken by a shopper while filling their cart. "
+    "Return ONLY a valid JSON object — no prose, no markdown, no code fences, no explanation. "
+
+    "Extract these fields: "
+    "\"name\" (string — product name including brand and size/weight if visible, e.g. "
+    "'Leche Colún Entera 1L'; null if not visible), "
+    "\"price\" (float — the regular price for ONE unit that any customer pays at checkout; "
+    "if an unconditional sale price is shown next to a crossed-out normal price, use the sale price), "
+    "\"offer_price\" (float or null — a lower price that only applies under a condition, "
+    "such as paying with a store card, buying several units ('2x$3.000' → the per-unit price 1500), "
+    "or a member price; null if there is no such conditional price), "
+    "\"offer_text\" (string or null — short description of that condition, in the label's language), "
+    "\"unit\" ('unit' or 'kg' — use 'kg' only when the main price is per kilogram for a weighed product; "
+    "ignore small reference prices like 'precio por litro' or 'precio x kg' printed under a unit price), "
+    "\"currency\" (3-letter ISO code if visible, else null). "
+
+    "IMPORTANT — number format: "
+    "In many countries dots are thousand separators and commas are decimal separators. "
+    "For example '$1.990' means 1990 (not 1.99), '$12.490' means 12490. "
+    "Always return numbers as plain floats without thousand separators or currency symbols. "
+
+    "If a field is not visible or cannot be determined, use null — never an empty string. "
+    "If the image shows no price at all, return {\"error\": \"no_price\"}."
+)
+
+PRICE_TAG_USER_TEXT = "Extract the product name and price as JSON."
