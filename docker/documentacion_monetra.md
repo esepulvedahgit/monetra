@@ -478,10 +478,10 @@ defecto) se guarda automáticamente. Los errores de negocio devuelven
 | Endpoint | Método | Detalles |
 |---|---|---|
 | `/api/v1/carts` | GET | Lista paginada (`page`, `per_page` ≤ 100). Filtro: `status` (`open`/`finalized`) |
-| `/api/v1/carts` | POST | Inicia un carrito (`store_name` opcional). Si ya hay uno abierto lo devuelve con 200 |
+| `/api/v1/carts` | POST | Inicia un carrito; `store_name` (supermercado) es obligatorio. Si ya hay uno abierto lo devuelve con 200 |
 | `/api/v1/carts/current` | GET | Carrito abierto con sus productos, o `{"cart": null}` |
 | `/api/v1/carts/<id>` | GET | Detalle con `items` y `movement` |
-| `/api/v1/carts/<id>` | PATCH | Cambia `store_name` |
+| `/api/v1/carts/<id>` | PATCH | Cambia `store_name` (no puede quedar vacío) |
 | `/api/v1/carts/<id>` | DELETE | Elimina el carrito y sus productos |
 | `/api/v1/carts/<id>/items` | POST | Agrega producto: `name`, `qty` (def. 1) y `unit_price` **o** `line_total`. Acepta `Idempotency-Key` |
 | `/api/v1/carts/<id>/items/<item_id>` | DELETE | Quita un producto (solo carrito abierto) |

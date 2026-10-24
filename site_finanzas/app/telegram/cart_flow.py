@@ -43,6 +43,9 @@ _AMOUNT_RE = re.compile(r'\d+(?:[.,]\d+)*')
 _QTY_RE = re.compile(r'(?<![\d.,])(\d{1,3})\s*[x×*]\s*(?=\d)', re.IGNORECASE)
 
 CART_COMMANDS = ('/carrito', '/cart')
+# pending_type del TelegramLink mientras el bot espera el nombre del supermercado.
+STORE_PROMPT_STATE = 'cartname'
+_STORE_PROMPT_TTL_SECONDS = 3600
 CALLBACK_PREFIX = 'cart'
 
 
@@ -63,6 +66,11 @@ def is_cart_command(text: str) -> bool:
     return command in CART_COMMANDS
 
 
+def _command_argument(text: str) -> str:
+    parts = (text or '').split(maxsplit=1)
+    return parts[1].strip() if len(parts) > 1 else ''
+
+
 # ── Entradas desde el dispatcher ──────────────────────────────────────────────
 
 def active_cart(chat_id: int, user: User):
@@ -78,25 +86,105 @@ def active_cart(chat_id: int, user: User):
     return cart_svc.get_open_cart(user.id)
 
 
-def start(chat_id: int, user: User) -> None:
-    """Inicia un carrito o recuerda el que está en curso."""
+def route_message(chat_id: int, user: User, link: TelegramLink, text: str, photos) -> bool:
+    """Atiende el mensaje si corresponde a Mi Carrito. Devuelve True si lo consumió."""
+    if is_cart_command(text):
+        start(chat_id, user, _command_argument(text))
+        return True
+
+    cart = active_cart(chat_id, user)
+    if cart is not None:
+        if link.pending_type == STORE_PROMPT_STATE:
+            _clear_store_prompt(link)
+            db.session.commit()
+        if photos:
+            handle_photo(chat_id, user, cart, photos)
+        elif text:
+            handle_text(chat_id, user, cart, text)
+        return True
+
+    if awaiting_store_name(link):
+        handle_store_name(chat_id, user, link, text, photos)
+        return True
+    return False
+
+
+def start(chat_id: int, user: User, store_name: str = '') -> None:
+    """Retoma el carrito en curso; si no hay, lo crea en ``store_name`` o pide el nombre."""
     lang = _lang_of(user)
     cart = active_cart(chat_id, user)
     if cart is not None:
         send_message_with_buttons(
             chat_id,
-            t('cart_resumed', lang).format(total=_money(cart.total, user), count=cart.item_count),
+            t('cart_resumed', lang).format(store=_store_label(cart, lang),
+                                           total=_money(cart.total, user), count=cart.item_count),
             _cart_buttons(cart, lang),
         )
         return
-    cart_svc.start_cart(user.id, source='telegram')
     link = TelegramLink.query.filter_by(chat_id=chat_id, enabled=True).first()
-    if link:
-        # El carrito reemplaza la elección Principal/USD pendiente.
-        link.pending_type = None
-        link.state_updated_at = None
+    if link is None:
+        return
+    if store_name:
+        _create_cart(chat_id, user, link, store_name)
+        return
+    _ask_store_name(chat_id, user, link)
+
+
+def _store_label(cart, lang) -> str:
+    return html.escape(cart.store_name) if cart.store_name else t('cart_no_store', lang)
+
+
+def _ask_store_name(chat_id: int, user: User, link: TelegramLink, invalid: bool = False) -> None:
+    lang = _lang_of(user)
+    # El nombre reemplaza cualquier elección Principal/USD pendiente.
+    link.pending_type = STORE_PROMPT_STATE
+    link.state_updated_at = datetime.now(timezone.utc)
     db.session.commit()
-    send_message(chat_id, t('cart_started', lang))
+
+    recent = cart_svc.recent_store_carts(user.id)
+    buttons = [[{'text': f"🏪 {c.store_name}"[:60], 'callback_data': f'cartstore:{c.id}'}] for c in recent]
+    buttons.append([{'text': t('btn_cart_cancel_start', lang), 'callback_data': 'cartnostart:0'}])
+    key = 'cart_store_invalid' if invalid else 'cart_ask_store'
+    send_message_with_buttons(chat_id, t(key, lang), buttons)
+
+
+def _clear_store_prompt(link: TelegramLink) -> None:
+    link.pending_type = None
+    link.state_updated_at = None
+
+
+def awaiting_store_name(link: TelegramLink) -> bool:
+    """True si el bot espera el nombre del supermercado. Limpia la espera vencida."""
+    if link.pending_type != STORE_PROMPT_STATE:
+        return False
+    updated_at = link.state_updated_at
+    if updated_at is not None and updated_at.tzinfo is None:
+        updated_at = updated_at.replace(tzinfo=timezone.utc)
+    if updated_at is None or (datetime.now(timezone.utc) - updated_at).total_seconds() > _STORE_PROMPT_TTL_SECONDS:
+        _clear_store_prompt(link)
+        db.session.commit()
+        return False
+    return True
+
+
+def handle_store_name(chat_id: int, user: User, link: TelegramLink, text: str, photos) -> None:
+    if photos or not text or text.startswith('/'):
+        _ask_store_name(chat_id, user, link, invalid=True)
+        return
+    _create_cart(chat_id, user, link, text)
+
+
+def _create_cart(chat_id: int, user: User, link: TelegramLink, store_name: str) -> None:
+    lang = _lang_of(user)
+    try:
+        cart = cart_svc.start_cart(user.id, store_name, source='telegram')
+    except cart_svc.CartError:
+        db.session.rollback()
+        _ask_store_name(chat_id, user, link, invalid=True)
+        return
+    _clear_store_prompt(link)
+    db.session.commit()
+    send_message(chat_id, t('cart_started', lang).format(store=_store_label(cart, lang)))
 
 
 def handle_text(chat_id: int, user: User, cart, text: str) -> None:
@@ -266,11 +354,35 @@ def handle_callback(chat_id: int, message_id: int, callback_id: str, data: str) 
         answer_callback_query(callback_id)
         return
 
+    if action in ('cartstore', 'cartnostart'):
+        _store_choice(chat_id, message_id, callback_id, user, link, action, obj_id)
+        return
+
     handler = _CALLBACKS.get(action)
     if handler is None:
         answer_callback_query(callback_id)
         return
     handler(chat_id, message_id, callback_id, user, obj_id)
+
+
+def _store_choice(chat_id, message_id, callback_id, user, link, action, cart_id):
+    """Botones de la pregunta del supermercado: reusar uno anterior o cancelar."""
+    lang = _lang_of(user)
+    answer_callback_query(callback_id)
+    edit_message_reply_markup(chat_id, message_id, {})
+    if action == 'cartnostart':
+        _clear_store_prompt(link)
+        db.session.commit()
+        send_message(chat_id, t('cart_start_cancelled', lang))
+        return
+    previous = cart_svc.get_user_cart(user.id, cart_id)
+    if previous is None or not previous.store_name:
+        _ask_store_name(chat_id, user, link)
+        return
+    if cart_svc.get_open_cart(user.id) is not None:
+        start(chat_id, user)
+        return
+    _create_cart(chat_id, user, link, previous.store_name)
 
 
 def _pending_or_expire(chat_id, message_id, callback_id, user, pending_id):

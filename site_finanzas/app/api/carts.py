@@ -30,6 +30,7 @@ _ERRORS = {
     'cart_full': (409, 'El carrito alcanzó el máximo de productos'),
     'cart_not_finalized': (409, 'Finaliza el carrito antes de registrar el movimiento'),
     'already_registered': (409, 'El carrito ya tiene un movimiento registrado'),
+    'store_name_required': (400, 'store_name es obligatorio para crear un carrito'),
 }
 
 
@@ -192,21 +193,25 @@ def compare_carts():
 @api_v1.post('/carts')
 @api_login_required
 def start_cart():
-    """Inicia un carrito. Si ya hay uno abierto lo devuelve (200) en vez de crear otro (201)."""
+    """Inicia un carrito en ``store_name`` (obligatorio).
+
+    Si ya hay uno abierto lo devuelve (200) en vez de crear otro (201).
+    """
     user = get_current_api_user()
     data = request.get_json(silent=True) or {}
     if not isinstance(data, dict):
         return _error('Se requiere un objeto JSON')
-    store_name = data.get('store_name')
-    if store_name is not None and (not isinstance(store_name, str) or len(store_name) > 120):
-        return _error('store_name inválido')
 
     svc.close_stale_cart(user.id)
     existing = svc.get_open_cart(user.id)
     if existing is not None:
         db.session.commit()
         return _detail(existing)
-    cart = svc.start_cart(user.id, source='api', store_name=store_name)
+    try:
+        cart = svc.start_cart(user.id, data.get('store_name'), source='api')
+    except svc.CartError as exc:
+        db.session.rollback()
+        return _cart_error(exc)
     db.session.commit()
     return _detail(cart, 201)
 
@@ -221,10 +226,11 @@ def update_cart(cart_id):
     if data is None:
         return _error('Se requiere JSON')
     if 'store_name' in data:
-        store_name = data['store_name']
-        if store_name is not None and (not isinstance(store_name, str) or len(store_name) > 120):
-            return _error('store_name inválido')
-        cart.store_name = (store_name or '').strip() or None
+        try:
+            svc.rename_store(cart, data['store_name'])
+        except svc.CartError as exc:
+            db.session.rollback()
+            return _cart_error(exc)
     db.session.commit()
     return _detail(cart)
 

@@ -122,19 +122,19 @@ MESSAGES = {
     'btn_type_cart': {'es': "🛒 Carrito", 'en': "🛒 Cart"},
     'cart_started': {
         'es': (
-            "🛒 <b>Carrito iniciado</b>\n\n"
+            "🛒 <b>Carrito iniciado en {store}</b>\n\n"
             "Envía cada producto como texto (<code>Leche 1290</code>, <code>2 x 990 yogurt</code>) "
             "o una foto de la etiqueta de precio. Después de cada producto verás el total."
         ),
         'en': (
-            "🛒 <b>Cart started</b>\n\n"
+            "🛒 <b>Cart started at {store}</b>\n\n"
             "Send each product as text (<code>Milk 3.50</code>, <code>2 x 1.20 yogurt</code>) "
             "or a photo of the price label. You'll see the running total after each product."
         ),
     },
     'cart_resumed': {
-        'es': "🛒 Tienes un carrito en curso: <b>{total}</b> ({count} productos). Sigue enviando productos.",
-        'en': "🛒 You have a cart in progress: <b>{total}</b> ({count} products). Keep sending products.",
+        'es': "🛒 Tienes un carrito en curso en {store}: <b>{total}</b> ({count} productos). Sigue enviando productos.",
+        'en': "🛒 You have a cart in progress at {store}: <b>{total}</b> ({count} products). Keep sending products.",
     },
     'cart_item_card': {
         'es': "🛒 <b>Confirmar producto</b>\n\n📝 {name}\n💰 <b>{amount}</b>{extra}\n\n¿Agregar al carrito?",
@@ -192,12 +192,12 @@ MESSAGES = {
     'cart_saved_only': {
         'es': (
             "💾 <b>Compra guardada</b> — {total} ({count} productos).\n\n"
-            "Cuando pagues, puedes registrarla como movimiento desde la app en <b>Mi Carrito</b>, "
+            "Cuando pagues, puedes registrarla como movimiento desde la app en <b>Movimientos → Carrito</b>, "
             "ajustando el monto si cambió en caja."
         ),
         'en': (
             "💾 <b>Purchase saved</b> — {total} ({count} products).\n\n"
-            "After checkout you can record it as a transaction from the app in <b>My Cart</b>, "
+            "After checkout you can record it as a transaction from the app in <b>Transactions → Cart</b>, "
             "adjusting the amount if it changed at the register."
         ),
     },
@@ -206,8 +206,8 @@ MESSAGES = {
         'en': "✅ <b>Purchase saved and added to your transactions</b>\n\n💰 {total} · 🏷 {category}",
     },
     'cart_movement_error': {
-        'es': "⚠️ No pude crear el movimiento. La compra quedó guardada; regístrala desde la app en <b>Mi Carrito</b>.",
-        'en': "⚠️ I couldn't create the transaction. The purchase was saved; record it from the app in <b>My Cart</b>.",
+        'es': "⚠️ No pude crear el movimiento. La compra quedó guardada; regístrala desde la app en <b>Movimientos → Carrito</b>.",
+        'en': "⚠️ I couldn't create the transaction. The purchase was saved; record it from the app in <b>Transactions → Cart</b>.",
     },
     'cart_discard_confirm': {
         'es': "⚠️ ¿Descartar el carrito con {count} productos ({total})? No se puede deshacer.",
@@ -247,6 +247,17 @@ MESSAGES = {
         'en': "ℹ️ Type the product and its price: <code>Milk 3.50</code> or <code>2 x 1.20 yogurt</code>",
     },
     'cart_default_item': {'es': "Producto", 'en': "Product"},
+    'cart_no_store': {'es': "supermercado sin nombre", 'en': "unnamed store"},
+    'cart_ask_store': {
+        'es': "🏪 <b>¿En qué supermercado estás?</b>\n\nEscribe el nombre (ej: <code>Lider</code>, <code>Jumbo</code>) o elige uno reciente.",
+        'en': "🏪 <b>Which store are you at?</b>\n\nType the name (e.g. <code>Walmart</code>) or pick a recent one.",
+    },
+    'cart_store_invalid': {
+        'es': "✍️ Necesito el nombre del supermercado para empezar el carrito. Escríbelo como texto (ej: <code>Lider</code>).",
+        'en': "✍️ I need the store name to start the cart. Type it as text (e.g. <code>Walmart</code>).",
+    },
+    'btn_cart_cancel_start': {'es': "❌ Cancelar", 'en': "❌ Cancel"},
+    'cart_start_cancelled': {'es': "❌ No se creó el carrito.", 'en': "❌ The cart was not created."},
 }
 
 

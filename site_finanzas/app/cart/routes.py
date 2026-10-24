@@ -4,6 +4,7 @@ from decimal import Decimal, InvalidOperation
 from flask import abort, flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 from flask_login import current_user, login_required
+from sqlalchemy.orm import selectinload
 
 from app import db
 from app.audit.events import CART_FINALIZE, CART_MOVEMENT
@@ -22,6 +23,7 @@ _ERROR_MESSAGES = {
     'cart_full': lambda: _('El carrito alcanzó el máximo de productos.'),
     'cart_not_finalized': lambda: _('Finaliza el carrito antes de registrar el movimiento.'),
     'already_registered': lambda: _('Este carrito ya tiene un movimiento registrado.'),
+    'store_name_required': lambda: _('Indica el nombre del supermercado.'),
 }
 
 
@@ -58,6 +60,7 @@ def _parse_decimal(value: str | None) -> Decimal | None:
 
 def _finalized_carts():
     return (Cart.query
+            .options(selectinload(Cart.items))
             .filter_by(user_id=current_user.id, status='finalized')
             .order_by(Cart.finalized_at.desc(), Cart.id.desc())
             .limit(_HISTORY_LIMIT)
@@ -120,9 +123,26 @@ def compare():
 @login_required
 def start():
     svc.close_stale_cart(current_user.id)
-    cart = svc.start_cart(current_user.id, source='web',
-                          store_name=request.form.get('store_name'))
+    try:
+        cart = svc.start_cart(current_user.id, request.form.get('store_name'), source='web')
+    except svc.CartError as exc:
+        db.session.rollback()
+        _flash_error(exc)
+        return redirect(url_for('cart.index'))
     db.session.commit()
+    return redirect(url_for('cart.detail', cart_id=cart.id))
+
+
+@cart_bp.route('/<int:cart_id>/supermercado', methods=['POST'])
+@login_required
+def rename_store(cart_id):
+    cart = _own_cart_or_404(cart_id)
+    try:
+        svc.rename_store(cart, request.form.get('store_name'))
+        db.session.commit()
+    except svc.CartError as exc:
+        db.session.rollback()
+        _flash_error(exc)
     return redirect(url_for('cart.detail', cart_id=cart.id))
 
 

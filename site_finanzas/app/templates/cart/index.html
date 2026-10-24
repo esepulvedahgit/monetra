@@ -3,12 +3,12 @@
 {% block content %}
 
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-    <h2 class="mb-0 fw-bold"><i class="bi bi-cart3 text-primary"></i> {{ _('Mi Carrito') }}{{ hint(_('Registra lo que llevas en el carro del supermercado desde Telegram con /carrito o desde aquí. Al finalizar queda en el historial para comparar compras.')) }}</h2>
+    <h2 class="mb-0 fw-bold"><i class="bi bi-cart3 text-primary"></i> {{ _('Carrito') }}{{ hint(_('Registra lo que llevas en el carro del supermercado desde Telegram con /carrito o desde aquí. Al finalizar queda en el historial para comparar compras.')) }}</h2>
     {% if not open_cart %}
     <form method="POST" action="{{ url_for('cart.start') }}" class="d-flex gap-2">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="text" name="store_name" maxlength="120" class="form-control form-control-sm"
-               placeholder="{{ _('Supermercado (opcional)') }}">
+        <input type="text" name="store_name" maxlength="120" required class="form-control form-control-sm"
+               placeholder="{{ _('Supermercado') }}" aria-label="{{ _('Supermercado') }}">
         <button type="submit" class="btn btn-primary btn-sm fw-semibold text-nowrap">
             <i class="bi bi-plus-lg"></i> {{ _('Nuevo carrito') }}
         </button>
@@ -23,6 +23,12 @@
             <p class="small mb-1 text-muted"><i class="bi bi-circle-fill text-success" style="font-size:.6rem;"></i> {{ _('Carrito en curso') }}{% if open_cart.store_name %} · {{ open_cart.store_name }}{% endif %}</p>
             <h4 class="mb-0 fw-bold" style="color:#00C896;">{{ open_cart.total|money }}</h4>
             <span class="small text-muted">{{ open_cart.item_count }} {{ _('productos') }}</span>
+            {% if open_cart.items %}
+            {% set open_names = open_cart.items|map(attribute='name')|list %}
+            <p class="small mb-0 mt-1 text-truncate" style="max-width:520px;" title="{{ open_names|join(', ') }}">
+                {{ open_names[-5:]|reverse|join(', ') }}{% if open_names|length > 5 %} <span class="text-muted">+{{ open_names|length - 5 }}</span>{% endif %}
+            </p>
+            {% endif %}
         </div>
         <a href="{{ url_for('cart.detail', cart_id=open_cart.id) }}" class="btn btn-outline-primary btn-sm fw-semibold">
             <i class="bi bi-arrow-right"></i> {{ _('Ver carrito') }}
@@ -77,29 +83,60 @@
     <div class="card-header fw-semibold"><i class="bi bi-clock-history text-primary"></i> {{ _('Historial') }}</div>
     {% if history %}
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0 cart-history">
             <thead>
                 <tr>
                     <th>{{ _('Fecha') }}</th>
                     <th>{{ _('Supermercado') }}</th>
-                    <th class="text-end">{{ _('Productos') }}</th>
+                    <th>{{ _('Productos') }}</th>
+                    <th class="text-end">{{ _('Cant.') }}</th>
                     <th class="text-end">{{ _('Total') }}</th>
                     <th class="text-center">{{ _('Movimiento') }}</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 {% for c in history %}
-                <tr style="cursor:pointer;" onclick="window.location='{{ url_for('cart.detail', cart_id=c.id) }}'">
-                    <td>{{ c.finalized_at.strftime('%d/%m/%Y %H:%M') if c.finalized_at else '—' }}</td>
+                {% set names = c.items|map(attribute='name')|list %}
+                <tr class="cart-history-row" style="cursor:pointer;" data-target="cart-items-{{ c.id }}">
+                    <td class="text-nowrap">{{ c.finalized_at.strftime('%d/%m/%Y %H:%M') if c.finalized_at else '—' }}</td>
                     <td>{{ c.store_name or '—' }}</td>
+                    <td class="text-truncate" style="max-width:280px;" title="{{ names|join(', ') }}">
+                        {{ names[:4]|join(', ') }}{% if names|length > 4 %} <span class="text-muted">+{{ names|length - 4 }}</span>{% endif %}
+                    </td>
                     <td class="text-end">{{ c.item_count }}</td>
-                    <td class="text-end fw-semibold">{{ c.total|money }}</td>
+                    <td class="text-end fw-semibold text-nowrap">{{ c.total|money }}</td>
                     <td class="text-center">
                         {% if c.transaction_id %}
                         <i class="bi bi-check-circle-fill text-success" title="{{ _('Registrado') }}"></i>
                         {% else %}
                         <i class="bi bi-dash-circle text-muted" title="{{ _('Pendiente') }}"></i>
                         {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm btn-link p-0 cart-history-toggle" aria-expanded="false"
+                                aria-controls="cart-items-{{ c.id }}" aria-label="{{ _('Ver productos') }}">
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr id="cart-items-{{ c.id }}" class="d-none">
+                    <td colspan="7" style="background:var(--monetra-bg-soft);">
+                        <ul class="list-unstyled mb-2 small">
+                            {% for item in c.items %}
+                            <li class="d-flex justify-content-between gap-3 py-1 {% if not loop.last %}border-bottom{% endif %}">
+                                <span>
+                                    {{ item.name }}
+                                    {% if item.qty != 1 %}<span class="text-muted">· {{ '%g'|format(item.qty|float) }} × {{ item.unit_price|money }}</span>{% endif %}
+                                    {% if item.source == 'photo' %}<i class="bi bi-camera text-muted" title="{{ _('Leído desde foto') }}"></i>{% endif %}
+                                </span>
+                                <span class="fw-semibold text-nowrap">{{ item.line_total|money }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <a href="{{ url_for('cart.detail', cart_id=c.id) }}" class="small">
+                            <i class="bi bi-box-arrow-up-right"></i> {{ _('Ver detalle, registrar movimiento o comparar') }}
+                        </a>
                     </td>
                 </tr>
                 {% endfor %}
@@ -117,6 +154,19 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+(function () {
+    document.querySelectorAll('.cart-history-row').forEach(function (row) {
+        row.addEventListener('click', function () {
+            var detail = document.getElementById(row.dataset.target);
+            var button = row.querySelector('.cart-history-toggle');
+            var open = detail.classList.toggle('d-none') === false;
+            button.setAttribute('aria-expanded', open ? 'true' : 'false');
+            button.querySelector('i').className = open ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
+        });
+    });
+})();
+</script>
 {% if chart|length > 1 %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>

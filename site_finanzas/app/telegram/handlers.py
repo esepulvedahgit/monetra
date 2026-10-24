@@ -154,16 +154,8 @@ def _handle_message(msg: dict) -> None:
     lang = _lang_of(user)
     photos = msg.get('photo')
 
-    # ── Mi Carrito: /carrito inicia el modo; con un carrito abierto todo va al carrito ──
-    if cart_flow.is_cart_command(text):
-        cart_flow.start(chat_id, user)
-        return
-    cart = cart_flow.active_cart(chat_id, user)
-    if cart is not None:
-        if photos:
-            cart_flow.handle_photo(chat_id, user, cart, photos)
-        elif text:
-            cart_flow.handle_text(chat_id, user, cart, text)
+    # ── Mi Carrito: /carrito, carrito abierto o espera del nombre del supermercado ──
+    if cart_flow.route_message(chat_id, user, link, text, photos):
         return
 
     # ── Modo USD activo: pedir tipo antes de recibir el gasto ────────────────

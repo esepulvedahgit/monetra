@@ -17,6 +17,7 @@ from app.models import Cart, CartItem, Category, Transaction
 MAX_ITEMS_PER_CART = 300
 MAX_AMOUNT = Decimal('9999999999.99')   # máximo para Numeric(12,2)
 MAX_QTY = Decimal(9999)
+STORE_NAME_MAX = 120
 _CENT = Decimal('0.01')
 
 # Categorías de gasto candidatas para el movimiento de un carrito, en orden de preferencia.
@@ -103,8 +104,19 @@ def linked_transaction(cart: Cart) -> Transaction | None:
 
 # ── Mutaciones ────────────────────────────────────────────────────────────────
 
-def start_cart(user_id: int, source: str = 'telegram', store_name: str | None = None) -> Cart:
-    """Devuelve el carrito abierto del usuario o crea uno nuevo."""
+def clean_store_name(value) -> str:
+    """Nombre del supermercado normalizado; obligatorio para crear un carrito."""
+    name = ' '.join(str(value or '').split())[:STORE_NAME_MAX]
+    if not name or name.startswith('/') or not any(ch.isalpha() for ch in name):
+        raise CartError('store_name_required')
+    return name
+
+
+def start_cart(user_id: int, store_name: str | None, source: str = 'telegram') -> Cart:
+    """Devuelve el carrito abierto del usuario o crea uno nuevo en ``store_name``.
+
+    El nombre solo se exige al crear: si ya hay un carrito abierto se devuelve tal cual.
+    """
     cart = get_open_cart(user_id)
     if cart is not None:
         return cart
@@ -112,13 +124,34 @@ def start_cart(user_id: int, source: str = 'telegram', store_name: str | None = 
         user_id=user_id,
         status='open',
         source=source,
-        store_name=(store_name or '').strip()[:120] or None,
+        store_name=clean_store_name(store_name),
         total=Decimal(0),
         item_count=0,
     )
     db.session.add(cart)
     db.session.flush()
     return cart
+
+
+def rename_store(cart: Cart, store_name) -> None:
+    cart.store_name = clean_store_name(store_name)
+
+
+def recent_store_carts(user_id: int, limit: int = 3) -> list[Cart]:
+    """Últimos carritos con supermercados distintos, para ofrecerlos como atajo."""
+    seen, result = set(), []
+    candidates = (Cart.query
+                  .filter(Cart.user_id == user_id, Cart.store_name.isnot(None))
+                  .order_by(Cart.id.desc())
+                  .limit(30))
+    for cart in candidates:
+        key = normalize_name(cart.store_name)
+        if key and key not in seen:
+            seen.add(key)
+            result.append(cart)
+            if len(result) == limit:
+                break
+    return result
 
 
 def _recalc(cart: Cart) -> None:
