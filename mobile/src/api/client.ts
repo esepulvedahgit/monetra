@@ -6,11 +6,19 @@ import { notifySessionExpired } from '../auth/sessionExpiry';
 import { shouldEndSessionAfterRefreshFailure } from '../auth/refreshFailure';
 import { isReadCacheKey, readCacheKey } from './readCache';
 import { ApiSession, type ApiSessionBinding } from './requestSession';
+import { getServerUrl, subscribeServerUrl } from '../config/serverConfig';
+import { serverProbeProblem } from '../config/serverUrl';
 
-const baseURL = process.env.EXPO_PUBLIC_API_URL ?? 'https://monetra.hgrey.net/api/v1';
+const serverNotConfigured = 'SERVER_NOT_CONFIGURED';
+
+function baseURL(): string {
+  const url = getServerUrl();
+  if (!url) throw Object.assign(new Error('Configura el servidor de Monetra antes de continuar.'), { code: serverNotConfigured });
+  return url;
+}
 
 export const api = axios.create({
-  baseURL,
+  baseURL: getServerUrl() ?? undefined,
   timeout: 15_000,
   headers: {
     common: { Accept: 'application/json' },
@@ -18,12 +26,30 @@ export const api = axios.create({
   },
 });
 
+subscribeServerUrl((url) => { api.defaults.baseURL = url ?? undefined; });
+
 /** Uses a restricted status credential and deliberately bypasses API interceptors. */
 export async function validateQuickAccessStatus(statusToken: string): Promise<void> {
-  await axios.get(`${baseURL}/quick-access/status`, {
+  await axios.get(`${baseURL()}/quick-access/status`, {
     headers: { Authorization: `Bearer ${statusToken}`, Accept: 'application/json' },
     timeout: 15_000,
   });
+}
+
+/** Checks, without credentials or interceptors, that `serverUrl` is a Monetra API. */
+export async function probeServer(serverUrl: string): Promise<void> {
+  let problem: string | null;
+  try {
+    const response = await axios.get(`${serverUrl}/me`, {
+      headers: { Accept: 'application/json' },
+      timeout: 10_000,
+      validateStatus: () => true,
+    });
+    problem = serverProbeProblem({ status: response.status, contentType: String(response.headers['content-type'] ?? '') });
+  } catch (error) {
+    problem = serverProbeProblem({ error: error as AxiosError });
+  }
+  if (problem) throw new Error(problem);
 }
 type CachedRequest = InternalAxiosRequestConfig & { _session?: ApiSessionBinding; _tokenSession?: number; _retried?: boolean };
 
@@ -49,6 +75,7 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   const request = config as CachedRequest;
   request._session ??= apiSession.capture();
   request._tokenSession ??= currentTokenSession();
+  request.baseURL = baseURL();
   const tokens = await getSessionTokens();
   if (!apiSession.isCurrent(request._session) || !isCurrentTokenSession(request._tokenSession)) throw staleSessionError();
   if (tokens?.accessToken && !request.headers.Authorization) request.headers.Authorization = `Bearer ${tokens.accessToken}`;
@@ -61,7 +88,7 @@ async function refreshAccessToken(session: ApiSessionBinding, tokenSession: numb
   const tokens = await getSessionTokens();
   if (!tokens?.refreshToken || !apiSession.isCurrent(session) || !isCurrentTokenSession(tokenSession)) return null;
   try {
-    const response = await axios.post(`${baseURL}/refresh`, undefined, {
+    const response = await axios.post(`${baseURL()}/refresh`, undefined, {
       headers: { Authorization: `Bearer ${tokens.refreshToken}` }, timeout: 15_000,
     });
     if (!apiSession.isCurrent(session) || !isCurrentTokenSession(tokenSession)) return null;
@@ -122,6 +149,7 @@ api.interceptors.response.use(async (response) => {
 
 export function apiError(error: unknown): string {
   const response = error as AxiosError<{ message?: string; error?: string }>;
+  if (response.code === serverNotConfigured) return response.message;
   const serverMessage = response.response?.data?.message ?? response.response?.data?.error;
   if (serverMessage) return serverMessage;
   if (response.code === 'ECONNABORTED' || response.code === 'ETIMEDOUT') {

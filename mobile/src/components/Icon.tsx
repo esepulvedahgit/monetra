@@ -1,6 +1,6 @@
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
-export type IconName = 'grid' | 'arrows' | 'target' | 'user' | 'plus' | 'chevron-left' | 'chevron-right' | 'income' | 'expense' | 'calendar' | 'edit' | 'trash' | 'close' | 'wallet' | 'eye' | 'eye-off' | 'lock' | 'filter' | 'check';
+export type IconName = 'grid' | 'arrows' | 'target' | 'user' | 'plus' | 'chevron-left' | 'chevron-right' | 'income' | 'expense' | 'calendar' | 'edit' | 'trash' | 'close' | 'wallet' | 'eye' | 'eye-off' | 'lock' | 'filter' | 'check' | 'server';
 
 export function Icon({ name, size = 20, color = '#31302e', strokeWidth = 1.8 }: { name: IconName; size?: number; color?: string; strokeWidth?: number }) {
   const props = { stroke: color, strokeWidth, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' };
@@ -20,6 +20,7 @@ export function Icon({ name, size = 20, color = '#31302e', strokeWidth = 1.8 }: 
     close: <Path d="m6 6 12 12M18 6 6 18" {...props} />,
     filter: <><Path d="M4 5h16M7 12h10m-7 7h4" {...props} /></>,
     check: <Path d="m5 12 4.2 4.2L19 6.5" {...props} />,
+    server: <><Rect x="4" y="4" width="16" height="7" rx="2" {...props} /><Rect x="4" y="13" width="16" height="7" rx="2" {...props} /><Circle cx="8" cy="7.5" r=".8" fill={color} /><Circle cx="8" cy="16.5" r=".8" fill={color} /></>,
     lock: <><Rect x="5" y="10" width="14" height="10" rx="2" {...props} /><Path d="M8 10V7a4 4 0 0 1 8 0v3" {...props} /><Circle cx="12" cy="15" r="1" fill={color} /></>,
     eye: <><Path d="M3.5 12s3-5 8.5-5 8.5 5 8.5 5-3 5-8.5 5-8.5-5-8.5-5Z" {...props} /><Circle cx="12" cy="12" r="2.5" {...props} /></>,
     'eye-off': <><Path d="m4 4 16 16M10.6 6.3A9.8 9.8 0 0 1 12 6c5.5 0 8.5 6 8.5 6a16.8 16.8 0 0 1-3.1 3.7M6.2 8.1A16 16 0 0 0 3.5 12S6.5 18 12 18c.7 0 1.4-.1 2-.3" {...props} /><Path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" {...props} /></>,

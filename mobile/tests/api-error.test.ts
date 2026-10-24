@@ -14,6 +14,7 @@ vi.mock('@react-native-async-storage/async-storage', () => ({
 }));
 
 import { api, apiError } from '../src/api/client';
+import { applyServerUrl } from '../src/config/serverConfig';
 
 describe('apiError', () => {
   it('explains a transport error when no HTTP response exists', () => {
@@ -33,7 +34,14 @@ describe('apiError', () => {
     expect(api.defaults.headers.post['Content-Type']).toBe('application/json');
   });
 
-  it('uses the public Monetra API when no build-time URL is supplied', () => {
-    expect(api.defaults.baseURL).toBe('https://monetra.hgrey.net/api/v1');
+  it('has no implicit server and follows the configured one', () => {
+    expect(api.defaults.baseURL).toBeUndefined();
+    applyServerUrl('https://monetra.example.com/api/v1');
+    expect(api.defaults.baseURL).toBe('https://monetra.example.com/api/v1');
+    applyServerUrl(null);
+  });
+
+  it('asks for a server before any request is sent', async () => {
+    await expect(api.get('/me')).rejects.toThrow(/servidor/);
   });
 });

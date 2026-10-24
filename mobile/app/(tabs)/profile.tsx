@@ -2,13 +2,14 @@ import { Alert, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { useSession } from '../../src/auth/session';
+import { serverLabel } from '../../src/config/serverUrl';
 import { Card, Screen } from '../../src/ui';
 import { colors, spacing } from '../../src/theme/tokens';
 import { AppHeader, PrimaryButton } from '../../src/components/FinanceUi';
 import { Icon } from '../../src/components/Icon';
 
 export default function ProfileScreen() {
-  const { user, signOut, quickAccessSupported, quickAccessEnabled, enableQuickAccess, disableQuickAccess } = useSession();
+  const { user, signOut, quickAccessSupported, quickAccessEnabled, enableQuickAccess, disableQuickAccess, serverUrl } = useSession();
 
   const logout = () => Alert.alert('Cerrar sesión', 'Tendrás que volver a ingresar en este dispositivo.', [
     { text: 'Cancelar', style: 'cancel' },
@@ -26,7 +27,7 @@ export default function ProfileScreen() {
     ]);
   };
 
-  return <Screen><AppHeader /><Text style={styles.eyebrow}>Tu cuenta</Text><Text style={styles.title}>Perfil</Text><Card><View style={styles.person}><View style={styles.avatar}><Icon name="user" color={colors.accent} size={25} /></View><View><Text style={styles.name}>{user?.name}</Text><Text style={styles.email}>{user?.email}</Text></View></View><View style={styles.details}><Text style={styles.detail}>País: {user?.country || 'No indicado'}</Text><Text style={styles.detail}>Moneda: {user?.currency_code} ({user?.currency_symbol})</Text><Text style={styles.detail}>Idioma: {user?.language === 'en' ? 'English' : 'Español'}</Text></View></Card>{quickAccessSupported ? <Card><View style={styles.security}><View><Text style={styles.securityTitle}>Acceso rápido</Text><Text style={styles.detail}>{quickAccessEnabled ? 'Usa el bloqueo de este teléfono después de 15 minutos.' : 'Desbloquea con el PIN, patrón, contraseña o biometría del teléfono.'}</Text></View><Icon name="lock" color={colors.accent} size={22} /></View><PrimaryButton onPress={configureQuickAccess} icon="lock" variant="secondary">{quickAccessEnabled ? 'Desactivar acceso rápido' : 'Activar acceso rápido'}</PrimaryButton></Card> : <Card><Text style={styles.detail}>El acceso rápido requiere Android 11 o superior y un bloqueo de pantalla configurado.</Text></Card>}<PrimaryButton onPress={() => router.push('/(auth)/change-password')} icon="edit" variant="secondary">Cambiar contraseña</PrimaryButton><PrimaryButton onPress={logout} icon="close" variant="danger">Cerrar sesión</PrimaryButton></Screen>;
+  return <Screen><AppHeader action="server" onAction={() => router.push('/(auth)/server')} /><Text style={styles.eyebrow}>Tu cuenta</Text><Text style={styles.title}>Perfil</Text><Card><View style={styles.person}><View style={styles.avatar}><Icon name="user" color={colors.accent} size={25} /></View><View><Text style={styles.name}>{user?.name}</Text><Text style={styles.email}>{user?.email}</Text></View></View><View style={styles.details}><Text style={styles.detail}>País: {user?.country || 'No indicado'}</Text><Text style={styles.detail}>Moneda: {user?.currency_code} ({user?.currency_symbol})</Text><Text style={styles.detail}>Idioma: {user?.language === 'en' ? 'English' : 'Español'}</Text></View></Card>{quickAccessSupported ? <Card><View style={styles.security}><View><Text style={styles.securityTitle}>Acceso rápido</Text><Text style={styles.detail}>{quickAccessEnabled ? 'Usa el bloqueo de este teléfono después de 15 minutos.' : 'Desbloquea con el PIN, patrón, contraseña o biometría del teléfono.'}</Text></View><Icon name="lock" color={colors.accent} size={22} /></View><PrimaryButton onPress={configureQuickAccess} icon="lock" variant="secondary">{quickAccessEnabled ? 'Desactivar acceso rápido' : 'Activar acceso rápido'}</PrimaryButton></Card> : <Card><Text style={styles.detail}>El acceso rápido requiere Android 11 o superior y un bloqueo de pantalla configurado.</Text></Card>}<Card><View style={styles.security}><View style={{ flex: 1 }}><Text style={styles.securityTitle}>Servidor</Text><Text numberOfLines={1} style={styles.detail}>{serverUrl ? serverLabel(serverUrl) : 'Sin configurar'}</Text></View><Icon name="server" color={colors.accent} size={22} /></View><PrimaryButton onPress={() => router.push('/(auth)/server')} icon="server" variant="secondary">Cambiar servidor</PrimaryButton></Card><PrimaryButton onPress={() => router.push('/(auth)/change-password')} icon="edit" variant="secondary">Cambiar contraseña</PrimaryButton><PrimaryButton onPress={logout} icon="close" variant="danger">Cerrar sesión</PrimaryButton></Screen>;
 }
 
 const styles = StyleSheet.create({
