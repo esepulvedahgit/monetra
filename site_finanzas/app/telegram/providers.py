@@ -21,7 +21,12 @@ import requests
 _logger = logging.getLogger(__name__)
 
 from app.email_service import decrypt_ai_token
-from app.telegram.prompt import RECEIPT_SYSTEM_PROMPT
+from app.telegram.prompt import (
+    PRICE_TAG_SYSTEM_PROMPT,
+    PRICE_TAG_USER_TEXT,
+    RECEIPT_SYSTEM_PROMPT,
+    RECEIPT_USER_TEXT,
+)
 
 DEFAULT_BASE_URLS = {
     'openai':     'https://api.openai.com/v1',
@@ -172,7 +177,9 @@ def _check_http_error(response: requests.Response) -> None:
         )
 
 
-def _call_openai_compatible(config, b64_image: str, mime_type: str, token: str) -> dict:
+def _call_openai_compatible(config, b64_image: str, mime_type: str, token: str,
+                            system_prompt: str = RECEIPT_SYSTEM_PROMPT,
+                            user_text: str = RECEIPT_USER_TEXT) -> dict:
     base_url = config.base_url or DEFAULT_BASE_URLS.get(config.provider, DEFAULT_BASE_URLS['openai'])
     if config.base_url:
         # Validate user-supplied URL against SSRF targets (private IPs, loopback, etc.).
@@ -188,10 +195,10 @@ def _call_openai_compatible(config, b64_image: str, mime_type: str, token: str) 
     body = {
         "model": config.model,
         "messages": [
-            {"role": "system", "content": RECEIPT_SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": [
                 {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{b64_image}"}},
-                {"type": "text", "text": "Extract receipt data as JSON."},
+                {"type": "text", "text": user_text},
             ]},
         ],
         "response_format": {"type": "json_object"},
@@ -210,7 +217,9 @@ def _call_openai_compatible(config, b64_image: str, mime_type: str, token: str) 
     return _parse_json_response(content)
 
 
-def _call_anthropic(config, b64_image: str, mime_type: str, token: str) -> dict:
+def _call_anthropic(config, b64_image: str, mime_type: str, token: str,
+                    system_prompt: str = RECEIPT_SYSTEM_PROMPT,
+                    user_text: str = RECEIPT_USER_TEXT) -> dict:
     url = "https://api.anthropic.com/v1/messages"
     headers = {
         "x-api-key": token,
@@ -220,7 +229,7 @@ def _call_anthropic(config, b64_image: str, mime_type: str, token: str) -> dict:
     body = {
         "model": config.model,
         "max_tokens": 2048,
-        "system": RECEIPT_SYSTEM_PROMPT,
+        "system": system_prompt,
         "messages": [
             {"role": "user", "content": [
                 {
@@ -231,7 +240,7 @@ def _call_anthropic(config, b64_image: str, mime_type: str, token: str) -> dict:
                         "data": b64_image,
                     },
                 },
-                {"type": "text", "text": "Extract receipt data as JSON."},
+                {"type": "text", "text": user_text},
             ]},
         ],
     }
@@ -272,7 +281,10 @@ _GEMINI_RESPONSE_SCHEMA = {
 }
 
 
-def _call_gemini(config, b64_image: str, mime_type: str, token: str) -> dict:
+def _call_gemini(config, b64_image: str, mime_type: str, token: str,
+                 system_prompt: str = RECEIPT_SYSTEM_PROMPT,
+                 user_text: str = RECEIPT_USER_TEXT,
+                 response_schema: dict | None = None) -> dict:
     model_name = config.model or "gemini-1.5-flash"
     url = (
         f"https://generativelanguage.googleapis.com/v1beta/models/"
@@ -280,14 +292,14 @@ def _call_gemini(config, b64_image: str, mime_type: str, token: str) -> dict:
     )
     headers = {"Content-Type": "application/json"}
     body = {
-        "system_instruction": {"parts": [{"text": RECEIPT_SYSTEM_PROMPT}]},
+        "system_instruction": {"parts": [{"text": system_prompt}]},
         "contents": [{"parts": [
             {"inline_data": {"mime_type": mime_type, "data": b64_image}},
-            {"text": "Extract receipt data as JSON."},
+            {"text": user_text},
         ]}],
         "generationConfig": {
             "response_mime_type": "application/json",
-            "responseSchema": _GEMINI_RESPONSE_SCHEMA,
+            "responseSchema": response_schema or _GEMINI_RESPONSE_SCHEMA,
             "maxOutputTokens": 2048,
         },
     }
@@ -393,6 +405,29 @@ def test_connection(provider: str, model: str, base_url: str, token: str) -> Non
         raise ValueError(f"Proveedor desconocido: {provider}")
 
 
+def _extract_from_image(config, image_bytes: bytes, mime_type: str, system_prompt: str,
+                        user_text: str, gemini_schema: dict) -> dict:
+    """Envía la imagen al proveedor configurado con el prompt indicado y devuelve el JSON."""
+    token = decrypt_ai_token(config.api_token_encrypted) if config.api_token_encrypted else ""
+    if not token:
+        raise ValueError("Token de API no configurado o inválido.")
+
+    MAX_IMAGE_BYTES = 10 * 1024 * 1024  # 10 MB
+    if len(image_bytes) > MAX_IMAGE_BYTES:
+        raise ValueError("La imagen es demasiado grande. Máximo 10 MB.")
+
+    b64_image = base64.b64encode(image_bytes).decode('ascii')
+
+    provider = (config.provider or '').lower()
+
+    if provider == 'anthropic':
+        return _call_anthropic(config, b64_image, mime_type, token, system_prompt, user_text)
+    if provider == 'gemini':
+        return _call_gemini(config, b64_image, mime_type, token, system_prompt, user_text, gemini_schema)
+    # OpenAI-compatible, y fallback best-effort para proveedores desconocidos.
+    return _call_openai_compatible(config, b64_image, mime_type, token, system_prompt, user_text)
+
+
 def extract_receipt(config, image_bytes: bytes, mime_type: str) -> dict:
     """Extract receipt data from image bytes using the configured AI provider.
 
@@ -407,29 +442,42 @@ def extract_receipt(config, image_bytes: bytes, mime_type: str) -> dict:
     Raises:
         ValueError: Human-readable error message on any failure.
     """
-    token = decrypt_ai_token(config.api_token_encrypted) if config.api_token_encrypted else ""
-    if not token:
-        raise ValueError("Token de API no configurado o inválido.")
-
-    MAX_IMAGE_BYTES = 10 * 1024 * 1024  # 10 MB
-    if len(image_bytes) > MAX_IMAGE_BYTES:
-        raise ValueError("La imagen es demasiado grande. Máximo 10 MB.")
-
-    b64_image = base64.b64encode(image_bytes).decode('ascii')
-
-    provider = (config.provider or '').lower()
-
-    if provider in _OPENAI_COMPATIBLE:
-        result = _call_openai_compatible(config, b64_image, mime_type, token)
-    elif provider == 'anthropic':
-        result = _call_anthropic(config, b64_image, mime_type, token)
-    elif provider == 'gemini':
-        result = _call_gemini(config, b64_image, mime_type, token)
-    else:
-        # Unknown provider — try OpenAI-compatible as a best-effort fallback
-        result = _call_openai_compatible(config, b64_image, mime_type, token)
+    result = _extract_from_image(config, image_bytes, mime_type, RECEIPT_SYSTEM_PROMPT,
+                                 RECEIPT_USER_TEXT, _GEMINI_RESPONSE_SCHEMA)
 
     if isinstance(result, dict) and result.get('error') == 'not_a_receipt':
         raise ValueError("La imagen no parece ser un recibo.")
+
+    return result
+
+
+_GEMINI_PRICE_TAG_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "name":        {"type": "STRING", "nullable": True},
+        "price":       {"type": "NUMBER", "nullable": True},
+        "offer_price": {"type": "NUMBER", "nullable": True},
+        "offer_text":  {"type": "STRING", "nullable": True},
+        "unit":        {"type": "STRING", "nullable": True},
+        "currency":    {"type": "STRING", "nullable": True},
+        "error":       {"type": "STRING", "nullable": True},
+    },
+}
+
+
+def extract_price_tag(config, image_bytes: bytes, mime_type: str) -> dict:
+    """Lee una etiqueta de precio de góndola o un empaque y devuelve producto y precio(s).
+
+    Returns:
+        dict con keys: name, price, offer_price, offer_text, unit, currency.
+
+    Raises:
+        ValueError: si la imagen no muestra un precio o el proveedor falla.
+    """
+    result = _extract_from_image(config, image_bytes, mime_type, PRICE_TAG_SYSTEM_PROMPT,
+                                 PRICE_TAG_USER_TEXT, _GEMINI_PRICE_TAG_SCHEMA)
+
+    if not isinstance(result, dict) or result.get('error'):
+        raise ValueError("No se encontró un precio en la imagen.")
 
     return result

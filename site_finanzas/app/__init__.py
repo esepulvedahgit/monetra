@@ -124,6 +124,9 @@ def create_app(config_class=Config):
 
     from app.telegram import telegram_bp
     app.register_blueprint(telegram_bp)
+
+    from app.cart import cart_bp
+    app.register_blueprint(cart_bp)
     # #7 — CSRF exento solo en el webhook; generate-code/toggle-usd/unlink conservan protección.
     # El @csrf.exempt está puesto directamente en el decorador de la vista webhook en routes.py.
 

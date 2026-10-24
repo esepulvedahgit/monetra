@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="mb-4">
+    <a href="{{ url_for('cart.detail', cart_id=a.id) }}" class="small text-muted text-decoration-none"><i class="bi bi-arrow-left"></i> {{ _('Volver al carrito') }}</a>
+    <h2 class="mb-0 fw-bold"><i class="bi bi-arrow-left-right text-primary"></i> {{ _('Comparar compras') }}</h2>
+</div>
+
+<div class="row g-3 mb-4">
+    {% for c in (a, b) %}
+    <div class="col-sm-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <p class="small mb-1 text-muted">
+                    {{ c.finalized_at.strftime('%d/%m/%Y') if c.finalized_at else _('En curso') }} · {{ c.store_name or _('Carrito') }}
+                </p>
+                <h4 class="mb-0 fw-bold">{{ c.total|money }}</h4>
+                <span class="small text-muted">{{ c.item_count }} {{ _('productos') }}</span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    <div class="col-sm-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <p class="small mb-1 text-muted">{{ _('Diferencia') }}</p>
+                <h4 class="mb-0 fw-bold {% if total_diff > 0 %}text-danger{% elif total_diff < 0 %}text-success{% endif %}">
+                    {% if total_diff > 0 %}+{% endif %}{{ total_diff|money }}
+                </h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header fw-semibold"><i class="bi bi-tags text-primary"></i> {{ _('Precio unitario por producto') }}</div>
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>{{ _('Producto') }}</th>
+                    <th class="text-end">{{ a.finalized_at.strftime('%d/%m/%Y') if a.finalized_at else _('Antes') }}</th>
+                    <th class="text-end">{{ b.finalized_at.strftime('%d/%m/%Y') if b.finalized_at else _('Después') }}</th>
+                    <th class="text-end">{{ _('Variación') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                <tr>
+                    <td>{{ r.name }}</td>
+                    <td class="text-end">{% if r.old %}{{ r.old.unit_price|money }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                    <td class="text-end">{% if r.new %}{{ r.new.unit_price|money }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                    <td class="text-end">
+                        {% if r.pct is not none %}
+                        <span class="{% if r.pct > 0 %}text-danger{% elif r.pct < 0 %}text-success{% else %}text-muted{% endif %}">
+                            {{ '%+.1f'|format(r.pct) }}%
+                        </span>
+                        {% elif not r.old %}<span class="badge bg-secondary">{{ _('Nuevo') }}</span>
+                        {% else %}<span class="badge bg-secondary">{{ _('No comprado') }}</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer small text-muted">
+        {{ _('Los productos se emparejan por nombre. Si el nombre cambia entre compras aparecerán como productos distintos.') }}
+    </div>
+</div>
+
+{% endblock %}
