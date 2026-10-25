@@ -1,8 +1,12 @@
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
-export type IconName = 'grid' | 'arrows' | 'target' | 'user' | 'plus' | 'chevron-left' | 'chevron-right' | 'income' | 'expense' | 'calendar' | 'edit' | 'trash' | 'close' | 'wallet' | 'eye' | 'eye-off' | 'lock' | 'filter' | 'check' | 'server';
+import { useTheme } from '../theme/theme';
 
-export function Icon({ name, size = 20, color = '#31302e', strokeWidth = 1.8 }: { name: IconName; size?: number; color?: string; strokeWidth?: number }) {
+export type IconName = 'grid' | 'arrows' | 'target' | 'user' | 'plus' | 'chevron-left' | 'chevron-right' | 'income' | 'expense' | 'calendar' | 'edit' | 'trash' | 'close' | 'wallet' | 'eye' | 'eye-off' | 'lock' | 'filter' | 'check' | 'server' | 'sun' | 'moon' | 'device';
+
+export function Icon({ name, size = 20, color: requestedColor, strokeWidth = 1.8 }: { name: IconName; size?: number; color?: string; strokeWidth?: number }) {
+  const theme = useTheme();
+  const color = requestedColor ?? theme.colors.text;
   const props = { stroke: color, strokeWidth, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' };
   const content = {
     grid: <><Rect x="4" y="4" width="6" height="6" rx="1" {...props} /><Rect x="14" y="4" width="6" height="6" rx="1" {...props} /><Rect x="4" y="14" width="6" height="6" rx="1" {...props} /><Rect x="14" y="14" width="6" height="6" rx="1" {...props} /></>,
@@ -20,6 +24,9 @@ export function Icon({ name, size = 20, color = '#31302e', strokeWidth = 1.8 }: 
     close: <Path d="m6 6 12 12M18 6 6 18" {...props} />,
     filter: <><Path d="M4 5h16M7 12h10m-7 7h4" {...props} /></>,
     check: <Path d="m5 12 4.2 4.2L19 6.5" {...props} />,
+    sun: <><Circle cx="12" cy="12" r="4" {...props} /><Path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4" {...props} /></>,
+    moon: <Path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" {...props} />,
+    device: <><Rect x="7" y="3" width="10" height="18" rx="2.5" {...props} /><Path d="M11 17.5h2" {...props} /></>,
     server: <><Rect x="4" y="4" width="16" height="7" rx="2" {...props} /><Rect x="4" y="13" width="16" height="7" rx="2" {...props} /><Circle cx="8" cy="7.5" r=".8" fill={color} /><Circle cx="8" cy="16.5" r=".8" fill={color} /></>,
     lock: <><Rect x="5" y="10" width="14" height="10" rx="2" {...props} /><Path d="M8 10V7a4 4 0 0 1 8 0v3" {...props} /><Circle cx="12" cy="15" r="1" fill={color} /></>,
     eye: <><Path d="M3.5 12s3-5 8.5-5 8.5 5 8.5 5-3 5-8.5 5-8.5-5-8.5-5Z" {...props} /><Circle cx="12" cy="12" r="2.5" {...props} /></>,

@@ -12,7 +12,7 @@ vi.mock('expo-secure-store', () => ({
   deleteItemAsync: async () => undefined,
 }));
 
-import { api, setReadCacheAccount } from '../src/api/client';
+import { api, apiError, setReadCacheAccount } from '../src/api/client';
 import { applyServerUrl } from '../src/config/serverConfig';
 import { beginTokenSession } from '../src/auth/sessionTokens';
 import { clearTokens, configureQuickAccessVault, enableQuickAccess, getTokens, lockQuickAccess, unlockQuickAccess } from '../src/auth/tokens';
@@ -83,5 +83,20 @@ describe('quick access with the API client', () => {
     expect(requests).toEqual(['/refresh', '/me']);
     expect(sealed).toBe('rotated-refresh');
     expect(await getTokens()).toEqual({ accessToken: 'renewed-access', refreshToken: 'rotated-refresh' });
+  });
+});
+
+describe('signed-out requests', () => {
+  it("shows the server's message when login credentials are rejected", async () => {
+    await clearTokens();
+    applyServerUrl('https://monetra.example.com/api/v1');
+    beginTokenSession();
+    setReadCacheAccount(null);
+    api.defaults.adapter = async (config) => {
+      const response = { config, status: 401, statusText: '', headers: new AxiosHeaders(), data: { error: 'Credenciales incorrectas' } };
+      throw new AxiosError('Unauthorized', 'ERR_BAD_REQUEST', config, undefined, response);
+    };
+    const failure = await api.post('/login', { email: 'a@b.c', password: 'x' }).catch((error: unknown) => error);
+    expect(apiError(failure)).toBe('Credenciales incorrectas');
   });
 });
