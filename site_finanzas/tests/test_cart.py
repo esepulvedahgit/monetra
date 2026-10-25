@@ -172,13 +172,18 @@ class TestCartService:
 
 # ── Telegram ──────────────────────────────────────────────────────────────────
 
-def _text(text):
-    return {'message': {'chat': {'id': CHAT_ID, 'type': 'private'}, 'text': text}}
+def _text(text, message_id=None):
+    msg = {'chat': {'id': CHAT_ID, 'type': 'private'}, 'text': text}
+    if message_id:
+        msg['message_id'] = message_id
+    return {'message': msg}
 
 
-def _photo():
-    return {'message': {'chat': {'id': CHAT_ID, 'type': 'private'},
-                        'photo': [{'file_id': 'f1', 'file_size': 10}]}}
+def _photo(message_id=None):
+    msg = {'chat': {'id': CHAT_ID, 'type': 'private'}, 'photo': [{'file_id': 'f1', 'file_size': 10}]}
+    if message_id:
+        msg['message_id'] = message_id
+    return {'message': msg}
 
 
 def _callback(data):
@@ -213,7 +218,7 @@ class TestTelegramCartFlow:
     def test_full_flow_save_only(self, app, cart_user_id, tg):
         run, send, buttons = tg
         run(_text('/carrito Lider'))
-        assert 'Carrito iniciado' in send.call_args.args[1]
+        assert 'Carrito iniciado' in buttons.call_args.args[1]
 
         run(_text('Leche entera 1290'))
         with app.app_context():
@@ -250,7 +255,7 @@ class TestTelegramCartFlow:
         assert 'Compra guardada' in send.call_args.args[1]
 
     def test_cart_command_asks_store_name(self, app, cart_user_id, tg):
-        run, send, buttons = tg
+        run, _send, buttons = tg
         run(_text('/carrito'))
         assert '¿En qué supermercado estás?' in buttons.call_args.args[1]
         assert 'cartnostart:0' in _buttons(buttons)
@@ -259,7 +264,7 @@ class TestTelegramCartFlow:
             assert TelegramLink.query.filter_by(chat_id=CHAT_ID).one().pending_type == 'cartname'
 
         run(_text('Lider Vespucio'))
-        assert 'Carrito iniciado en Lider Vespucio' in send.call_args.args[1]
+        assert 'Carrito iniciado en Lider Vespucio' in buttons.call_args.args[1]
         with app.app_context():
             assert svc.get_open_cart(cart_user_id).store_name == 'Lider Vespucio'
             assert TelegramLink.query.filter_by(chat_id=CHAT_ID).one().pending_type is None
@@ -406,6 +411,133 @@ class TestTelegramCartFlow:
         run(_text('/carrito Lider'))
         run(_text('hola'))
         assert 'Escribe el producto y su precio' in send.call_args.args[1]
+
+    def test_double_tap_on_add_adds_once(self, app, cart_user_id, tg):
+        run, _send, _buttons_mock = tg
+        run(_text('/carrito Lider'))
+        run(_text('Leche 1290'))
+        with app.app_context():
+            pending_id = CartPendingItem.query.filter_by(chat_id=CHAT_ID).one().id
+        run(_callback(f'cartok:{pending_id}'))
+        run(_callback(f'cartok:{pending_id}'))
+        with app.app_context():
+            assert svc.get_open_cart(cart_user_id).item_count == 1
+
+
+def _start_cart(run, buttons, mode):
+    """Crea el carrito por el bot y elige el modo de ingreso."""
+    run(_text('/carrito Lider'))
+    choices = _buttons(buttons)
+    assert len(choices) == 2 and choices[0].startswith('cartmanual:') and choices[1].startswith('cartauto:')
+    run(_callback(choices[1] if mode == 'auto' else choices[0]))
+
+
+class TestTelegramCartModes:
+    def test_mode_defaults_to_manual_until_chosen(self, app, cart_user_id, tg):
+        run, send, buttons = tg
+        run(_text('/carrito Lider'))
+        assert '¿Cómo quieres agregar los productos?' in buttons.call_args.args[1]
+        with app.app_context():
+            assert svc.get_open_cart(cart_user_id).entry_mode == 'manual'
+        run(_text('Leche 1290'))
+        with app.app_context():
+            assert CartPendingItem.query.filter_by(chat_id=CHAT_ID).count() == 1
+            cart_id = svc.get_open_cart(cart_user_id).id
+
+        run(_callback(f'cartauto:{cart_id}'))
+        assert 'Modo automático' in send.call_args.args[1]
+        with app.app_context():
+            assert _db.session.get(Cart, cart_id).entry_mode == 'auto'
+
+    def test_auto_mode_adds_text_without_confirmation(self, app, cart_user_id, tg):
+        run, _send, buttons = tg
+        _start_cart(run, buttons, 'auto')
+
+        run(_text('Leche entera 1290', message_id=10))
+        text = buttons.call_args.args[1]
+        assert 'Leche entera' in text and 'Total del carrito: $1.290' in text
+        with app.app_context():
+            cart = svc.get_open_cart(cart_user_id)
+            cart_id = cart.id
+            assert CartPendingItem.query.count() == 0
+            assert cart.items[0].client_request_id == 'tg:10'
+        assert _buttons(buttons) == [f'cartmore:{cart_id}', f'cartundo:{cart_id}', f'cartend:{cart_id}']
+
+        run(_text('2 x 990 yogurt', message_id=11))
+        assert 'Total del carrito: $3.270' in buttons.call_args.args[1]
+        assert '2 productos' in buttons.call_args.args[1]
+
+        run(_callback(f'cartundo:{cart_id}'))
+        with app.app_context():
+            cart = _db.session.get(Cart, cart_id)
+            assert cart.total == Decimal(1290) and cart.item_count == 1
+
+    def test_auto_mode_photo_adds_regular_price_and_reports_offer(self, app, cart_user_id, tg):
+        run, _send, buttons = tg
+        _start_cart(run, buttons, 'auto')
+        with patch('app.telegram.handlers._load_photo_for_ai', return_value=(object(), b'img', 'image/jpeg')), \
+                patch('app.telegram.providers.extract_price_tag', return_value={
+                    'name': 'Aceite Belmont 1L', 'price': 3990, 'offer_price': 3490,
+                    'offer_text': 'Con tarjeta', 'unit': 'unit',
+                }):
+            run(_photo(message_id=20))
+        text = buttons.call_args.args[1]
+        assert 'Oferta: <b>$3.490</b> — Con tarjeta' in text
+        assert 'Total del carrito: $3.990' in text
+        with app.app_context():
+            item = svc.get_open_cart(cart_user_id).items[0]
+            assert item.source == 'photo' and item.line_total == Decimal(3990)
+
+    def test_auto_mode_ignores_retried_message(self, app, cart_user_id, tg):
+        run, _send, buttons = tg
+        _start_cart(run, buttons, 'auto')
+        with patch('app.telegram.handlers._load_photo_for_ai', return_value=(object(), b'img', 'image/jpeg')), \
+                patch('app.telegram.providers.extract_price_tag', return_value={
+                    'name': 'Pan', 'price': 2500, 'unit': 'unit',
+                }) as extract:
+            run(_photo(message_id=30))
+            run(_photo(message_id=30))
+        assert extract.call_count == 1
+        run(_text('Leche 1290', message_id=31))
+        run(_text('Leche 1290', message_id=31))
+        with app.app_context():
+            cart = svc.get_open_cart(cart_user_id)
+            assert cart.item_count == 2 and cart.total == Decimal(3790)
+
+    def test_auto_mode_without_price_adds_nothing(self, app, cart_user_id, tg):
+        run, send, buttons = tg
+        _start_cart(run, buttons, 'auto')
+        run(_text('hola', message_id=40))
+        assert 'Escribe el producto y su precio' in send.call_args.args[1]
+        with app.app_context():
+            assert svc.get_open_cart(cart_user_id).item_count == 0
+
+    def test_resume_offers_switching_mode(self, app, cart_user_id, tg):
+        run, _send, buttons = tg
+        _start_cart(run, buttons, 'auto')
+        run(_text('/carrito'))
+        assert 'modo ⚡ automático' in buttons.call_args.args[1]
+        with app.app_context():
+            cart_id = svc.get_open_cart(cart_user_id).id
+        assert f'cartmanual:{cart_id}' in _buttons(buttons)
+        run(_callback(f'cartmanual:{cart_id}'))
+        run(_text('Leche 1290', message_id=50))
+        with app.app_context():
+            assert CartPendingItem.query.filter_by(chat_id=CHAT_ID).count() == 1
+            assert _db.session.get(Cart, cart_id).item_count == 0
+
+    def test_mode_button_of_closed_cart_does_nothing(self, app, cart_user_id, tg):
+        run, send, _buttons_mock = tg
+        with app.app_context():
+            old = svc.start_cart(cart_user_id, 'Lider')
+            svc.add_item(old, 'Pan', Decimal(2500))
+            svc.finalize(old)
+            _db.session.commit()
+            old_id = old.id
+        run(_callback(f'cartauto:{old_id}'))
+        assert 'ya no está activo' in send.call_args.args[1]
+        with app.app_context():
+            assert _db.session.get(Cart, old_id).entry_mode == 'manual'
 
 
 # ── Web ───────────────────────────────────────────────────────────────────────

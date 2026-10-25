@@ -1,9 +1,10 @@
 """Flujo de "Mi Carrito" en el bot de Telegram.
 
 Mientras el usuario tiene un carrito abierto, todo texto o foto que envía se
-interpreta como un producto: se muestra una tarjeta de confirmación y, al
-confirmar, se agrega al carrito y se informa el total acumulado. El carrito vive
-en BD (no en memoria del proceso), así que sobrevive a reinicios del servidor.
+interpreta como un producto. En modo manual se muestra una tarjeta de
+confirmación y, al confirmar, se agrega al carrito y se informa el total
+acumulado; en modo automático se agrega al recibirlo. El carrito vive en BD (no
+en memoria del proceso), así que sobrevive a reinicios del servidor.
 
 Los callbacks llevan el id del carrito o del producto pendiente y siempre se
 validan contra el usuario vinculado al chat, para que un botón viejo no actúe
@@ -16,12 +17,13 @@ from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 
 from flask import request as flask_request
+from sqlalchemy.exc import IntegrityError
 
 from app import db
 from app.audit.events import CART_FINALIZE, CART_MOVEMENT
 from app.audit.logger import log_event
 from app.cart import service as cart_svc
-from app.models import CartPendingItem, Category, TelegramLink, User
+from app.models import CartItem, CartPendingItem, Category, TelegramLink, User
 from app.money import format_money_for_user, parse_amount_for_user
 from app.telegram.messages import t
 from app.telegram.service import (
@@ -86,7 +88,8 @@ def active_cart(chat_id: int, user: User):
     return cart_svc.get_open_cart(user.id)
 
 
-def route_message(chat_id: int, user: User, link: TelegramLink, text: str, photos) -> bool:
+def route_message(chat_id: int, user: User, link: TelegramLink, text: str, photos,
+                  message_id: int | None = None) -> bool:
     """Atiende el mensaje si corresponde a Mi Carrito. Devuelve True si lo consumió."""
     if is_cart_command(text):
         start(chat_id, user, _command_argument(text))
@@ -97,10 +100,13 @@ def route_message(chat_id: int, user: User, link: TelegramLink, text: str, photo
         if link.pending_type == STORE_PROMPT_STATE:
             _clear_store_prompt(link)
             db.session.commit()
+        # Telegram reenvía el update si la respuesta tarda: no repetir la lectura ni el producto.
+        if _already_added(cart, message_id):
+            return True
         if photos:
-            handle_photo(chat_id, user, cart, photos)
+            handle_photo(chat_id, user, cart, photos, message_id)
         elif text:
-            handle_text(chat_id, user, cart, text)
+            handle_text(chat_id, user, cart, text, message_id)
         return True
 
     if awaiting_store_name(link):
@@ -114,11 +120,15 @@ def start(chat_id: int, user: User, store_name: str = '') -> None:
     lang = _lang_of(user)
     cart = active_cart(chat_id, user)
     if cart is not None:
+        auto = cart.entry_mode == 'auto'
+        switch = ({'text': t('btn_cart_switch_manual', lang), 'callback_data': f'cartmanual:{cart.id}'} if auto
+                  else {'text': t('btn_cart_switch_auto', lang), 'callback_data': f'cartauto:{cart.id}'})
         send_message_with_buttons(
             chat_id,
             t('cart_resumed', lang).format(store=_store_label(cart, lang),
-                                           total=_money(cart.total, user), count=cart.item_count),
-            _cart_buttons(cart, lang),
+                                           total=_money(cart.total, user), count=cart.item_count,
+                                           mode=t('cart_mode_auto' if auto else 'cart_mode_manual', lang)),
+            _cart_buttons(cart, lang) + [[switch]],
         )
         return
     link = TelegramLink.query.filter_by(chat_id=chat_id, enabled=True).first()
@@ -184,10 +194,14 @@ def _create_cart(chat_id: int, user: User, link: TelegramLink, store_name: str) 
         return
     _clear_store_prompt(link)
     db.session.commit()
-    send_message(chat_id, t('cart_started', lang).format(store=_store_label(cart, lang)))
+    # Hasta que elija, los productos se tratan en modo manual (el predeterminado).
+    send_message_with_buttons(chat_id, t('cart_started', lang).format(store=_store_label(cart, lang)), [[
+        {'text': t('btn_cart_mode_manual', lang), 'callback_data': f'cartmanual:{cart.id}'},
+        {'text': t('btn_cart_mode_auto', lang), 'callback_data': f'cartauto:{cart.id}'},
+    ]])
 
 
-def handle_text(chat_id: int, user: User, cart, text: str) -> None:
+def handle_text(chat_id: int, user: User, cart, text: str, message_id: int | None = None) -> None:
     lang = _lang_of(user)
     text = text[:4096]
 
@@ -217,10 +231,10 @@ def handle_text(chat_id: int, user: User, cart, text: str) -> None:
 
     name = (text[:last.start()] + text[last.end():]).strip(' -–—,.:$')
     # Con cantidad, el monto escrito es el precio unitario; sin ella, es el total de la línea.
-    _save_pending(chat_id, user, cart, name=name, line_total=amount * qty, qty=qty, source='text')
+    _take_item(chat_id, user, cart, message_id, name=name, line_total=amount * qty, qty=qty, source='text')
 
 
-def handle_photo(chat_id: int, user: User, cart, photos: list) -> None:
+def handle_photo(chat_id: int, user: User, cart, photos: list, message_id: int | None = None) -> None:
     from app.telegram.handlers import _load_photo_for_ai
     from app.telegram.providers import extract_price_tag
 
@@ -251,14 +265,15 @@ def handle_photo(chat_id: int, user: User, cart, photos: list) -> None:
     if offer is not None and offer >= price:
         offer = None
 
+    auto = cart.entry_mode == 'auto'
     note = None
     if (result.get('unit') or '').lower() == 'kg':
-        note = t('cart_note_per_kg', lang)
+        note = t('cart_note_per_kg_auto' if auto else 'cart_note_per_kg', lang)
     offer_text = result.get('offer_text') if offer is not None else None
 
-    _save_pending(chat_id, user, cart, name=result.get('name') or '', line_total=price,
-                  qty=Decimal(1), source='photo', alt_line_total=offer,
-                  note=note, offer_text=offer_text)
+    _take_item(chat_id, user, cart, message_id, name=result.get('name') or '', line_total=price,
+               qty=Decimal(1), source='photo', alt_line_total=offer,
+               note=note, offer_text=offer_text)
 
 
 def _coerce_amount(value, user) -> Decimal | None:
@@ -275,6 +290,84 @@ def _coerce_amount(value, user) -> Decimal | None:
     if not amount.is_finite() or amount <= 0 or amount > cart_svc.MAX_AMOUNT:
         return None
     return amount.quantize(Decimal('0.01'))
+
+
+# ── Producto recibido ─────────────────────────────────────────────────────────
+
+def _request_key(message_id: int | None) -> str | None:
+    """Clave de idempotencia del producto: un mensaje de Telegram agrega a lo más un producto."""
+    return f'tg:{message_id}' if message_id else None
+
+
+def _already_added(cart, message_id: int | None) -> bool:
+    key = _request_key(message_id)
+    return key is not None and CartItem.query.filter_by(cart_id=cart.id, client_request_id=key).first() is not None
+
+
+def _lock(cart):
+    """Bloquea la fila del carrito hasta el próximo commit y recarga sus productos.
+
+    El commit previo cierra la transacción en curso: así, tras esperar el bloqueo,
+    la lectura de productos ve lo que otro mensaje (p. ej. otra foto del mismo álbum)
+    acaba de guardar y el total no pierde líneas.
+    """
+    db.session.commit()
+    db.session.refresh(cart, with_for_update=True)
+    return cart
+
+
+def _take_item(chat_id: int, user: User, cart, message_id: int | None, **item) -> None:
+    if cart.entry_mode == 'auto':
+        _auto_add(chat_id, user, cart, message_id, **item)
+    else:
+        _save_pending(chat_id, user, cart, **item)
+
+
+def _auto_add(chat_id: int, user: User, cart, message_id: int | None, *, name: str, line_total: Decimal,
+              qty: Decimal, source: str, alt_line_total: Decimal | None = None, note: str | None = None,
+              offer_text: str | None = None) -> None:
+    """Modo automático: suma el producto sin confirmar y responde con el total acumulado.
+
+    Si la etiqueta trae una oferta se suma el precio normal y la oferta solo se informa,
+    para que el usuario la corrija con «Quitar último» si fue la que pagó.
+    """
+    lang = _lang_of(user)
+    cart = _lock(cart)
+    if cart.status != 'open':
+        db.session.commit()
+        send_message(chat_id, t('cart_not_active', lang))
+        return
+    key = _request_key(message_id)
+    if _already_added(cart, message_id):
+        db.session.commit()
+        return
+    try:
+        item = cart_svc.add_item(cart, (name or '').strip() or t('cart_default_item', lang), line_total,
+                                 qty=qty, source=source, client_request_id=key)
+        db.session.commit()
+    except cart_svc.CartError as exc:
+        db.session.rollback()
+        send_message(chat_id, t('cart_full' if exc.code == 'cart_full' else 'cart_text_help', lang))
+        return
+    except IntegrityError:
+        # Otro reintento del mismo mensaje lo agregó primero.
+        db.session.rollback()
+        return
+
+    extra = ''
+    if qty != 1:
+        extra += t('cart_qty_line', lang).format(qty=_fmt_qty(qty), unit=_money(item.unit_price, user))
+    if alt_line_total is not None:
+        offer_suffix = f" — {html.escape(offer_text[:200])}" if offer_text else ''
+        extra += t('cart_auto_offer_line', lang).format(amount=_money(alt_line_total, user), text=offer_suffix)
+    if note:
+        extra += t('cart_note_line', lang).format(note=html.escape(note))
+    send_message_with_buttons(
+        chat_id,
+        t('cart_auto_added', lang).format(name=html.escape(item.name), amount=_money(item.line_total, user),
+                                          extra=extra, total=_money(cart.total, user), count=cart.item_count),
+        _cart_buttons(cart, lang),
+    )
 
 
 # ── Producto pendiente ────────────────────────────────────────────────────────
@@ -421,7 +514,18 @@ def _confirm(chat_id, message_id, callback_id, user, pending_id, use_offer=False
     pending = _pending_or_expire(chat_id, message_id, callback_id, user, pending_id)
     if pending is None:
         return
-    cart = pending.cart
+    cart = _lock(pending.cart)
+    if cart.status != 'open':
+        db.session.commit()
+        answer_callback_query(callback_id, t('toast_expired', lang))
+        edit_message_reply_markup(chat_id, message_id, {})
+        send_message(chat_id, t('cart_not_active', lang))
+        return
+    # Un doble toque en «Agregar» espera el bloqueo y encuentra el producto ya agregado.
+    if CartPendingItem.query.filter_by(id=pending_id).first() is None:
+        db.session.commit()
+        answer_callback_query(callback_id)
+        return
     line_total = pending.alt_line_total if use_offer and pending.alt_line_total else pending.line_total
     try:
         item = cart_svc.add_item(cart, pending.name, line_total, qty=pending.qty, source=pending.source)
@@ -489,6 +593,11 @@ def _undo(chat_id, message_id, callback_id, user, cart_id):
     lang = _lang_of(user)
     cart = _open_cart_or_expire(chat_id, message_id, callback_id, user, cart_id)
     if cart is None:
+        return
+    cart = _lock(cart)
+    if cart.status != 'open':
+        db.session.commit()
+        send_message(chat_id, t('cart_not_active', lang))
         return
     item = cart_svc.remove_last_item(cart)
     db.session.commit()
@@ -619,6 +728,26 @@ def _drop_confirmed(chat_id, message_id, callback_id, user, cart_id):
     send_message(chat_id, t('cart_discarded', lang))
 
 
+def _set_mode(chat_id, message_id, callback_id, user, cart_id, mode):
+    lang = _lang_of(user)
+    cart = _open_cart_or_expire(chat_id, message_id, callback_id, user, cart_id)
+    if cart is None:
+        return
+    cart.entry_mode = mode
+    db.session.commit()
+    answer_callback_query(callback_id)
+    edit_message_reply_markup(chat_id, message_id, {})
+    send_message(chat_id, t(f'cart_mode_set_{mode}', lang))
+
+
+def _mode_manual(chat_id, message_id, callback_id, user, cart_id):
+    _set_mode(chat_id, message_id, callback_id, user, cart_id, 'manual')
+
+
+def _mode_auto(chat_id, message_id, callback_id, user, cart_id):
+    _set_mode(chat_id, message_id, callback_id, user, cart_id, 'auto')
+
+
 _CALLBACKS = {
     'cartok': _confirm,
     'cartoffer': _confirm_offer,
@@ -631,4 +760,6 @@ _CALLBACKS = {
     'cartmov': _save_movement,
     'cartdrop': _drop,
     'cartdropok': _drop_confirmed,
+    'cartmanual': _mode_manual,
+    'cartauto': _mode_auto,
 }

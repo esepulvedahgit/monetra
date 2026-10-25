@@ -460,3 +460,12 @@ with app.app_context():
     for tbl in ('carts', 'cart_items', 'cart_pending_items'):
         if tbl in inspect(db.engine).get_table_names():
             print(f"Tabla {tbl} verificada.")
+
+    cart_cols = [c['name'] for c in inspect(db.engine).get_columns('carts')]
+    with db.engine.connect() as conn:
+        if 'entry_mode' not in cart_cols:
+            conn.execute(text(
+                "ALTER TABLE carts ADD COLUMN entry_mode VARCHAR(10) NOT NULL DEFAULT 'manual'"
+            ))
+            conn.commit()
+            print("Columna entry_mode agregada a carts.")

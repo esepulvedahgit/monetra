@@ -673,6 +673,8 @@ class Cart(db.Model):
     total          = db.Column(db.Numeric(12, 2), nullable=False, default=0)
     item_count     = db.Column(db.Integer, nullable=False, default=0)
     source         = db.Column(db.String(10), nullable=False, default='telegram')  # 'telegram' | 'web' | 'api'
+    # Cómo agrega productos el bot: 'manual' (confirma cada uno) | 'auto' (los suma al recibirlos).
+    entry_mode     = db.Column(db.String(10), nullable=False, default='manual', server_default='manual')
     # Movimiento generado a partir del carrito (si el usuario lo registró).
     transaction_id = db.Column(db.Integer, db.ForeignKey('transactions.id', ondelete='SET NULL'),
                                nullable=True)

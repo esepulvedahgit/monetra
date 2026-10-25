@@ -123,18 +123,48 @@ MESSAGES = {
     'cart_started': {
         'es': (
             "🛒 <b>Carrito iniciado en {store}</b>\n\n"
-            "Envía cada producto como texto (<code>Leche 1290</code>, <code>2 x 990 yogurt</code>) "
-            "o una foto de la etiqueta de precio. Después de cada producto verás el total."
+            "¿Cómo quieres agregar los productos?\n"
+            "✋ <b>Manual</b>: confirmas cada producto antes de sumarlo.\n"
+            "⚡ <b>Automático</b>: se suma apenas lo envías y ves el total al instante."
         ),
         'en': (
             "🛒 <b>Cart started at {store}</b>\n\n"
-            "Send each product as text (<code>Milk 3.50</code>, <code>2 x 1.20 yogurt</code>) "
-            "or a photo of the price label. You'll see the running total after each product."
+            "How do you want to add products?\n"
+            "✋ <b>Manual</b>: you confirm each product before it's added.\n"
+            "⚡ <b>Automatic</b>: it's added as soon as you send it and you see the total right away."
         ),
     },
+    'btn_cart_mode_manual': {'es': "✋ Manual", 'en': "✋ Manual"},
+    'btn_cart_mode_auto': {'es': "⚡ Automático", 'en': "⚡ Automatic"},
+    'cart_mode_set_manual': {
+        'es': (
+            "✋ <b>Modo manual.</b> Envía cada producto como texto (<code>Leche 1290</code>, "
+            "<code>2 x 990 yogurt</code>) o una foto de la etiqueta de precio. Lo confirmas antes de sumarlo."
+        ),
+        'en': (
+            "✋ <b>Manual mode.</b> Send each product as text (<code>Milk 3.50</code>, "
+            "<code>2 x 1.20 yogurt</code>) or a photo of the price label. You confirm it before it's added."
+        ),
+    },
+    'cart_mode_set_auto': {
+        'es': (
+            "⚡ <b>Modo automático.</b> Envía cada producto como texto (<code>Leche 1290</code>, "
+            "<code>2 x 990 yogurt</code>) o una foto de la etiqueta de precio. Se suma al carrito al instante; "
+            "si algo quedó mal, usa ↩️ Quitar último."
+        ),
+        'en': (
+            "⚡ <b>Automatic mode.</b> Send each product as text (<code>Milk 3.50</code>, "
+            "<code>2 x 1.20 yogurt</code>) or a photo of the price label. It's added right away; "
+            "if something is wrong, use ↩️ Remove last."
+        ),
+    },
+    'cart_mode_manual': {'es': "✋ manual", 'en': "✋ manual"},
+    'cart_mode_auto': {'es': "⚡ automático", 'en': "⚡ automatic"},
+    'btn_cart_switch_manual': {'es': "✋ Cambiar a manual", 'en': "✋ Switch to manual"},
+    'btn_cart_switch_auto': {'es': "⚡ Cambiar a automático", 'en': "⚡ Switch to automatic"},
     'cart_resumed': {
-        'es': "🛒 Tienes un carrito en curso en {store}: <b>{total}</b> ({count} productos). Sigue enviando productos.",
-        'en': "🛒 You have a cart in progress at {store}: <b>{total}</b> ({count} products). Keep sending products.",
+        'es': "🛒 Tienes un carrito en curso en {store}: <b>{total}</b> ({count} productos), modo {mode}. Sigue enviando productos.",
+        'en': "🛒 You have a cart in progress at {store}: <b>{total}</b> ({count} products), {mode} mode. Keep sending products.",
     },
     'cart_item_card': {
         'es': "🛒 <b>Confirmar producto</b>\n\n📝 {name}\n💰 <b>{amount}</b>{extra}\n\n¿Agregar al carrito?",
@@ -146,6 +176,18 @@ MESSAGES = {
     'cart_note_per_kg': {
         'es': "Precio por kg: si pesaste el producto, usa ✏️ Corregir con el monto de la balanza.",
         'en': "Price per kg: if you weighed the product, use ✏️ Fix with the scale amount.",
+    },
+    'cart_note_per_kg_auto': {
+        'es': "Precio por kg: si pesaste el producto, usa ↩️ Quitar último y escribe el monto de la balanza.",
+        'en': "Price per kg: if you weighed the product, use ↩️ Remove last and type the scale amount.",
+    },
+    'cart_auto_offer_line': {
+        'es': "\n🏷 Oferta: <b>{amount}</b>{text}. Se sumó el precio normal; si pagas la oferta, usa ↩️ Quitar último y escríbela.",
+        'en': "\n🏷 Offer: <b>{amount}</b>{text}. The regular price was added; if you pay the offer, use ↩️ Remove last and type it.",
+    },
+    'cart_auto_added': {
+        'es': "✅ <b>{name}</b> — {amount}{extra}\n\n🛒 <b>Total del carrito: {total}</b>\n📦 {count} productos",
+        'en': "✅ <b>{name}</b> — {amount}{extra}\n\n🛒 <b>Cart total: {total}</b>\n📦 {count} products",
     },
     'btn_cart_add': {'es': "✅ Agregar", 'en': "✅ Add"},
     'btn_cart_add_offer': {'es': "🏷 Agregar {amount}", 'en': "🏷 Add {amount}"},
