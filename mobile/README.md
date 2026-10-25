@@ -16,6 +16,7 @@ La app no queda atada a un servidor. En el primer inicio, la pantalla de ingreso
 En los siguientes ingresos ya no se pide el servidor. El botón **Servidor** de la parte superior del ingreso, el desbloqueo rápido y el Perfil permite editarlo. Al cambiarlo se cierra la sesión y se borran el acceso rápido y la caché local, de modo que los tokens de un servidor nunca se envían a otro.
 
 - Solo se acepta **HTTPS con un certificado válido** (por ejemplo, Let's Encrypt). Los certificados autofirmados no funcionan en el APK de producción. HTTP solo se permite en compilaciones de desarrollo (emulador `10.0.2.2`).
+- El config plugin `plugins/with-lets-encrypt-roots` incluye las raíces oficiales de Let's Encrypt (ISRG Root X1, X2, YE e YR) como raíces de confianza adicionales a las del sistema. Así, los certificados ECDSA nuevos, que terminan en ISRG Root X2, funcionan también en Android anterior a 14. El plugin regenera `network_security_config.xml` en cada `expo prebuild`. Si editas la carpeta `android/` a mano, mantén ese archivo igual a lo que genera el plugin (lo comprueba `tests/lets-encrypt-roots.test.ts`).
 - `EXPO_PUBLIC_API_URL` ya no fija el servidor. Solo prellena el campo en el primer inicio. Además, en teléfonos que se actualizan desde la versión 0.1.x con acceso rápido activo, se adopta como servidor guardado para no perder la sesión.
 Los tokens se guardan con SecureStore; las respuestas `GET` se conservan como caché de solo lectura para mostrar la última información conocida sin red. Las mutaciones siempre requieren conexión.
 
