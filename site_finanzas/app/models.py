@@ -289,6 +289,26 @@ class MobileMfaChallenge(db.Model):
                            default=lambda: datetime.now(timezone.utc))
 
 
+class MobileSession(db.Model):
+    """Sesión de la app móvil en un dispositivo.
+
+    Cada inicio de sesión crea una; sus tokens llevan ``sid`` (public_id) y ``sv``
+    (version). Renovar incrementa ``version`` solo en esta sesión, así que el
+    refresh token anterior y sus access tokens dejan de valer sin afectar a los
+    demás dispositivos del usuario.
+    """
+    __tablename__ = 'mobile_sessions'
+
+    id           = db.Column(db.Integer, primary_key=True)
+    user_id      = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    public_id    = db.Column(db.String(32), nullable=False, unique=True)
+    version      = db.Column(db.Integer, nullable=False, default=0)
+    created_at   = db.Column(db.DateTime(timezone=True), nullable=False,
+                             default=lambda: datetime.now(timezone.utc))
+    last_used_at = db.Column(db.DateTime(timezone=True), nullable=True)
+    revoked_at   = db.Column(db.DateTime(timezone=True), nullable=True)
+
+
 class UserEmailConfig(db.Model):
     __tablename__ = 'user_email_config'
     id = db.Column(db.Integer, primary_key=True)
