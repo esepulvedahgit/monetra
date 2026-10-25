@@ -6,6 +6,7 @@ from flask import g, jsonify, request
 from flask_jwt_extended import get_jwt, get_jwt_identity, verify_jwt_in_request
 
 from app import db
+from app.api.mobile_sessions import token_session
 from app.models import ApiToken, User
 
 
@@ -20,8 +21,11 @@ def _account_error(user):
 
 
 def _jwt_is_stale(user):
-    token_version = get_jwt().get("session_version", 0)
-    if token_version != getattr(user, "api_session_version", 0):
+    session = token_session(user)
+    if session is False:
+        return True
+    # Tokens without a device session follow the account-wide version.
+    if session is None and get_jwt().get("session_version", 0) != getattr(user, "api_session_version", 0):
         return True
     valid_after = getattr(user, "api_sessions_valid_after", None)
     if valid_after is None:

@@ -13,7 +13,7 @@ from flask_jwt_extended import (
 )
 
 from app import db, limiter
-from app.api import api_v1
+from app.api import api_v1, mobile_sessions
 from app.api.decorators import (
     _account_error,
     _jwt_is_stale,
@@ -25,8 +25,8 @@ from app.email_service import decrypt_mfa_secret, resolve_ai_config, send_recove
 from app.models import MobileMfaChallenge, PasswordResetToken, User
 
 
-def _token_pair(user):
-    claims = {"session_version": user.api_session_version}
+def _token_pair(user, session):
+    claims = {"session_version": user.api_session_version, **mobile_sessions.claims_for(session)}
     return {
         "access_token": create_access_token(identity=str(user.id), additional_claims=claims),
         "refresh_token": create_refresh_token(identity=str(user.id), additional_claims=claims),
@@ -42,6 +42,11 @@ def _current_refresh_user():
     if account_error:
         return None, account_error
     if _jwt_is_stale(user):
+        # A rotated refresh token used again means a copy exists: close that device session.
+        stale = mobile_sessions.find_session(user)
+        if stale is not None and stale.revoked_at is None:
+            mobile_sessions.revoke(stale)
+            db.session.commit()
         message = "La sesión ya no es válida"
         return None, (jsonify({"error": message, "code": "session_revoked", "message": message}), 401)
     return user, None
@@ -114,11 +119,12 @@ def login():
 
     user.reset_login_lockout()
     user.last_login_at = datetime.now(timezone.utc)
+    session = mobile_sessions.start_session(user)
     db.session.commit()
 
     return jsonify({
         "status": "authenticated",
-        **_token_pair(user),
+        **_token_pair(user, session),
         "user": user_schema(user),
     }), 200
 
@@ -167,12 +173,20 @@ def refresh():
     if error:
         return error
 
-    # A refresh token may be used exactly once. Advancing the per-user session
-    # version invalidates its predecessor and every access token in that chain.
-    user.api_session_version += 1
-    user.api_sessions_valid_after = datetime.now(timezone.utc)
+    # A refresh token may be used exactly once. Advancing the device session
+    # version invalidates its predecessor and every access token in that chain,
+    # without touching the sessions of the user's other devices.
+    session = mobile_sessions.token_session(user)
+    if session is None:
+        # Token issued before device sessions: retire the account-wide chain once
+        # and continue in a session of its own.
+        user.api_session_version += 1
+        user.api_sessions_valid_after = datetime.now(timezone.utc)
+        session = mobile_sessions.start_session(user)
+    else:
+        mobile_sessions.rotate(session)
     db.session.commit()
-    return jsonify(_token_pair(user)), 200
+    return jsonify(_token_pair(user, session)), 200
 
 
 @api_v1.post('/logout')
@@ -181,8 +195,12 @@ def logout():
     user, error = _current_refresh_user()
     if error:
         return error
-    user.api_session_version += 1
-    user.api_sessions_valid_after = datetime.now(timezone.utc)
+    session = mobile_sessions.token_session(user)
+    if session is None:
+        user.api_session_version += 1
+        user.api_sessions_valid_after = datetime.now(timezone.utc)
+    else:
+        mobile_sessions.revoke(session)
     db.session.commit()
     return jsonify({"message": "ok"}), 200
 
@@ -223,8 +241,9 @@ def verify_mfa():
     challenge.consumed_at = datetime.now(timezone.utc)
     user.reset_login_lockout()
     user.last_login_at = datetime.now(timezone.utc)
+    session = mobile_sessions.start_session(user)
     db.session.commit()
-    return jsonify({"status": "authenticated", **_token_pair(user), "user": user_schema(user)}), 200
+    return jsonify({"status": "authenticated", **_token_pair(user, session), "user": user_schema(user)}), 200
 
 
 def _password_error(password):
@@ -261,5 +280,6 @@ def change_password():
     user.set_password(new_password)
     user.api_sessions_valid_after = datetime.now(timezone.utc)
     user.api_session_version += 1
+    mobile_sessions.revoke_all(user)
     db.session.commit()
     return jsonify({"message": "Contraseña actualizada", "code": "password_changed"}), 200

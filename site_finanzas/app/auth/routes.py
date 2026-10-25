@@ -16,6 +16,7 @@ from flask_babel import gettext as _
 from flask_login import current_user, login_user, logout_user
 
 from app import db, limiter
+from app.api.mobile_sessions import revoke_all as revoke_mobile_sessions
 from app.audit import events as ev
 from app.audit.logger import log_event
 from app.auth import auth
@@ -349,6 +350,7 @@ def reset_password(token):
         # bearer/refresh token issued before it must no longer be accepted.
         user.api_sessions_valid_after = datetime.now(timezone.utc)
         user.api_session_version += 1
+        revoke_mobile_sessions(user)
         token_record.used_at = datetime.now(timezone.utc)
 
         PasswordResetToken.query.filter(
