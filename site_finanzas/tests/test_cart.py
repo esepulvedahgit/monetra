@@ -302,6 +302,29 @@ class TestTelegramCartFlow:
             cart = svc.get_open_cart(cart_user_id)
             assert cart.store_name == 'Unimarc' and cart.id != previous_id
 
+    def test_new_store_button_with_recent_stores(self, app, cart_user_id, tg):
+        run, _send, buttons = tg
+        with app.app_context():
+            previous = svc.start_cart(cart_user_id, 'Unimarc')
+            svc.add_item(previous, 'Pan', Decimal(2500))
+            svc.finalize(previous)
+            _db.session.commit()
+        run(_text('/carrito'))
+        assert 'Nuevo supermercado' in buttons.call_args.args[1]
+        assert 'cartnewstore:0' in _buttons(buttons)
+
+        run(_callback('cartnewstore:0'))
+        assert 'Escribe el nombre del supermercado' in buttons.call_args.args[1]
+        assert _buttons(buttons) == ['cartnostart:0']
+        run(_text('Tottus'))
+        with app.app_context():
+            assert svc.get_open_cart(cart_user_id).store_name == 'Tottus'
+
+    def test_no_new_store_button_without_recent_stores(self, app, cart_user_id, tg):
+        run, _send, buttons = tg
+        run(_text('/carrito'))
+        assert _buttons(buttons) == ['cartnostart:0']
+
     def test_cancel_store_prompt(self, app, cart_user_id, tg):
         run, send, _buttons_mock = tg
         run(_text('/carrito'))

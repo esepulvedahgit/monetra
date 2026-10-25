@@ -153,8 +153,13 @@ def _ask_store_name(chat_id: int, user: User, link: TelegramLink, invalid: bool 
 
     recent = cart_svc.recent_store_carts(user.id)
     buttons = [[{'text': f"🏪 {c.store_name}"[:60], 'callback_data': f'cartstore:{c.id}'}] for c in recent]
+    if recent:
+        buttons.append([{'text': t('btn_cart_new_store', lang), 'callback_data': 'cartnewstore:0'}])
     buttons.append([{'text': t('btn_cart_cancel_start', lang), 'callback_data': 'cartnostart:0'}])
-    key = 'cart_store_invalid' if invalid else 'cart_ask_store'
+    if invalid:
+        key = 'cart_store_invalid'
+    else:
+        key = 'cart_ask_store_recent' if recent else 'cart_ask_store'
     send_message_with_buttons(chat_id, t(key, lang), buttons)
 
 
@@ -447,7 +452,7 @@ def handle_callback(chat_id: int, message_id: int, callback_id: str, data: str) 
         answer_callback_query(callback_id)
         return
 
-    if action in ('cartstore', 'cartnostart'):
+    if action in ('cartstore', 'cartnostart', 'cartnewstore'):
         _store_choice(chat_id, message_id, callback_id, user, link, action, obj_id)
         return
 
@@ -459,10 +464,22 @@ def handle_callback(chat_id: int, message_id: int, callback_id: str, data: str) 
 
 
 def _store_choice(chat_id, message_id, callback_id, user, link, action, cart_id):
-    """Botones de la pregunta del supermercado: reusar uno anterior o cancelar."""
+    """Botones de la pregunta del supermercado: reusar uno anterior, nombrar uno nuevo o cancelar."""
     lang = _lang_of(user)
     answer_callback_query(callback_id)
     edit_message_reply_markup(chat_id, message_id, {})
+    if action == 'cartnewstore':
+        if cart_svc.get_open_cart(user.id) is not None:
+            start(chat_id, user)
+            return
+        # Renueva la espera del nombre: el siguiente texto será el supermercado nuevo.
+        link.pending_type = STORE_PROMPT_STATE
+        link.state_updated_at = datetime.now(timezone.utc)
+        db.session.commit()
+        send_message_with_buttons(chat_id, t('cart_new_store_prompt', lang), [[
+            {'text': t('btn_cart_cancel_start', lang), 'callback_data': 'cartnostart:0'},
+        ]])
+        return
     if action == 'cartnostart':
         _clear_store_prompt(link)
         db.session.commit()
