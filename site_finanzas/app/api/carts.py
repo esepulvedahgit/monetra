@@ -1,8 +1,9 @@
 """API de Mi Carrito (/api/v1/carts) para la app móvil.
 
 Mismas reglas que el bot y la web (app/cart/service.py). El escaneo de una
-etiqueta de precio solo *sugiere* el producto: el cliente lo confirma creando el
-ítem, igual que la confirmación previa del bot.
+etiqueta de precio *sugiere* el producto para que el cliente lo confirme creando
+el ítem, o con ``?add=1`` lo agrega de inmediato (verificación automática, como el
+modo automático del bot). La imagen se procesa en memoria y nunca se guarda.
 """
 from datetime import date as date_type
 from decimal import Decimal, InvalidOperation
@@ -264,13 +265,12 @@ def add_cart_item(cart_id):
     if data is None:
         return _error('Se requiere JSON')
 
-    key = request.headers.get('Idempotency-Key', '').strip()
-    if len(key) > _MAX_KEY_LEN:
-        return _error('Idempotency-Key inválido')
-    if key:
-        previous = CartItem.query.filter_by(cart_id=cart.id, client_request_id=key).first()
-        if previous:
-            return jsonify({'item': cart_item_schema(previous), 'cart': cart_schema(cart)}), 200
+    key, error = _idempotency_key()
+    if error:
+        return error
+    replay = _replayed_item(cart, key)
+    if replay:
+        return replay
 
     name = data.get('name')
     if not isinstance(name, str) or not name.strip() or len(name) > 200:
@@ -285,9 +285,35 @@ def add_cart_item(cart_id):
     if price is None:
         return _error('Monto inválido')
     line_total = price * qty if has_unit else price
+    return _add_locked(cart, key, name=name, line_total=line_total, qty=qty, source='api')
 
+
+def _idempotency_key():
+    key = request.headers.get('Idempotency-Key', '').strip()
+    if len(key) > _MAX_KEY_LEN:
+        return None, _error('Idempotency-Key inválido')
+    return key or None, None
+
+
+def _replayed_item(cart, key, **extra):
+    """Respuesta del ítem ya creado con ``key`` (reintento del cliente), o None."""
+    if not key:
+        return None
+    previous = CartItem.query.filter_by(cart_id=cart.id, client_request_id=key).first()
+    if previous is None:
+        return None
+    return jsonify({'item': cart_item_schema(previous), 'cart': cart_schema(cart), **extra}), 200
+
+
+def _add_locked(cart, key, *, name, line_total, qty, source, **extra):
+    """Agrega el ítem con el carrito bloqueado, para que envíos simultáneos no desfasen el total."""
+    svc.lock_cart(cart)
+    replay = _replayed_item(cart, key, **extra)
+    if replay:
+        db.session.commit()
+        return replay
     try:
-        item = svc.add_item(cart, name, line_total, qty=qty, source='api', client_request_id=key or None)
+        item = svc.add_item(cart, name, line_total, qty=qty, source=source, client_request_id=key)
         db.session.commit()
     except svc.CartError as exc:
         db.session.rollback()
@@ -295,11 +321,11 @@ def add_cart_item(cart_id):
     except IntegrityError:
         # Dos reintentos simultáneos con la misma clave: devolver el que ganó.
         db.session.rollback()
-        previous = CartItem.query.filter_by(cart_id=cart.id, client_request_id=key).first()
-        if previous:
-            return jsonify({'item': cart_item_schema(previous), 'cart': cart_schema(cart)}), 200
+        replay = _replayed_item(cart, key, **extra)
+        if replay:
+            return replay
         raise
-    return jsonify({'item': cart_item_schema(item), 'cart': cart_schema(cart)}), 201
+    return jsonify({'item': cart_item_schema(item), 'cart': cart_schema(cart), **extra}), 201
 
 
 @api_v1.delete('/carts/<int:cart_id>/items/<int:item_id>')
@@ -308,8 +334,10 @@ def delete_cart_item(cart_id, item_id):
     cart, error = _cart_or_404(get_current_api_user(), cart_id)
     if error:
         return error
+    svc.lock_cart(cart)
     item = CartItem.query.filter_by(id=item_id, cart_id=cart.id).first()
     if item is None:
+        db.session.commit()
         return _error('Producto no encontrado', 'not_found', 404)
     try:
         svc.remove_item(cart, item)
@@ -326,7 +354,10 @@ def delete_cart_item(cart_id, item_id):
 def scan_price_tag(cart_id):
     """Lee la foto de una etiqueta (multipart, campo ``image``) y sugiere nombre y precio.
 
-    No agrega nada: el cliente muestra la sugerencia y la confirma con POST /items.
+    Sin ``add`` no agrega nada: el cliente muestra la sugerencia y la confirma con
+    POST /items. Con ``?add=1`` agrega el producto al precio normal (la oferta solo
+    se informa) y responde como POST /items más la lectura en ``scan``; acepta
+    ``Idempotency-Key`` y un reintento no vuelve a consumir la IA.
     """
     from app.email_service import consume_shared_ai_quota, resolve_ai_config
     from app.telegram.image_utils import validate_and_normalize_image
@@ -338,6 +369,13 @@ def scan_price_tag(cart_id):
         return error
     if cart.status != 'open':
         return _cart_error(svc.CartError('cart_closed'))
+    add = request.args.get('add') in ('1', 'true')
+    key, error = _idempotency_key() if add else (None, None)
+    if error:
+        return error
+    replay = _replayed_item(cart, key, scan=None)
+    if replay:
+        return replay
 
     upload = request.files.get('image')
     if upload is None:
@@ -371,13 +409,18 @@ def scan_price_tag(cart_id):
 
     unit = (result.get('unit') or 'unit').lower()
     name = result.get('name')
-    return jsonify({
-        'name': name.strip()[:200] if isinstance(name, str) and name.strip() else None,
+    name = name.strip()[:200] if isinstance(name, str) and name.strip() else None
+    scan = {
+        'name': name,
         'price': float(price.quantize(Decimal('0.01'))),
         'offer_price': float(offer.quantize(Decimal('0.01'))) if offer is not None else None,
         'offer_text': result.get('offer_text') if offer is not None else None,
         'unit': 'kg' if unit == 'kg' else 'unit',
-    }), 200
+    }
+    if not add:
+        return jsonify(scan), 200
+    return _add_locked(cart, key, name=name or 'Producto', line_total=price.quantize(Decimal('0.01')),
+                       qty=1, source='photo', scan=scan)
 
 
 # ── Finalizar y movimiento ────────────────────────────────────────────────────

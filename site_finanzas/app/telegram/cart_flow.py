@@ -309,18 +309,6 @@ def _already_added(cart, message_id: int | None) -> bool:
     return key is not None and CartItem.query.filter_by(cart_id=cart.id, client_request_id=key).first() is not None
 
 
-def _lock(cart):
-    """Bloquea la fila del carrito hasta el próximo commit y recarga sus productos.
-
-    El commit previo cierra la transacción en curso: así, tras esperar el bloqueo,
-    la lectura de productos ve lo que otro mensaje (p. ej. otra foto del mismo álbum)
-    acaba de guardar y el total no pierde líneas.
-    """
-    db.session.commit()
-    db.session.refresh(cart, with_for_update=True)
-    return cart
-
-
 def _take_item(chat_id: int, user: User, cart, message_id: int | None, **item) -> None:
     if cart.entry_mode == 'auto':
         _auto_add(chat_id, user, cart, message_id, **item)
@@ -337,7 +325,7 @@ def _auto_add(chat_id: int, user: User, cart, message_id: int | None, *, name: s
     para que el usuario la corrija con «Quitar último» si fue la que pagó.
     """
     lang = _lang_of(user)
-    cart = _lock(cart)
+    cart = cart_svc.lock_cart(cart)
     if cart.status != 'open':
         db.session.commit()
         send_message(chat_id, t('cart_not_active', lang))
@@ -531,7 +519,7 @@ def _confirm(chat_id, message_id, callback_id, user, pending_id, use_offer=False
     pending = _pending_or_expire(chat_id, message_id, callback_id, user, pending_id)
     if pending is None:
         return
-    cart = _lock(pending.cart)
+    cart = cart_svc.lock_cart(pending.cart)
     if cart.status != 'open':
         db.session.commit()
         answer_callback_query(callback_id, t('toast_expired', lang))
@@ -611,7 +599,7 @@ def _undo(chat_id, message_id, callback_id, user, cart_id):
     cart = _open_cart_or_expire(chat_id, message_id, callback_id, user, cart_id)
     if cart is None:
         return
-    cart = _lock(cart)
+    cart = cart_svc.lock_cart(cart)
     if cart.status != 'open':
         db.session.commit()
         send_message(chat_id, t('cart_not_active', lang))

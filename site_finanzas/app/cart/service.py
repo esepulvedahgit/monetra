@@ -154,6 +154,18 @@ def recent_store_carts(user_id: int, limit: int = 3) -> list[Cart]:
     return result
 
 
+def lock_cart(cart: Cart) -> Cart:
+    """Bloquea la fila del carrito hasta el próximo commit y recarga sus productos.
+
+    Excepción a la regla del módulo: confirma la transacción en curso. Así, tras
+    esperar el bloqueo, la lectura de productos ve lo que otra petición simultánea
+    (otra foto, un doble toque) acaba de guardar y el total no pierde líneas.
+    """
+    db.session.commit()
+    db.session.refresh(cart, with_for_update=True)
+    return cart
+
+
 def _recalc(cart: Cart) -> None:
     items = list(cart.items)
     cart.total = sum((Decimal(i.line_total) for i in items), start=Decimal(0))

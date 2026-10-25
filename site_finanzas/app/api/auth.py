@@ -21,7 +21,7 @@ from app.api.decorators import (
     get_current_api_user,
 )
 from app.api.schemas import user_schema
-from app.email_service import decrypt_mfa_secret, send_recovery_email
+from app.email_service import decrypt_mfa_secret, resolve_ai_config, send_recovery_email
 from app.models import MobileMfaChallenge, PasswordResetToken, User
 
 
@@ -191,7 +191,8 @@ def logout():
 @api_login_required
 def me():
     user = get_current_api_user()
-    return jsonify(user_schema(user)), 200
+    # La sección Súper de la app solo se muestra con IA propia o compartida por el admin.
+    return jsonify({**user_schema(user), 'cart_scanner_available': resolve_ai_config(user) is not None}), 200
 
 
 @api_v1.post('/mfa/verify')
