@@ -9,6 +9,10 @@ npm ci
 EXPO_PUBLIC_API_URL=http://10.0.2.2:5000/api/v1 npm run android
 ```
 
+## Tema
+
+En **Perfil → Apariencia** se elige el tema: **Sistema**, que es el predeterminado y sigue el modo del teléfono, **Claro** u **Oscuro**. La elección se guarda en el teléfono. La paleta oscura replica el tema oscuro predeterminado de la web (`site_finanzas/app/static/css/themes.css`). Las pantallas leen los colores con `useTheme()` y `useThemedStyles()` de `src/theme/theme.tsx`; no importes `colors` desde `tokens.ts` directamente en la UI.
+
 ## Servidor
 
 La app no queda atada a un servidor. En el primer inicio, la pantalla de ingreso pide la **dirección del servidor**, el correo y la contraseña. Puedes escribir solo el dominio (`monetra.midominio.com`) o una subruta (`https://midominio.com/monetra`), y la app agrega `/api/v1`. Antes de enviar las credenciales, la app comprueba que la dirección responda como una API de Monetra. El servidor queda guardado solo después de un ingreso exitoso.

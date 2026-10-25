@@ -134,7 +134,9 @@ api.interceptors.response.use(async (response) => {
   request._retried = true;
   const session = request._session ?? apiSession.capture();
   const tokenSession = request._tokenSession ?? currentTokenSession();
-  if (!session.accountId || !apiSession.canRetry(session) || !isCurrentTokenSession(tokenSession)) return Promise.reject(staleSessionError());
+  // Without a signed-in account (login, MFA) a 401 is the server's answer, e.g. wrong credentials.
+  if (!session.accountId) return Promise.reject(error);
+  if (!apiSession.canRetry(session) || !isCurrentTokenSession(tokenSession)) return Promise.reject(staleSessionError());
   if (!refreshing || refreshing.session.generation !== session.generation) {
     const promise = refreshAccessToken(session, tokenSession).finally(() => {
       if (refreshing?.session.generation === session.generation) refreshing = undefined;

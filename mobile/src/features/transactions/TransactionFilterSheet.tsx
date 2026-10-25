@@ -3,7 +3,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { Category, Transaction } from '../../api/types';
 import { Icon } from '../../components/Icon';
-import { colors, radii, spacing } from '../../theme/tokens';
+import { radii, spacing } from '../../theme/tokens';
+import { useTheme, useThemedStyles, type ThemeColors } from '../../theme/theme';
 
 type Props = {
   visible: boolean;
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export function TransactionFilterSheet({ visible, categories, type, selectedCategoryId, onSelect, onClose }: Props) {
+  const { colors } = useTheme(); const styles = useThemedStyles(createStyles); 
   const insets = useSafeAreaInsets();
   const selectable = categories.filter((category) => type === 'all' || category.type === type);
   const select = (categoryId: number | null) => { onSelect(categoryId); onClose(); };
@@ -58,10 +60,10 @@ export function TransactionFilterSheet({ visible, categories, type, selectedCate
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(49,48,46,.28)' },
-  sheet: { maxHeight: '76%', paddingTop: spacing.sm, backgroundColor: colors.background, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
-  handle: { alignSelf: 'center', width: 36, height: 4, borderRadius: radii.pill, backgroundColor: '#d8d4cf', marginBottom: spacing.md },
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
+  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim },
+  sheet: { maxHeight: '76%', paddingTop: spacing.sm, backgroundColor: colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
+  handle: { alignSelf: 'center', width: 36, height: 4, borderRadius: radii.pill, backgroundColor: colors.track, marginBottom: spacing.md },
   header: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.borderSoft },
   title: { color: colors.text, fontSize: 20, fontWeight: '800' },
   copy: { color: colors.muted, fontSize: 13, marginTop: 4 },

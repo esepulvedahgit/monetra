@@ -1,6 +1,7 @@
 export const colors = {
   background: '#ffffff',
   surface: '#f6f5f4',
+  card: '#ffffff',
   surfaceBlue: '#f2f9ff',
   text: '#31302e',
   textStrong: '#000000',
@@ -14,7 +15,49 @@ export const colors = {
   warning: '#dd5b00',
   danger: '#dc2626',
   onAccent: '#ffffff',
+  successSoft: '#e8faf0',
+  warningSoft: '#fff1ed',
+  dangerSoft: '#fff0f0',
+  track: '#e2dfdc',
+  chartTrack: '#eeeae7',
+  balanceSurface: '#31302e',
+  onBalance: '#ffffff',
+  onBalanceMuted: 'rgba(255,255,255,.72)',
+  balancePositive: '#d9f6df',
+  scrim: 'rgba(49,48,46,.35)',
 } as const;
+
+export type ThemeColors = { readonly [K in keyof typeof colors]: string };
+
+/** Mirrors the web app's default "dark" theme (site_finanzas/app/static/css/themes.css). */
+export const darkColors: ThemeColors = {
+  background: '#0A1428',
+  surface: '#102040',
+  card: '#0D1B35',
+  surfaceBlue: 'rgba(0,200,150,0.12)',
+  text: '#FFFFFF',
+  textStrong: '#FFFFFF',
+  muted: '#B0BEC5',
+  meta: '#78909C',
+  border: 'rgba(255,255,255,0.08)',
+  borderSoft: 'rgba(255,255,255,0.05)',
+  accent: '#00C896',
+  accentPressed: '#00A67E',
+  success: '#00C896',
+  warning: '#F2C94C',
+  danger: '#EF4444',
+  onAccent: '#070E1E',
+  successSoft: 'rgba(0,200,150,0.14)',
+  warningSoft: 'rgba(242,201,76,0.14)',
+  dangerSoft: 'rgba(239,68,68,0.14)',
+  track: 'rgba(255,255,255,0.10)',
+  chartTrack: 'rgba(255,255,255,0.08)',
+  balanceSurface: '#0D2535',
+  onBalance: '#FFFFFF',
+  onBalanceMuted: 'rgba(255,255,255,.72)',
+  balancePositive: '#1FE0B0',
+  scrim: 'rgba(0,0,0,.6)',
+};
 
 export const spacing = {
   xs: 4,

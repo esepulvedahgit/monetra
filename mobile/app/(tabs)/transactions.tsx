@@ -6,7 +6,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { api } from '../../src/api/client';
 import type { Category, Transaction } from '../../src/api/types';
 import { Loading, Screen } from '../../src/ui';
-import { colors, radii, shadows, spacing } from '../../src/theme/tokens';
+import { radii, shadows, spacing } from '../../src/theme/tokens';
+import { useTheme, useThemedStyles, type ThemeColors } from '../../src/theme/theme';
 import { useSession } from '../../src/auth/session';
 import { AppHeader, EmptyState, ErrorState, PrimaryButton } from '../../src/components/FinanceUi';
 import { Icon } from '../../src/components/Icon';
@@ -21,6 +22,7 @@ const dateLabel = (date: string) => new Intl.DateTimeFormat('es-CL', { day: 'num
 const typeLabel = (type: 'all' | Transaction['type']) => type === 'all' ? 'Todos' : type === 'expense' ? 'Gastos' : 'Ingresos';
 
 export default function TransactionsScreen() {
+  const { colors } = useTheme(); const styles = useThemedStyles(createStyles);
   const { create, year, month } = useLocalSearchParams<{ create?: string; year?: string; month?: string }>();
   const period = periodFromRouteParams({ year, month });
   const { user } = useSession();
@@ -104,7 +106,7 @@ export default function TransactionsScreen() {
               <Text style={styles.day}>{dateLabel(group.date)}</Text>
               {group.transactions.map((item) => (
                 <View key={item.id} style={styles.row}>
-                  <View style={[styles.rowIcon, { backgroundColor: item.type === 'income' ? '#e8faf0' : '#fff1ed' }]}>
+                  <View style={[styles.rowIcon, { backgroundColor: item.type === 'income' ? colors.successSoft : colors.warningSoft }]}>
                     <Icon name={item.type === 'income' ? 'income' : 'expense'} color={item.type === 'income' ? colors.success : colors.warning} />
                   </View>
                   <View style={styles.rowCopy}>
@@ -132,7 +134,7 @@ export default function TransactionsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   head: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
   headCopy: { flex: 1, minWidth: 0 },
   eyebrow: { color: colors.muted, fontSize: 12, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
@@ -143,19 +145,19 @@ const styles = StyleSheet.create({
   filterBar: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   typeFilters: { flex: 1, flexDirection: 'row', padding: 3, backgroundColor: colors.surface, borderRadius: radii.md },
   filter: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 6 },
-  filterActive: { backgroundColor: colors.background, ...shadows.card },
+  filterActive: { backgroundColor: colors.card, ...shadows.card },
   filterText: { color: colors.muted, fontSize: 12, fontWeight: '700' },
   filterTextActive: { color: colors.accent },
   filterButton: { width: 44, height: 44, borderWidth: 1, borderColor: colors.border, borderRadius: radii.md, alignItems: 'center', justifyContent: 'center' },
   filterButtonActive: { borderColor: colors.accent, backgroundColor: colors.surfaceBlue },
-  filterBadge: { position: 'absolute', top: 8, right: 8, width: 7, height: 7, borderRadius: radii.pill, backgroundColor: colors.accent, borderWidth: 1.5, borderColor: colors.background },
+  filterBadge: { position: 'absolute', top: 8, right: 8, width: 7, height: 7, borderRadius: radii.pill, backgroundColor: colors.accent, borderWidth: 1.5, borderColor: colors.card },
   activeFilter: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 7, paddingVertical: 7, paddingHorizontal: 10, backgroundColor: colors.surfaceBlue, borderRadius: radii.pill },
   dot: { width: 8, height: 8, borderRadius: radii.pill },
   activeFilterText: { color: colors.accent, fontSize: 12, fontWeight: '800' },
   count: { color: colors.muted, fontSize: 13, textTransform: 'capitalize' },
   dayGroup: { gap: spacing.sm },
   day: { color: colors.muted, fontSize: 12, fontWeight: '800', textTransform: 'capitalize', marginTop: spacing.xs },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: radii.lg, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, ...shadows.card },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadows.card },
   rowIcon: { flexShrink: 0, width: 36, height: 36, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   rowCopy: { flex: 1, minWidth: 0 },
   description: { color: colors.text, fontWeight: '800' },
