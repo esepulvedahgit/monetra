@@ -13,6 +13,7 @@ vi.mock('expo-secure-store', () => ({
 }));
 
 import { api, setReadCacheAccount } from '../src/api/client';
+import { applyServerUrl } from '../src/config/serverConfig';
 import { beginTokenSession } from '../src/auth/sessionTokens';
 import { clearTokens, configureQuickAccessVault, enableQuickAccess, getTokens, lockQuickAccess, unlockQuickAccess } from '../src/auth/tokens';
 import { lockQuickAccessAfterInactivity, restoreQuickAccessSession } from '../src/auth/quickAccessLifecycle';
@@ -20,6 +21,7 @@ import { lockQuickAccessAfterInactivity, restoreQuickAccessSession } from '../sr
 describe('quick access with the API client', () => {
   beforeEach(async () => {
     await clearTokens();
+    applyServerUrl('https://monetra.example.com/api/v1');
     beginTokenSession();
     setReadCacheAccount(null);
   });

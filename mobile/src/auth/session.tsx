@@ -15,6 +15,7 @@ import { SessionActivityTracker } from './sessionActivity';
 import { subscribeSessionExpiry } from './sessionExpiry';
 import { initializeQuickAccessLock, lockQuickAccessAfterInactivity, restoreQuickAccessSession, shouldKeepQuickAccessLocked } from './quickAccessLifecycle';
 import { shouldDiscardQuickAccessAfterStatusCheck } from './quickAccessStatus';
+import { loadServerUrl, saveServerUrl, subscribeServerUrl, suggestedServerUrl, applyServerUrl } from '../config/serverConfig';
 
 type SessionContextValue = {
   user: User | null;
@@ -22,6 +23,9 @@ type SessionContextValue = {
   locked: boolean;
   quickAccessSupported: boolean;
   quickAccessEnabled: boolean;
+  serverUrl: string | null;
+  /** Ends any session first: tokens issued by one server are never sent to another. */
+  changeServer: (url: string) => Promise<void>;
   signIn: (tokens: Tokens, user: User) => Promise<void>;
   signOut: () => Promise<void>;
   reloadUser: () => Promise<void>;
@@ -47,6 +51,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
   const [locked, setLocked] = useState(false);
   const [quickAccessSupported, setQuickAccessSupported] = useState(false);
   const [quickAccessEnabled, setQuickAccessEnabled] = useState(false);
+  const [serverUrl, setServerUrl] = useState<string | null>(null);
   const endingSession = useRef(false);
   const unlockingSession = useRef<Promise<void> | null>(null);
   const activityTracker = useRef(new SessionActivityTracker());
@@ -96,9 +101,25 @@ export function SessionProvider({ children }: PropsWithChildren) {
     }
   }, [endSession, queryClient, saveUser]);
 
+  useEffect(() => subscribeServerUrl(setServerUrl), []);
+
   useEffect(() => { void (async () => {
     const vault = await getDeviceCredentialVaultStatus();
+    let server = await loadServerUrl();
+    if (!server && vault.enrolled && suggestedServerUrl) {
+      // Builds before the server setting talked only to their build-time URL,
+      // so an existing quick-access vault belongs to that server.
+      await saveServerUrl(suggestedServerUrl).catch(() => applyServerUrl(suggestedServerUrl));
+      server = suggestedServerUrl;
+    }
     setQuickAccessSupported(vault.supported);
+    if (!server) {
+      // Nothing can be restored without a server; clear leftovers from older builds.
+      if (vault.enrolled) await clearDeviceCredentialVault().catch(() => undefined);
+      await saveUser(null).catch(() => undefined);
+      setReady(true);
+      return;
+    }
     if (vault.enrolled && vault.quickAccessStatusToken) {
       try {
         await validateQuickAccessStatus(vault.quickAccessStatusToken);
@@ -180,7 +201,17 @@ export function SessionProvider({ children }: PropsWithChildren) {
   }, [lockForInactivity, locked, ready, user]);
 
   const value = useMemo<SessionContextValue>(() => ({
-    user, ready, locked, quickAccessSupported, quickAccessEnabled,
+    user, ready, locked, quickAccessSupported, quickAccessEnabled, serverUrl,
+    changeServer: async (url) => {
+      if (url === serverUrl) return;
+      const tokens = await getSessionTokens();
+      if (tokens) {
+        try { await api.post('/logout', undefined, { headers: { Authorization: `Bearer ${tokens.refreshToken}` } }); } catch { /* local logout still succeeds */ }
+      }
+      await clearDeviceCredentialVault().catch(() => undefined);
+      await endSession();
+      await saveServerUrl(url);
+    },
     signIn: async (tokens, account) => {
       const tokenSession = beginTokenSession();
       setReadCacheAccount(account.id);
@@ -272,7 +303,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
       })();
       return unlockingSession.current;
     },
-  }), [endSession, locked, queryClient, quickAccessEnabled, quickAccessSupported, ready, saveUser, user]);
+  }), [endSession, locked, queryClient, quickAccessEnabled, quickAccessSupported, ready, saveUser, serverUrl, user]);
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
 
