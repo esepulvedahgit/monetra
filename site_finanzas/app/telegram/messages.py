@@ -294,6 +294,15 @@ MESSAGES = {
         'es': "🏪 <b>¿En qué supermercado estás?</b>\n\nEscribe el nombre (ej: <code>Lider</code>, <code>Jumbo</code>) o elige uno reciente.",
         'en': "🏪 <b>Which store are you at?</b>\n\nType the name (e.g. <code>Walmart</code>) or pick a recent one.",
     },
+    'cart_ask_store_recent': {
+        'es': "🏪 <b>¿En qué supermercado estás?</b>\n\nElige uno reciente o toca ➕ <b>Nuevo supermercado</b>.",
+        'en': "🏪 <b>Which store are you at?</b>\n\nPick a recent one or tap ➕ <b>New store</b>.",
+    },
+    'btn_cart_new_store': {'es': "➕ Nuevo supermercado", 'en': "➕ New store"},
+    'cart_new_store_prompt': {
+        'es': "✍️ Escribe el nombre del supermercado (ej: <code>Lider</code>, <code>Jumbo</code>).",
+        'en': "✍️ Type the store name (e.g. <code>Walmart</code>).",
+    },
     'cart_store_invalid': {
         'es': "✍️ Necesito el nombre del supermercado para empezar el carrito. Escríbelo como texto (ej: <code>Lider</code>).",
         'en': "✍️ I need the store name to start the cart. Type it as text (e.g. <code>Walmart</code>).",
