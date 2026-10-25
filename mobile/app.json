@@ -3,7 +3,7 @@
     "name": "Monetra",
     "slug": "monetra-mobile",
     "scheme": "monetra",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "icon": "./assets/monetra-app-icon.png",
     "splash": {
       "image": "./assets/monetra-app-icon.png",
@@ -15,7 +15,7 @@
     "android": {
       "package": "com.monetra.mobile",
       "allowBackup": false,
-      "versionCode": 12,
+      "versionCode": 13,
       "adaptiveIcon": {
         "foregroundImage": "./assets/monetra-app-icon.png",
         "backgroundColor": "#0F1117"
@@ -24,6 +24,14 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Monetra usa la cámara para leer las etiquetas de precio en el supermercado.",
+          "microphonePermission": false,
+          "photosPermission": false
+        }
+      ],
       "./plugins/with-lets-encrypt-roots/index.cjs"
     ],
     "experiments": {
