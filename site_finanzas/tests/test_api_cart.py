@@ -257,3 +257,85 @@ class TestCartScanApi:
         r = client.post(f'/api/v1/carts/{cart["id"]}/scan', headers=headers, data={},
                         content_type='multipart/form-data')
         assert r.status_code == 400
+
+
+class TestCartScanAddApi:
+    """Verificación automática de la app: la foto agrega el producto sin confirmar."""
+
+    def _scan_add(self, client, headers, cart_id, key=None):
+        if key:
+            headers = {**headers, 'Idempotency-Key': key}
+        return client.post(f'/api/v1/carts/{cart_id}/scan?add=1', headers=headers,
+                           data={'image': (io.BytesIO(b'fake'), 'tag.jpg')},
+                           content_type='multipart/form-data')
+
+    def _ai(self, user_id, result):
+        return (patch('app.email_service.resolve_ai_config', return_value=SimpleNamespace(user_id=user_id)),
+                patch('app.telegram.image_utils.validate_and_normalize_image', return_value=(b'img', 'image/jpeg')),
+                patch('app.telegram.providers.extract_price_tag', return_value=result))
+
+    def test_scan_add_adds_regular_price_and_reports_offer(self, client, api_user):
+        user_id, headers = api_user
+        cart = _start(client, headers)
+        config, image, extract = self._ai(user_id, {
+            'name': 'Aceite 1L', 'price': 3990, 'offer_price': 3490, 'offer_text': 'Con tarjeta', 'unit': 'unit',
+        })
+        with config, image, extract:
+            r = self._scan_add(client, headers, cart['id'], key='photo-1')
+        assert r.status_code == 201
+        body = r.get_json()
+        assert body['item']['name'] == 'Aceite 1L' and body['item']['line_total'] == 3990.0
+        assert body['item']['source'] == 'photo'
+        assert body['cart']['total'] == 3990.0 and body['cart']['item_count'] == 1
+        assert body['scan']['offer_price'] == 3490.0
+
+    def test_scan_add_retry_does_not_duplicate_or_reuse_ai(self, client, api_user):
+        user_id, headers = api_user
+        cart = _start(client, headers)
+        config, image, extract = self._ai(user_id, {'name': None, 'price': 2500, 'unit': 'unit'})
+        with config, image, extract as extract_mock:
+            first = self._scan_add(client, headers, cart['id'], key='photo-2')
+            again = self._scan_add(client, headers, cart['id'], key='photo-2')
+        assert first.status_code == 201 and again.status_code == 200
+        assert first.get_json()['item']['name'] == 'Producto'
+        assert again.get_json()['item']['id'] == first.get_json()['item']['id']
+        assert extract_mock.call_count == 1
+        detail = client.get(f'/api/v1/carts/{cart["id"]}', headers=headers).get_json()
+        assert detail['item_count'] == 1 and detail['total'] == 2500.0
+
+    def test_scan_add_without_price_adds_nothing(self, client, api_user):
+        user_id, headers = api_user
+        cart = _start(client, headers)
+        with patch('app.email_service.resolve_ai_config', return_value=SimpleNamespace(user_id=user_id)), \
+                patch('app.telegram.image_utils.validate_and_normalize_image', return_value=(b'img', 'image/jpeg')), \
+                patch('app.telegram.providers.extract_price_tag', side_effect=ValueError('no price')):
+            r = self._scan_add(client, headers, cart['id'], key='photo-3')
+        assert r.status_code == 422
+        assert client.get(f'/api/v1/carts/{cart["id"]}', headers=headers).get_json()['item_count'] == 0
+
+    def test_scan_add_on_finalized_cart(self, client, api_user):
+        _uid, headers = api_user
+        cart = _start(client, headers)
+        _add(client, headers, cart['id'], name='Pan', line_total=2500)
+        client.post(f'/api/v1/carts/{cart["id"]}/finalize', json={}, headers=headers)
+        r = self._scan_add(client, headers, cart['id'], key='photo-4')
+        assert r.status_code == 409 and r.get_json()['code'] == 'cart_closed'
+
+    def test_remove_last_item_updates_total(self, client, api_user):
+        _uid, headers = api_user
+        cart = _start(client, headers)
+        _add(client, headers, cart['id'], name='Pan', line_total=2500)
+        item = _add(client, headers, cart['id'], name='Leche', line_total=1290).get_json()['item']
+        r = client.delete(f'/api/v1/carts/{cart["id"]}/items/{item["id"]}', headers=headers)
+        assert r.status_code == 200 and r.get_json()['cart']['total'] == 2500.0
+        r = client.delete(f'/api/v1/carts/{cart["id"]}/items/{item["id"]}', headers=headers)
+        assert r.status_code == 404
+
+
+class TestMeCartScanner:
+    def test_me_reports_scanner_availability(self, client, api_user):
+        _uid, headers = api_user
+        with patch('app.api.auth.resolve_ai_config', return_value=None):
+            assert client.get('/api/v1/me', headers=headers).get_json()['cart_scanner_available'] is False
+        with patch('app.api.auth.resolve_ai_config', return_value=SimpleNamespace(user_id=1)):
+            assert client.get('/api/v1/me', headers=headers).get_json()['cart_scanner_available'] is True
