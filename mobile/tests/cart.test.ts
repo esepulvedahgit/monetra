@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { Cart } from '../src/api/types';
-import { buildCartItemPayload, formatMoney, itemLabel, newRequestKey, parseCartAmount, parseServerDate, photoResize, purchaseDate, recentStores, scanNotes, withTemporaryPhoto } from '../src/features/cart/presentation';
+import { buildCartItemPayload, clampQty, formatMoney, itemLabel, newRequestKey, parseCartAmount, parseServerDate, photoResize, purchaseDate, recentStores, scanNotes, withTemporaryPhoto } from '../src/features/cart/presentation';
 
 const mobileRoot = resolve(import.meta.dirname, '..');
 const source = (path: string) => readFileSync(resolve(mobileRoot, path), 'utf8');
@@ -40,6 +40,15 @@ describe('buildCartItemPayload', () => {
 describe('recentStores', () => {
   it('keeps the most recent spelling of each store, ignoring case and accents', () => {
     expect(recentStores([cart(5, 'Lider'), cart(4, null), cart(3, 'LÍDER'), cart(2, 'Jumbo'), cart(1, 'Unimarc')], 2)).toEqual(['Lider', 'Jumbo']);
+  });
+});
+
+describe('clampQty', () => {
+  it('keeps the stepper between 1 and 99', () => {
+    expect(clampQty(0)).toBe(1);
+    expect(clampQty(3)).toBe(3);
+    expect(clampQty(150)).toBe(99);
+    expect(clampQty(Number.NaN)).toBe(1);
   });
 });
 
@@ -99,6 +108,13 @@ describe('mobile cart contract', () => {
     expect(hooks).toContain('register_movement: false');
   });
 
+  it('sends the units of a label photo and corrects units without confirming again', () => {
+    const hooks = source('src/features/cart/useCart.ts');
+    expect(hooks).toContain("form.append('qty', String(qty))");
+    expect(hooks).toContain('api.patch<CartEntry>(`/carts/${cartId}/items/${itemId}`, { qty })');
+    expect(source('app/(tabs)/market.tsx')).toContain('setPhotoQty(1);');
+  });
+
   it('cancels a purchase by deleting the cart, asking first only when it has products', () => {
     expect(source('src/features/cart/useCart.ts')).toContain('api.delete(`/carts/${cartId}`)');
     const screen = source('app/(tabs)/market.tsx');
@@ -107,7 +123,7 @@ describe('mobile cart contract', () => {
   });
 
   it('deletes every temporary photo, the original capture included', () => {
-    expect(source('app/(tabs)/market.tsx')).toContain('withTemporaryPhoto(uri, (photoUri) => mutations.scanAdd.mutateAsync({ cartId: cart.id, photoUri }), deleteTemporaryPhoto)');
+    expect(source('app/(tabs)/market.tsx')).toContain('withTemporaryPhoto(uri, (photoUri) => mutations.scanAdd.mutateAsync({ cartId: cart.id, photoUri, qty: photoQty }), deleteTemporaryPhoto)');
     expect(source('src/features/cart/photo.ts')).toMatch(/finally \{\s*try \{ deleteFile\(capture\.uri\); \}/);
   });
 

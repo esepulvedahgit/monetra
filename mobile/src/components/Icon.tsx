@@ -2,7 +2,7 @@ import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 import { useTheme } from '../theme/theme';
 
-export type IconName = 'grid' | 'arrows' | 'target' | 'user' | 'plus' | 'chevron-left' | 'chevron-right' | 'income' | 'expense' | 'calendar' | 'edit' | 'trash' | 'close' | 'wallet' | 'eye' | 'eye-off' | 'lock' | 'filter' | 'check' | 'server' | 'sun' | 'moon' | 'device' | 'cart' | 'camera';
+export type IconName = 'grid' | 'arrows' | 'target' | 'user' | 'plus' | 'chevron-left' | 'chevron-right' | 'income' | 'expense' | 'calendar' | 'edit' | 'trash' | 'close' | 'wallet' | 'eye' | 'eye-off' | 'lock' | 'filter' | 'check' | 'server' | 'sun' | 'moon' | 'device' | 'cart' | 'camera' | 'minus';
 
 export function Icon({ name, size = 20, color: requestedColor, strokeWidth = 1.8 }: { name: IconName; size?: number; color?: string; strokeWidth?: number }) {
   const theme = useTheme();
@@ -14,6 +14,7 @@ export function Icon({ name, size = 20, color: requestedColor, strokeWidth = 1.8
     target: <><Circle cx="12" cy="12" r="8" {...props} /><Circle cx="12" cy="12" r="4" {...props} /><Path d="m18 6 2-2" {...props} /></>,
     user: <><Circle cx="12" cy="8" r="3" {...props} /><Path d="M5 20c.8-3.2 3-5 7-5s6.2 1.8 7 5" {...props} /></>,
     plus: <Path d="M12 5v14M5 12h14" {...props} />,
+    minus: <Path d="M5 12h14" {...props} />,
     'chevron-left': <Path d="m15 18-6-6 6-6" {...props} />,
     'chevron-right': <Path d="m9 18 6-6-6-6" {...props} />,
     income: <Path d="M12 19V5m-5 5 5-5 5 5" {...props} />,

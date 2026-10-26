@@ -45,9 +45,10 @@ export function useCartMutations() {
     onSuccess: refreshCurrent,
   });
   const scanAdd = useMutation({
-    mutationFn: async ({ cartId, photoUri }: { cartId: number; photoUri: string }) => {
+    mutationFn: async ({ cartId, photoUri, qty }: { cartId: number; photoUri: string; qty: number }) => {
       const form = new FormData();
       form.append('image', { uri: photoUri, name: 'etiqueta.jpg', type: 'image/jpeg' } as unknown as Blob);
+      form.append('qty', String(qty));
       return (await api.post<CartEntry>(`/carts/${cartId}/scan?add=1`, form, {
         headers: { 'Content-Type': 'multipart/form-data', 'Idempotency-Key': newRequestKey() },
         transformRequest: (data) => data,
@@ -61,6 +62,15 @@ export function useCartMutations() {
     onSuccess: (data, { itemId }) => {
       // Show the reduced total at once instead of waiting for the refetch.
       client.setQueryData<CartDetail | null>(currentCartKey, (cart) => cart && cart.id === data.cart.id ? { ...cart, ...data.cart, items: cart.items.filter((item) => item.id !== itemId) } : cart);
+      return refreshCurrent();
+    },
+  });
+  // Corrects the units of a product already added; its unit price stays the same.
+  const setQty = useMutation({
+    mutationFn: async ({ cartId, itemId, qty }: { cartId: number; itemId: number; qty: number }) =>
+      (await api.patch<CartEntry>(`/carts/${cartId}/items/${itemId}`, { qty })).data,
+    onSuccess: (data) => {
+      client.setQueryData<CartDetail | null>(currentCartKey, (cart) => cart && cart.id === data.cart.id ? { ...cart, ...data.cart, items: cart.items.map((item) => item.id === data.item.id ? data.item : item) } : cart);
       return refreshCurrent();
     },
   });
@@ -80,5 +90,5 @@ export function useCartMutations() {
       await client.invalidateQueries({ queryKey: ['carts'] });
     },
   });
-  return { start, addItem, scanAdd, removeItem, finalize, discard };
+  return { start, addItem, scanAdd, setQty, removeItem, finalize, discard };
 }

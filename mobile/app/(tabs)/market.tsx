@@ -12,7 +12,7 @@ import { AppHeader, EmptyState, ErrorState, PrimaryButton, SectionHeader } from 
 import { Icon } from '../../src/components/Icon';
 import { CartItemEditor } from '../../src/features/cart/CartItemEditor';
 import { CameraPermissionError, deleteTemporaryPhoto, takeLabelPhoto } from '../../src/features/cart/photo';
-import { formatMoney, itemLabel, purchaseDate, recentStores, scanNotes, withTemporaryPhoto } from '../../src/features/cart/presentation';
+import { clampQty, formatMoney, itemLabel, purchaseDate, recentStores, scanNotes, STEPPER_MAX_QTY, withTemporaryPhoto } from '../../src/features/cart/presentation';
 import { useCartMutations, useCurrentCart, usePurchase, usePurchaseHistory, type CartEntry } from '../../src/features/cart/useCart';
 
 export default function MarketScreen() {
@@ -69,11 +69,13 @@ function Shopping({ cart, symbol, refreshing, onRefresh, onFinished }: { cart: C
   const { colors } = useTheme(); const styles = useThemedStyles(createStyles);
   const mutations = useCartMutations();
   const [last, setLast] = useState<CartEntry | null>(null); const [editorOpen, setEditorOpen] = useState(false);
+  // Units for the next label photo; back to one after each product.
+  const [photoQty, setPhotoQty] = useState(1);
   // Totals come from the latest server answer, which may be newer than the cached list.
   const total = last?.cart.id === cart.id ? last.cart.total : cart.total;
   const count = last?.cart.id === cart.id ? last.cart.item_count : cart.item_count;
   const lastItem: CartItem | undefined = last?.item ?? cart.items[cart.items.length - 1];
-  const busy = mutations.scanAdd.isPending || mutations.removeItem.isPending || mutations.finalize.isPending || mutations.discard.isPending;
+  const busy = mutations.scanAdd.isPending || mutations.setQty.isPending || mutations.removeItem.isPending || mutations.finalize.isPending || mutations.discard.isPending;
 
   const photo = async () => {
     if (busy) return;
@@ -84,10 +86,17 @@ function Shopping({ cart, symbol, refreshing, onRefresh, onFinished }: { cart: C
     }
     if (!uri) return;
     try {
-      setLast(await withTemporaryPhoto(uri, (photoUri) => mutations.scanAdd.mutateAsync({ cartId: cart.id, photoUri }), deleteTemporaryPhoto));
+      setLast(await withTemporaryPhoto(uri, (photoUri) => mutations.scanAdd.mutateAsync({ cartId: cart.id, photoUri, qty: photoQty }), deleteTemporaryPhoto));
+      setPhotoQty(1);
     } catch (exception) {
       Alert.alert('No se agregó el producto', `${apiError(exception)} Puedes intentarlo de nuevo o escribirlo.`);
     }
+  };
+  const changeLastQty = (qty: number) => {
+    if (!lastItem || busy || qty === lastItem.qty) return;
+    void mutations.setQty.mutateAsync({ cartId: cart.id, itemId: lastItem.id, qty })
+      .then((entry) => setLast((current) => ({ ...entry, scan: current?.item.id === entry.item.id ? current.scan : null })))
+      .catch((exception) => Alert.alert('No pudimos cambiar la cantidad', apiError(exception)));
   };
   const removeLast = () => {
     if (!lastItem || busy) return;
@@ -118,7 +127,7 @@ function Shopping({ cart, symbol, refreshing, onRefresh, onFinished }: { cart: C
   return <Screen refreshing={refreshing} onRefresh={onRefresh}>
     <AppHeader />
     <Heading eyebrow="Compra en curso" title={cart.store_name ?? 'Supermercado'} copy="Cada producto se suma al instante. Si algo quedó mal, quita el último registro." />
-    <View style={styles.totalCard} accessibilityLabel={`Total del carrito ${formatMoney(total, symbol)}, ${count} productos`}>
+    <View style={styles.totalCard} accessibilityLabel={`Total del carrito ${formatMoney(total, symbol)}, ${count} producto${count === 1 ? '' : 's'}`}>
       <Text style={styles.totalLabel}>Total del carrito</Text>
       <Text style={styles.totalValue}>{formatMoney(total, symbol)}</Text>
       <Text style={styles.totalMeta}>{count} producto{count === 1 ? '' : 's'}</Text>
@@ -127,16 +136,18 @@ function Shopping({ cart, symbol, refreshing, onRefresh, onFinished }: { cart: C
       <Text style={styles.label}>Último registro</Text>
       <View style={styles.lastLine}><Icon name="check" color={colors.success} size={18} /><Text numberOfLines={2} style={styles.lastName}>{itemLabel(lastItem)}</Text><Text style={styles.amount}>{formatMoney(lastItem.line_total, symbol)}</Text></View>
       {last?.item.id === lastItem.id ? scanNotes(last.scan, symbol).map((note) => <Text key={note} style={styles.note}>{note}</Text>) : null}
+      {Number.isInteger(lastItem.qty) ? <QtyStepper label="Cantidad" value={lastItem.qty} disabled={busy} onChange={changeLastQty} /> : null}
       <PrimaryButton variant="danger" icon="trash" onPress={removeLast} loading={mutations.removeItem.isPending}>Quitar último</PrimaryButton>
     </View> : null}
     <View style={styles.actions}>
       <Pressable accessibilityRole="button" accessibilityLabel="Fotografiar etiqueta" disabled={busy} onPress={() => void photo()} style={({ pressed }) => [styles.action, styles.actionPrimary, busy && styles.disabled, pressed && !busy && styles.pressed]}>
-        <Icon name="camera" color={colors.onAccent} size={24} /><Text style={[styles.actionText, { color: colors.onAccent }]}>{mutations.scanAdd.isPending ? 'Leyendo etiqueta…' : 'Foto de etiqueta'}</Text>
+        <Icon name="camera" color={colors.onAccent} size={24} /><Text style={[styles.actionText, { color: colors.onAccent }]}>{mutations.scanAdd.isPending ? 'Leyendo etiqueta…' : photoQty > 1 ? `Foto de etiqueta ×${photoQty}` : 'Foto de etiqueta'}</Text>
       </Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel="Escribir producto" disabled={busy} onPress={() => setEditorOpen(true)} style={({ pressed }) => [styles.action, busy && styles.disabled, pressed && !busy && styles.pressed]}>
         <Icon name="edit" size={24} /><Text style={styles.actionText}>Escribir</Text>
       </Pressable>
     </View>
+    <QtyStepper label="Unidades en la próxima foto" value={photoQty} disabled={busy} onChange={(qty) => setPhotoQty(qty)} />
     {cart.items.length ? <>
       <SectionHeader title="En el carrito" />
       {[...cart.items].reverse().map((item) => <ItemRow key={item.id} item={item} symbol={symbol} />)}
@@ -145,6 +156,20 @@ function Shopping({ cart, symbol, refreshing, onRefresh, onFinished }: { cart: C
     <PrimaryButton icon="trash" variant="secondary" onPress={cancel}>Cancelar compra</PrimaryButton>
     <CartItemEditor visible={editorOpen} cartId={cart.id} onAdded={setLast} onClose={() => setEditorOpen(false)} />
   </Screen>;
+}
+
+function QtyStepper({ label, value, disabled, onChange }: { label: string; value: number; disabled?: boolean; onChange: (qty: number) => void }) {
+  const styles = useThemedStyles(createStyles);
+  const step = (delta: number) => { const next = clampQty(value + delta); if (next !== value) onChange(next); };
+  const stepButton = (delta: number, icon: 'minus' | 'plus', name: string, off: boolean) => <Pressable accessibilityRole="button" accessibilityLabel={name} disabled={disabled || off} hitSlop={6} onPress={() => step(delta)} style={({ pressed }) => [styles.stepButton, (disabled || off) && styles.disabled, pressed && styles.pressed]}><Icon name={icon} size={18} /></Pressable>;
+  return <View style={styles.stepper} accessibilityLabel={`${label}: ${value}`}>
+    <Text style={styles.stepLabel}>{label}</Text>
+    <View style={styles.stepControls}>
+      {stepButton(-1, 'minus', `Restar una unidad, ${label}`, value <= 1)}
+      <Text style={styles.stepValue}>{value}</Text>
+      {stepButton(1, 'plus', `Sumar una unidad, ${label}`, value >= STEPPER_MAX_QTY)}
+    </View>
+  </View>;
 }
 
 function ItemRow({ item, symbol }: { item: CartItem; symbol: string }) {
@@ -220,6 +245,11 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   action: { flex: 1, minHeight: 92, alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: radii.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   actionPrimary: { backgroundColor: colors.accent, borderColor: colors.accent },
   actionText: { color: colors.text, fontWeight: '800', fontSize: 14 },
+  stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm, paddingVertical: 6, paddingHorizontal: 12, borderRadius: radii.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  stepLabel: { flex: 1, color: colors.text, fontSize: 13, fontWeight: '700' },
+  stepControls: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  stepButton: { width: 36, height: 36, borderRadius: radii.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  stepValue: { minWidth: 28, textAlign: 'center', color: colors.text, fontSize: 17, fontWeight: '800', fontVariant: ['tabular-nums'] },
   itemRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.borderSoft },
   itemName: { color: colors.text, fontWeight: '700' },
   itemAmount: { color: colors.text, fontWeight: '800', fontVariant: ['tabular-nums'] },

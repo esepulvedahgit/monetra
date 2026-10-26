@@ -1,6 +1,7 @@
 import type { Cart, CartItemFormValues, CartScan } from '../../api/types';
 
 export const PHOTO_MAX_SIDE = 1600;
+export const STEPPER_MAX_QTY = 99;
 const MAX_QTY = 999;
 
 /**
@@ -34,6 +35,12 @@ export function buildCartItemPayload(values: CartItemFormValues): { payload: { n
   const qty = qtyText ? Number(qtyText) : 1;
   if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY) return { error: 'La cantidad debe ser un número entero entre 1 y 999.' };
   return { payload: { name, qty, unit_price: price } };
+}
+
+/** Units chosen with the − / + buttons, kept between 1 and STEPPER_MAX_QTY. */
+export function clampQty(value: number): number {
+  if (!Number.isFinite(value)) return 1;
+  return Math.min(STEPPER_MAX_QTY, Math.max(1, Math.round(value)));
 }
 
 /** Distinct store names of past carts, most recent first, as shortcuts to start a new one. */
