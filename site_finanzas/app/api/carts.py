@@ -306,7 +306,8 @@ def _replayed_item(cart, key, **extra):
     return jsonify({'item': cart_item_schema(previous), 'cart': cart_schema(cart), **extra}), 200
 
 
-def _add_locked(cart, key, *, name, line_total, qty, source, **extra):
+def _add_locked(cart, key, *, name, line_total, qty, source, category=None, generic_name=None,
+                regular_price=None, offer_price=None, **extra):
     """Agrega el ítem con el carrito bloqueado, para que envíos simultáneos no desfasen el total."""
     svc.lock_cart(cart)
     replay = _replayed_item(cart, key, **extra)
@@ -314,7 +315,9 @@ def _add_locked(cart, key, *, name, line_total, qty, source, **extra):
         db.session.commit()
         return replay
     try:
-        item = svc.add_item(cart, name, line_total, qty=qty, source=source, client_request_id=key)
+        item = svc.add_item(cart, name, line_total, qty=qty, source=source, client_request_id=key,
+                            category=category, generic_name=generic_name,
+                            regular_price=regular_price, offer_price=offer_price)
         db.session.commit()
     except svc.CartError as exc:
         db.session.rollback()
@@ -442,17 +445,21 @@ def scan_price_tag(cart_id):
     unit = (result.get('unit') or 'unit').lower()
     name = result.get('name')
     name = name.strip()[:200] if isinstance(name, str) and name.strip() else None
+    generic = result.get('generic_name')
     scan = {
         'name': name,
         'price': float(price.quantize(Decimal('0.01'))),
         'offer_price': float(offer.quantize(Decimal('0.01'))) if offer is not None else None,
         'offer_text': result.get('offer_text') if offer is not None else None,
         'unit': 'kg' if unit == 'kg' else 'unit',
+        'category': result.get('category') if isinstance(result.get('category'), str) else None,
     }
     if not add:
         return jsonify(scan), 200
     return _add_locked(cart, key, name=name or 'Producto', line_total=(price * qty).quantize(Decimal('0.01')),
-                       qty=qty, source='photo', scan=scan)
+                       qty=qty, source='photo', scan=scan, category=scan['category'],
+                       generic_name=generic if isinstance(generic, str) else None,
+                       regular_price=price, offer_price=offer)
 
 
 # ── Finalizar y movimiento ────────────────────────────────────────────────────

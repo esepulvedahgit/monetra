@@ -460,6 +460,8 @@ _GEMINI_PRICE_TAG_SCHEMA = {
         "offer_text":  {"type": "STRING", "nullable": True},
         "unit":        {"type": "STRING", "nullable": True},
         "currency":    {"type": "STRING", "nullable": True},
+        "generic_name": {"type": "STRING", "nullable": True},
+        "category":    {"type": "STRING", "nullable": True},
         "error":       {"type": "STRING", "nullable": True},
     },
 }
@@ -469,7 +471,7 @@ def extract_price_tag(config, image_bytes: bytes, mime_type: str) -> dict:
     """Lee una etiqueta de precio de góndola o un empaque y devuelve producto y precio(s).
 
     Returns:
-        dict con keys: name, price, offer_price, offer_text, unit, currency.
+        dict con keys: name, price, offer_price, offer_text, unit, currency, generic_name, category.
 
     Raises:
         ValueError: si la imagen no muestra un precio o el proveedor falla.

@@ -332,7 +332,8 @@ def handle_photo(chat_id: int, user: User, cart, photos: list, message_id: int |
     qty = caption_qty(caption)
     _take_item(chat_id, user, cart, message_id, name=result.get('name') or '', line_total=price * qty,
                qty=qty, source='photo', alt_line_total=offer * qty if offer is not None else None,
-               note=note, offer_text=offer_text)
+               note=note, offer_text=offer_text, ai_category=result.get('category'),
+               ai_generic=result.get('generic_name') if isinstance(result.get('generic_name'), str) else None)
 
 
 def _coerce_amount(value, user) -> Decimal | None:
@@ -372,7 +373,7 @@ def _take_item(chat_id: int, user: User, cart, message_id: int | None, **item) -
 
 def _auto_add(chat_id: int, user: User, cart, message_id: int | None, *, name: str, line_total: Decimal,
               qty: Decimal, source: str, alt_line_total: Decimal | None = None, note: str | None = None,
-              offer_text: str | None = None) -> None:
+              offer_text: str | None = None, ai_category: str | None = None, ai_generic: str | None = None) -> None:
     """Modo automático: suma el producto sin confirmar y responde con el total acumulado.
 
     Si la etiqueta trae una oferta se suma el precio normal y la oferta solo se informa,
@@ -390,7 +391,8 @@ def _auto_add(chat_id: int, user: User, cart, message_id: int | None, *, name: s
         return
     try:
         item = cart_svc.add_item(cart, (name or '').strip() or t('cart_default_item', lang), line_total,
-                                 qty=qty, source=source, client_request_id=key)
+                                 qty=qty, source=source, client_request_id=key, category=ai_category,
+                                 generic_name=ai_generic, **_unit_prices(line_total, alt_line_total, qty, source))
         db.session.commit()
     except cart_svc.CartError as exc:
         db.session.rollback()
@@ -419,9 +421,18 @@ def _auto_add(chat_id: int, user: User, cart, message_id: int | None, *, name: s
 
 # ── Producto pendiente ────────────────────────────────────────────────────────
 
+def _unit_prices(line_total, alt_line_total, qty, source) -> dict:
+    """Precio unitario normal y de oferta de una etiqueta, para la analítica de ofertas."""
+    if source != 'photo' or not qty:
+        return {}
+    return {'regular_price': Decimal(line_total) / Decimal(qty),
+            'offer_price': Decimal(alt_line_total) / Decimal(qty) if alt_line_total is not None else None}
+
+
 def _save_pending(chat_id: int, user: User, cart, *, name: str, line_total: Decimal, qty: Decimal,
                   source: str, alt_line_total: Decimal | None = None, note: str | None = None,
-                  offer_text: str | None = None) -> None:
+                  offer_text: str | None = None, ai_category: str | None = None,
+                  ai_generic: str | None = None) -> None:
     lang = _lang_of(user)
     CartPendingItem.query.filter_by(chat_id=chat_id).delete()
     pending = CartPendingItem(
@@ -434,6 +445,8 @@ def _save_pending(chat_id: int, user: User, cart, *, name: str, line_total: Deci
         alt_line_total=alt_line_total,
         note=(offer_text or '')[:200] or None,
         source=source,
+        category=ai_category if isinstance(ai_category, str) else None,
+        generic_name=(ai_generic or '')[:120] or None,
     )
     db.session.add(pending)
     db.session.commit()
@@ -605,7 +618,9 @@ def _confirm(chat_id, message_id, callback_id, user, pending_id, use_offer=False
         return
     line_total = pending.alt_line_total if use_offer and pending.alt_line_total else pending.line_total
     try:
-        item = cart_svc.add_item(cart, pending.name, line_total, qty=pending.qty, source=pending.source)
+        item = cart_svc.add_item(cart, pending.name, line_total, qty=pending.qty, source=pending.source,
+                                 category=pending.category, generic_name=pending.generic_name,
+                                 **_unit_prices(pending.line_total, pending.alt_line_total, pending.qty, pending.source))
     except cart_svc.CartError as exc:
         db.session.rollback()
         answer_callback_query(callback_id, t('toast_error', lang))

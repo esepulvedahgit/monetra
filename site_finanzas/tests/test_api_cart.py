@@ -223,7 +223,7 @@ class TestCartScanApi:
             r = self._scan(client, headers, cart['id'])
         assert r.status_code == 200
         assert r.get_json() == {'name': 'Aceite 1L', 'price': 3990.0, 'offer_price': 3490.0,
-                                'offer_text': 'Con tarjeta', 'unit': 'unit'}
+                                'offer_text': 'Con tarjeta', 'unit': 'unit', 'category': None}
         detail = client.get(f'/api/v1/carts/{cart["id"]}', headers=headers).get_json()
         assert detail['items'] == []
 

@@ -1,3 +1,7 @@
+from app.cart.categories import CATEGORIES
+
+CATEGORY_KEYS = tuple(CATEGORIES)
+
 RECEIPT_SYSTEM_PROMPT = (
     "You are a receipt and invoice data extractor. "
     "The image may be a physical receipt photo, a screenshot, a scanned document, or a digital invoice. "
@@ -42,7 +46,17 @@ PRICE_TAG_SYSTEM_PROMPT = (
     "\"offer_text\" (string or null — short description of that condition, in the label's language), "
     "\"unit\" ('unit' or 'kg' — use 'kg' only when the main price is per kilogram for a weighed product; "
     "ignore small reference prices like 'precio por litro' or 'precio x kg' printed under a unit price), "
-    "\"currency\" (3-letter ISO code if visible, else null). "
+    "\"currency\" (3-letter ISO code if visible, else null), "
+    "\"generic_name\" (string or null — the product in a few lowercase words, in the label's language, "
+    "WITHOUT brand and WITHOUT size, so the same product from different brands compares, "
+    "e.g. 'leche entera', 'detergente líquido', 'papas fritas'), "
+    "\"category\" (one of: " + ", ".join(f"'{key}'" for key in CATEGORY_KEYS) + " — "
+    "lacteos = milk, yogurt, butter, eggs; carnes = meat, chicken, fish, sausages to cook; "
+    "fiambres = ham, salami, cheese; despensa = rice, pasta, oil, flour, sugar, canned food, sauces; "
+    "desayuno = coffee, tea, cereal, jam, cookies, chocolate, sweets; snacks = chips, nuts; "
+    "bebidas = soft drinks, water, juice; limpieza = household cleaning, toilet paper; "
+    "cuidado_personal = hygiene and cosmetics; bebe_mascotas = diapers, baby food, pet food; "
+    "use 'otros' when nothing fits). "
 
     "IMPORTANT — number format: "
     "In many countries dots are thousand separators and commas are decimal separators. "

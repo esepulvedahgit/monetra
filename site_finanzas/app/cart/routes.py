@@ -4,13 +4,16 @@ from decimal import Decimal, InvalidOperation
 from flask import abort, flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 from flask_login import current_user, login_required
+from sqlalchemy import func
 from sqlalchemy.orm import selectinload
 
 from app import db
 from app.audit.events import CART_FINALIZE, CART_MOVEMENT
 from app.audit.logger import log_event
-from app.cart import cart_bp
+from app.cart import analytics, cart_bp, enrichment
+from app.cart import categories as product_types
 from app.cart import service as svc
+from app.localtime import to_local
 from app.models import Cart, CartItem, Category
 
 _HISTORY_LIMIT = 100
@@ -79,19 +82,33 @@ def index():
     open_cart = svc.get_open_cart(current_user.id)
     history = _finalized_carts()
 
-    totals = [Decimal(c.total) for c in history]
+    # Los indicadores cubren todo el historial; la tabla muestra las últimas compras.
+    count, average = (db.session.query(func.count(Cart.id), func.avg(Cart.total))
+                      .filter_by(user_id=current_user.id, status='finalized').one())
+    totals = [Decimal(c.total) for c in history[:2]]
     stats = {
-        'count': len(history),
-        'average': (sum(totals, start=Decimal(0)) / len(totals)) if totals else Decimal(0),
+        'count': count,
+        'average': Decimal(average or 0),
         'last': totals[0] if totals else None,
         'previous': totals[1] if len(totals) > 1 else None,
     }
     chart = [
-        {'label': c.finalized_at.strftime('%d/%m/%Y') if c.finalized_at else '', 'total': float(c.total)}
+        {'label': to_local(c.finalized_at).strftime('%d/%m/%Y') if c.finalized_at else '', 'total': float(c.total)}
         for c in reversed(history[:12])
     ]
     return render_template('cart/index.html', open_cart=open_cart, history=history,
                            stats=stats, chart=chart)
+
+
+@cart_bp.route('/analisis')
+@login_required
+def insights():
+    period = request.args.get('periodo', '3m')
+    chain = request.args.get('supermercado') or None
+    report = analytics.build_report(current_user.id, period, chain, lang=current_user.language)
+    if chain and chain not in report['available_chains']:
+        return redirect(url_for('cart.insights', periodo=report['period'].key))
+    return render_template('cart/analytics.html', report=report, periods=analytics.PERIODS)
 
 
 @cart_bp.route('/<int:cart_id>')
@@ -104,7 +121,8 @@ def detail(cart_id):
                            categories=_expense_categories(),
                            default_category=svc.default_category(current_user.id),
                            default_description=svc.default_description(cart),
-                           others=others, today=date.today())
+                           others=others, today=date.today(),
+                           product_types=product_types.CATEGORIES)
 
 
 @cart_bp.route('/comparar')
@@ -177,6 +195,24 @@ def remove_item(cart_id, item_id):
     except svc.CartError as exc:
         db.session.rollback()
         _flash_error(exc)
+    return redirect(url_for('cart.detail', cart_id=cart.id))
+
+
+@cart_bp.route('/<int:cart_id>/items/<int:item_id>/tipo', methods=['POST'])
+@login_required
+def set_item_type(cart_id, item_id):
+    """Corrige el tipo de un producto; se aplica a sus otras compras y a las próximas."""
+    cart = _own_cart_or_404(cart_id)
+    item = CartItem.query.filter_by(id=item_id, cart_id=cart.id).first_or_404()
+    try:
+        changed = enrichment.set_category(current_user.id, item, request.form.get('category', ''))
+    except ValueError:
+        db.session.rollback()
+        flash(_('Tipo de producto no válido.'), 'danger')
+        return redirect(url_for('cart.detail', cart_id=cart.id))
+    db.session.commit()
+    flash(_('Tipo actualizado en %(count)s productos. Los próximos con el mismo nombre usarán este tipo.',
+            count=changed), 'success')
     return redirect(url_for('cart.detail', cart_id=cart.id))
 
 

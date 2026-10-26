@@ -12,6 +12,7 @@ from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from flask import current_app
 
 from app import db
+from app.cart import enrichment
 from app.models import Cart, CartItem, Category, Transaction
 
 MAX_ITEMS_PER_CART = 300
@@ -120,11 +121,13 @@ def start_cart(user_id: int, store_name: str | None, source: str = 'telegram') -
     cart = get_open_cart(user_id)
     if cart is not None:
         return cart
+    name = clean_store_name(store_name)
     cart = Cart(
         user_id=user_id,
         status='open',
         source=source,
-        store_name=clean_store_name(store_name),
+        store_name=name,
+        store_chain=enrichment.chain_for(name, user_id),
         total=Decimal(0),
         item_count=0,
     )
@@ -135,6 +138,7 @@ def start_cart(user_id: int, store_name: str | None, source: str = 'telegram') -
 
 def rename_store(cart: Cart, store_name) -> None:
     cart.store_name = clean_store_name(store_name)
+    cart.store_chain = enrichment.chain_for(cart.store_name, cart.user_id)
 
 
 def recent_store_carts(user_id: int, limit: int = 3) -> list[Cart]:
@@ -174,8 +178,13 @@ def _recalc(cart: Cart) -> None:
 
 
 def add_item(cart: Cart, name: str, line_total, qty=1, source: str = 'text',
-             client_request_id: str | None = None) -> CartItem:
-    """Agrega un producto. ``line_total`` es el monto total de la línea (precio × cantidad)."""
+             client_request_id: str | None = None, *, category: str | None = None,
+             generic_name: str | None = None, regular_price=None, offer_price=None) -> CartItem:
+    """Agrega un producto. ``line_total`` es el monto total de la línea (precio × cantidad).
+
+    ``category`` y ``generic_name`` son los que dio la IA al leer la etiqueta;
+    ``regular_price``/``offer_price``, sus precios unitarios normal y de oferta.
+    """
     if cart.status != 'open':
         raise CartError('cart_closed')
     if len(cart.items) >= MAX_ITEMS_PER_CART:
@@ -190,10 +199,22 @@ def add_item(cart: Cart, name: str, line_total, qty=1, source: str = 'text',
         line_total=line_total,
         source=source,
         client_request_id=client_request_id or None,
+        regular_price=_optional_price(regular_price),
+        offer_price=_optional_price(offer_price),
     )
     cart.items.append(item)
+    enrichment.enrich_item(item, cart.user_id, ai_category=category, ai_generic=generic_name)
     _recalc(cart)
     return item
+
+
+def _optional_price(value) -> Decimal | None:
+    if value is None:
+        return None
+    try:
+        return _to_decimal(value).quantize(_CENT, rounding=ROUND_HALF_UP)
+    except CartError:
+        return None
 
 
 def set_item_qty(cart: Cart, item: CartItem, qty) -> None:

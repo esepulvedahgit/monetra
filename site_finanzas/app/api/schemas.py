@@ -103,6 +103,7 @@ def cart_item_schema(item):
         "unit_price": float(item.unit_price),
         "line_total": float(item.line_total),
         "source": item.source,
+        "category": item.category,
         "created_at": _iso(item.created_at),
     }
 
