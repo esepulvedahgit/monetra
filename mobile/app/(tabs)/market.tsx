@@ -73,7 +73,7 @@ function Shopping({ cart, symbol, refreshing, onRefresh, onFinished }: { cart: C
   const total = last?.cart.id === cart.id ? last.cart.total : cart.total;
   const count = last?.cart.id === cart.id ? last.cart.item_count : cart.item_count;
   const lastItem: CartItem | undefined = last?.item ?? cart.items[cart.items.length - 1];
-  const busy = mutations.scanAdd.isPending || mutations.removeItem.isPending || mutations.finalize.isPending;
+  const busy = mutations.scanAdd.isPending || mutations.removeItem.isPending || mutations.finalize.isPending || mutations.discard.isPending;
 
   const photo = async () => {
     if (busy) return;
@@ -104,6 +104,16 @@ function Shopping({ cart, symbol, refreshing, onRefresh, onFinished }: { cart: C
       { text: 'Finalizar', onPress: () => void mutations.finalize.mutateAsync(cart.id).then(onFinished).catch((exception) => Alert.alert('No pudimos finalizar', apiError(exception))) },
     ]);
   };
+  const cancel = () => {
+    if (busy) return;
+    const discard = () => void mutations.discard.mutateAsync(cart.id).catch((exception) => Alert.alert('No pudimos cancelarla', apiError(exception)));
+    // An empty cart has nothing to lose.
+    if (!count) { discard(); return; }
+    Alert.alert('Cancelar compra', `Se eliminará la compra en ${cart.store_name ?? 'el supermercado'} con ${count} producto${count === 1 ? '' : 's'} (${formatMoney(total, symbol)}). No se puede deshacer.`, [
+      { text: 'Seguir comprando', style: 'cancel' },
+      { text: 'Eliminar', style: 'destructive', onPress: discard },
+    ]);
+  };
 
   return <Screen refreshing={refreshing} onRefresh={onRefresh}>
     <AppHeader />
@@ -132,6 +142,7 @@ function Shopping({ cart, symbol, refreshing, onRefresh, onFinished }: { cart: C
       {[...cart.items].reverse().map((item) => <ItemRow key={item.id} item={item} symbol={symbol} />)}
     </> : <EmptyState title="Carrito vacío" copy="Fotografía la etiqueta de precio o escribe el primer producto." />}
     <PrimaryButton icon="check" onPress={finish} loading={mutations.finalize.isPending}>Finalizar compra</PrimaryButton>
+    <PrimaryButton icon="trash" variant="secondary" onPress={cancel}>Cancelar compra</PrimaryButton>
     <CartItemEditor visible={editorOpen} cartId={cart.id} onAdded={setLast} onClose={() => setEditorOpen(false)} />
   </Screen>;
 }

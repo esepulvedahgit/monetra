@@ -99,6 +99,13 @@ describe('mobile cart contract', () => {
     expect(hooks).toContain('register_movement: false');
   });
 
+  it('cancels a purchase by deleting the cart, asking first only when it has products', () => {
+    expect(source('src/features/cart/useCart.ts')).toContain('api.delete(`/carts/${cartId}`)');
+    const screen = source('app/(tabs)/market.tsx');
+    expect(screen).toContain('if (!count) { discard(); return; }');
+    expect(screen).toContain('Cancelar compra');
+  });
+
   it('deletes every temporary photo, the original capture included', () => {
     expect(source('app/(tabs)/market.tsx')).toContain('withTemporaryPhoto(uri, (photoUri) => mutations.scanAdd.mutateAsync({ cartId: cart.id, photoUri }), deleteTemporaryPhoto)');
     expect(source('src/features/cart/photo.ts')).toMatch(/finally \{\s*try \{ deleteFile\(capture\.uri\); \}/);

@@ -72,5 +72,13 @@ export function useCartMutations() {
       await client.invalidateQueries({ queryKey: ['carts'] });
     },
   });
-  return { start, addItem, scanAdd, removeItem, finalize };
+  // Cancelling deletes the cart and its products; nothing is kept in the history.
+  const discard = useMutation({
+    mutationFn: async (cartId: number) => (await api.delete(`/carts/${cartId}`)).data,
+    onSuccess: async () => {
+      setCurrent(null);
+      await client.invalidateQueries({ queryKey: ['carts'] });
+    },
+  });
+  return { start, addItem, scanAdd, removeItem, finalize, discard };
 }
