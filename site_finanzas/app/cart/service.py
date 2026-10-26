@@ -196,6 +196,19 @@ def add_item(cart: Cart, name: str, line_total, qty=1, source: str = 'text',
     return item
 
 
+def set_item_qty(cart: Cart, item: CartItem, qty) -> None:
+    """Cambia la cantidad de un producto manteniendo su precio unitario."""
+    if cart.status != 'open':
+        raise CartError('cart_closed')
+    qty = _to_decimal(qty, max_value=MAX_QTY)
+    line_total = (Decimal(item.unit_price) * qty).quantize(_CENT, rounding=ROUND_HALF_UP)
+    if line_total > MAX_AMOUNT:
+        raise CartError('invalid_amount')
+    item.qty = qty
+    item.line_total = line_total
+    _recalc(cart)
+
+
 def remove_item(cart: Cart, item: CartItem) -> None:
     if cart.status != 'open':
         raise CartError('cart_closed')

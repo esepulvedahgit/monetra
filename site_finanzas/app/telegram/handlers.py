@@ -155,7 +155,7 @@ def _handle_message(msg: dict) -> None:
     photos = msg.get('photo')
 
     # ── Mi Carrito: /carrito, carrito abierto o espera del nombre del supermercado ──
-    if cart_flow.route_message(chat_id, user, link, text, photos, msg.get('message_id')):
+    if cart_flow.route_message(chat_id, user, link, text, photos, msg.get('message_id'), msg.get('caption')):
         return
 
     # ── Modo USD activo: pedir tipo antes de recibir el gasto ────────────────
