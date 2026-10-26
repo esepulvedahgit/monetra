@@ -447,6 +447,82 @@ class TestTelegramCartFlow:
             assert svc.get_open_cart(cart_user_id).item_count == 1
 
 
+class TestTelegramCartCancel:
+    def test_cancel_command_deletes_empty_cart(self, app, cart_user_id, tg):
+        run, send, _buttons_mock = tg
+        run(_text('/carrito Lider'))
+        run(_text('/cancelar'))
+        assert 'Carrito descartado' in send.call_args.args[1]
+        with app.app_context():
+            assert svc.get_open_cart(cart_user_id) is None
+            assert Cart.query.filter_by(user_id=cart_user_id).count() == 0
+
+    def test_cancel_command_asks_before_discarding_products(self, app, cart_user_id, tg):
+        run, _send, buttons = tg
+        with app.app_context():
+            cart = svc.start_cart(cart_user_id, 'Lider')
+            svc.add_item(cart, 'Pan', Decimal(2500))
+            _db.session.commit()
+            cart_id = cart.id
+        run(_text('/cancel'))
+        assert '¿Descartar el carrito con 1 productos' in buttons.call_args.args[1]
+        assert _buttons(buttons) == [f'cartdropok:{cart_id}', f'cartkeep:{cart_id}']
+
+        run(_callback(f'cartkeep:{cart_id}'))
+        assert 'Total del carrito' in buttons.call_args.args[1]
+        assert f'cartdrop:{cart_id}' in _buttons(buttons)
+        with app.app_context():
+            assert _db.session.get(Cart, cart_id) is not None
+
+        run(_callback(f'cartdropok:{cart_id}'))
+        with app.app_context():
+            assert _db.session.get(Cart, cart_id) is None
+
+    def test_finish_empty_cart_offers_cancel(self, app, cart_user_id, tg):
+        run, send, buttons = tg
+        with app.app_context():
+            cart_id = svc.start_cart(cart_user_id, 'Lider').id
+            _db.session.commit()
+        run(_callback(f'cartend:{cart_id}'))
+        assert 'El carrito está vacío' in buttons.call_args.args[1]
+        assert _buttons(buttons) == [f'cartdrop:{cart_id}']
+        run(_callback(f'cartdrop:{cart_id}'))
+        assert 'Carrito descartado' in send.call_args.args[1]
+        with app.app_context():
+            assert _db.session.get(Cart, cart_id) is None
+
+    def test_cancel_while_asking_store_name(self, app, cart_user_id, tg):
+        run, send, _buttons_mock = tg
+        run(_text('/carrito'))
+        run(_text('/cancelar'))
+        assert 'No se creó el carrito' in send.call_args.args[1]
+        with app.app_context():
+            assert TelegramLink.query.filter_by(chat_id=CHAT_ID).one().pending_type is None
+
+    def test_cancel_without_cart(self, app, cart_user_id, tg):
+        run, send, _buttons_mock = tg
+        run(_text('/cancelar'))
+        assert 'No tienes un carrito abierto' in send.call_args.args[1]
+
+    def test_old_cancel_button_shows_open_cart(self, app, cart_user_id, tg):
+        run, send, buttons = tg
+        with app.app_context():
+            cart_id = svc.start_cart(cart_user_id, 'Lider').id
+            _db.session.commit()
+        send.reset_mock()
+        run(_callback('cartnostart:0'))
+        assert not any('No se creó' in call.args[1] for call in send.call_args_list)
+        assert 'Tienes un carrito en curso' in buttons.call_args.args[1]
+        with app.app_context():
+            assert _db.session.get(Cart, cart_id) is not None
+
+    def test_help_explains_how_to_leave(self, app, cart_user_id, tg):
+        run, send, _buttons_mock = tg
+        run(_text('/carrito Lider'))
+        run(_text('Hola'))
+        assert '/cancelar para descartar el carrito' in send.call_args.args[1]
+
+
 def _start_cart(run, buttons, mode):
     """Crea el carrito por el bot y elige el modo de ingreso."""
     run(_text('/carrito Lider'))
@@ -484,7 +560,7 @@ class TestTelegramCartModes:
             cart_id = cart.id
             assert CartPendingItem.query.count() == 0
             assert cart.items[0].client_request_id == 'tg:10'
-        assert _buttons(buttons) == [f'cartmore:{cart_id}', f'cartundo:{cart_id}', f'cartend:{cart_id}']
+        assert _buttons(buttons) == [f'cartmore:{cart_id}', f'cartundo:{cart_id}', f'cartend:{cart_id}', f'cartdrop:{cart_id}']
 
         run(_text('2 x 990 yogurt', message_id=11))
         assert 'Total del carrito: $3.270' in buttons.call_args.args[1]
