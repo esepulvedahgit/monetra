@@ -4,6 +4,10 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <h2 class="mb-0 fw-bold"><i class="bi bi-cart3 text-primary"></i> {{ _('Carrito') }}{{ hint(_('Registra lo que llevas en el carro del supermercado desde Telegram con /carrito o desde aquí. Al finalizar queda en el historial para comparar compras.')) }}</h2>
+    <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('cart.insights') }}" class="btn btn-outline-primary btn-sm fw-semibold text-nowrap">
+        <i class="bi bi-bar-chart-line"></i> {{ _('Análisis de compras') }}
+    </a>
     {% if not open_cart %}
     <form method="POST" action="{{ url_for('cart.start') }}" class="d-flex gap-2">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -14,6 +18,7 @@
         </button>
     </form>
     {% endif %}
+    </div>
 </div>
 
 {% if open_cart %}
@@ -99,7 +104,7 @@
                 {% for c in history %}
                 {% set names = c.items|map(attribute='name')|list %}
                 <tr class="cart-history-row" style="cursor:pointer;" data-target="cart-items-{{ c.id }}">
-                    <td class="text-nowrap">{{ c.finalized_at.strftime('%d/%m/%Y %H:%M') if c.finalized_at else '—' }}</td>
+                    <td class="text-nowrap">{{ (c.finalized_at|localdt('%d/%m/%Y %H:%M')) if c.finalized_at else '—' }}</td>
                     <td>{{ c.store_name or '—' }}</td>
                     <td class="text-truncate" style="max-width:280px;" title="{{ names|join(', ') }}">
                         {{ names[:4]|join(', ') }}{% if names|length > 4 %} <span class="text-muted">+{{ names|length - 4 }}</span>{% endif %}

@@ -101,6 +101,18 @@ class TestCartService:
             first = svc.start_cart(cart_user_id, 'Lider')
             assert svc.start_cart(cart_user_id, 'Lider').id == first.id
 
+    def test_set_item_qty_keeps_unit_price(self, app, cart_user_id):
+        with app.app_context():
+            cart = svc.start_cart(cart_user_id, 'Lider')
+            item = svc.add_item(cart, 'Yogurt', Decimal(990))
+            svc.add_item(cart, 'Pan', Decimal(2500))
+            svc.set_item_qty(cart, item, 4)
+            assert item.qty == 4 and item.line_total == Decimal(3960)
+            assert cart.total == Decimal(6460)
+            for bad in (0, -1, 'x', 10000):
+                with pytest.raises(svc.CartError):
+                    svc.set_item_qty(cart, item, bad)
+
     def test_rejects_invalid_amounts(self, app, cart_user_id):
         with app.app_context():
             cart = svc.start_cart(cart_user_id, 'Lider')
@@ -179,10 +191,12 @@ def _text(text, message_id=None):
     return {'message': msg}
 
 
-def _photo(message_id=None):
+def _photo(message_id=None, caption=None):
     msg = {'chat': {'id': CHAT_ID, 'type': 'private'}, 'photo': [{'file_id': 'f1', 'file_size': 10}]}
     if message_id:
         msg['message_id'] = message_id
+    if caption is not None:
+        msg['caption'] = caption
     return {'message': msg}
 
 
@@ -447,6 +461,160 @@ class TestTelegramCartFlow:
             assert svc.get_open_cart(cart_user_id).item_count == 1
 
 
+class TestTelegramCartCancel:
+    def test_cancel_command_deletes_empty_cart(self, app, cart_user_id, tg):
+        run, send, _buttons_mock = tg
+        run(_text('/carrito Lider'))
+        run(_text('/cancelar'))
+        assert 'Carrito descartado' in send.call_args.args[1]
+        with app.app_context():
+            assert svc.get_open_cart(cart_user_id) is None
+            assert Cart.query.filter_by(user_id=cart_user_id).count() == 0
+
+    def test_cancel_command_asks_before_discarding_products(self, app, cart_user_id, tg):
+        run, _send, buttons = tg
+        with app.app_context():
+            cart = svc.start_cart(cart_user_id, 'Lider')
+            svc.add_item(cart, 'Pan', Decimal(2500))
+            _db.session.commit()
+            cart_id = cart.id
+        run(_text('/cancel'))
+        assert '¿Descartar el carrito con 1 productos' in buttons.call_args.args[1]
+        assert _buttons(buttons) == [f'cartdropok:{cart_id}', f'cartkeep:{cart_id}']
+
+        run(_callback(f'cartkeep:{cart_id}'))
+        assert 'Total del carrito' in buttons.call_args.args[1]
+        assert f'cartdrop:{cart_id}' in _buttons(buttons)
+        with app.app_context():
+            assert _db.session.get(Cart, cart_id) is not None
+
+        run(_callback(f'cartdropok:{cart_id}'))
+        with app.app_context():
+            assert _db.session.get(Cart, cart_id) is None
+
+    def test_finish_empty_cart_offers_cancel(self, app, cart_user_id, tg):
+        run, send, buttons = tg
+        with app.app_context():
+            cart_id = svc.start_cart(cart_user_id, 'Lider').id
+            _db.session.commit()
+        run(_callback(f'cartend:{cart_id}'))
+        assert 'El carrito está vacío' in buttons.call_args.args[1]
+        assert _buttons(buttons) == [f'cartdrop:{cart_id}']
+        run(_callback(f'cartdrop:{cart_id}'))
+        assert 'Carrito descartado' in send.call_args.args[1]
+        with app.app_context():
+            assert _db.session.get(Cart, cart_id) is None
+
+    def test_cancel_while_asking_store_name(self, app, cart_user_id, tg):
+        run, send, _buttons_mock = tg
+        run(_text('/carrito'))
+        run(_text('/cancelar'))
+        assert 'No se creó el carrito' in send.call_args.args[1]
+        with app.app_context():
+            assert TelegramLink.query.filter_by(chat_id=CHAT_ID).one().pending_type is None
+
+    def test_cancel_without_cart(self, app, cart_user_id, tg):
+        run, send, _buttons_mock = tg
+        run(_text('/cancelar'))
+        assert 'No tienes un carrito abierto' in send.call_args.args[1]
+
+    def test_old_cancel_button_shows_open_cart(self, app, cart_user_id, tg):
+        run, send, buttons = tg
+        with app.app_context():
+            cart_id = svc.start_cart(cart_user_id, 'Lider').id
+            _db.session.commit()
+        send.reset_mock()
+        run(_callback('cartnostart:0'))
+        assert not any('No se creó' in call.args[1] for call in send.call_args_list)
+        assert 'Tienes un carrito en curso' in buttons.call_args.args[1]
+        with app.app_context():
+            assert _db.session.get(Cart, cart_id) is not None
+
+    def test_help_explains_how_to_leave(self, app, cart_user_id, tg):
+        run, send, _buttons_mock = tg
+        run(_text('/carrito Lider'))
+        run(_text('Hola'))
+        assert '/cancelar para descartar el carrito' in send.call_args.args[1]
+
+
+def _item_id(app, cart_id):
+    with app.app_context():
+        return _db.session.get(Cart, cart_id).items[-1].id
+
+
+def _read_label(result):
+    return (patch('app.telegram.handlers._load_photo_for_ai', return_value=(object(), b'img', 'image/jpeg')),
+            patch('app.telegram.providers.extract_price_tag', return_value=result))
+
+
+class TestTelegramCartQuantity:
+    def test_caption_quantity(self):
+        from app.telegram.cart_flow import caption_qty
+        for caption in ('3', 'x3', '3x', ' 3 unidades ', '×3'):
+            assert caption_qty(caption) == 3
+        for caption in (None, '', 'hola', '0', 'leche 3 litros', '1000'):
+            assert caption_qty(caption) == 1
+
+    def test_auto_photo_with_caption_adds_units(self, app, cart_user_id, tg):
+        run, _send, buttons = tg
+        _start_cart(run, buttons, 'auto')
+        loader, extract = _read_label({'name': 'Yogurt', 'price': 990, 'offer_price': 890, 'unit': 'unit'})
+        with loader, extract:
+            run(_photo(message_id=60, caption='3'))
+        text = buttons.call_args.args[1]
+        assert '3 × $990' in text and 'Total del carrito: $2.970' in text
+        assert 'Oferta: <b>$2.670</b>' in text
+        with app.app_context():
+            item = svc.get_open_cart(cart_user_id).items[0]
+            assert item.qty == 3 and item.unit_price == Decimal(990) and item.line_total == Decimal(2970)
+
+    def test_manual_photo_with_caption_shows_units_on_card(self, app, cart_user_id, tg):
+        run, _send, buttons = tg
+        run(_text('/carrito Lider'))
+        loader, extract = _read_label({'name': 'Yogurt', 'price': 990, 'unit': 'unit'})
+        with loader, extract:
+            run(_photo(caption='x2'))
+        assert '2 × $990' in buttons.call_args.args[1]
+        with app.app_context():
+            pending = CartPendingItem.query.filter_by(chat_id=CHAT_ID).one()
+            assert pending.qty == 2 and pending.line_total == Decimal(1980)
+
+    def test_quantity_button_changes_last_item(self, app, cart_user_id, tg):
+        run, _send, buttons = tg
+        _start_cart(run, buttons, 'auto')
+        run(_text('Leche 1290', message_id=70))
+        with app.app_context():
+            cart_id = svc.get_open_cart(cart_user_id).id
+        item_id = _item_id(app, cart_id)
+
+        run(_callback(f'cartqty:{item_id}'))
+        assert '¿Cuántas unidades de <b>Leche</b>' in buttons.call_args.args[1]
+        assert _buttons(buttons) == [f'cartq{n}:{item_id}' for n in (1, 2, 3, 4, 5, 6)] + [f'cartqmore:{item_id}']
+
+        run(_callback(f'cartq3:{item_id}'))
+        assert '3 × Leche' in buttons.call_args.args[1] and 'Total del carrito: $3.870' in buttons.call_args.args[1]
+
+        run(_callback(f'cartqmore:{item_id}'))
+        assert _buttons(buttons) == [f'cartq{n}:{item_id}' for n in (7, 8, 9, 10, 12, 15, 20, 24)]
+        run(_callback(f'cartq12:{item_id}'))
+        with app.app_context():
+            cart = _db.session.get(Cart, cart_id)
+            assert cart.items[0].qty == 12 and cart.total == Decimal(15480)
+
+    def test_quantity_button_of_closed_cart_does_nothing(self, app, cart_user_id, tg):
+        run, send, _buttons_mock = tg
+        with app.app_context():
+            cart = svc.start_cart(cart_user_id, 'Lider')
+            item = svc.add_item(cart, 'Pan', Decimal(2500))
+            svc.finalize(cart)
+            _db.session.commit()
+            item_id, cart_id = item.id, cart.id
+        run(_callback(f'cartq2:{item_id}'))
+        assert 'ya no está en un carrito abierto' in send.call_args.args[1]
+        with app.app_context():
+            assert _db.session.get(Cart, cart_id).total == Decimal(2500)
+
+
 def _start_cart(run, buttons, mode):
     """Crea el carrito por el bot y elige el modo de ingreso."""
     run(_text('/carrito Lider'))
@@ -484,7 +652,9 @@ class TestTelegramCartModes:
             cart_id = cart.id
             assert CartPendingItem.query.count() == 0
             assert cart.items[0].client_request_id == 'tg:10'
-        assert _buttons(buttons) == [f'cartmore:{cart_id}', f'cartundo:{cart_id}', f'cartend:{cart_id}']
+        item_id = _item_id(app, cart_id)
+        assert _buttons(buttons) == [f'cartmore:{cart_id}', f'cartundo:{cart_id}', f'cartqty:{item_id}',
+                                     f'cartend:{cart_id}', f'cartdrop:{cart_id}']
 
         run(_text('2 x 990 yogurt', message_id=11))
         assert 'Total del carrito: $3.270' in buttons.call_args.args[1]

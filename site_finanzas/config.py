@@ -44,6 +44,8 @@ class Config:
     MOBILE_APK_SIGNER_SHA256 = os.environ.get('MOBILE_APK_SIGNER_SHA256', '').strip()
 
     JWT_SECRET_KEY = _require_key('JWT_SECRET_KEY')
+    # Zona horaria en que la web muestra las fechas (la base guarda UTC).
+    APP_TIMEZONE = os.environ.get('APP_TIMEZONE', 'America/Santiago')
     JWT_ACCESS_TOKEN_EXPIRES = 900        # 15 min
     JWT_REFRESH_TOKEN_EXPIRES = 2592000   # 30 días
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',')

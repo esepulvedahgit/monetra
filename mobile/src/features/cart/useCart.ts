@@ -45,9 +45,10 @@ export function useCartMutations() {
     onSuccess: refreshCurrent,
   });
   const scanAdd = useMutation({
-    mutationFn: async ({ cartId, photoUri }: { cartId: number; photoUri: string }) => {
+    mutationFn: async ({ cartId, photoUri, qty }: { cartId: number; photoUri: string; qty: number }) => {
       const form = new FormData();
       form.append('image', { uri: photoUri, name: 'etiqueta.jpg', type: 'image/jpeg' } as unknown as Blob);
+      form.append('qty', String(qty));
       return (await api.post<CartEntry>(`/carts/${cartId}/scan?add=1`, form, {
         headers: { 'Content-Type': 'multipart/form-data', 'Idempotency-Key': newRequestKey() },
         transformRequest: (data) => data,
@@ -64,6 +65,15 @@ export function useCartMutations() {
       return refreshCurrent();
     },
   });
+  // Corrects the units of a product already added; its unit price stays the same.
+  const setQty = useMutation({
+    mutationFn: async ({ cartId, itemId, qty }: { cartId: number; itemId: number; qty: number }) =>
+      (await api.patch<CartEntry>(`/carts/${cartId}/items/${itemId}`, { qty })).data,
+    onSuccess: (data) => {
+      client.setQueryData<CartDetail | null>(currentCartKey, (cart) => cart && cart.id === data.cart.id ? { ...cart, ...data.cart, items: cart.items.map((item) => item.id === data.item.id ? data.item : item) } : cart);
+      return refreshCurrent();
+    },
+  });
   // Mobile only keeps the purchase: it never creates a finance movement.
   const finalize = useMutation({
     mutationFn: async (cartId: number) => (await api.post<CartDetail>(`/carts/${cartId}/finalize`, { register_movement: false })).data,
@@ -72,5 +82,13 @@ export function useCartMutations() {
       await client.invalidateQueries({ queryKey: ['carts'] });
     },
   });
-  return { start, addItem, scanAdd, removeItem, finalize };
+  // Cancelling deletes the cart and its products; nothing is kept in the history.
+  const discard = useMutation({
+    mutationFn: async (cartId: number) => (await api.delete(`/carts/${cartId}`)).data,
+    onSuccess: async () => {
+      setCurrent(null);
+      await client.invalidateQueries({ queryKey: ['carts'] });
+    },
+  });
+  return { start, addItem, scanAdd, setQty, removeItem, finalize, discard };
 }

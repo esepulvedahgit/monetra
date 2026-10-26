@@ -72,6 +72,12 @@ def create_app(config_class=Config):
                      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
             return names[int(month_num)] if 0 < int(month_num) <= 12 else ''
 
+    @app.template_filter('localdt')
+    def localdt_filter(value, fmt='%d/%m/%Y %H:%M'):
+        from app.localtime import to_local
+        local = to_local(value)
+        return local.strftime(fmt) if local else ''
+
     @app.template_filter('money')
     def money_filter(amount):
         from app.money import format_money

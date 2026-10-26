@@ -690,6 +690,8 @@ class Cart(db.Model):
     user_id        = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     status         = db.Column(db.String(12), nullable=False, default='open')  # 'open' | 'finalized'
     store_name     = db.Column(db.String(120), nullable=True)
+    # Cadena del supermercado para agrupar sucursales ("Lider Vespucio" → "Lider").
+    store_chain    = db.Column(db.String(120), nullable=True)
     total          = db.Column(db.Numeric(12, 2), nullable=False, default=0)
     item_count     = db.Column(db.Integer, nullable=False, default=0)
     source         = db.Column(db.String(10), nullable=False, default='telegram')  # 'telegram' | 'web' | 'api'
@@ -723,6 +725,16 @@ class CartItem(db.Model):
     unit_price = db.Column(db.Numeric(12, 2), nullable=False)
     line_total = db.Column(db.Numeric(12, 2), nullable=False)
     source     = db.Column(db.String(10), nullable=False, default='text')  # 'text' | 'photo' | 'web' | 'api'
+    # Tipo de producto (cart.categories) y quién lo decidió: 'user' | 'catalog' | 'ai' | 'local'.
+    category        = db.Column(db.String(24), nullable=True, index=True)
+    category_source = db.Column(db.String(10), nullable=True)
+    # Nombre para comparar entre compras y marcas, y contenido del envase (g o ml).
+    generic_name    = db.Column(db.String(120), nullable=True)
+    size_amount     = db.Column(db.Numeric(12, 3), nullable=True)
+    size_unit       = db.Column(db.String(4), nullable=True)
+    # Precio unitario normal y de oferta leídos de la etiqueta, si los había.
+    regular_price   = db.Column(db.Numeric(12, 2), nullable=True)
+    offer_price     = db.Column(db.Numeric(12, 2), nullable=True)
     # Clave generada por el cliente (Idempotency-Key) para que reintentos móviles no dupliquen.
     client_request_id = db.Column(db.String(128), nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
@@ -733,6 +745,25 @@ class CartItem(db.Model):
 
     def __repr__(self):
         return f'<CartItem {self.name} {self.line_total}>'
+
+
+class ProductCatalogEntry(db.Model):
+    """Tipo de producto que un usuario asoció a un nombre genérico.
+
+    Lo alimentan las correcciones del usuario y las lecturas de la IA; el
+    clasificador local aprende de estas entradas.
+    """
+    __tablename__ = 'product_catalog'
+
+    id         = db.Column(db.Integer, primary_key=True)
+    user_id    = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    name_key   = db.Column(db.String(120), nullable=False)
+    category   = db.Column(db.String(24), nullable=False)
+    source     = db.Column(db.String(10), nullable=False)   # 'user' | 'ai'
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
+                           onupdate=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'name_key', name='uq_product_catalog_user_name'),)
 
 
 class CartPendingItem(db.Model):
@@ -750,6 +781,9 @@ class CartPendingItem(db.Model):
     alt_line_total = db.Column(db.Numeric(12, 2), nullable=True)
     note           = db.Column(db.String(200), nullable=True)
     source         = db.Column(db.String(10), nullable=False, default='text')  # 'text' | 'photo'
+    # Lo que la IA dijo de la etiqueta, para clasificar el producto al confirmarlo.
+    category       = db.Column(db.String(24), nullable=True)
+    generic_name   = db.Column(db.String(120), nullable=True)
     created_at     = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = db.relationship('User', backref=db.backref('cart_pending_items', lazy=True,

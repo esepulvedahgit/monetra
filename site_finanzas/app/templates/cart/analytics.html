@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+{% from 'partials/hint.html' import hint with context %}
+{% set period_labels = {
+    'month': _('Este mes'), '3m': _('Últimos 3 meses'), '6m': _('Últimos 6 meses'),
+    'year': _('Este año'), '12m': _('Últimos 12 meses'), 'all': _('Todo el historial'),
+} %}
+{% set period_phrases = {
+    'month': _('este mes'), '3m': _('los últimos 3 meses'), '6m': _('los últimos 6 meses'),
+    'year': _('este año'), '12m': _('los últimos 12 meses'), 'all': _('todo tu historial'),
+} %}
+{% set s = report.summary %}
+{% set prices = report.prices %}
+{% macro change(value, inverse=True) -%}
+    {%- if value is not none -%}
+    {# En gastos, subir es malo (rojo) y bajar es bueno (verde). #}
+    <span class="small fw-semibold {% if (value > 0) == inverse %}text-danger{% else %}text-success{% endif %}">
+        {{ '%+.1f'|format(value) }}% {{ _('vs. período anterior') }}
+    </span>
+    {%- endif -%}
+{%- endmacro %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h2 class="mb-0 fw-bold"><i class="bi bi-bar-chart-line text-primary"></i> {{ _('Análisis de compras') }}{{ hint(_('Resume tus compras de supermercado finalizadas: en qué tipos de producto gastas, en qué supermercados y dónde es más barato. Los tipos se asignan solos y puedes corregirlos en el detalle de cada compra.')) }}</h2>
+    <a href="{{ url_for('cart.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> {{ _('Volver al carrito') }}</a>
+</div>
+
+<form method="GET" class="card shadow-sm mb-4">
+    <div class="card-body d-flex flex-wrap gap-2 align-items-end">
+        <div>
+            <label for="periodo" class="form-label small mb-1">{{ _('Período') }}</label>
+            <select id="periodo" name="periodo" class="form-select form-select-sm cart-filter">
+                {% for key in periods %}
+                <option value="{{ key }}" {% if key == report.period.key %}selected{% endif %}>{{ period_labels[key] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="supermercado" class="form-label small mb-1">{{ _('Supermercado') }}</label>
+            <select id="supermercado" name="supermercado" class="form-select form-select-sm cart-filter">
+                <option value="">{{ _('Todos') }}</option>
+                {% for chain in report.available_chains %}
+                <option value="{{ chain }}" {% if chain == report.chain %}selected{% endif %}>{{ chain }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <noscript><button type="submit" class="btn btn-primary btn-sm">{{ _('Aplicar') }}</button></noscript>
+    </div>
+</form>
+
+{% if not s.count %}
+<div class="card shadow-sm"><div class="card-body text-center text-muted py-5">
+    <i class="bi bi-cart-x fs-2 d-block mb-2"></i>
+    {{ _('No hay compras finalizadas en este período.') }}
+</div></div>
+{% else %}
+
+{# ── 1. Resumen ─────────────────────────────────────────────────────────── #}
+<section class="mb-4" aria-labelledby="sec-resumen">
+    <h5 id="sec-resumen" class="fw-bold mb-1">{{ _('Resumen') }}</h5>
+    <p class="text-muted mb-3">
+        {{ _('En %(period)s gastaste %(total)s en %(count)s compras, %(avg)s por compra en promedio.',
+             period=period_phrases[report.period.key], total=s.total|money, count=s.count, avg=s.avg_ticket|money) }}
+        {% if s.total_change is not none %}
+        {% if s.total_change > 0 %}{{ _('Es %(pct)s%% más que el período anterior.', pct='%.0f'|format(s.total_change)) }}
+        {% elif s.total_change < 0 %}{{ _('Es %(pct)s%% menos que el período anterior.', pct='%.0f'|format(-s.total_change)) }}{% endif %}
+        {% endif %}
+    </p>
+    <div class="row g-3">
+        <div class="col-6 col-lg-3"><div class="card shadow-sm h-100"><div class="card-body">
+            <p class="small mb-1 text-muted">{{ _('Gasto en supermercado') }}</p>
+            <h4 class="mb-0 fw-bold">{{ s.total|money }}</h4>{{ change(s.total_change) }}
+        </div></div></div>
+        <div class="col-6 col-lg-3"><div class="card shadow-sm h-100"><div class="card-body">
+            <p class="small mb-1 text-muted">{{ _('Compras') }}</p>
+            <h4 class="mb-0 fw-bold">{{ s.count }}</h4>
+            <span class="small text-muted">{{ _('%(n)s productos por compra', n='%.0f'|format(s.items_avg)) }}</span>
+        </div></div></div>
+        <div class="col-6 col-lg-3"><div class="card shadow-sm h-100"><div class="card-body">
+            <p class="small mb-1 text-muted">{{ _('Ticket promedio') }}</p>
+            <h4 class="mb-0 fw-bold">{{ s.avg_ticket|money }}</h4>{{ change(s.avg_change) }}
+        </div></div></div>
+        <div class="col-6 col-lg-3"><div class="card shadow-sm h-100"><div class="card-body">
+            <p class="small mb-1 text-muted">{{ _('Promedio mensual') }}</p>
+            <h4 class="mb-0 fw-bold">{{ s.monthly_avg|money }}</h4>
+            {% if s.expense_share is not none %}
+            <span class="small text-muted">{{ _('%(pct)s%% de tus gastos registrados', pct='%.0f'|format(s.expense_share)) }}</span>
+            {% endif %}
+        </div></div></div>
+    </div>
+</section>
+
+{# ── 2. ¿En qué gastas más? ──────────────────────────────────────────────── #}
+{% set top = report.categories[0] %}
+{% set top_row = report.matrix.rows[0] %}
+<section class="card shadow-sm mb-4" aria-labelledby="sec-tipos">
+    <div class="card-header fw-semibold" id="sec-tipos"><i class="bi bi-pie-chart text-primary"></i> {{ _('¿En qué gastas más?') }}</div>
+    <div class="card-body">
+        <p class="mb-3">
+            {{ _('Gastas más en %(type)s: %(amount)s, el %(pct)s%% de tus compras.',
+                 type=top.label, amount=top.amount|money, pct='%.0f'|format(top.pct)) }}
+            {% if top_row.main_chain and report.matrix.chains|length > 1 %}
+            {{ _('El %(pct)s%% de eso lo compras en %(chain)s.', pct='%.0f'|format(top_row.main_pct), chain=top_row.main_chain) }}
+            {% endif %}
+        </p>
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-5"><div style="height:260px;"><canvas id="categoryChart" aria-label="{{ _('Gasto por tipo de producto') }}" role="img"></canvas></div></div>
+            <div class="col-lg-7">
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr>
+                            <th>{{ _('Tipo de producto') }}</th>
+                            <th class="text-end">{{ _('Gasto') }}</th>
+                            <th class="text-end">%</th>
+                            <th class="text-end">{{ _('Variación') }}</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for row in report.categories %}
+                        <tr>
+                            <td><span class="d-inline-block rounded-circle me-1" style="width:.6rem;height:.6rem;background:{{ row.color }};"></span>{{ row.label }}</td>
+                            <td class="text-end text-nowrap">{{ row.amount|money }}</td>
+                            <td class="text-end">{{ '%.0f'|format(row.pct) }}%</td>
+                            <td class="text-end text-nowrap">
+                                {% if row.change is not none %}
+                                <span class="{% if row.change > 0 %}text-danger{% else %}text-success{% endif %}">{{ '%+.0f'|format(row.change) }}%</span>
+                                {% elif row.prev_amount is not none and s.prev_total %}<span class="text-muted small">{{ _('Nuevo') }}</span>{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if report.classified_share is not none and report.classified_share < 80 %}
+                <p class="small text-muted mt-2 mb-0"><i class="bi bi-info-circle"></i>
+                    {{ _('El %(pct)s%% de los productos quedó como «Otros». Puedes asignarles un tipo en el detalle de cada compra.', pct='%.0f'|format(100 - report.classified_share)) }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        {% if report.trend %}
+        <h6 class="fw-semibold mt-4">{{ _('Evolución mensual de los tipos principales') }}</h6>
+        <div style="height:260px;"><canvas id="trendChart" aria-label="{{ _('Gasto mensual por tipo de producto') }}" role="img"></canvas></div>
+        {% endif %}
+    </div>
+</section>
+
+{# ── 3. ¿Dónde compras? ─────────────────────────────────────────────────── #}
+{% set top_chain = report.chains[0] %}
+<section class="card shadow-sm mb-4" aria-labelledby="sec-super">
+    <div class="card-header fw-semibold" id="sec-super"><i class="bi bi-shop text-primary"></i> {{ _('¿Dónde compras?') }}</div>
+    <div class="card-body">
+        <p class="mb-3">
+            {% if report.chains|length > 1 %}
+            {{ _('%(chain)s concentra el %(pct)s%% de tu gasto en supermercado (%(count)s compras).',
+                 chain=top_chain.chain, pct='%.0f'|format(top_chain.pct), count=top_chain.count) }}
+            {% set biggest = report.chains|sort(attribute='avg_ticket', reverse=True)|first %}
+            {{ _('Tu ticket promedio más alto es en %(chain)s: %(avg)s.', chain=biggest.chain, avg=biggest.avg_ticket|money) }}
+            {% else %}
+            {{ _('Todas tus compras del período fueron en %(chain)s.', chain=top_chain.chain) }}
+            {% endif %}
+        </p>
+        <div class="table-responsive mb-4">
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr>
+                    <th>{{ _('Supermercado') }}</th>
+                    <th class="text-end">{{ _('Compras') }}</th>
+                    <th class="text-end">{{ _('Gasto') }}</th>
+                    <th class="text-end">%</th>
+                    <th class="text-end">{{ _('Ticket promedio') }}</th>
+                </tr></thead>
+                <tbody>
+                {% for row in report.chains %}
+                <tr>
+                    <td class="fw-semibold">{{ row.chain }}</td>
+                    <td class="text-end">{{ row.count }}</td>
+                    <td class="text-end text-nowrap">{{ row.amount|money }}</td>
+                    <td class="text-end">{{ '%.0f'|format(row.pct) }}%</td>
+                    <td class="text-end text-nowrap">{{ row.avg_ticket|money }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if report.matrix.chains|length > 1 %}
+        <h6 class="fw-semibold">{{ _('Qué compras en cada supermercado') }}</h6>
+        <p class="small text-muted">{{ _('Gasto de cada tipo de producto por supermercado. El porcentaje indica qué parte de ese tipo compras ahí.') }}</p>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr>
+                    <th>{{ _('Tipo de producto') }}</th>
+                    {% for chain in report.matrix.chains %}<th class="text-end">{{ chain }}</th>{% endfor %}
+                </tr></thead>
+                <tbody>
+                {% for row in report.matrix.rows %}
+                <tr>
+                    <td><span class="d-inline-block rounded-circle me-1" style="width:.6rem;height:.6rem;background:{{ row.color }};"></span>{{ row.label }}</td>
+                    {% for cell in row.cells %}
+                    <td class="text-end text-nowrap {% if loop.index0 == report.matrix.chains.index(row.main_chain) and cell.amount %}fw-bold{% endif %}"
+                        style="background: rgba(0,200,150,{{ '%.2f'|format((cell.pct or 0) / 100 * 0.35) }});">
+                        {% if cell.amount %}{{ cell.amount|money }}<br><span class="small text-muted">{{ '%.0f'|format(cell.pct) }}%</span>{% else %}<span class="text-muted">—</span>{% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{# ── 4. ¿Dónde es más barato? ───────────────────────────────────────────── #}
+<section class="card shadow-sm mb-4" aria-labelledby="sec-precios">
+    <div class="card-header fw-semibold" id="sec-precios"><i class="bi bi-tags text-primary"></i> {{ _('¿Dónde es más barato?') }}</div>
+    <div class="card-body">
+        {% if report.chain %}<p class="small text-muted"><i class="bi bi-info-circle"></i> {{ _('Esta sección compara todos los supermercados, aunque filtres por uno.') }}</p>{% endif %}
+        {% if prices.index|length < 2 %}
+        <p class="text-muted mb-0">{{ _('Para comparar precios necesitas haber comprado los mismos productos en al menos dos supermercados durante el período.') }}</p>
+        {% else %}
+        {% set cheapest = prices.index[0] %}
+        {% set priciest = prices.index[-1] %}
+        <p class="mb-3">
+            {{ _('Con los productos que compraste en más de un supermercado, %(cheap)s es el más barato y %(dear)s es %(pct)s%% más caro.',
+                 cheap=cheapest.chain, dear=priciest.chain, pct='%.0f'|format(priciest.index - 100)) }}
+            {% if prices.savings > 0 %}
+            {{ _('Comprando cada producto donde está más barato habrías ahorrado %(amount)s.', amount=prices.savings|money) }}
+            {% endif %}
+        </p>
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <h6 class="fw-semibold">{{ _('Índice de precios') }} <span class="small text-muted fw-normal">(100 = {{ _('el más barato') }})</span></h6>
+                <ul class="list-unstyled mb-3">
+                    {% for row in prices.index %}
+                    <li class="mb-2">
+                        <div class="d-flex justify-content-between small"><span class="fw-semibold">{{ row.chain }}</span><span>{{ '%.0f'|format(row.index) }}</span></div>
+                        <div class="progress" style="height:.5rem;" role="progressbar" aria-label="{{ row.chain }}" aria-valuenow="{{ '%.0f'|format(row.index) }}" aria-valuemin="100" aria-valuemax="{{ '%.0f'|format(priciest.index) }}">
+                            <div class="progress-bar {% if loop.first %}bg-success{% else %}bg-warning{% endif %}" style="width: {{ '%.0f'|format(100 if priciest.index == 100 else 20 + (row.index - 100) / (priciest.index - 100) * 80) }}%;"></div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% if prices.category_index %}
+                <h6 class="fw-semibold">{{ _('Más barato por tipo de producto') }}</h6>
+                <ul class="list-unstyled small mb-0">
+                    {% for row in prices.category_index %}
+                    {% set best = row.chains[0] %}{% set worst = row.chains[-1] %}
+                    <li class="mb-1"><span class="d-inline-block rounded-circle me-1" style="width:.6rem;height:.6rem;background:{{ row.color }};"></span>
+                        <strong>{{ row.label }}:</strong> {{ best.chain }}
+                        <span class="text-muted">({{ worst.chain }} +{{ '%.0f'|format(worst.index - 100) }}%)</span></li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {% if prices.savings_by_category %}
+                <h6 class="fw-semibold mt-3">{{ _('Ahorro posible por tipo') }}</h6>
+                <ul class="list-unstyled small mb-0">
+                    {% for row in prices.savings_by_category %}<li class="d-flex justify-content-between"><span>{{ row.label }}</span><span class="fw-semibold">{{ row.amount|money }}</span></li>{% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            <div class="col-lg-7">
+                <h6 class="fw-semibold">{{ _('Precio por producto') }}</h6>
+                <div class="table-responsive" style="max-height:420px;">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead style="position:sticky;top:0;z-index:1;background:var(--card-bg, #fff);"><tr>
+                            <th>{{ _('Producto') }}</th>
+                            {% for row in prices.index %}<th class="text-end">{{ row.chain }}</th>{% endfor %}
+                            <th class="text-end">{{ _('Diferencia') }}</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for p in prices.products %}
+                        <tr>
+                            <td>{{ p.name }}<br><span class="small text-muted">{{ p.category_label }}{% if p.unit != 'u' %} · {{ _('precio por %(unit)s', unit=p.unit) }}{% endif %}</span></td>
+                            {% for row in prices.index %}
+                            {% set cell = p.chains.get(row.chain) %}
+                            <td class="text-end text-nowrap {% if row.chain == p.cheapest %}text-success fw-bold{% endif %}">{% if cell %}{{ cell.avg|money }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                            {% endfor %}
+                            <td class="text-end">{% if p.spread is not none %}{{ '%.0f'|format(p.spread) }}%{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="small text-muted mt-2 mb-0">{{ _('Precio unitario promedio del período. Los productos se emparejan por nombre sin marca ni tamaño; si un envase indica su contenido, se compara por kilo o litro.') }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    document.querySelectorAll('.cart-filter').forEach(function (select) {
+        select.addEventListener('change', function () { select.form.submit(); });
+    });
+})();
+</script>
+{% if report.summary.count %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    var sym = '{{ currency_symbol }}';
+    var dec = {{ currency_decimals }};
+    var loc = '{{ currency_locale }}';
+    function fmt(v) { return sym + Number(v).toLocaleString(loc, { minimumFractionDigits: dec, maximumFractionDigits: dec }); }
+    var categories = {{ report.categories|map(attribute='label')|list|tojson }};
+    var amounts = {{ report.categories|map(attribute='amount')|map('float')|list|tojson }};
+    var colors = {{ report.categories|map(attribute='color')|list|tojson }};
+    new Chart(document.getElementById('categoryChart'), {
+        type: 'doughnut',
+        data: { labels: categories, datasets: [{ data: amounts, backgroundColor: colors, borderWidth: 0 }] },
+        options: {
+            responsive: true, maintainAspectRatio: false, cutout: '62%',
+            plugins: { legend: { display: false },
+                       tooltip: { callbacks: { label: function (ctx) { return ' ' + ctx.label + ': ' + fmt(ctx.parsed); } } } }
+        }
+    });
+    {% if report.trend %}
+    var trend = {{ report.trend|tojson }};
+    new Chart(document.getElementById('trendChart'), {
+        type: 'bar',
+        data: { labels: trend.labels, datasets: trend.datasets.map(function (d) {
+            return { label: d.label, data: d.data, backgroundColor: d.color, borderRadius: 3 };
+        }) },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { x: { stacked: true }, y: { stacked: true, ticks: { callback: function (v) { return fmt(v); } } } },
+            plugins: { tooltip: { callbacks: { label: function (ctx) { return ' ' + ctx.dataset.label + ': ' + fmt(ctx.parsed.y); } } } }
+        }
+    });
+    {% endif %}
+})();
+</script>
+{% endif %}
+{% endblock %}

@@ -223,7 +223,7 @@ class TestCartScanApi:
             r = self._scan(client, headers, cart['id'])
         assert r.status_code == 200
         assert r.get_json() == {'name': 'Aceite 1L', 'price': 3990.0, 'offer_price': 3490.0,
-                                'offer_text': 'Con tarjeta', 'unit': 'unit'}
+                                'offer_text': 'Con tarjeta', 'unit': 'unit', 'category': None}
         detail = client.get(f'/api/v1/carts/{cart["id"]}', headers=headers).get_json()
         assert detail['items'] == []
 
@@ -339,3 +339,49 @@ class TestMeCartScanner:
             assert client.get('/api/v1/me', headers=headers).get_json()['cart_scanner_available'] is False
         with patch('app.api.auth.resolve_ai_config', return_value=SimpleNamespace(user_id=1)):
             assert client.get('/api/v1/me', headers=headers).get_json()['cart_scanner_available'] is True
+
+
+class TestCartQuantityApi:
+    def test_scan_add_with_quantity(self, client, api_user):
+        user_id, headers = api_user
+        cart = _start(client, headers)
+        with patch('app.email_service.resolve_ai_config', return_value=SimpleNamespace(user_id=user_id)), \
+                patch('app.telegram.image_utils.validate_and_normalize_image', return_value=(b'img', 'image/jpeg')), \
+                patch('app.telegram.providers.extract_price_tag', return_value={'name': 'Yogurt', 'price': 990, 'unit': 'unit'}):
+            r = client.post(f'/api/v1/carts/{cart["id"]}/scan?add=1', headers={**headers, 'Idempotency-Key': 'q-1'},
+                            data={'image': (io.BytesIO(b'fake'), 'tag.jpg'), 'qty': '3'}, content_type='multipart/form-data')
+        assert r.status_code == 201, r.data
+        body = r.get_json()
+        assert body['item']['qty'] == 3.0 and body['item']['unit_price'] == 990.0 and body['item']['line_total'] == 2970.0
+        assert body['cart']['total'] == 2970.0
+
+    def test_scan_add_rejects_invalid_quantity(self, client, api_user):
+        _uid, headers = api_user
+        cart = _start(client, headers)
+        for qty in ('0', '-2', 'muchos', '1000'):
+            r = client.post(f'/api/v1/carts/{cart["id"]}/scan?add=1', headers=headers,
+                            data={'image': (io.BytesIO(b'fake'), 'tag.jpg'), 'qty': qty}, content_type='multipart/form-data')
+            assert r.status_code == 400, qty
+
+    def test_patch_item_quantity(self, client, api_user):
+        _uid, headers = api_user
+        cart = _start(client, headers)
+        item = _add(client, headers, cart['id'], name='Leche', line_total=1290).get_json()['item']
+        _add(client, headers, cart['id'], name='Pan', line_total=2500)
+        r = client.patch(f'/api/v1/carts/{cart["id"]}/items/{item["id"]}', json={'qty': 2}, headers=headers)
+        assert r.status_code == 200
+        assert r.get_json()['item']['line_total'] == 2580.0 and r.get_json()['cart']['total'] == 5080.0
+        assert client.patch(f'/api/v1/carts/{cart["id"]}/items/{item["id"]}', json={'qty': 0}, headers=headers).status_code == 400
+        assert client.patch(f'/api/v1/carts/{cart["id"]}/items/999999', json={'qty': 2}, headers=headers).status_code == 404
+
+        client.post(f'/api/v1/carts/{cart["id"]}/finalize', json={}, headers=headers)
+        r = client.patch(f'/api/v1/carts/{cart["id"]}/items/{item["id"]}', json={'qty': 3}, headers=headers)
+        assert r.status_code == 409 and r.get_json()['code'] == 'cart_closed'
+
+    def test_patch_item_of_other_user(self, app, client, api_user):
+        _uid, headers = api_user
+        cart = _start(client, headers)
+        item = _add(client, headers, cart['id'], name='Leche', line_total=1290).get_json()['item']
+        _other_id, other_headers = _make_user(app)
+        r = client.patch(f'/api/v1/carts/{cart["id"]}/items/{item["id"]}', json={'qty': 5}, headers=other_headers)
+        assert r.status_code == 404

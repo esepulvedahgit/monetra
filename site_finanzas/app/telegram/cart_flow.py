@@ -23,7 +23,7 @@ from app import db
 from app.audit.events import CART_FINALIZE, CART_MOVEMENT
 from app.audit.logger import log_event
 from app.cart import service as cart_svc
-from app.models import CartItem, CartPendingItem, Category, TelegramLink, User
+from app.models import Cart, CartItem, CartPendingItem, Category, TelegramLink, User
 from app.money import format_money_for_user, parse_amount_for_user
 from app.telegram.messages import t
 from app.telegram.service import (
@@ -43,8 +43,14 @@ _AMOUNT_TOKEN_MAX_LEN = 20
 _AMOUNT_RE = re.compile(r'\d+(?:[.,]\d+)*')
 # Cantidad tipo "2 x", "3x", "2 ×" seguida de un número: "2 x 990 yogurt", "yogurt 2x990".
 _QTY_RE = re.compile(r'(?<![\d.,])(\d{1,3})\s*[x×*]\s*(?=\d)', re.IGNORECASE)
+# Cantidad escrita en el texto de una foto: "3", "x3", "3x", "3 unidades".
+_CAPTION_QTY_RE = re.compile(r'^\s*[x×*]?\s*(\d{1,3})\s*(?:[x×*]|u|un|unid|unidades)?\s*$', re.IGNORECASE)
+# Cantidades que ofrece el botón 🔢 Cantidad: primero las comunes y, con «Más…», las siguientes.
+QTY_CHOICES = (1, 2, 3, 4, 5, 6)
+QTY_MORE_CHOICES = (7, 8, 9, 10, 12, 15, 20, 24)
 
 CART_COMMANDS = ('/carrito', '/cart')
+CANCEL_COMMANDS = ('/cancelar', '/cancel')
 # pending_type del TelegramLink mientras el bot espera el nombre del supermercado.
 STORE_PROMPT_STATE = 'cartname'
 _STORE_PROMPT_TTL_SECONDS = 3600
@@ -63,9 +69,12 @@ def _fmt_qty(qty) -> str:
     return f"{Decimal(qty).normalize():f}"
 
 
+def _command(text: str) -> str:
+    return (text or '').split(maxsplit=1)[0].split('@', 1)[0].lower() if text else ''
+
+
 def is_cart_command(text: str) -> bool:
-    command = (text or '').split(maxsplit=1)[0].split('@', 1)[0].lower() if text else ''
-    return command in CART_COMMANDS
+    return _command(text) in CART_COMMANDS
 
 
 def _command_argument(text: str) -> str:
@@ -89,10 +98,13 @@ def active_cart(chat_id: int, user: User):
 
 
 def route_message(chat_id: int, user: User, link: TelegramLink, text: str, photos,
-                  message_id: int | None = None) -> bool:
+                  message_id: int | None = None, caption: str | None = None) -> bool:
     """Atiende el mensaje si corresponde a Mi Carrito. Devuelve True si lo consumió."""
     if is_cart_command(text):
         start(chat_id, user, _command_argument(text))
+        return True
+    if _command(text) in CANCEL_COMMANDS:
+        cancel(chat_id, user, link)
         return True
 
     cart = active_cart(chat_id, user)
@@ -104,7 +116,7 @@ def route_message(chat_id: int, user: User, link: TelegramLink, text: str, photo
         if _already_added(cart, message_id):
             return True
         if photos:
-            handle_photo(chat_id, user, cart, photos, message_id)
+            handle_photo(chat_id, user, cart, photos, message_id, caption)
         elif text:
             handle_text(chat_id, user, cart, text, message_id)
         return True
@@ -138,6 +150,39 @@ def start(chat_id: int, user: User, store_name: str = '') -> None:
         _create_cart(chat_id, user, link, store_name)
         return
     _ask_store_name(chat_id, user, link)
+
+
+def cancel(chat_id: int, user: User, link: TelegramLink) -> None:
+    """/cancelar: descarta el carrito en curso (pide confirmación si tiene productos)."""
+    lang = _lang_of(user)
+    cart = active_cart(chat_id, user)
+    if cart is None:
+        if awaiting_store_name(link):
+            _clear_store_prompt(link)
+            db.session.commit()
+            send_message(chat_id, t('cart_start_cancelled', lang))
+        else:
+            send_message(chat_id, t('cart_nothing_to_cancel', lang))
+        return
+    _confirm_discard(chat_id, user, cart)
+
+
+def _confirm_discard(chat_id: int, user: User, cart) -> None:
+    """Un carrito vacío se elimina sin preguntar; uno con productos pide confirmación."""
+    lang = _lang_of(user)
+    if not cart.items:
+        cart_svc.discard(cart)
+        db.session.commit()
+        send_message(chat_id, t('cart_discarded', lang))
+        return
+    send_message_with_buttons(
+        chat_id,
+        t('cart_discard_confirm', lang).format(count=cart.item_count, total=_money(cart.total, user)),
+        [[
+            {'text': t('btn_cart_discard_yes', lang), 'callback_data': f'cartdropok:{cart.id}'},
+            {'text': t('btn_cart_discard_no', lang), 'callback_data': f'cartkeep:{cart.id}'},
+        ]],
+    )
 
 
 def _store_label(cart, lang) -> str:
@@ -239,7 +284,15 @@ def handle_text(chat_id: int, user: User, cart, text: str, message_id: int | Non
     _take_item(chat_id, user, cart, message_id, name=name, line_total=amount * qty, qty=qty, source='text')
 
 
-def handle_photo(chat_id: int, user: User, cart, photos: list, message_id: int | None = None) -> None:
+def caption_qty(caption: str | None) -> Decimal:
+    """Unidades indicadas en el texto de la foto; 1 si no hay o no es una cantidad."""
+    match = _CAPTION_QTY_RE.match(caption or '')
+    qty = int(match.group(1)) if match else 1
+    return Decimal(qty if qty >= 1 else 1)
+
+
+def handle_photo(chat_id: int, user: User, cart, photos: list, message_id: int | None = None,
+                 caption: str | None = None) -> None:
     from app.telegram.handlers import _load_photo_for_ai
     from app.telegram.providers import extract_price_tag
 
@@ -276,9 +329,11 @@ def handle_photo(chat_id: int, user: User, cart, photos: list, message_id: int |
         note = t('cart_note_per_kg_auto' if auto else 'cart_note_per_kg', lang)
     offer_text = result.get('offer_text') if offer is not None else None
 
-    _take_item(chat_id, user, cart, message_id, name=result.get('name') or '', line_total=price,
-               qty=Decimal(1), source='photo', alt_line_total=offer,
-               note=note, offer_text=offer_text)
+    qty = caption_qty(caption)
+    _take_item(chat_id, user, cart, message_id, name=result.get('name') or '', line_total=price * qty,
+               qty=qty, source='photo', alt_line_total=offer * qty if offer is not None else None,
+               note=note, offer_text=offer_text, ai_category=result.get('category'),
+               ai_generic=result.get('generic_name') if isinstance(result.get('generic_name'), str) else None)
 
 
 def _coerce_amount(value, user) -> Decimal | None:
@@ -318,7 +373,7 @@ def _take_item(chat_id: int, user: User, cart, message_id: int | None, **item) -
 
 def _auto_add(chat_id: int, user: User, cart, message_id: int | None, *, name: str, line_total: Decimal,
               qty: Decimal, source: str, alt_line_total: Decimal | None = None, note: str | None = None,
-              offer_text: str | None = None) -> None:
+              offer_text: str | None = None, ai_category: str | None = None, ai_generic: str | None = None) -> None:
     """Modo automático: suma el producto sin confirmar y responde con el total acumulado.
 
     Si la etiqueta trae una oferta se suma el precio normal y la oferta solo se informa,
@@ -336,7 +391,8 @@ def _auto_add(chat_id: int, user: User, cart, message_id: int | None, *, name: s
         return
     try:
         item = cart_svc.add_item(cart, (name or '').strip() or t('cart_default_item', lang), line_total,
-                                 qty=qty, source=source, client_request_id=key)
+                                 qty=qty, source=source, client_request_id=key, category=ai_category,
+                                 generic_name=ai_generic, **_unit_prices(line_total, alt_line_total, qty, source))
         db.session.commit()
     except cart_svc.CartError as exc:
         db.session.rollback()
@@ -359,15 +415,24 @@ def _auto_add(chat_id: int, user: User, cart, message_id: int | None, *, name: s
         chat_id,
         t('cart_auto_added', lang).format(name=html.escape(item.name), amount=_money(item.line_total, user),
                                           extra=extra, total=_money(cart.total, user), count=cart.item_count),
-        _cart_buttons(cart, lang),
+        _item_buttons(cart, item, lang),
     )
 
 
 # ── Producto pendiente ────────────────────────────────────────────────────────
 
+def _unit_prices(line_total, alt_line_total, qty, source) -> dict:
+    """Precio unitario normal y de oferta de una etiqueta, para la analítica de ofertas."""
+    if source != 'photo' or not qty:
+        return {}
+    return {'regular_price': Decimal(line_total) / Decimal(qty),
+            'offer_price': Decimal(alt_line_total) / Decimal(qty) if alt_line_total is not None else None}
+
+
 def _save_pending(chat_id: int, user: User, cart, *, name: str, line_total: Decimal, qty: Decimal,
                   source: str, alt_line_total: Decimal | None = None, note: str | None = None,
-                  offer_text: str | None = None) -> None:
+                  offer_text: str | None = None, ai_category: str | None = None,
+                  ai_generic: str | None = None) -> None:
     lang = _lang_of(user)
     CartPendingItem.query.filter_by(chat_id=chat_id).delete()
     pending = CartPendingItem(
@@ -380,6 +445,8 @@ def _save_pending(chat_id: int, user: User, cart, *, name: str, line_total: Deci
         alt_line_total=alt_line_total,
         note=(offer_text or '')[:200] or None,
         source=source,
+        category=ai_category if isinstance(ai_category, str) else None,
+        generic_name=(ai_generic or '')[:120] or None,
     )
     db.session.add(pending)
     db.session.commit()
@@ -410,13 +477,27 @@ def _save_pending(chat_id: int, user: User, cart, *, name: str, line_total: Deci
     send_message_with_buttons(chat_id, text, buttons)
 
 
+def _item_label(item) -> str:
+    return item.name if item.qty == 1 else f"{_fmt_qty(item.qty)} × {item.name}"
+
+
+def _item_buttons(cart, item, lang) -> list:
+    """Opciones tras agregar un producto: las del carrito más corregir su cantidad."""
+    buttons = _cart_buttons(cart, lang)
+    buttons.insert(1, [{'text': t('btn_cart_qty', lang), 'callback_data': f'cartqty:{item.id}'}])
+    return buttons
+
+
 def _cart_buttons(cart, lang) -> list:
     return [
         [
             {'text': t('btn_cart_more', lang), 'callback_data': f'cartmore:{cart.id}'},
             {'text': t('btn_cart_undo', lang), 'callback_data': f'cartundo:{cart.id}'},
         ],
-        [{'text': t('btn_cart_finish', lang), 'callback_data': f'cartend:{cart.id}'}],
+        [
+            {'text': t('btn_cart_finish', lang), 'callback_data': f'cartend:{cart.id}'},
+            {'text': t('btn_cart_cancel', lang), 'callback_data': f'cartdrop:{cart.id}'},
+        ],
     ]
 
 
@@ -471,6 +552,10 @@ def _store_choice(chat_id, message_id, callback_id, user, link, action, cart_id)
     if action == 'cartnostart':
         _clear_store_prompt(link)
         db.session.commit()
+        # Un botón viejo de la pregunta no cancela un carrito que sí existe: se muestra el carrito.
+        if cart_svc.get_open_cart(user.id) is not None:
+            start(chat_id, user)
+            return
         send_message(chat_id, t('cart_start_cancelled', lang))
         return
     previous = cart_svc.get_user_cart(user.id, cart_id)
@@ -533,7 +618,9 @@ def _confirm(chat_id, message_id, callback_id, user, pending_id, use_offer=False
         return
     line_total = pending.alt_line_total if use_offer and pending.alt_line_total else pending.line_total
     try:
-        item = cart_svc.add_item(cart, pending.name, line_total, qty=pending.qty, source=pending.source)
+        item = cart_svc.add_item(cart, pending.name, line_total, qty=pending.qty, source=pending.source,
+                                 category=pending.category, generic_name=pending.generic_name,
+                                 **_unit_prices(pending.line_total, pending.alt_line_total, pending.qty, pending.source))
     except cart_svc.CartError as exc:
         db.session.rollback()
         answer_callback_query(callback_id, t('toast_error', lang))
@@ -546,9 +633,9 @@ def _confirm(chat_id, message_id, callback_id, user, pending_id, use_offer=False
     edit_message_reply_markup(chat_id, message_id, {})
     send_message_with_buttons(
         chat_id,
-        t('cart_added', lang).format(name=html.escape(item.name), amount=_money(item.line_total, user),
+        t('cart_added', lang).format(name=html.escape(_item_label(item)), amount=_money(item.line_total, user),
                                      total=_money(cart.total, user), count=cart.item_count),
-        _cart_buttons(cart, lang),
+        _item_buttons(cart, item, lang),
     )
 
 
@@ -628,7 +715,9 @@ def _finish(chat_id, message_id, callback_id, user, cart_id):
     answer_callback_query(callback_id)
     edit_message_reply_markup(chat_id, message_id, {})
     if not cart.items:
-        send_message(chat_id, t('cart_empty_finish', lang))
+        send_message_with_buttons(chat_id, t('cart_empty_finish', lang), [[
+            {'text': t('btn_cart_cancel_empty', lang), 'callback_data': f'cartdrop:{cart.id}'},
+        ]])
         return
 
     lines = [
@@ -705,6 +794,16 @@ def _save_movement(chat_id, message_id, callback_id, user, cart_id):
 
 
 def _drop(chat_id, message_id, callback_id, user, cart_id):
+    cart = _open_cart_or_expire(chat_id, message_id, callback_id, user, cart_id)
+    if cart is None:
+        return
+    answer_callback_query(callback_id)
+    edit_message_reply_markup(chat_id, message_id, {})
+    _confirm_discard(chat_id, user, cart)
+
+
+def _keep(chat_id, message_id, callback_id, user, cart_id):
+    """«No, volver» al confirmar el descarte: muestra el carrito y sus opciones."""
     lang = _lang_of(user)
     cart = _open_cart_or_expire(chat_id, message_id, callback_id, user, cart_id)
     if cart is None:
@@ -712,13 +811,8 @@ def _drop(chat_id, message_id, callback_id, user, cart_id):
     answer_callback_query(callback_id)
     edit_message_reply_markup(chat_id, message_id, {})
     send_message_with_buttons(
-        chat_id,
-        t('cart_discard_confirm', lang).format(count=cart.item_count, total=_money(cart.total, user)),
-        [[
-            {'text': t('btn_cart_discard_yes', lang), 'callback_data': f'cartdropok:{cart.id}'},
-            {'text': t('btn_cart_discard_no', lang), 'callback_data': f'cartend:{cart.id}'},
-        ]],
-    )
+        chat_id, t('cart_status', lang).format(total=_money(cart.total, user), count=cart.item_count),
+        _cart_buttons(cart, lang))
 
 
 def _drop_confirmed(chat_id, message_id, callback_id, user, cart_id):
@@ -753,6 +847,80 @@ def _mode_auto(chat_id, message_id, callback_id, user, cart_id):
     _set_mode(chat_id, message_id, callback_id, user, cart_id, 'auto')
 
 
+def _item_or_expire(chat_id, message_id, callback_id, user, item_id):
+    """Producto de un carrito abierto del usuario, o None (y avisa) si ya no se puede cambiar."""
+    item = (CartItem.query.join(Cart, Cart.id == CartItem.cart_id)
+            .filter(CartItem.id == item_id, Cart.user_id == user.id, Cart.status == 'open').first())
+    if item is None:
+        lang = _lang_of(user)
+        answer_callback_query(callback_id, t('toast_expired', lang))
+        edit_message_reply_markup(chat_id, message_id, {})
+        send_message(chat_id, t('cart_qty_unavailable', lang))
+    return item
+
+
+def _qty_keyboard(item, choices, lang, more=False) -> list:
+    rows = [[{'text': f"×{n}", 'callback_data': f'cartq{n}:{item.id}'} for n in choices[i:i + 4]]
+            for i in range(0, len(choices), 4)]
+    if more:
+        rows.append([{'text': t('btn_cart_qty_more', lang), 'callback_data': f'cartqmore:{item.id}'}])
+    return rows
+
+
+def _ask_qty(chat_id, message_id, callback_id, user, item_id, more=False):
+    lang = _lang_of(user)
+    item = _item_or_expire(chat_id, message_id, callback_id, user, item_id)
+    if item is None:
+        return
+    answer_callback_query(callback_id)
+    edit_message_reply_markup(chat_id, message_id, {})
+    send_message_with_buttons(
+        chat_id,
+        t('cart_qty_prompt', lang).format(name=html.escape(item.name), unit=_money(item.unit_price, user)),
+        _qty_keyboard(item, QTY_MORE_CHOICES if more else QTY_CHOICES, lang, more=not more),
+    )
+
+
+def _ask_more_qty(chat_id, message_id, callback_id, user, item_id):
+    _ask_qty(chat_id, message_id, callback_id, user, item_id, more=True)
+
+
+def _set_qty(chat_id, message_id, callback_id, user, item_id, qty):
+    lang = _lang_of(user)
+    item = _item_or_expire(chat_id, message_id, callback_id, user, item_id)
+    if item is None:
+        return
+    cart = cart_svc.lock_cart(item.cart)
+    item = CartItem.query.filter_by(id=item_id, cart_id=cart.id).first()
+    if item is None or cart.status != 'open':
+        db.session.commit()
+        answer_callback_query(callback_id, t('toast_expired', lang))
+        edit_message_reply_markup(chat_id, message_id, {})
+        send_message(chat_id, t('cart_qty_unavailable', lang))
+        return
+    try:
+        cart_svc.set_item_qty(cart, item, qty)
+        db.session.commit()
+    except cart_svc.CartError:
+        db.session.rollback()
+        answer_callback_query(callback_id, t('toast_error', lang))
+        return
+    answer_callback_query(callback_id, t('toast_saved', lang))
+    edit_message_reply_markup(chat_id, message_id, {})
+    send_message_with_buttons(
+        chat_id,
+        t('cart_qty_set', lang).format(name=html.escape(_item_label(item)), amount=_money(item.line_total, user))
+        + '\n\n' + t('cart_status', lang).format(total=_money(cart.total, user), count=cart.item_count),
+        _item_buttons(cart, item, lang),
+    )
+
+
+def _qty_handler(qty):
+    def handler(chat_id, message_id, callback_id, user, item_id):
+        _set_qty(chat_id, message_id, callback_id, user, item_id, Decimal(qty))
+    return handler
+
+
 _CALLBACKS = {
     'cartok': _confirm,
     'cartoffer': _confirm_offer,
@@ -765,6 +933,10 @@ _CALLBACKS = {
     'cartmov': _save_movement,
     'cartdrop': _drop,
     'cartdropok': _drop_confirmed,
+    'cartkeep': _keep,
     'cartmanual': _mode_manual,
     'cartauto': _mode_auto,
+    'cartqty': _ask_qty,
+    'cartqmore': _ask_more_qty,
+    **{f'cartq{n}': _qty_handler(n) for n in QTY_CHOICES + QTY_MORE_CHOICES},
 }

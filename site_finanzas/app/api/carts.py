@@ -22,6 +22,7 @@ from app.models import Cart, CartItem
 
 _MAX_PER_PAGE = 100
 _MAX_KEY_LEN = 128
+_MAX_SCAN_QTY = 999
 
 _ERRORS = {
     'invalid_amount': (400, 'Monto inválido'),
@@ -305,7 +306,8 @@ def _replayed_item(cart, key, **extra):
     return jsonify({'item': cart_item_schema(previous), 'cart': cart_schema(cart), **extra}), 200
 
 
-def _add_locked(cart, key, *, name, line_total, qty, source, **extra):
+def _add_locked(cart, key, *, name, line_total, qty, source, category=None, generic_name=None,
+                regular_price=None, offer_price=None, **extra):
     """Agrega el ítem con el carrito bloqueado, para que envíos simultáneos no desfasen el total."""
     svc.lock_cart(cart)
     replay = _replayed_item(cart, key, **extra)
@@ -313,7 +315,9 @@ def _add_locked(cart, key, *, name, line_total, qty, source, **extra):
         db.session.commit()
         return replay
     try:
-        item = svc.add_item(cart, name, line_total, qty=qty, source=source, client_request_id=key)
+        item = svc.add_item(cart, name, line_total, qty=qty, source=source, client_request_id=key,
+                            category=category, generic_name=generic_name,
+                            regular_price=regular_price, offer_price=offer_price)
         db.session.commit()
     except svc.CartError as exc:
         db.session.rollback()
@@ -326,6 +330,33 @@ def _add_locked(cart, key, *, name, line_total, qty, source, **extra):
             return replay
         raise
     return jsonify({'item': cart_item_schema(item), 'cart': cart_schema(cart), **extra}), 201
+
+
+@api_v1.patch('/carts/<int:cart_id>/items/<int:item_id>')
+@api_login_required
+def update_cart_item(cart_id, item_id):
+    """Cambia la cantidad de un producto: ``{"qty": 3}``. El precio unitario se mantiene."""
+    cart, error = _cart_or_404(get_current_api_user(), cart_id)
+    if error:
+        return error
+    data = _json_body()
+    if data is None:
+        return _error('Se requiere JSON')
+    qty = _decimal(data.get('qty'))
+    if qty is None:
+        return _error('Cantidad inválida')
+    svc.lock_cart(cart)
+    item = CartItem.query.filter_by(id=item_id, cart_id=cart.id).first()
+    if item is None:
+        db.session.commit()
+        return _error('Producto no encontrado', 'not_found', 404)
+    try:
+        svc.set_item_qty(cart, item, qty)
+        db.session.commit()
+    except svc.CartError as exc:
+        db.session.rollback()
+        return _cart_error(exc)
+    return jsonify({'item': cart_item_schema(item), 'cart': cart_schema(cart)}), 200
 
 
 @api_v1.delete('/carts/<int:cart_id>/items/<int:item_id>')
@@ -357,7 +388,8 @@ def scan_price_tag(cart_id):
     Sin ``add`` no agrega nada: el cliente muestra la sugerencia y la confirma con
     POST /items. Con ``?add=1`` agrega el producto al precio normal (la oferta solo
     se informa) y responde como POST /items más la lectura en ``scan``; acepta
-    ``Idempotency-Key`` y un reintento no vuelve a consumir la IA.
+    ``Idempotency-Key`` y un reintento no vuelve a consumir la IA. El campo
+    opcional ``qty`` multiplica el precio leído (unidades del mismo producto).
     """
     from app.email_service import consume_shared_ai_quota, resolve_ai_config
     from app.telegram.image_utils import validate_and_normalize_image
@@ -373,6 +405,9 @@ def scan_price_tag(cart_id):
     key, error = _idempotency_key() if add else (None, None)
     if error:
         return error
+    qty = _decimal(request.form.get('qty', 1))
+    if qty is None or not 0 < qty <= _MAX_SCAN_QTY:
+        return _error('Cantidad inválida')
     replay = _replayed_item(cart, key, scan=None)
     if replay:
         return replay
@@ -410,17 +445,21 @@ def scan_price_tag(cart_id):
     unit = (result.get('unit') or 'unit').lower()
     name = result.get('name')
     name = name.strip()[:200] if isinstance(name, str) and name.strip() else None
+    generic = result.get('generic_name')
     scan = {
         'name': name,
         'price': float(price.quantize(Decimal('0.01'))),
         'offer_price': float(offer.quantize(Decimal('0.01'))) if offer is not None else None,
         'offer_text': result.get('offer_text') if offer is not None else None,
         'unit': 'kg' if unit == 'kg' else 'unit',
+        'category': result.get('category') if isinstance(result.get('category'), str) else None,
     }
     if not add:
         return jsonify(scan), 200
-    return _add_locked(cart, key, name=name or 'Producto', line_total=price.quantize(Decimal('0.01')),
-                       qty=1, source='photo', scan=scan)
+    return _add_locked(cart, key, name=name or 'Producto', line_total=(price * qty).quantize(Decimal('0.01')),
+                       qty=qty, source='photo', scan=scan, category=scan['category'],
+                       generic_name=generic if isinstance(generic, str) else None,
+                       regular_price=price, offer_price=offer)
 
 
 # ── Finalizar y movimiento ────────────────────────────────────────────────────

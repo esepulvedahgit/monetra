@@ -139,23 +139,31 @@ MESSAGES = {
     'cart_mode_set_manual': {
         'es': (
             "✋ <b>Modo manual.</b> Envía cada producto como texto (<code>Leche 1290</code>, "
-            "<code>2 x 990 yogurt</code>) o una foto de la etiqueta de precio. Lo confirmas antes de sumarlo."
+            "<code>2 x 990 yogurt</code>) o una foto de la etiqueta de precio. Lo confirmas antes de sumarlo.\n\n"
+            "Si llevas varias unidades, escribe la cantidad en el texto de la foto (ej: <code>3</code>) "
+            "o usa 🔢 Cantidad. Para descartar la compra, escribe /cancelar."
         ),
         'en': (
             "✋ <b>Manual mode.</b> Send each product as text (<code>Milk 3.50</code>, "
-            "<code>2 x 1.20 yogurt</code>) or a photo of the price label. You confirm it before it's added."
+            "<code>2 x 1.20 yogurt</code>) or a photo of the price label. You confirm it before it's added.\n\n"
+            "If you take several units, type the quantity as the photo caption (e.g. <code>3</code>) "
+            "or use 🔢 Quantity. To discard the purchase, type /cancel."
         ),
     },
     'cart_mode_set_auto': {
         'es': (
             "⚡ <b>Modo automático.</b> Envía cada producto como texto (<code>Leche 1290</code>, "
             "<code>2 x 990 yogurt</code>) o una foto de la etiqueta de precio. Se suma al carrito al instante; "
-            "si algo quedó mal, usa ↩️ Quitar último."
+            "si algo quedó mal, usa ↩️ Quitar último.\n\n"
+            "Si llevas varias unidades, escribe la cantidad en el texto de la foto (ej: <code>3</code>) "
+            "o usa 🔢 Cantidad. Para descartar la compra, escribe /cancelar."
         ),
         'en': (
             "⚡ <b>Automatic mode.</b> Send each product as text (<code>Milk 3.50</code>, "
             "<code>2 x 1.20 yogurt</code>) or a photo of the price label. It's added right away; "
-            "if something is wrong, use ↩️ Remove last."
+            "if something is wrong, use ↩️ Remove last.\n\n"
+            "If you take several units, type the quantity as the photo caption (e.g. <code>3</code>) "
+            "or use 🔢 Quantity. To discard the purchase, type /cancel."
         ),
     },
     'cart_mode_manual': {'es': "✋ manual", 'en': "✋ manual"},
@@ -204,6 +212,23 @@ MESSAGES = {
     'btn_cart_more': {'es': "➕ Agregar otro", 'en': "➕ Add another"},
     'btn_cart_undo': {'es': "↩️ Quitar último", 'en': "↩️ Remove last"},
     'btn_cart_finish': {'es': "🏁 Finalizar", 'en': "🏁 Finish"},
+    'btn_cart_cancel': {'es': "🗑 Cancelar", 'en': "🗑 Cancel"},
+    'btn_cart_qty': {'es': "🔢 Cantidad", 'en': "🔢 Quantity"},
+    'btn_cart_qty_more': {'es': "Más…", 'en': "More…"},
+    'cart_qty_prompt': {
+        'es': "🔢 ¿Cuántas unidades de <b>{name}</b> llevas? ({unit} c/u)",
+        'en': "🔢 How many <b>{name}</b> are you taking? ({unit} each)",
+    },
+    'cart_qty_set': {'es': "🔢 <b>{name}</b> — {amount}", 'en': "🔢 <b>{name}</b> — {amount}"},
+    'cart_qty_unavailable': {
+        'es': "ℹ️ Ese producto ya no está en un carrito abierto.",
+        'en': "ℹ️ That product is no longer in an open cart.",
+    },
+    'btn_cart_cancel_empty': {'es': "🗑 Cancelar carrito", 'en': "🗑 Cancel cart"},
+    'cart_nothing_to_cancel': {
+        'es': "ℹ️ No tienes un carrito abierto. Escribe /carrito para empezar uno.",
+        'en': "ℹ️ You don't have an open cart. Type /cart to start one.",
+    },
     'cart_prompt_next': {
         'es': "📸 Envía el siguiente producto (texto o foto).",
         'en': "📸 Send the next product (text or photo).",
@@ -259,8 +284,8 @@ MESSAGES = {
     'btn_cart_discard_no': {'es': "⬅️ No, volver", 'en': "⬅️ No, go back"},
     'cart_discarded': {'es': "🗑 Carrito descartado.", 'en': "🗑 Cart discarded."},
     'cart_empty_finish': {
-        'es': "ℹ️ El carrito está vacío. Agrega al menos un producto antes de finalizar.",
-        'en': "ℹ️ The cart is empty. Add at least one product before finishing.",
+        'es': "ℹ️ El carrito está vacío. Agrega al menos un producto antes de finalizar, o cancélalo.",
+        'en': "ℹ️ The cart is empty. Add at least one product before finishing, or cancel it.",
     },
     'cart_not_active': {
         'es': "ℹ️ Este carrito ya no está activo. Escribe /carrito para empezar uno nuevo.",
@@ -285,8 +310,14 @@ MESSAGES = {
         ),
     },
     'cart_text_help': {
-        'es': "ℹ️ Escribe el producto y su precio: <code>Leche 1290</code> o <code>2 x 990 yogurt</code>",
-        'en': "ℹ️ Type the product and its price: <code>Milk 3.50</code> or <code>2 x 1.20 yogurt</code>",
+        'es': (
+            "ℹ️ Escribe el producto y su precio: <code>Leche 1290</code> o <code>2 x 990 yogurt</code>\n\n"
+            "Escribe /carrito para ver las opciones o /cancelar para descartar el carrito."
+        ),
+        'en': (
+            "ℹ️ Type the product and its price: <code>Milk 3.50</code> or <code>2 x 1.20 yogurt</code>\n\n"
+            "Type /cart to see the options or /cancel to discard the cart."
+        ),
     },
     'cart_default_item': {'es': "Producto", 'en': "Product"},
     'cart_no_store': {'es': "supermercado sin nombre", 'en': "unnamed store"},

@@ -469,3 +469,39 @@ with app.app_context():
             ))
             conn.commit()
             print("Columna entry_mode agregada a carts.")
+        if 'store_chain' not in cart_cols:
+            conn.execute(text("ALTER TABLE carts ADD COLUMN store_chain VARCHAR(120) NULL"))
+            conn.commit()
+            print("Columna store_chain agregada a carts.")
+
+    # ── Analítica del carrito: tipo, nombre genérico, tamaño y precios por producto ──
+    analytics_cols = {
+        'cart_items': [
+            ('category', 'VARCHAR(24) NULL'), ('category_source', 'VARCHAR(10) NULL'),
+            ('generic_name', 'VARCHAR(120) NULL'), ('size_amount', 'DECIMAL(12,3) NULL'),
+            ('size_unit', 'VARCHAR(4) NULL'), ('regular_price', 'DECIMAL(12,2) NULL'),
+            ('offer_price', 'DECIMAL(12,2) NULL'),
+        ],
+        'cart_pending_items': [('category', 'VARCHAR(24) NULL'), ('generic_name', 'VARCHAR(120) NULL')],
+    }
+    for table, columns in analytics_cols.items():
+        existing = [c['name'] for c in inspect(db.engine).get_columns(table)]
+        with db.engine.connect() as conn:
+            for name, ddl in columns:
+                if name not in existing:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}"))
+                    conn.commit()
+                    print(f"Columna {name} agregada a {table}.")
+    cart_item_indexes = [i['name'] for i in inspect(db.engine).get_indexes('cart_items')]
+    if 'ix_cart_items_category' not in cart_item_indexes:
+        with db.engine.connect() as conn:
+            conn.execute(text("CREATE INDEX ix_cart_items_category ON cart_items (category)"))
+            conn.commit()
+
+    # Productos y compras guardados antes de la analítica: se completan una vez, sin IA.
+    # La sesión se cierra antes: MySQL rechaza (1412) una transacción abierta antes de los ALTER TABLE.
+    db.session.remove()
+    from app.cart.enrichment import backfill
+    enriched = backfill()
+    if enriched:
+        print(f"Analítica del carrito: {enriched} registros completados.")

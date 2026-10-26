@@ -19,7 +19,9 @@ La pestaña **Súper** lleva el total del carro durante una compra en el superme
 
 - Cada producto se agrega con una **foto de la etiqueta** (`POST /carts/{id}/scan?add=1`) o **escribiéndolo** (nombre, precio unitario y cantidad). La verificación es automática: no hay paso de confirmación. Lo que quedó mal se corrige con **Quitar último** y un nuevo registro.
 - Si la etiqueta trae una oferta, se suma el precio normal y la oferta solo se informa.
+- **Unidades en la próxima foto** (− / +) multiplica el precio leído y vuelve a 1 después de cada producto. La cantidad del último registro se corrige con el mismo control (`PATCH /carts/{id}/items/{item_id}`), sin borrar ni volver a fotografiar.
 - La foto es temporal. La app la reduce a 1600 px, la sube y la borra de la caché, tanto si la lectura funciona como si falla. El servidor la procesa en memoria y no la guarda.
+- **Cancelar compra** elimina el carrito y sus productos sin guardarlo. Si la compra tiene productos, pide confirmación.
 - Al finalizar se muestra la lista completa y la compra queda en el historial con su fecha y su total. Desde la app no se crea un movimiento.
 - Cada envío lleva un `Idempotency-Key`, así que un reintento no duplica el producto ni vuelve a consumir la IA. Las fotos consumen la cuota diaria cuando la IA es la compartida.
 - El carrito es el mismo que usa el bot de Telegram: una compra empezada en un canal se puede seguir en el otro.
