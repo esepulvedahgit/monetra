@@ -7,7 +7,6 @@ from app import db
 from app.models import RecurringTransaction, Transaction, User
 from app.services.finance import prune_recurring_after_end
 
-
 EMAIL = 'recurring_prune@example.com'
 PASSWORD = 'Password123!'
 

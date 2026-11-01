@@ -27,7 +27,7 @@ from app.services.finance import prune_recurring_after_end
 
 def main(apply: bool) -> None:
     rules = RecurringTransaction.query.filter(
-        (RecurringTransaction.is_active == False) | RecurringTransaction.end_date.isnot(None)  # noqa: E712
+        (RecurringTransaction.is_active == False) | RecurringTransaction.end_date.isnot(None)
     ).all()
 
     total = 0
