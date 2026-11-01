@@ -645,6 +645,28 @@ def generate_pending_recurring_range(user_id: int, year: int, from_month: int, t
     return changed
 
 
+def prune_recurring_after_end(rec, today=None) -> int:
+    """Delete pre-generated transactions dated after the rule stopped applying.
+
+    Backfill materializes a rule until Dec 31, so finalizing, deactivating or
+    shortening it must drop the future entries it already created. Entries up
+    to the cutoff stay as history.
+    """
+    today = today or _date.today()
+    cutoffs = []
+    if rec.end_date:
+        cutoffs.append(rec.end_date)
+    if not rec.is_active:
+        cutoffs.append(today)
+    if not cutoffs:
+        return 0
+    return Transaction.query.filter(
+        Transaction.user_id == rec.user_id,
+        Transaction.recurring_id == rec.id,
+        Transaction.date > min(cutoffs),
+    ).delete(synchronize_session=False)
+
+
 def get_recurring_for_month(user_id: int, year: int, month: int) -> list:
     """Return active recurring transactions that apply to the given year/month."""
     import calendar

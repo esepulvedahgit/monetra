@@ -128,6 +128,7 @@ def update_recurring(rec_id):
     if "is_active" in data:
         rec.is_active = bool(data["is_active"])
 
+    svc.prune_recurring_after_end(rec)
     db.session.commit()
     return jsonify(_recurring_dict(rec)), 200
 
@@ -152,5 +153,6 @@ def finalize_recurring(rec_id):
 
     rec.end_date = date.today()
     rec.is_active = False
+    svc.prune_recurring_after_end(rec)
     db.session.commit()
     return jsonify(_recurring_dict(rec)), 200
