@@ -434,6 +434,13 @@ def delete_year():
         extract('year', Transaction.date) == year,
     ).delete(synchronize_session=False)
 
+    # Sin esto, las reglas del año siguen activas y regeneran sus movimientos
+    # la próxima vez que se abre el dashboard de ese año.
+    RecurringTransaction.query.filter(
+        RecurringTransaction.user_id == current_user.id,
+        extract('year', RecurringTransaction.created_at) == year,
+    ).delete(synchronize_session=False)
+
     Budget.query.filter_by(user_id=current_user.id, year=year).delete()
     UserYear.query.filter_by(user_id=current_user.id, year=year).delete()
     db.session.commit()
@@ -1551,6 +1558,9 @@ def recurrente_form(rec_id=None):
             rec.day_of_month = form.day_of_month.data
             rec.end_date     = form.end_date.data or None
             rec.is_active    = form.is_active.data
+            if not is_new:
+                from app.services.finance import prune_recurring_after_end
+                prune_recurring_after_end(rec)
             db.session.commit()
 
             current_month_date = None
@@ -1625,9 +1635,14 @@ def recurrente_finalizar(rec_id):
     rec = RecurringTransaction.query.filter_by(id=rec_id, user_id=current_user.id).first_or_404()
     if rec.is_demo:
         return _reject_demo('main.recurrentes')
+    from app.services.finance import prune_recurring_after_end
     rec.end_date = date.today()
     rec.is_active = False
+    removed = prune_recurring_after_end(rec)
     db.session.commit()
+    if removed:
+        flash(_('Recurrente finalizada. Se eliminaron %(n)s movimientos futuros ya generados.', n=removed), 'success')
+        return redirect(url_for('main.recurrentes'))
     flash(_('Recurrente finalizada. Ya no generará nuevos movimientos.'), 'success')
     return redirect(url_for('main.recurrentes'))
 
